@@ -687,6 +687,7 @@ async function refreshSessionStatus() {
   statusEl.textContent = data.session
     ? `Eingeloggt als ${data.session.user.email}`
     : 'Keine aktive Session';
+  updateAdminOverview();
 }
 
 async function signInAdmin() {
@@ -876,6 +877,7 @@ async function loadSeasonSummary() {
 
     const races = await window.RCCData.fetchRaces({ seasonId: season.id });
     el.innerHTML = `<strong>Aktive Saison:</strong> ${window.escapeHtml(season.name || `Saison ${season.id}`)}<br><strong>Rennen:</strong> ${races.length}<br><strong>Status:</strong> ${window.escapeHtml(season.status || 'active')}`;
+    updateAdminOverview();
   } catch (error) {
     console.error(error);
     el.textContent = 'Saisonübersicht konnte nicht geladen werden.';
@@ -1106,6 +1108,7 @@ async function renderPublishWorkflow() {
 
     if (!pending.length) {
       list.innerHTML = '<div class="notice">Keine ausstehenden Ergebnisimporte vorhanden.</div>';
+      updateAdminOverview();
       return;
     }
 
@@ -1149,6 +1152,7 @@ async function renderPublishWorkflow() {
         </div>
       `;
     }).join('');
+    updateAdminOverview();
   } catch (error) {
     console.error(error);
     list.innerHTML = `<div class="notice notice-error">Workflow konnte nicht geladen werden: ${window.escapeHtml(error.message || 'Unbekannter Fehler')}</div>`;
@@ -1722,6 +1726,56 @@ function setManualResultsDirty(isDirty = true) {
 }
 
 
+
+function setAdminOverviewValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+async function updateAdminOverview() {
+  try {
+    const [season, pendingResponse, sessionResponse] = await Promise.all([
+      getCurrentSeasonSafe(),
+      window.supabaseClient.from('race_result_imports').select('id', { count: 'exact', head: true }).in('status', ['draft', 'under_review']),
+      window.supabaseClient.auth.getSession()
+    ]);
+
+    if (season) {
+      setAdminOverviewValue('admin-overview-season', `Saison ${season.name || '—'}`);
+      try {
+        const races = await window.RCCData.fetchRaces({ seasonId: season.id });
+        setAdminOverviewValue('admin-overview-races', `${races.length} Rennen im Kalender`);
+      } catch (_) {
+        setAdminOverviewValue('admin-overview-races', 'Kalender konnte nicht geladen werden');
+      }
+    } else {
+      setAdminOverviewValue('admin-overview-season', 'Keine aktive Saison');
+      setAdminOverviewValue('admin-overview-races', 'Bitte Saison prüfen');
+    }
+
+    const pendingCount = Number(pendingResponse.count || 0);
+    setAdminOverviewValue('admin-overview-imports', `${pendingCount} ${pendingCount === 1 ? 'Entwurf' : 'Entwürfe'}`);
+    setAdminOverviewValue('admin-overview-imports-sub', pendingCount ? 'Importe warten auf Freigabe' : 'Kein offener Import im Workflow');
+
+    const session = sessionResponse?.data?.session || null;
+    setAdminOverviewValue('admin-overview-session', session ? 'Admin aktiv' : 'Nicht eingeloggt');
+    setAdminOverviewValue('admin-overview-session-sub', session?.user?.email || 'Bitte Admin-Login prüfen');
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function getPanelTone(titleText = '') {
+  const title = String(titleText || '').toLowerCase();
+  if (title.includes('saison')) return 'Workflow';
+  if (title.includes('csv') || title.includes('import')) return 'Import';
+  if (title.includes('steward')) return 'Stewarding';
+  if (title.includes('manuell')) return 'Editor';
+  if (title.includes('fahrer')) return 'Roster';
+  if (title.includes('rennen')) return 'Kalender';
+  return 'Admin';
+}
+
 function toggleAdminPanel(panel, shouldCollapse = null) {
   if (!panel) return;
   const collapsed = shouldCollapse === null ? !panel.classList.contains('collapsed') : shouldCollapse;
@@ -1729,7 +1783,7 @@ function toggleAdminPanel(panel, shouldCollapse = null) {
   const button = panel.querySelector('.panel-collapse-toggle');
   if (button) {
     button.setAttribute('aria-expanded', String(!collapsed));
-    button.textContent = collapsed ? 'Öffnen' : 'Einklappen';
+    button.textContent = collapsed ? '+ Öffnen' : '− Offen';
   }
 }
 
@@ -1743,12 +1797,19 @@ function enableAdminCollapsibles() {
     const headerRow = document.createElement('div');
     headerRow.className = 'panel-header-row';
     title.parentNode.insertBefore(headerRow, title);
-    headerRow.appendChild(title);
+
+    const titleWrap = document.createElement('div');
+    const eyebrow = document.createElement('div');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = getPanelTone(title.textContent || '');
+    titleWrap.appendChild(eyebrow);
+    titleWrap.appendChild(title);
+    headerRow.appendChild(titleWrap);
 
     const toggle = document.createElement('button');
     toggle.type = 'button';
     toggle.className = 'button-secondary panel-collapse-toggle';
-    toggle.textContent = 'Einklappen';
+    toggle.textContent = '− Offen';
     toggle.setAttribute('aria-expanded', 'true');
     toggle.addEventListener('click', () => toggleAdminPanel(panel));
     headerRow.appendChild(toggle);
@@ -1879,7 +1940,8 @@ async function initAdminPage() {
     loadRaceOptions(),
     renderPublishWorkflow(),
     updateManualResultsVisibility(),
-    populateManualRaceSelect()
+    populateManualRaceSelect(),
+    updateAdminOverview()
   ]);
   renderImportPreviewTable([]);
   setImportPreviewBanner('');

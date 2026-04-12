@@ -26,6 +26,12 @@
         <div class="eyebrow">Admin</div>
         <h1 class="page-title page-title-compact">Admin Center</h1>
         <p class="page-subtitle">Modularer Saison-, Kalender- und Ergebnis-Workflow mit persistentem Login und moderner UI.</p>
+      <div class="admin-overview-grid" id="admin-overview-grid">
+        <article class="admin-overview-card"><span class="admin-overview-label">Aktive Saison</span><strong id="admin-overview-season">Lädt…</strong><small id="admin-overview-races">Rennen werden geladen</small></article>
+        <article class="admin-overview-card"><span class="admin-overview-label">Session</span><strong id="admin-overview-session">Prüfung…</strong><small id="admin-overview-session-sub">Admin-Login Status</small></article>
+        <article class="admin-overview-card"><span class="admin-overview-label">Workflow</span><strong id="admin-overview-imports">0 Entwürfe</strong><small id="admin-overview-imports-sub">Importe warten auf Freigabe</small></article>
+        <article class="admin-overview-card"><span class="admin-overview-label">Bereich</span><strong id="admin-overview-focus">Produktmodus</strong><small id="admin-overview-focus-sub">Import, Stewarding und Saisonabschluss</small></article>
+      </div>
       </div>
     </div>
 
@@ -49,7 +55,7 @@
         <div class="detail-list" id="season-summary">Saison wird geladen...</div>
         <div class="card-actions">
           <button type="button" class="button-secondary" id="prepare-season-finalize-btn">Saisonabschluss prüfen</button>
-          <button type="button" class="button-primary" id="start-new-season-btn">Saison final abschließen</button>
+          <button type="button" class="button-primary button-danger" id="start-new-season-btn">Saison final abschließen</button>
         </div>
         <div class="notice">Beim Saisonwechsel bleiben alte Daten erhalten. Die neue Saison startet mit leerem Rennkalender.</div>
         <div id="season-finalize-preview" class="notice" hidden></div>
