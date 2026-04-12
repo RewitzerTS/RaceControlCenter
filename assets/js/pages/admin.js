@@ -755,7 +755,8 @@ async function saveRace() {
       round_number: nextRoundNumber,
       grand_prix_name: grandPrixName,
       circuit_name: circuitName,
-      race_date: `${raceDate}T${raceTime}:00`,
+      race_date: raceDate,
+      race_time: raceTime,
       status,
       weather,
       notes
@@ -1139,7 +1140,8 @@ async function createRandomSeason() {
       round_number: index + 1,
       grand_prix_name: track.grandPrixName,
       circuit_name: track.circuitName,
-      race_date: seasonDates[index].toISOString(),
+      race_date: seasonDates[index].toISOString().slice(0, 10),
+      race_time: normalizedRaceTime,
       status: DEFAULT_RACE_STATUS,
       weather: chosenWeather,
       notes: `Zufällig erzeugter Saisonkalender · Fahrtage: ${raceDaysInput} · Rennstart: ${normalizedRaceTime}`
@@ -1543,6 +1545,43 @@ function setManualResultsDirty(isDirty = true) {
   });
 }
 
+
+function toggleAdminPanel(panel, shouldCollapse = null) {
+  if (!panel) return;
+  const collapsed = shouldCollapse === null ? !panel.classList.contains('collapsed') : shouldCollapse;
+  panel.classList.toggle('collapsed', collapsed);
+  const button = panel.querySelector('.panel-collapse-toggle');
+  if (button) {
+    button.setAttribute('aria-expanded', String(!collapsed));
+    button.textContent = collapsed ? 'Öffnen' : 'Einklappen';
+  }
+}
+
+function enableAdminCollapsibles() {
+  const sections = [...document.querySelectorAll('.admin-layout > .panel')];
+  sections.forEach((panel, index) => {
+    if (panel.dataset.collapsibleReady === 'true') return;
+    const title = panel.querySelector('h3');
+    if (!title) return;
+
+    const headerRow = document.createElement('div');
+    headerRow.className = 'panel-header-row';
+    title.parentNode.insertBefore(headerRow, title);
+    headerRow.appendChild(title);
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'button-secondary panel-collapse-toggle';
+    toggle.textContent = 'Einklappen';
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.addEventListener('click', () => toggleAdminPanel(panel));
+    headerRow.appendChild(toggle);
+
+    panel.dataset.collapsibleReady = 'true';
+    if (index > 1) toggleAdminPanel(panel, true);
+  });
+}
+
 function bindUiEvents() {
   if (state.eventsBound) return;
   state.eventsBound = true;
@@ -1649,6 +1688,7 @@ async function initAdminPage() {
   state.initialized = true;
 
   populateDriverDropdowns();
+  enableAdminCollapsibles();
   bindUiEvents();
   bindAuthListener();
 

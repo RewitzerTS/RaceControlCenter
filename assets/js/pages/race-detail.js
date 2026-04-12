@@ -103,11 +103,11 @@ async function loadRaceDetailPage() {
     const flagBadge = window.createFlagBadge(track?.countryCode, `${track?.grandPrixName || race.grand_prix_name} Flagge`);
 
     titleEl.innerHTML = `${flagBadge} <span>${window.escapeHtml(race.grand_prix_name)}</span>`;
-    subtitleEl.textContent = `${race.circuit_name || track?.circuitName || 'Strecke offen'} · ${window.formatRaceDateTime(race.race_date)}`;
+    subtitleEl.textContent = `${race.circuit_name || track?.circuitName || 'Strecke offen'} · ${window.formatRaceDateTime(race)}`;
 
     infoEl.innerHTML = `
       <strong>Runde:</strong> ${race.round_number ?? '—'}<br>
-      <strong>Termin:</strong> ${window.formatRaceDateTime(race.race_date)}<br>
+      <strong>Termin:</strong> ${window.formatRaceDateTime(race)}<br>
       <strong>Strecke:</strong> ${window.escapeHtml(race.circuit_name || track?.circuitName || '—')}<br>
       <strong>Wetter:</strong> ${window.escapeHtml(window.formatWeatherLabel(race.weather))}<br>
       <strong>Status:</strong> ${window.escapeHtml(window.formatStatusLabel(race.status))}<br>

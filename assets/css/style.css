@@ -1645,3 +1645,24 @@ body.hof-page {
 .hof-empty { padding: 18px; border-radius: 18px; background: rgba(10, 16, 28, 0.78); border: 1px solid rgba(255,255,255,0.08); color: rgba(241,245,249,0.82); text-align: center; }
 @media (max-width: 960px) { .hof-season-grid, .hof-totals-split { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { body.hof-page { background: linear-gradient(180deg, rgba(3, 7, 18, 0.68), rgba(3, 7, 18, 0.96)), url("../images/HOF.png") center top / cover no-repeat fixed; } .hof-hero { padding: 28px 0 4px; } .hof-season-card { padding: 18px; border-radius: 22px; } .hof-season-header { align-items: flex-start; } .hof-star { width: 30px; height: 30px; } .hof-champion-card { min-height: 240px; padding: 18px 14px 18px; } .hof-champion-image { width: min(210px, 76%); } }
+
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel-header-row h3 {
+  margin-bottom: 0;
+}
+
+.panel-collapse-toggle {
+  flex-shrink: 0;
+}
+
+.panel.collapsed > :not(.panel-header-row) {
+  display: none !important;
+}

@@ -7,15 +7,24 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
-function parseRaceDateValue(value) {
+function parseRaceDateValue(value, explicitTime = '') {
   if (!value) return null;
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
 
-  const text = String(value).trim();
+  let rawValue = value;
+  let timeValue = explicitTime;
+
+  if (typeof value === 'object' && value !== null) {
+    rawValue = value.race_date || value.date || '';
+    timeValue = explicitTime || value.race_time || '';
+  }
+
+  const text = String(rawValue).trim();
   if (!text) return null;
 
   if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
-    const date = new Date(`${text}T00:00:00`);
+    const safeTime = /^\d{2}:\d{2}$/.test(String(timeValue || '').trim()) ? String(timeValue).trim() : '00:00';
+    const date = new Date(`${text}T${safeTime}:00`);
     return Number.isNaN(date.getTime()) ? null : date;
   }
 
@@ -30,8 +39,8 @@ function formatRaceDate(value) {
   return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(date);
 }
 
-function formatRaceDateTime(value) {
-  const date = parseRaceDateValue(value);
+function formatRaceDateTime(value, explicitTime = '') {
+  const date = parseRaceDateValue(value, explicitTime);
   if (!date) return 'Termin folgt';
   return new Intl.DateTimeFormat('de-DE', {
     dateStyle: 'medium',
@@ -146,7 +155,7 @@ function createRaceCard(race) {
         <div class="race-body modern-race-body">
           <div class="race-meta-grid">
             <div class="race-meta-stack">
-              <div class="race-meta">${formatRaceDateTime(race.race_date)}</div>
+              <div class="race-meta">${formatRaceDateTime(race)}</div>
               <div class="race-meta-sub">${escapeHtml(race.circuit_name || track?.circuitName || 'Strecke offen')}</div>
               <div class="race-result">Wetter: <strong>${escapeHtml(formatWeatherLabel(race.weather))}</strong></div>
             </div>
