@@ -69,6 +69,17 @@ function renderTeamStandings(standings) {
   `).join('');
 }
 
+function updateStandingsMeta(currentSeason, driverCount, teamCount) {
+  const subtitles = document.querySelectorAll('.page-subtitle');
+  const seasonLabel = currentSeason?.name ? `Saison ${currentSeason.name}` : 'Alle verfügbaren Daten';
+  if (subtitles[0]) subtitles[0].textContent = `${seasonLabel} · automatische Wertung aus den veröffentlichten Rennergebnissen.`;
+  if (subtitles[1]) subtitles[1].textContent = `${seasonLabel} · automatische Wertung aus den veröffentlichten Rennergebnissen.`;
+
+  const tableHeaders = document.querySelectorAll('.table-header .muted');
+  if (tableHeaders[0]) tableHeaders[0].textContent = `${driverCount} Fahrer`;
+  if (tableHeaders[1]) tableHeaders[1].textContent = `${teamCount} Teams`;
+}
+
 async function loadStandingsPage() {
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
@@ -86,8 +97,11 @@ async function loadStandingsPage() {
     const previousStandings = window.RCCData.buildStandings({ drivers, races: previousRaces, raceResults, resolver });
 
     const hasPreviousRace = previousRaces.length > 0;
-    renderDriverStandings(withDriverTrends(currentStandings.driverStandings, previousStandings.driverStandings, hasPreviousRace));
-    renderTeamStandings(withTeamTrends(currentStandings.teamStandings, previousStandings.teamStandings, hasPreviousRace));
+    const driverStandings = withDriverTrends(currentStandings.driverStandings, previousStandings.driverStandings, hasPreviousRace);
+    const teamStandings = withTeamTrends(currentStandings.teamStandings, previousStandings.teamStandings, hasPreviousRace);
+    renderDriverStandings(driverStandings);
+    renderTeamStandings(teamStandings);
+    updateStandingsMeta(currentSeason, driverStandings.length, teamStandings.length);
   } catch (error) {
     console.error(error);
     const driverBody = document.getElementById('drivers-standings-body');

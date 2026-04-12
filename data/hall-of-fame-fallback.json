@@ -1,0 +1,18 @@
+{
+  "activeSeason": "14",
+  "history": [
+    {"season_name":"1","driver_champion":"Fabian","driver_champion_team":"Alpha Tauri","constructor_champion":"Alpha Tauri","constructor_champion_lineup":"Davide(Yuki Tsunoda) & Fabian(Pierre Gasly)"},
+    {"season_name":"2","driver_champion":"Davide","driver_champion_team":"Alfa Romeo","constructor_champion":"Alfa Romeo","constructor_champion_lineup":"Davide(Kimi Räikkönen) & Fabian(Antonio Giovinazzi)"},
+    {"season_name":"3","driver_champion":"Davide","driver_champion_team":"Haas","constructor_champion":"Haas","constructor_champion_lineup":"Davide(Mick Schumacher) & Fabian(Nikita Mazepin)"},
+    {"season_name":"4","driver_champion":"Davide","driver_champion_team":"Haas","constructor_champion":"Haas","constructor_champion_lineup":"Davide(Mick Schumacher) & Fabian(Nikita Mazepin)"},
+    {"season_name":"5","driver_champion":"Davide","driver_champion_team":"Haas","constructor_champion":"Alfa Romeo","constructor_champion_lineup":"Fabian(Kimi Raikkönen) & Jannick(Antonio Giovinazzi)"},
+    {"season_name":"6","driver_champion":"Jannick","driver_champion_team":"Alpine","constructor_champion":"Alpine","constructor_champion_lineup":"Jannick(Fernando Alonso) & Jannis(Esteban Ocon)"},
+    {"season_name":"7","driver_champion":"Davide","driver_champion_team":"Alpha Tauri","constructor_champion":"Alpha Tauri","constructor_champion_lineup":"Davide(Yuki Tsunoda) & Fabian(Daniel Ricciardo)"},
+    {"season_name":"8","driver_champion":"Davide","driver_champion_team":"Alpha Tauri","constructor_champion":"Alpha Tauri","constructor_champion_lineup":"Davide(Yuki Tsunoda) & Fabian(Daniel Ricciardo)"},
+    {"season_name":"9","driver_champion":"Diogo","driver_champion_team":"Team Portugal","constructor_champion":"Team RusIta","constructor_champion_lineup":"Davide(Yuki Tsunoda) & Maxim(Max Verstappen)"},
+    {"season_name":"10","driver_champion":"Davide","driver_champion_team":"Team RusIta","constructor_champion":"Team RusIta","constructor_champion_lineup":"Davide(Yuki Tsunoda) & Maxim(Max Verstappen)"},
+    {"season_name":"11","driver_champion":"Richard","driver_champion_team":"Team Kiesbett Connection","constructor_champion":"Team Kiesbett Connection","constructor_champion_lineup":"Jasmin(Sergio Perez) & Richard(Logan Sargeant)"},
+    {"season_name":"12","driver_champion":"Davide","driver_champion_team":"Team RusIta","constructor_champion":"Team RusIta","constructor_champion_lineup":"Davide(Zhou Guanyu) & Maxim(Oscar Piastri)"},
+    {"season_name":"13","driver_champion":"Richard","driver_champion_team":"Team Kiesbett Connection","constructor_champion":"Team RusIta","constructor_champion_lineup":"Davide(Zhou Guanyu) & Maxim(Oscar Piastri)"}
+  ]
+}

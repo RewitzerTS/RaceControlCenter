@@ -26,12 +26,6 @@ function isCompleteChampionRecord(record) {
   return Boolean(String(record?.driver_champion || '').trim() && String(record?.constructor_champion || '').trim());
 }
 
-function normalizeSeasonIdentity(name) {
-  const raw = String(name || '').trim().toLowerCase();
-  const digits = raw.match(/(\d+)/);
-  return digits ? digits[1] : raw;
-}
-
 function parseChampionLineup(lineup) {
   return String(lineup || '')
     .split('&')
@@ -74,7 +68,7 @@ function buildConstructorTotals(records) {
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'de'));
 }
 
-function renderCurrentFeature(record) {
+function renderCurrentFeature(record, sourceLabel = '') {
   const root = document.getElementById('hof-current-feature');
   const subtitle = document.getElementById('hof-current-subtitle');
   if (!root || !subtitle) return;
@@ -84,7 +78,7 @@ function renderCurrentFeature(record) {
     root.textContent = 'Noch keine Hall of Fame Einträge vorhanden.';
     return;
   }
-  subtitle.textContent = formatSeasonLabel(record.season_name);
+  subtitle.textContent = `${formatSeasonLabel(record.season_name)}${sourceLabel ? ` · ${sourceLabel}` : ''}`;
   root.className = 'hof-season-card hof-season-card--featured';
   root.innerHTML = `
     <div class="hof-season-header">
@@ -158,59 +152,92 @@ function renderTotals(records) {
   const constructorRoot = document.getElementById('hof-constructor-totals-grid');
   const headline = document.getElementById('hof-total-seasons');
   if (!peopleRoot || !constructorRoot || !headline) return;
+
   headline.textContent = `${records.length} ${records.length === 1 ? 'Saison' : 'Saisons'} verewigt`;
+
   const personTotals = buildPersonTotals(records);
   const constructorTotals = buildConstructorTotals(records);
-  peopleRoot.innerHTML = personTotals.length ? personTotals.map((entry, index) => `
-    <article class="hof-total-card">
-      <div class="hof-total-rank">#${index + 1}</div>
-      <div class="hof-total-name">${escapeHtml(entry.name)}</div>
-      <div class="hof-total-stats">${entry.driver}x Fahrerweltmeister · ${entry.constructor}x Konstrukteursweltmeister</div>
-    </article>`).join('') : '<div class="hof-empty">Noch keine Personenstatistik vorhanden.</div>';
-  constructorRoot.innerHTML = constructorTotals.length ? constructorTotals.map((entry, index) => `
-    <article class="hof-total-card">
-      <div class="hof-total-rank">#${index + 1}</div>
-      <div class="hof-total-name">${escapeHtml(entry.name)}</div>
-      <div class="hof-total-stats">${entry.total}x Konstrukteursweltmeister</div>
-    </article>`).join('') : '<div class="hof-empty">Noch keine Konstrukteursstatistik vorhanden.</div>';
+
+  peopleRoot.innerHTML = personTotals.length
+    ? personTotals.map((entry, index) => `
+      <article class="hof-total-card">
+        <div class="hof-total-rank">#${index + 1}</div>
+        <div class="hof-total-name">${escapeHtml(entry.name)}</div>
+        <div class="hof-total-stats">${entry.driver}x Fahrerweltmeister · ${entry.constructor}x Konstrukteursweltmeister</div>
+      </article>
+    `).join('')
+    : '<div class="hof-empty">Noch keine Personenstatistik vorhanden.</div>';
+
+  constructorRoot.innerHTML = constructorTotals.length
+    ? constructorTotals.map((entry, index) => `
+      <article class="hof-total-card">
+        <div class="hof-total-rank">#${index + 1}</div>
+        <div class="hof-total-name">${escapeHtml(entry.name)}</div>
+        <div class="hof-total-stats">${entry.total}x Konstrukteursweltmeister</div>
+      </article>
+    `).join('')
+    : '<div class="hof-empty">Noch keine Konstrukteursstatistik vorhanden.</div>';
+}
+
+async function fetchFallbackHistory() {
+  const response = await fetch('data/hall-of-fame-fallback.json', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Fallback-Historie konnte nicht geladen werden.');
+  const payload = await response.json();
+  return payload.history || [];
+}
+
+async function fetchSupabaseHistory() {
+  const [historyResponse, seasonsResponse] = await Promise.all([
+    window.supabaseClient
+      .from('championship_history')
+      .select('season_id, season_name, driver_champion, driver_champion_team, constructor_champion, constructor_champion_lineup, created_at')
+      .order('created_at', { ascending: true }),
+    window.supabaseClient
+      .from('seasons')
+      .select('id, name, is_active')
+      .order('created_at', { ascending: true })
+  ]);
+
+  if (historyResponse.error) throw historyResponse.error;
+  if (seasonsResponse.error) throw seasonsResponse.error;
+
+  const seasonsById = new Map((seasonsResponse.data || []).map((season) => [String(season.id), season]));
+  const merged = (historyResponse.data || []).map((record, index) => ({
+    ...record,
+    season_name: record.season_name || seasonsById.get(String(record.season_id))?.name || String(index + 1)
+  }));
+  return merged;
 }
 
 async function loadHallOfFamePage() {
-  const wall = document.getElementById('hof-season-wall');
   try {
-    const [historyResponse, seasonResponse] = await Promise.all([
-      window.supabaseClient
-        .from('championship_history')
-        .select('season_id, season_name, driver_champion, driver_champion_team, constructor_champion, constructor_champion_lineup, created_at')
-        .order('season_id', { ascending: true }),
-      window.supabaseClient
-        .from('seasons')
-        .select('name')
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle()
-    ]);
+    let records = [];
+    let sourceLabel = '';
 
-    if (historyResponse.error) throw historyResponse.error;
-    if (seasonResponse.error) throw seasonResponse.error;
-
-    const activeSeasonIdentity = normalizeSeasonIdentity(seasonResponse.data?.name || '');
-    const records = (historyResponse.data || []).slice().sort((a, b) => {
-      return getSeasonSortValue(a?.season_name) - getSeasonSortValue(b?.season_name);
-    });
-    const completedRecords = records.filter(isCompleteChampionRecord);
-
-    let current = completedRecords.length ? completedRecords[completedRecords.length - 1] : null;
-    if (current && activeSeasonIdentity && normalizeSeasonIdentity(current.season_name) === activeSeasonIdentity) {
-      current = completedRecords.length > 1 ? completedRecords[completedRecords.length - 2] : current;
+    try {
+      records = await fetchSupabaseHistory();
+      records = records.filter(isCompleteChampionRecord);
+      if (!records.length) throw new Error('Keine DB-Einträge vorhanden');
+      sourceLabel = 'Live-Datenbank';
+    } catch (dbError) {
+      console.warn('Hall of Fame DB-Fallback aktiv:', dbError);
+      records = await fetchFallbackHistory();
+      records = records.filter(isCompleteChampionRecord);
+      sourceLabel = 'Archivdaten';
     }
 
-    renderCurrentFeature(current);
-    renderHistory(completedRecords);
-    renderTotals(completedRecords);
+    const sorted = [...records].sort((a, b) => getSeasonSortValue(b.season_name) - getSeasonSortValue(a.season_name));
+    const current = sorted[0] || null;
+    const history = [...sorted];
+
+    renderCurrentFeature(current, sourceLabel);
+    renderHistory(history);
+    renderTotals(history);
   } catch (error) {
     console.error(error);
-    if (wall) wall.innerHTML = `<div class="hof-empty">Hall of Fame konnte nicht geladen werden: ${escapeHtml(error.message || 'Unbekannter Fehler')}</div>`;
+    renderCurrentFeature(null);
+    renderHistory([]);
+    renderTotals([]);
   }
 }
 
