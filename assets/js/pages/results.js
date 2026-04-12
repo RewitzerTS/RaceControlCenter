@@ -24,9 +24,10 @@ function renderStaticResultsOverride() {
     const cells = row.points.map((value, index) => {
       const tone = row.classes?.[index] || '';
       const classes = ['results-points-cell'];
-      if (tone === 'bot') classes.push('is-bot');
-      if (tone === 'player') classes.push('is-player');
-      return `<td class="${classes.join(' ')}">${value}</td>`;
+      const chips = [];
+      if (tone === 'bot') chips.push('<span class="results-cell-chip results-cell-chip--bot">BOT</span>');
+      if (tone === 'player') chips.push('<span class="results-cell-chip results-cell-chip--player">PLAYER</span>');
+      return `<td class="${classes.join(' ')}"><div class="results-cell-stack"><span class="results-points-value">${value}</span>${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
     }).join('');
 
     return `
@@ -143,12 +144,13 @@ function renderMatrix(container, labelEl, matrixData) {
   const body = rows.map((entry) => {
     const cells = entry.raceCells.map((cell) => {
       const classes = ['results-points-cell'];
-      if (cell.isBot) classes.push('is-bot');
-      if (cell.hasFastestLapBonus) classes.push('is-fastest');
+      const chips = [];
+      if (cell.isBot) chips.push('<span class="results-cell-chip results-cell-chip--bot">BOT</span>');
+      if (cell.hasFastestLapBonus) chips.push('<span class="results-cell-chip results-cell-chip--fl">FL</span>');
       const cellValue = cell.hasFastestLapBonus
-        ? `<span class="fastest-lap-points">${cell.points}</span>`
-        : `${cell.points}`;
-      return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}">${cellValue}</td>`;
+        ? `<span class="fastest-lap-points results-points-value">${cell.points}</span>`
+        : `<span class="results-points-value">${cell.points}</span>`;
+      return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}"><div class="results-cell-stack">${cellValue}${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
     }).join('');
 
     return `

@@ -109,14 +109,8 @@ function renderCurrentFeature(record, sourceLabel = '') {
     </div>`;
 }
 
-function renderHistory(records) {
-  const wall = document.getElementById('hof-season-wall');
-  if (!wall) return;
-  if (!records.length) {
-    wall.innerHTML = '<div class="hof-empty">Noch keine Weltmeister-Historie vorhanden.</div>';
-    return;
-  }
-  wall.innerHTML = records.map((record, index) => `
+function renderHistoryCard(record, index) {
+  return `
     <section class="hof-season-card">
       <div class="hof-season-header">
         <img src="assets/images/Stern.png" alt="" class="hof-star hof-star--left" aria-hidden="true">
@@ -144,7 +138,33 @@ function renderHistory(records) {
           <div class="hof-support-text hof-support-text--lineup">${escapeHtml(record.constructor_champion_lineup || '—')}</div>
         </article>
       </div>
-    </section>`).join('');
+    </section>`;
+}
+
+function renderHistory(records) {
+  const recentRoot = document.getElementById('hof-recent-wall');
+  const archiveRoot = document.getElementById('hof-archive-wall');
+  const archiveSection = document.getElementById('hof-archive-section');
+  if (!recentRoot || !archiveRoot || !archiveSection) return;
+  if (!records.length) {
+    recentRoot.innerHTML = '<div class="hof-empty">Noch keine Weltmeister-Historie vorhanden.</div>';
+    archiveRoot.innerHTML = '';
+    archiveSection.hidden = true;
+    return;
+  }
+
+  const recent = records.slice(0, 3);
+  const archive = records.slice(3);
+  recentRoot.innerHTML = recent.map((record, index) => renderHistoryCard(record, index)).join('');
+
+  if (!archive.length) {
+    archiveRoot.innerHTML = '';
+    archiveSection.hidden = true;
+    return;
+  }
+
+  archiveSection.hidden = false;
+  archiveRoot.innerHTML = archive.map((record, index) => renderHistoryCard(record, index + 3)).join('');
 }
 
 function renderTotals(records) {
@@ -228,11 +248,11 @@ async function loadHallOfFamePage() {
 
     const sorted = [...records].sort((a, b) => getSeasonSortValue(b.season_name) - getSeasonSortValue(a.season_name));
     const current = sorted[0] || null;
-    const history = [...sorted];
+    const history = current ? sorted.slice(1) : [...sorted];
 
     renderCurrentFeature(current, sourceLabel);
     renderHistory(history);
-    renderTotals(history);
+    renderTotals(sorted);
   } catch (error) {
     console.error(error);
     renderCurrentFeature(null);

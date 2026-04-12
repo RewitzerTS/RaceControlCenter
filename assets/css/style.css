@@ -2009,3 +2009,125 @@ body.hof-page {
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
   }
 }
+
+
+/* V10.5.9 readability + HOF archive */
+.results-points-cell.is-bot,
+.results-points-cell.is-fastest,
+.results-points-cell.is-bot.is-fastest {
+  background: transparent;
+  color: inherit;
+  font-weight: inherit;
+}
+
+.results-cell-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.results-cell-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.results-cell-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  text-transform: uppercase;
+}
+
+.results-cell-chip--bot {
+  background: rgba(110, 231, 242, 0.14);
+  color: #d0fbff;
+}
+
+.results-cell-chip--player,
+.results-cell-chip--fl {
+  background: rgba(216, 164, 255, 0.16);
+  color: #f3deff;
+}
+
+.results-points-value {
+  font-weight: 800;
+}
+
+.results-points-cell {
+  vertical-align: middle;
+}
+
+.hof-totals-block .eyebrow {
+  min-height: 18px;
+}
+
+.hof-subheading {
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.hof-archive-details {
+  border-radius: 24px;
+  border: 1px solid rgba(255, 215, 130, 0.14);
+  background: linear-gradient(180deg, rgba(5, 10, 18, 0.72), rgba(5, 10, 18, 0.9));
+  overflow: hidden;
+}
+
+.hof-archive-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  cursor: pointer;
+  font-weight: 800;
+  color: #fff0c1;
+}
+
+.hof-archive-summary::-webkit-details-marker {
+  display: none;
+}
+
+.hof-archive-summary-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 215, 130, 0.12);
+  transition: transform 0.2s ease;
+}
+
+.hof-archive-details[open] .hof-archive-summary-icon {
+  transform: rotate(45deg);
+}
+
+.hof-season-wall--archive {
+  padding: 0 18px 18px;
+}
+
+@media (max-width: 760px) {
+  .results-cell-chip {
+    min-height: 20px;
+    padding: 2px 7px;
+    font-size: 0.64rem;
+  }
+
+  .hof-subheading {
+    min-height: 0;
+  }
+}
