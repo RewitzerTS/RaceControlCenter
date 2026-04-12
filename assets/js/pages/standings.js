@@ -1,3 +1,26 @@
+
+function applyDriverPointsOverride(standings) {
+  const override = window.RCC_STANDINGS_OVERRIDE?.driverPoints;
+  if (!override) return standings;
+  return standings
+    .map((entry) => ({
+      ...entry,
+      points: Number.isFinite(override[entry.driverName]) ? override[entry.driverName] : (override[entry.driverName?.split(' / ')[0]?.trim()] ?? entry.points)
+    }))
+    .sort((a, b) => b.points - a.points || a.driverName.localeCompare(b.driverName, 'de'));
+}
+
+function applyTeamPointsOverride(standings) {
+  const override = window.RCC_STANDINGS_OVERRIDE?.teamPoints;
+  if (!override) return standings;
+  return standings
+    .map((entry) => ({
+      ...entry,
+      points: Number.isFinite(override[entry.teamName]) ? override[entry.teamName] : entry.points
+    }))
+    .sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName, 'de'));
+}
+
 function getTrendIcon(currentPos, previousPos, hasPreviousRace = false) {
   if (!hasPreviousRace) return '<span class="trend-pill flat">↔</span>';
   if (!Number.isFinite(previousPos)) return '<span class="trend-pill up">↑</span>';
@@ -97,8 +120,8 @@ async function loadStandingsPage() {
     const previousStandings = window.RCCData.buildStandings({ drivers, races: previousRaces, raceResults, resolver });
 
     const hasPreviousRace = previousRaces.length > 0;
-    const driverStandings = withDriverTrends(currentStandings.driverStandings, previousStandings.driverStandings, hasPreviousRace);
-    const teamStandings = withTeamTrends(currentStandings.teamStandings, previousStandings.teamStandings, hasPreviousRace);
+    const driverStandings = withDriverTrends(applyDriverPointsOverride(currentStandings.driverStandings), previousStandings.driverStandings, hasPreviousRace);
+    const teamStandings = withTeamTrends(applyTeamPointsOverride(currentStandings.teamStandings), previousStandings.teamStandings, hasPreviousRace);
     renderDriverStandings(driverStandings);
     renderTeamStandings(teamStandings);
     updateStandingsMeta(currentSeason, driverStandings.length, teamStandings.length);

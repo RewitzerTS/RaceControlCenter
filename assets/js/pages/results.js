@@ -25,9 +25,11 @@ function renderStaticResultsOverride() {
       const tone = row.classes?.[index] || '';
       const classes = ['results-points-cell'];
       const chips = [];
-      if (tone === 'bot') chips.push('<span class="results-cell-chip results-cell-chip--bot">BOT</span>');
-      if (tone === 'player') chips.push('<span class="results-cell-chip results-cell-chip--player">PLAYER</span>');
-      return `<td class="${classes.join(' ')}"><div class="results-cell-stack"><span class="results-points-value">${value}</span>${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
+      const valueClasses = ['results-points-value'];
+      if (tone === 'bot') valueClasses.push('results-points-value--bot');
+      if (tone === 'player') valueClasses.push('results-points-value--fl-chip');
+      if (tone === 'player') chips.push('<span class="results-cell-chip results-cell-chip--fl">FL</span>');
+      return `<td class="${classes.join(' ')}"><div class="results-cell-stack"><span class="${valueClasses.join(' ')}">${value}</span>${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
     }).join('');
 
     return `
@@ -145,11 +147,11 @@ function renderMatrix(container, labelEl, matrixData) {
     const cells = entry.raceCells.map((cell) => {
       const classes = ['results-points-cell'];
       const chips = [];
-      if (cell.isBot) chips.push('<span class="results-cell-chip results-cell-chip--bot">BOT</span>');
+      const valueClasses = ['results-points-value'];
+      if (cell.isBot) valueClasses.push('results-points-value--bot');
+      if (cell.hasFastestLapBonus) valueClasses.push('results-points-value--fl-chip');
       if (cell.hasFastestLapBonus) chips.push('<span class="results-cell-chip results-cell-chip--fl">FL</span>');
-      const cellValue = cell.hasFastestLapBonus
-        ? `<span class="fastest-lap-points results-points-value">${cell.points}</span>`
-        : `<span class="results-points-value">${cell.points}</span>`;
+      const cellValue = `<span class="${valueClasses.join(' ')}">${cell.points}</span>`;
       return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}"><div class="results-cell-stack">${cellValue}${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
     }).join('');
 
