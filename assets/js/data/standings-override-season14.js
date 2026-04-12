@@ -1,4 +1,5 @@
 window.RCC_STANDINGS_OVERRIDE = {
+  seasonKey: "season14",
   driverPoints: {
     'Mo': 223,
     'Nils': 192,

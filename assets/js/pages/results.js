@@ -1,7 +1,7 @@
 let trendChartInstance = null;
 
 function renderStaticResultsOverride() {
-  const data = window.RCC_STATIC_RESULTS_15;
+  const data = window.RCC_STATIC_RESULTS_14;
   if (!data) return false;
   const wrap = document.getElementById('results-matrix-wrap');
   const labelEl = document.getElementById('results-matrix-label');
@@ -24,12 +24,10 @@ function renderStaticResultsOverride() {
     const cells = row.points.map((value, index) => {
       const tone = row.classes?.[index] || '';
       const classes = ['results-points-cell'];
-      const chips = [];
       const valueClasses = ['results-points-value'];
       if (tone === 'bot') valueClasses.push('results-points-value--bot');
       if (tone === 'player') valueClasses.push('results-points-value--fl-chip');
-      if (tone === 'player') chips.push('<span class="results-cell-chip results-cell-chip--fl">FL</span>');
-      return `<td class="${classes.join(' ')}"><div class="results-cell-stack"><span class="${valueClasses.join(' ')}">${value}</span>${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
+      return `<td class="${classes.join(' ')}"><div class="results-cell-stack"><span class="${valueClasses.join(' ')}">${value}</span></div></td>`;
     }).join('');
 
     return `
@@ -146,13 +144,11 @@ function renderMatrix(container, labelEl, matrixData) {
   const body = rows.map((entry) => {
     const cells = entry.raceCells.map((cell) => {
       const classes = ['results-points-cell'];
-      const chips = [];
       const valueClasses = ['results-points-value'];
       if (cell.isBot) valueClasses.push('results-points-value--bot');
       if (cell.hasFastestLapBonus) valueClasses.push('results-points-value--fl-chip');
-      if (cell.hasFastestLapBonus) chips.push('<span class="results-cell-chip results-cell-chip--fl">FL</span>');
       const cellValue = `<span class="${valueClasses.join(' ')}">${cell.points}</span>`;
-      return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}"><div class="results-cell-stack">${cellValue}${chips.length ? `<span class="results-cell-chips">${chips.join('')}</span>` : ''}</div></td>`;
+      return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}"><div class="results-cell-stack">${cellValue}</div></td>`;
     }).join('');
 
     return `

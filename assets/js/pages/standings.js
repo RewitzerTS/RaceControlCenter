@@ -1,22 +1,34 @@
 
-function applyDriverPointsOverride(standings) {
+function getDriverBasePoints(entry) {
   const override = window.RCC_STANDINGS_OVERRIDE?.driverPoints;
-  if (!override) return standings;
-  return standings
+  if (!override) return 0;
+  return Number.isFinite(override[entry.driverName])
+    ? override[entry.driverName]
+    : (override[entry.driverName?.split(' / ')[0]?.trim()] ?? 0);
+}
+
+function getTeamBasePoints(entry) {
+  const override = window.RCC_STANDINGS_OVERRIDE?.teamPoints;
+  if (!override) return 0;
+  return Number.isFinite(override[entry.teamName]) ? override[entry.teamName] : 0;
+}
+
+function mergeCorrectedDriverStandings(baseStandings, incrementalStandings) {
+  const incrementalById = new Map((incrementalStandings || []).map((entry) => [entry.driverId, entry]));
+  return (baseStandings || [])
     .map((entry) => ({
       ...entry,
-      points: Number.isFinite(override[entry.driverName]) ? override[entry.driverName] : (override[entry.driverName?.split(' / ')[0]?.trim()] ?? entry.points)
+      points: getDriverBasePoints(entry) + (incrementalById.get(entry.driverId)?.points || 0)
     }))
     .sort((a, b) => b.points - a.points || a.driverName.localeCompare(b.driverName, 'de'));
 }
 
-function applyTeamPointsOverride(standings) {
-  const override = window.RCC_STANDINGS_OVERRIDE?.teamPoints;
-  if (!override) return standings;
-  return standings
+function mergeCorrectedTeamStandings(baseStandings, incrementalStandings) {
+  const incrementalByTeam = new Map((incrementalStandings || []).map((entry) => [entry.teamName, entry]));
+  return (baseStandings || [])
     .map((entry) => ({
       ...entry,
-      points: Number.isFinite(override[entry.teamName]) ? override[entry.teamName] : entry.points
+      points: getTeamBasePoints(entry) + (incrementalByTeam.get(entry.teamName)?.points || 0)
     }))
     .sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName, 'de'));
 }
@@ -95,8 +107,8 @@ function renderTeamStandings(standings) {
 function updateStandingsMeta(currentSeason, driverCount, teamCount) {
   const subtitles = document.querySelectorAll('.page-subtitle');
   const seasonLabel = currentSeason?.name ? `Saison ${currentSeason.name}` : 'Alle verfügbaren Daten';
-  if (subtitles[0]) subtitles[0].textContent = `${seasonLabel} · automatische Wertung aus den veröffentlichten Rennergebnissen.`;
-  if (subtitles[1]) subtitles[1].textContent = `${seasonLabel} · automatische Wertung aus den veröffentlichten Rennergebnissen.`;
+  if (subtitles[0]) subtitles[0].textContent = `${seasonLabel} · automatische Wertung aus korrigiertem Saisonstand der laufenden Saison + neuen veröffentlichten Rennergebnissen.`;
+  if (subtitles[1]) subtitles[1].textContent = `${seasonLabel} · automatische Wertung aus korrigiertem Saisonstand der laufenden Saison + neuen veröffentlichten Rennergebnissen.`;
 
   const tableHeaders = document.querySelectorAll('.table-header .muted');
   if (tableHeaders[0]) tableHeaders[0].textContent = `${driverCount} Fahrer`;
@@ -115,13 +127,25 @@ async function loadStandingsPage() {
 
     const completedRaces = races.filter((race) => race.status === 'completed').sort((a, b) => a.round_number - b.round_number);
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
-    const currentStandings = window.RCCData.buildStandings({ drivers, races, raceResults, resolver });
+
+    const fullStandings = window.RCCData.buildStandings({ drivers, races, raceResults, resolver });
+    const overriddenRaceNames = new Set(window.RCC_STATIC_RESULTS_14?.races || []);
+    const incrementalRaces = completedRaces.filter((race) => !overriddenRaceNames.has(race.grand_prix_name));
+    const incrementalStandings = window.RCCData.buildStandings({ drivers, races: incrementalRaces, raceResults, resolver });
+
     const previousRaces = completedRaces.slice(0, -1);
-    const previousStandings = window.RCCData.buildStandings({ drivers, races: previousRaces, raceResults, resolver });
+    const previousIncrementalRaces = previousRaces.filter((race) => !overriddenRaceNames.has(race.grand_prix_name));
+    const previousBaseStandings = window.RCCData.buildStandings({ drivers, races: previousRaces, raceResults, resolver });
+    const previousIncrementalStandings = window.RCCData.buildStandings({ drivers, races: previousIncrementalRaces, raceResults, resolver });
 
     const hasPreviousRace = previousRaces.length > 0;
-    const driverStandings = withDriverTrends(applyDriverPointsOverride(currentStandings.driverStandings), previousStandings.driverStandings, hasPreviousRace);
-    const teamStandings = withTeamTrends(applyTeamPointsOverride(currentStandings.teamStandings), previousStandings.teamStandings, hasPreviousRace);
+    const correctedCurrentDrivers = mergeCorrectedDriverStandings(fullStandings.driverStandings, incrementalStandings.driverStandings);
+    const correctedPreviousDrivers = mergeCorrectedDriverStandings(previousBaseStandings.driverStandings, previousIncrementalStandings.driverStandings);
+    const correctedCurrentTeams = mergeCorrectedTeamStandings(fullStandings.teamStandings, incrementalStandings.teamStandings);
+    const correctedPreviousTeams = mergeCorrectedTeamStandings(previousBaseStandings.teamStandings, previousIncrementalStandings.teamStandings);
+
+    const driverStandings = withDriverTrends(correctedCurrentDrivers, correctedPreviousDrivers, hasPreviousRace);
+    const teamStandings = withTeamTrends(correctedCurrentTeams, correctedPreviousTeams, hasPreviousRace);
     renderDriverStandings(driverStandings);
     renderTeamStandings(teamStandings);
     updateStandingsMeta(currentSeason, driverStandings.length, teamStandings.length);

@@ -1,0 +1,4 @@
+V10.5.12 cleanup:
+- results-override-season15.js -> results-override-season14.js
+- RCC_STATIC_RESULTS_15 -> RCC_STATIC_RESULTS_14
+- season 14 labels and references made consistent where relevant
