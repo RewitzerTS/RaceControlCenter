@@ -44,6 +44,7 @@ const state = {
   isSavingIncident: false,
   isStartingSeason: false,
   isGeneratingSeason: false,
+  seasonFinalizePreview: null,
   eventsBound: false,
   authListenerBound: false,
   initialized: false
@@ -112,6 +113,198 @@ function buildDriverLookupKeys(driver) {
   if (gamertag) keys.add(normalizeDriverLookup(gamertag));
   if (aiRef) keys.add(normalizeDriverLookup(aiRef));
   return [...keys];
+}
+
+
+function getImportPreviewElements() {
+  return {
+    banner: document.getElementById('csv-conflict-banner'),
+    preview: document.getElementById('csv-import-preview')
+  };
+}
+
+function setImportPreviewBanner(message = '', isError = false, isWarning = false) {
+  const { banner } = getImportPreviewElements();
+  if (!banner) return;
+  if (!message) {
+    banner.hidden = true;
+    banner.textContent = '';
+    banner.classList.remove('notice-error', 'notice-warning');
+    return;
+  }
+  banner.hidden = false;
+  banner.textContent = message;
+  banner.classList.toggle('notice-error', Boolean(isError));
+  banner.classList.toggle('notice-warning', Boolean(isWarning));
+}
+
+function renderImportPreviewTable(rows, summary = {}) {
+  const { preview } = getImportPreviewElements();
+  if (!preview) return;
+  if (!rows?.length) {
+    preview.innerHTML = '<div class="notice">Lade eine CSV-Datei, um Mapping und Konflikte vor dem Import zu prüfen.</div>';
+    return;
+  }
+
+  const stats = `Gesamt: ${summary.total || 0} · Gemappt: ${summary.matched || 0} · Konflikte: ${summary.conflicts || 0}`;
+  preview.innerHTML = `
+    <div class="notice">${window.escapeHtml(stats)}</div>
+    <table class="admin-preview-table">
+      <thead>
+        <tr>
+          <th>CSV-Fahrer</th>
+          <th>Grand Prix</th>
+          <th>Match</th>
+          <th>Quelle</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map((row) => `
+          <tr>
+            <td>${window.escapeHtml(row.rawDriverName || '—')}</td>
+            <td>${window.escapeHtml(row.grandPrixName || '—')}</td>
+            <td>${window.escapeHtml(row.matchedLabel || '—')}</td>
+            <td>${window.escapeHtml(row.matchSource || '—')}</td>
+            <td><span class="preview-badge ${row.statusClass || ''}">${window.escapeHtml(row.statusLabel || 'Unbekannt')}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+}
+
+function buildDriverLookupMap(drivers = []) {
+  const map = new Map();
+  drivers.forEach((driver) => {
+    const gamertagKey = normalizeDriverLookup(driver.gamertag);
+    const aiKey = normalizeDriverLookup(driver.ai_driver_reference);
+    if (gamertagKey) map.set(gamertagKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Gamertag', label: driver.gamertag || driver.display_name || 'Spieler' });
+    if (aiKey) map.set(aiKey, { driver_id: driver.id, participation_status: 'BOT', source: 'AI-Fahrer', label: driver.ai_driver_reference || driver.display_name || 'BOT' });
+  });
+  return map;
+}
+
+async function analyzeCsvImport(csvText) {
+  const parsedRows = parseCsv(csvText);
+  if (!parsedRows.length) {
+    renderImportPreviewTable([]);
+    setImportPreviewBanner('CSV konnte nicht gelesen werden.', true, false);
+    return { ok: false, parsedRows: [], preparedRows: [], grandPrixName: '', missingDrivers: ['CSV konnte nicht gelesen werden.'] };
+  }
+
+  const grandPrixName = String(parsedRows[0]['grand prix'] || '').trim();
+  const { data: drivers, error: driverError } = await window.supabaseClient.from('drivers').select('id, display_name, ai_driver_reference, gamertag');
+  if (driverError) throw driverError;
+
+  const driverMap = buildDriverLookupMap(drivers || []);
+  const preparedRows = [];
+  const missingDrivers = [];
+  const duplicates = new Set();
+  const seenNormalized = new Set();
+  const previewRows = [];
+
+  for (const row of parsedRows) {
+    const rawDriverName = String(row['fahrer'] || '').trim();
+    const normalized = normalizeDriverLookup(rawDriverName);
+    if (normalized && seenNormalized.has(`${grandPrixName}::${normalized}`)) duplicates.add(rawDriverName);
+    seenNormalized.add(`${grandPrixName}::${normalized}`);
+
+    const mapped = driverMap.get(normalized);
+    if (!mapped) {
+      missingDrivers.push(rawDriverName || '');
+      previewRows.push({
+        rawDriverName,
+        grandPrixName,
+        matchedLabel: '',
+        matchSource: '',
+        statusLabel: 'Kein Match',
+        statusClass: 'preview-badge--error'
+      });
+      continue;
+    }
+
+    preparedRows.push({
+      driver_id: mapped.driver_id,
+      finish_position: Number(row['pos'] || 0) || null,
+      grid_position: Number(row['startposition'] || 0) || null,
+      pit_stops: Number(row['boxenstopps'] || 0) || 0,
+      fastest_lap_time: String(row['schnellste runde'] || '').trim(),
+      race_time: String(row['renndauer'] || '').trim(),
+      awarded_points: Number(row['punkte'] || 0) || 0,
+      participation_status: mapped.participation_status
+    });
+    previewRows.push({
+      rawDriverName,
+      grandPrixName,
+      matchedLabel: mapped.label,
+      matchSource: mapped.source,
+      statusLabel: 'Gemappt',
+      statusClass: mapped.participation_status === 'BOT' ? 'preview-badge--warning' : 'preview-badge--success'
+    });
+  }
+
+  const summary = { total: parsedRows.length, matched: preparedRows.length, conflicts: missingDrivers.length + duplicates.size };
+  renderImportPreviewTable(previewRows, summary);
+  if (missingDrivers.length || duplicates.size) {
+    const parts = [];
+    if (missingDrivers.length) parts.push(`Nicht gefunden: ${[...new Set(missingDrivers)].join(', ')}`);
+    if (duplicates.size) parts.push(`Doppelte CSV-Einträge: ${[...duplicates].join(', ')}`);
+    setImportPreviewBanner(parts.join(' · '), false, true);
+  } else {
+    setImportPreviewBanner('Import-Vorschau erfolgreich. Alle Fahrer wurden sauber gemappt.', false, false);
+  }
+
+  return { ok: !missingDrivers.length && !duplicates.size, parsedRows, preparedRows, grandPrixName, missingDrivers, duplicates: [...duplicates] };
+}
+
+async function previewCsvFromField(fieldId) {
+  clearFeedback('csv-feedback');
+  const csvText = getTrimmedValue(fieldId);
+  if (!csvText) {
+    renderImportPreviewTable([]);
+    setImportPreviewBanner('Keine CSV geladen.', false, false);
+    return;
+  }
+  try {
+    await analyzeCsvImport(csvText);
+  } catch (error) {
+    console.error(error);
+    setImportPreviewBanner(`Vorschau fehlgeschlagen: ${error.message}`, true, false);
+  }
+}
+
+async function computeSeasonFinalizePreview() {
+  const currentSeason = await window.RCCData.fetchCurrentSeason();
+  if (!currentSeason) throw new Error('Keine aktive Saison gefunden.');
+  const [drivers, races, raceResults] = await Promise.all([
+    window.RCCData.fetchDrivers(),
+    window.RCCData.fetchRaces({ seasonId: currentSeason.id }),
+    window.RCCData.fetchRaceResults(),
+  ]);
+  const { driverStandings, teamStandings } = window.RCCData.buildStandings({ drivers, races, raceResults });
+  return {
+    currentSeason,
+    driverChampion: driverStandings[0] || null,
+    constructorChampion: teamStandings[0] || null,
+    racesCount: races.length
+  };
+}
+
+function renderSeasonFinalizePreview(preview) {
+  const el = document.getElementById('season-finalize-preview');
+  if (!el) return;
+  if (!preview) {
+    el.hidden = true;
+    el.textContent = '';
+    return;
+  }
+  el.hidden = false;
+  el.innerHTML = `
+    <strong>Saisonabschluss-Vorschau</strong><br>
+    Saison: ${window.escapeHtml(preview.currentSeason.name || 'Aktive Saison')} · Rennen: ${preview.racesCount}<br>
+    Fahrer-Weltmeister: ${window.escapeHtml(preview.driverChampion?.driverName || '—')} (${window.escapeHtml(preview.driverChampion?.points ?? 0)} Punkte)<br>
+    Konstrukteurs-Weltmeister: ${window.escapeHtml(preview.constructorChampion?.teamName || '—')} (${window.escapeHtml(preview.constructorChampion?.points ?? 0)} Punkte)<br>
+    <span class="muted">Mit „Saison final abschließen“ wird diese Saison archiviert und eine neue leere Saison erzeugt.</span>`;
 }
 
 function parseGermanWeekdays(input) {
@@ -1177,10 +1370,14 @@ async function importRaceResults(options = {}) {
     const csvText = getTrimmedValue(previewFieldId);
     if (!csvText) return showFeedback('csv-feedback', 'Bitte zuerst eine CSV-Datei laden.', true);
 
-    const parsedRows = parseCsv(csvText);
-    if (!parsedRows.length) return showFeedback('csv-feedback', 'CSV konnte nicht gelesen werden.', true);
+    const analysis = await analyzeCsvImport(csvText);
+    if (!analysis.ok) {
+      return showFeedback('csv-feedback', 'Import blockiert: Bitte zuerst die Konflikte in der Vorschau beheben.', true);
+    }
 
-    const grandPrixName = String(parsedRows[0]['grand prix'] || '').trim();
+    const parsedRows = analysis.parsedRows;
+    const preparedRows = analysis.preparedRows;
+    const grandPrixName = analysis.grandPrixName;
     if (!grandPrixName) return showFeedback('csv-feedback', 'Spalte "Grand Prix" fehlt oder ist leer.', true);
 
     const currentSeason = await getCurrentSeasonSafe();
@@ -1189,44 +1386,6 @@ async function importRaceResults(options = {}) {
 
     const { data: raceData, error: raceError } = await raceQuery.maybeSingle();
     if (raceError || !raceData) return showFeedback('csv-feedback', `Rennen "${grandPrixName}" wurde in der aktiven Saison nicht gefunden.`, true);
-
-    const { data: drivers, error: driverError } = await window.supabaseClient.from('drivers').select('id, ai_driver_reference, gamertag');
-    if (driverError) return showFeedback('csv-feedback', 'Fahrer konnten nicht geladen werden.', true);
-
-    const driverMap = new Map();
-    drivers.forEach((driver) => {
-      buildDriverLookupKeys(driver).forEach((key) => {
-        const participationStatus = key === normalizeDriverLookup(driver.ai_driver_reference) ? 'BOT' : 'PLAYER';
-        if (key) driverMap.set(key, { driver_id: driver.id, participation_status: participationStatus });
-      });
-    });
-
-    const preparedRows = [];
-    const missingDrivers = [];
-
-    for (const row of parsedRows) {
-      const rawDriverName = String(row['fahrer'] || '').trim();
-      const importedDriverName = normalizeDriverLookup(rawDriverName);
-      const mapped = driverMap.get(importedDriverName);
-      if (!mapped) {
-        missingDrivers.push(rawDriverName || '');
-        continue;
-      }
-      preparedRows.push({
-        driver_id: mapped.driver_id,
-        finish_position: Number(row['pos'] || 0) || null,
-        grid_position: Number(row['startposition'] || 0) || null,
-        pit_stops: Number(row['boxenstopps'] || 0) || 0,
-        fastest_lap_time: String(row['schnellste runde'] || '').trim(),
-        race_time: String(row['renndauer'] || '').trim(),
-        awarded_points: Number(row['punkte'] || 0) || 0,
-        participation_status: mapped.participation_status
-      });
-    }
-
-    if (missingDrivers.length) {
-      return showFeedback('csv-feedback', `Diese Fahrer fehlen in der drivers-Tabelle: ${[...new Set(missingDrivers)].join(', ')}`, true);
-    }
 
     const { data: existingImport } = await window.supabaseClient
       .from('race_result_imports')
@@ -1278,6 +1437,21 @@ async function importRaceResults(options = {}) {
   }
 }
 
+async function prepareSeasonFinalize() {
+  clearFeedback('season-feedback');
+  try {
+    await requireAdminSession();
+    const preview = await computeSeasonFinalizePreview();
+    state.seasonFinalizePreview = preview;
+    renderSeasonFinalizePreview(preview);
+    showFeedback('season-feedback', 'Saisonabschluss geprüft. Bitte Vorschau prüfen und danach final abschließen.');
+  } catch (error) {
+    console.error(error);
+    renderSeasonFinalizePreview(null);
+    showFeedback('season-feedback', error.message || 'Saisonabschluss konnte nicht vorbereitet werden.', true);
+  }
+}
+
 async function startNewSeason() {
   if (state.isStartingSeason) return;
   state.isStartingSeason = true;
@@ -1285,22 +1459,22 @@ async function startNewSeason() {
 
   try {
     await requireAdminSession();
-    const currentSeason = await window.RCCData.fetchCurrentSeason();
+    const preview = state.seasonFinalizePreview || await computeSeasonFinalizePreview();
+    const currentSeason = preview.currentSeason;
     if (!currentSeason) throw new Error('Keine aktive Saison gefunden. Bitte SQL-Migration zuerst ausführen.');
 
-    if (!window.confirm('Neue Saison starten? Der aktuelle Champion wird archiviert und der neue Rennkalender beginnt leer.')) {
+    const confirmed = window.confirm(`Saison ${currentSeason.name || ''} wirklich final abschließen?
+
+Fahrer-Weltmeister: ${preview.driverChampion?.driverName || '—'}
+Konstrukteurs-Weltmeister: ${preview.constructorChampion?.teamName || '—'}
+
+Danach wird automatisch eine neue Saison angelegt.`);
+    if (!confirmed) {
       return;
     }
 
-    const [drivers, races, raceResults] = await Promise.all([
-      window.RCCData.fetchDrivers(),
-      window.RCCData.fetchRaces({ seasonId: currentSeason.id }),
-      window.RCCData.fetchRaceResults(),
-    ]);
-
-    const { driverStandings, teamStandings } = window.RCCData.buildStandings({ drivers, races, raceResults });
-    const driverChampion = driverStandings[0]?.driverName || null;
-    const constructorChampion = teamStandings[0]?.teamName || null;
+    const driverChampion = preview.driverChampion?.driverName || null;
+    const constructorChampion = preview.constructorChampion?.teamName || null;
 
     const historyPayload = {
       season_id: currentSeason.id,
@@ -1336,6 +1510,8 @@ async function startNewSeason() {
     clearFeedback('csv-feedback');
     clearFeedback('incident-feedback');
 
+    state.seasonFinalizePreview = null;
+    renderSeasonFinalizePreview(null);
     showFeedback('season-feedback', `Neue Saison gestartet. ${currentSeason.name} archiviert (${driverChampion || 'kein Fahrer'} / ${constructorChampion || 'kein Team'}). Der Rennkalender der neuen Saison ist jetzt leer.`);
     await Promise.all([
       loadSeasonSummary(),
@@ -1594,6 +1770,7 @@ function bindUiEvents() {
   document.getElementById('save-incident-btn')?.addEventListener('click', saveStewardIncident);
   document.getElementById('import-results-btn')?.addEventListener('click', () => importRaceResults({ previewFieldId: 'csv-preview' }));
   document.getElementById('import-results-btn-2')?.addEventListener('click', () => importRaceResults({ previewFieldId: 'csv-preview-2' }));
+  document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
   document.getElementById('load-manual-results-btn')?.addEventListener('click', loadManualResultsEditor);
@@ -1620,12 +1797,14 @@ function bindUiEvents() {
     const file = event.target.files?.[0];
     if (!file) return;
     setValue('csv-preview', await file.text());
+    previewCsvFromField('csv-preview');
   });
 
   document.getElementById('csv-file-2')?.addEventListener('change', async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setValue('csv-preview-2', await file.text());
+    previewCsvFromField('csv-preview-2');
   });
 
   document.getElementById('driver-ai-reference')?.addEventListener('change', (event) => {
@@ -1702,6 +1881,10 @@ async function initAdminPage() {
     updateManualResultsVisibility(),
     populateManualRaceSelect()
   ]);
+  renderImportPreviewTable([]);
+  setImportPreviewBanner('');
+  renderSeasonFinalizePreview(null);
 }
+
 
 document.addEventListener('DOMContentLoaded', initAdminPage);

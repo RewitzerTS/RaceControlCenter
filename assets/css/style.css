@@ -1666,3 +1666,43 @@ body.hof-page {
 .panel.collapsed > :not(.panel-header-row) {
   display: none !important;
 }
+
+
+.notice-warning {
+  border-color: rgba(255, 184, 0, 0.28);
+  background: rgba(255, 184, 0, 0.08);
+  color: #ffe39a;
+}
+
+.admin-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.admin-preview-table th,
+.admin-preview-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  text-align: left;
+  font-size: 0.94rem;
+}
+
+.preview-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.preview-badge--success { background: rgba(46, 204, 113, 0.12); color: #b4f1ca; }
+.preview-badge--warning { background: rgba(255, 184, 0, 0.12); color: #ffe39a; }
+.preview-badge--error { background: rgba(255, 99, 132, 0.12); color: #ffc1cf; }
+
+#season-finalize-preview {
+  margin-top: 12px;
+}

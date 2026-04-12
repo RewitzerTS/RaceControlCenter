@@ -48,9 +48,11 @@
         <h3>Saisonverwaltung</h3>
         <div class="detail-list" id="season-summary">Saison wird geladen...</div>
         <div class="card-actions">
-          <button type="button" class="button-primary" id="start-new-season-btn">Neue Saison starten</button>
+          <button type="button" class="button-secondary" id="prepare-season-finalize-btn">Saisonabschluss prüfen</button>
+          <button type="button" class="button-primary" id="start-new-season-btn">Saison final abschließen</button>
         </div>
         <div class="notice">Beim Saisonwechsel bleiben alte Daten erhalten. Die neue Saison startet mit leerem Rennkalender.</div>
+        <div id="season-finalize-preview" class="notice" hidden></div>
         <div id="season-feedback" class="notice" hidden></div>
       </section>
 
@@ -81,6 +83,7 @@
       <section class="panel">
         <h3>Ergebnisse per Excel/CSV importieren</h3>
         <div class="notice">Erwartete Spalten: Grand Prix, Pos, Fahrer, Startposition, Boxenstopps, Schnellste Runde, Renndauer, Punkte. Du kannst hier direkt zwei Rennen nacheinander vorbereiten.</div>
+        <div class="notice" id="csv-conflict-banner" hidden></div>
         <div class="form-grid">
           <div class="field full"><label for="csv-file">CSV-Datei · Upload 1</label><input type="file" id="csv-file" accept=".csv"></div>
           <div class="field full"><label for="csv-preview">CSV-Vorschau · Upload 1</label><textarea id="csv-preview" placeholder="Hier erscheint der Inhalt der ersten importierten CSV."></textarea></div>
@@ -89,6 +92,10 @@
           <div class="field full"><label for="csv-file-2">CSV-Datei · Upload 2</label><input type="file" id="csv-file-2" accept=".csv"></div>
           <div class="field full"><label for="csv-preview-2">CSV-Vorschau · Upload 2</label><textarea id="csv-preview-2" placeholder="Hier erscheint der Inhalt der zweiten importierten CSV."></textarea></div>
           <div class="field full"><button class="button-secondary" type="button" id="import-results-btn-2">Upload 2 importieren</button></div>
+        </div>
+        <div class="section-spacer-top">
+          <h4>Import-Mapping-Vorschau</h4>
+          <div class="table-wrap" id="csv-import-preview"><div class="notice">Lade eine CSV-Datei, um Mapping und Konflikte vor dem Import zu prüfen.</div></div>
         </div>
         <div id="csv-feedback" class="notice" hidden></div>
       </section>
