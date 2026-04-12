@@ -1,0 +1,6 @@
+roundKey,displayName,leagueTeam,car,gridPosition,finishPosition,fastestLap,fastestLapTime,raceTime,participationStatus
+silverstone,Fahrer 1,Team 1,Red Bull,2,1,FALSE,,32:14.221,PLAYER
+silverstone,Fahrer 2,Team 2,Mercedes,1,2,FALSE,,+2.904,PLAYER
+silverstone,Fahrer 3,Team 3,Ferrari,4,3,TRUE,1:28.441,+6.112,PLAYER
+silverstone,Fahrer 4,Team 4,McLaren,3,4,FALSE,,+8.554,PLAYER
+silverstone,Fahrer 5,Team 5,Aston Martin,6,5,FALSE,,+11.240,BOT

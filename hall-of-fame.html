@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Control Center · Hall of Fame</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RCC">
+  <meta name="mobile-web-app-capable" content="yes">
+</head>
+<body data-page="hall-of-fame" class="hof-page">
+  <div id="site-header"></div>
+
+  <main class="hof-page-main">
+    <section class="hof-hero">
+      <div class="container hof-hero-inner">
+        <div class="hof-hero-copy">
+          <div class="eyebrow">Legacy</div>
+          <h1>Hall of Fame</h1>
+          <p>Die Goldwand aller bisherigen Fahrer- und Konstrukteurs-Weltmeister – mit Champion-Team, Weltmeister-Lineup und einer all-time Titelstatistik für Fahrer und Teams.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="container hof-content-shell">
+      <section class="hof-current-section">
+        <div class="section-header section-header-compact">
+          <div>
+            <div class="eyebrow">Aktuell</div>
+            <h2 class="page-title page-title-compact">Amtierende Weltmeister</h2>
+            <p id="hof-current-subtitle" class="page-subtitle">Wird geladen...</p>
+          </div>
+        </div>
+        <div id="hof-current-feature" class="hof-empty">Hall of Fame wird geladen...</div>
+      </section>
+
+      <section class="hof-history-section section-spacer-top">
+        <div class="section-header section-header-compact">
+          <div>
+            <div class="eyebrow">Historie</div>
+            <h2 class="page-title page-title-compact">Die Legendenwand</h2>
+            <p class="page-subtitle">Jede Saison mit Fahrer-Weltmeister und Konstrukteurs-Weltmeister auf einer gemeinsamen Tafel.</p>
+          </div>
+        </div>
+        <div id="hof-season-wall" class="hof-season-wall"></div>
+      </section>
+
+      <section class="hof-totals-section section-spacer-top">
+        <div class="section-header section-header-compact">
+          <div>
+            <div class="eyebrow">All-Time</div>
+            <h2 class="page-title page-title-compact">Titelübersicht</h2>
+            <p id="hof-total-seasons" class="page-subtitle">0 Saisons verewigt</p>
+          </div>
+        </div>
+        <div class="hof-totals-split">
+          <section class="hof-totals-block">
+            <div class="eyebrow">Fahrer & Konstrukteursfahrer</div>
+            <h3 class="hof-subheading">Personenrekorde</h3>
+            <div id="hof-people-totals-grid" class="hof-totals-grid"></div>
+          </section>
+          <section class="hof-totals-block">
+            <div class="eyebrow">Teams</div>
+            <h3 class="hof-subheading">Konstrukteursrekorde</h3>
+            <div id="hof-constructor-totals-grid" class="hof-totals-grid"></div>
+          </section>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pages/hall-of-fame.js"></script>
+</body>
+</html>

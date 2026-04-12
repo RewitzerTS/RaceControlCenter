@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Control Center · Ergebnisse</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RCC">
+  <meta name="mobile-web-app-capable" content="yes">
+
+</head>
+<body data-page="ergebnisse">
+  <div id="site-header"></div>
+
+  <main class="section">
+    <div class="container section-header">
+      <div>
+        <div class="eyebrow">Ergebnisse</div>
+        <h1 class="page-title page-title-compact">Saisonergebnisse</h1>
+        <p class="page-subtitle">Alle Fahrer über alle Rennen inkl. Punkteverlauf.</p>
+      </div>
+    </div>
+
+    <div class="container section-spacer-top">
+      <section class="table-card">
+        <div class="table-header"><h2>Punkteübersicht der Saison</h2><span class="muted" id="results-matrix-label">Wird geladen...</span></div>
+        <div class="table-wrap" id="results-matrix-wrap"><div class="notice">Ergebnisse werden geladen...</div></div>
+      </section>
+    </div>
+
+    <div class="container section-spacer-top">
+      <section class="panel">
+        <h3>Punkteverlauf</h3>
+        <canvas id="results-trend-chart" height="120"></canvas>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/data/tracks.js"></script>
+  <script src="assets/js/services/rcc-data.js"></script>
+  <script src="assets/js/services/rcc-driver-context.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/data/results-override-season15.js"></script>
+  <script src="assets/js/pages/results.js"></script>
+</body>
+</html>

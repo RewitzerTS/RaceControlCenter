@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Control Center · Stewards</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RCC">
+  <meta name="mobile-web-app-capable" content="yes">
+
+</head>
+<body data-page="stewards">
+  <div id="site-header"></div>
+  <main class="section">
+    <div class="container section-header">
+      <div>
+        <div class="eyebrow">Stewards</div>
+        <h1 class="page-title page-title-compact">Steward-Entscheidungen</h1>
+        <p class="page-subtitle">Admins können Einträge direkt auf dieser Seite bearbeiten oder löschen.</p>
+      </div>
+    </div>
+
+    <div class="container two-col">
+      <section class="panel">
+        <h3>Einträge</h3>
+        <div id="incident-list" class="incident-list">Lade Stewards...</div>
+      </section>
+
+      <section class="panel" id="steward-admin-panel">
+        <h3>Admin Bearbeitung</h3>
+        <div class="notice" id="steward-admin-status">Nur mit aktivem Admin-Login verfügbar.</div>
+        <input type="hidden" id="steward-edit-id">
+        <div class="form-grid">
+          <div class="field"><label for="steward-edit-title">Vorfall</label><input id="steward-edit-title"></div>
+          <div class="field"><label for="steward-edit-race">Grand Prix</label><input id="steward-edit-race" disabled></div>
+          <div class="field"><label for="steward-edit-driver-1">Fahrer 1 (Einreicher)</label><select id="steward-edit-driver-1"><option value="">Bitte wählen</option></select></div>
+          <div class="field"><label for="steward-edit-driver-2">Fahrer 2 (Beschuldigter)</label><select id="steward-edit-driver-2"><option value="">Bitte wählen</option></select></div>
+          <div class="field full"><label for="steward-edit-description">Beschreibung</label><textarea id="steward-edit-description"></textarea></div>
+          <div class="field full"><label for="steward-edit-decision">Entscheidung</label><textarea id="steward-edit-decision" rows="6"></textarea></div>
+          <div class="field"><label for="steward-edit-consequence">Konsequenz</label><select id="steward-edit-consequence">
+            <option value="Keine">Keine</option>
+            <option value="+3 Sekunden">+3 Sekunden</option>
+            <option value="+5 Sekunden">+5 Sekunden</option>
+            <option value="+10 Sekunden">+10 Sekunden</option>
+            <option value="-3 Sekunden">-3 Sekunden</option>
+            <option value="-5 Sekunden">-5 Sekunden</option>
+            <option value="-10 Sekunden">-10 Sekunden</option>
+          </select></div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="btn primary" id="save-steward-edit-btn">Änderungen speichern</button>
+          <button type="button" class="btn" id="reset-steward-edit-btn">Zurücksetzen</button>
+        </div>
+        <div class="notice" id="steward-edit-feedback" hidden></div>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/data/tracks.js"></script>
+  <script src="assets/js/services/rcc-data.js"></script>
+  <script src="assets/js/services/rcc-driver-context.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pages/stewards.js"></script>
+</body>
+</html>

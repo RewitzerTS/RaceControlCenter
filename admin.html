@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Control Center · Admin</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RCC">
+  <meta name="mobile-web-app-capable" content="yes">
+
+</head>
+<body data-page="admin">
+  <div id="site-header"></div>
+
+  <main class="section">
+    <div class="container section-header">
+      <div>
+        <div class="eyebrow">Admin</div>
+        <h1 class="page-title page-title-compact">Admin Center</h1>
+        <p class="page-subtitle">Modularer Saison-, Kalender- und Ergebnis-Workflow mit persistentem Login und moderner UI.</p>
+      </div>
+    </div>
+
+    <div class="container admin-layout">
+      <section class="panel admin-panel-accent">
+        <h3>Admin Login</h3>
+        <div class="form-grid">
+          <div class="field"><label for="admin-email">E-Mail</label><input id="admin-email" type="email" placeholder="deine-mail@example.com"></div>
+          <div class="field"><label for="admin-password">Passwort</label><input id="admin-password" type="password" placeholder="Passwort"></div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="button-primary" id="admin-login-btn">Einloggen</button>
+          <button type="button" class="button-secondary" id="admin-logout-btn">Ausloggen</button>
+        </div>
+        <div class="notice" id="admin-session-status">Session wird geprüft...</div>
+        <div id="admin-auth-feedback" class="notice" hidden></div>
+      </section>
+
+      <section class="panel season-panel">
+        <h3>Saisonverwaltung</h3>
+        <div class="detail-list" id="season-summary">Saison wird geladen...</div>
+        <div class="card-actions">
+          <button type="button" class="button-primary" id="start-new-season-btn">Neue Saison starten</button>
+        </div>
+        <div class="notice">Beim Saisonwechsel bleiben alte Daten erhalten. Die neue Saison startet mit leerem Rennkalender.</div>
+        <div id="season-feedback" class="notice" hidden></div>
+      </section>
+
+      <section class="panel admin-panel-accent">
+        <h3>Rennen anlegen</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label for="race-grand-prix-name">Grand Prix</label>
+            <select id="race-grand-prix-name"><option value="">Bitte wählen</option></select>
+          </div>
+          <div class="field">
+            <label for="race-circuit-name">Strecke</label>
+            <input id="race-circuit-name" placeholder="Wird automatisch befüllt">
+          </div>
+          <div class="field"><label for="race-date">Renndatum</label><input id="race-date" type="date"></div>
+          <div class="field"><label for="race-time">Uhrzeit</label><select id="race-time"></select></div>
+          <div class="field"><label for="race-status">Status</label><select id="race-status"><option value="upcoming" selected>upcoming</option><option value="completed">completed</option></select></div>
+          <div class="field"><label for="race-weather">Wetter</label><select id="race-weather"><option value="">Bitte wählen</option></select></div>
+          <div class="field full"><label for="race-notes">Notizen</label><textarea id="race-notes" placeholder="Zusätzliche Infos zum Rennen"></textarea></div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="button-primary" id="save-race-btn">Rennen speichern</button>
+          <button type="button" class="button-secondary" id="generate-season-btn">Komplette Saison zufällig erstellen</button>
+        </div>
+        <div id="race-feedback" class="notice" hidden></div>
+      </section>
+
+      <section class="panel">
+        <h3>Ergebnisse per Excel/CSV importieren</h3>
+        <div class="notice">Erwartete Spalten: Grand Prix, Pos, Fahrer, Startposition, Boxenstopps, Schnellste Runde, Renndauer, Punkte. Du kannst hier direkt zwei Rennen nacheinander vorbereiten.</div>
+        <div class="form-grid">
+          <div class="field full"><label for="csv-file">CSV-Datei · Upload 1</label><input type="file" id="csv-file" accept=".csv"></div>
+          <div class="field full"><label for="csv-preview">CSV-Vorschau · Upload 1</label><textarea id="csv-preview" placeholder="Hier erscheint der Inhalt der ersten importierten CSV."></textarea></div>
+          <div class="field full"><button class="button-primary" type="button" id="import-results-btn">Upload 1 importieren</button></div>
+
+          <div class="field full"><label for="csv-file-2">CSV-Datei · Upload 2</label><input type="file" id="csv-file-2" accept=".csv"></div>
+          <div class="field full"><label for="csv-preview-2">CSV-Vorschau · Upload 2</label><textarea id="csv-preview-2" placeholder="Hier erscheint der Inhalt der zweiten importierten CSV."></textarea></div>
+          <div class="field full"><button class="button-secondary" type="button" id="import-results-btn-2">Upload 2 importieren</button></div>
+        </div>
+        <div id="csv-feedback" class="notice" hidden></div>
+      </section>
+
+      <section class="panel">
+        <h3>Steward-Eintrag anlegen</h3>
+        <div class="form-grid">
+          <div class="field"><label for="incident-race">Rennen</label><select id="incident-race"><option value="">Rennen werden geladen...</option></select></div>
+          <div class="field"><label for="incident-title">Vorfall</label><input id="incident-title" placeholder="z. B. Kollision Runde 18"></div>
+          <div class="field"><label for="incident-driver-1">Fahrer 1 (Einreicher)</label><select id="incident-driver-1"><option value="">Bitte wählen</option></select></div>
+          <div class="field"><label for="incident-driver-2">Fahrer 2 (Beschuldigter)</label><select id="incident-driver-2"><option value="">Bitte wählen</option></select></div>
+          <div class="field full"><label for="incident-description">Beschreibung</label><textarea id="incident-description" placeholder="Was ist passiert?"></textarea></div>
+          <div class="field full"><label for="incident-decision">Entscheidung</label><textarea id="incident-decision" rows="6" placeholder="Hier kommt die ausführliche Steward-Entscheidung hinein."></textarea></div>
+          <div class="field"><label for="incident-consequence">Konsequenz</label><select id="incident-consequence">
+            <option value="Keine" selected>Keine</option>
+            <option value="+3 Sekunden">+3 Sekunden</option>
+            <option value="+5 Sekunden">+5 Sekunden</option>
+            <option value="+10 Sekunden">+10 Sekunden</option>
+            <option value="-3 Sekunden">-3 Sekunden</option>
+            <option value="-5 Sekunden">-5 Sekunden</option>
+            <option value="-10 Sekunden">-10 Sekunden</option>
+          </select></div>
+        </div>
+        <button type="button" class="button-primary" id="save-incident-btn">Steward-Eintrag speichern</button>
+        <div id="incident-feedback" class="notice" hidden></div>
+      </section>
+
+
+
+      <section class="panel admin-panel-wide">
+        <h3>Freigabe-Workflow für Rennergebnisse</h3>
+        <div class="notice">CSV-Importe werden zunächst als Entwurf gespeichert. Erst nach Steward-Prüfung und Freigabe werden die finalen Ergebnisse öffentlich.</div>
+        <div id="publish-workflow-list" class="stack-list section-spacer-top"></div>
+        <div id="publish-feedback" class="notice" hidden></div>
+      </section>
+
+      <section class="panel admin-panel-wide">
+        <h3>Ergebnisse manuell bearbeiten</h3>
+        <div class="notice" id="manual-results-status">Nur nach erfolgreichem Login sichtbar und nutzbar.</div>
+        <div id="manual-results-panel" class="hidden">
+          <div class="form-grid">
+            <div class="field"><label for="manual-race-select">Rennen</label><select id="manual-race-select"><option value="">Rennen wählen</option></select></div>
+          </div>
+          <div class="manual-results-toolbar card-actions">
+            <button type="button" class="button-primary" id="load-manual-results-btn">Ergebnisse laden</button>
+            <button type="button" class="button-primary" id="save-manual-results-btn">Änderungen speichern</button>
+          </div>
+          <div class="table-wrap section-spacer-top" id="manual-results-wrap"><div class="notice">Bitte Rennen wählen.</div></div>
+          <div class="manual-results-toolbar card-actions">
+            <button type="button" class="button-secondary" id="load-manual-results-btn-bottom">Ergebnisse neu laden</button>
+            <button type="button" class="button-primary" id="save-manual-results-btn-bottom">Änderungen speichern</button>
+          </div>
+          <div id="manual-results-feedback" class="notice" hidden></div>
+        </div>
+      </section>
+
+      <section class="panel admin-panel-wide">
+        <h3>Fahrer-Stammdaten</h3>
+        <input type="hidden" id="driver-id">
+        <div class="form-grid">
+          <div class="field"><label for="driver-display-name">Fahrer</label><input id="driver-display-name" placeholder="z. B. Richard"></div>
+          <div class="field"><label for="driver-ai-reference">AI Fahrer</label><select id="driver-ai-reference"><option value="">Bitte wählen</option></select></div>
+          <div class="field"><label for="driver-gamertag">Gamertag</label><input id="driver-gamertag" placeholder="z. B. Gxdly_21k"></div>
+          <div class="field"><label for="driver-league-team">Liga-Team</label><input id="driver-league-team" placeholder="z. B. Nissan Racing Team"></div>
+          <div class="field"><label for="driver-car-name">Auto</label><select id="driver-car-name"><option value="">Bitte wählen</option></select></div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="button-primary" id="save-driver-btn">Fahrer speichern</button>
+          <button type="button" class="button-secondary" id="reset-driver-btn">Formular leeren</button>
+        </div>
+        <div id="driver-feedback" class="notice" hidden></div>
+        <div class="section-spacer-top"><h4>Bereits angelegte Fahrer</h4><div class="notice">Sortierung nach Auto, damit Teamkollegen direkt beieinander stehen.</div><div id="driver-list" class="stack-list driver-admin-grid"></div></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/data/tracks.js"></script>
+  <script src="assets/js/services/rcc-data.js"></script>
+  <script src="assets/js/services/rcc-driver-context.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pages/admin.js"></script>
+</body>
+</html>

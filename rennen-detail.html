@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Race Control Center · Renn-Detail</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="RCC">
+  <meta name="mobile-web-app-capable" content="yes">
+
+</head>
+<body data-page="rennen-detail">
+  <div id="site-header"></div>
+  <main class="section">
+    <div class="container section-header">
+      <div>
+        <div class="eyebrow">Renn-Detail</div>
+        <h1 class="page-title page-title-compact" id="race-title">Rennen wird geladen...</h1>
+        <p class="page-subtitle" id="race-subtitle">Detailseite für ein gefahrenes Rennen mit Ergebnisliste, Zusatzpunkten und Stewards.</p>
+      </div>
+      <a class="btn" href="kalender.html">Zurück zum Kalender</a>
+    </div>
+
+    <div class="container results-grid">
+      <section class="panel">
+        <h3>Renninfos</h3>
+        <div class="detail-list" id="race-info">Rennen wird geladen...</div>
+        <div class="chip-row" id="race-chips"></div>
+      </section>
+
+      <section class="panel">
+        <h3>Stewards</h3>
+        <div class="detail-list" id="stewards-info">Keine Stewards-Einträge vorhanden.</div>
+      </section>
+    </div>
+
+    <div class="container section-spacer-top">
+      <section class="table-card">
+        <div class="table-header"><h2>Alle Platzierungen</h2><span class="muted">PLAYER / BOT sichtbar</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Pos</th><th>Fahrer</th><th>Team</th><th>Start</th><th>Ziel</th><th>Schnellste Runde</th><th>Gesamtrennzeit</th><th>Punkte</th><th>Status</th></tr></thead>
+            <tbody id="results-body"><tr><td colspan="9">Ergebnisse werden geladen...</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/data/tracks.js"></script>
+  <script src="assets/js/services/rcc-data.js"></script>
+  <script src="assets/js/services/rcc-driver-context.js"></script>
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/pages/race-detail.js"></script>
+</body>
+</html>
