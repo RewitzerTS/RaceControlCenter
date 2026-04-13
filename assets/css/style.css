@@ -2158,3 +2158,50 @@ body.hof-page {
   background: rgba(216, 164, 255, 0.16);
   color: #f3deff;
 }
+
+
+/* V10.5.13 grid fix for ergebnisse.html */
+.results-table {
+  table-layout: fixed;
+}
+
+.results-table td,
+.results-table th {
+  text-align: center;
+  vertical-align: middle;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.results-table td > * {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.results-table td .lap-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.3rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  line-height: 1;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.results-table td .bot-time,
+.results-table td .points-value,
+.results-table td .result-value {
+  display: inline-block;
+  min-width: 2.3rem;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .results-table td,
+  .results-table th {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
