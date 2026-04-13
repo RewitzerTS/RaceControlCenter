@@ -810,19 +810,6 @@
       </aside>
     </section>
 
-    <section class="champion-stack">
-      <article class="dashboard-card accent-outline">
-        <div class="card-label">Aktueller Weltmeister</div>
-        <div class="champion-name-large" id="current-driver-champion">Lädt…</div>
-        <div class="champion-detail" id="champion-driver-detail">Champion-Info wird geladen…</div>
-      </article>
-      <article class="dashboard-card violet-outline">
-        <div class="card-label">Aktueller Konstrukteursmeister</div>
-        <div class="champion-name-large" id="current-constructor-champion">Lädt…</div>
-        <div class="champion-detail" id="champion-constructor-detail">Champion-Info wird geladen…</div>
-      </article>
-    </section>
-
     <section class="podium-grid">
       <article class="dashboard-card">
         <div class="card-title-row">
@@ -1243,12 +1230,11 @@
       async function loadDashboard() {
         try {
           const currentSeason = await window.RCCData.fetchCurrentSeason();
-          const [drivers, races, raceResults, assignments, history] = await Promise.all([
+          const [drivers, races, raceResults, assignments] = await Promise.all([
             window.RCCData.fetchDrivers(),
             window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
             window.RCCData.fetchRaceResults(),
-            window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id }),
-            window.RCCData.fetchSeasonHistory(1)
+            window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
           ]);
 
           const driversById = new Map(drivers.map((driver) => [driver.id, driver]));
@@ -1319,12 +1305,6 @@
               topTeam: teamStandings[0]
             });
           }
-
-          const latestHistory = history[0] || {};
-          document.getElementById('current-driver-champion').textContent = latestHistory.driver_champion || 'Noch offen';
-          document.getElementById('champion-driver-detail').textContent = currentSeason?.name ? `Offizieller Champion-Eintrag für ${currentSeason.name}.` : 'Champion wird automatisch aus der History geladen.';
-          document.getElementById('current-constructor-champion').textContent = latestHistory.constructor_champion || 'Noch offen';
-          document.getElementById('champion-constructor-detail').textContent = 'Bleibt als Referenz auf der Hauptübersicht sichtbar.';
 
           if (latestRace) {
             const latestRows = (resultsByRace.get(latestRace.id) || []).slice().sort((a, b) => Number(a.finish_position || 999) - Number(b.finish_position || 999));
