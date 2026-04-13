@@ -10,18 +10,29 @@ function isStandaloneMode() {
   return standaloneMedia || iosStandalone;
 }
 
+function isMobileDevice() {
+  return window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+}
+
 function initStandaloneSplashScreen() {
-  if (document.body?.dataset.page !== 'index' || !isStandaloneMode()) return;
+  if (document.body?.dataset.page !== 'index') return;
 
   const splash = document.getElementById('app-launch-splash');
   if (!splash) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const shouldShowSplash = isStandaloneMode() || isMobileDevice();
+  if (!shouldShowSplash) return;
 
   document.body.classList.add('splash-active');
   window.setTimeout(() => {
-    document.body.classList.remove('splash-active');
-    document.body.classList.add('splash-done');
-    window.setTimeout(() => splash.setAttribute('hidden', 'hidden'), 350);
-  }, 2000);
+    document.body.classList.add('splash-exit');
+    window.setTimeout(() => {
+      document.body.classList.remove('splash-active', 'splash-exit');
+      document.body.classList.add('splash-done');
+      window.setTimeout(() => splash.setAttribute('hidden', 'hidden'), 520);
+    }, 480);
+  }, 1650);
 }
 
 function initNavigation() {

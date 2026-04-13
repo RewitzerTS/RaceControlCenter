@@ -26,7 +26,8 @@
       background: radial-gradient(circle at 20% 20%, rgba(44,143,166,0.22), transparent 38%), #0B0F1A;
       z-index: 9999;
       opacity: 0;
-      transition: opacity .35s ease;
+      transform: scale(1.015);
+      transition: opacity .52s ease, transform .6s cubic-bezier(.2,.8,.2,1);
     }
     #app-launch-splash img {
       width: min(56vw, 220px);
@@ -37,12 +38,32 @@
     body.splash-active #app-launch-splash {
       display: flex;
       opacity: 1;
+      transform: scale(1);
     }
     body.splash-active #site-header,
     body.splash-active main,
     body.splash-active #site-footer {
       opacity: 0;
       pointer-events: none;
+      transform: translateY(14px) scale(.992);
+      filter: blur(8px);
+      transition: opacity .42s ease, transform .56s ease, filter .56s ease;
+    }
+    body.splash-exit #app-launch-splash {
+      opacity: 0;
+      transform: scale(1.02);
+    }
+    #site-header,
+    main,
+    #site-footer {
+      transition: opacity .55s cubic-bezier(.2,.8,.2,1), transform .62s cubic-bezier(.2,.8,.2,1), filter .62s ease;
+    }
+    body.splash-done #site-header,
+    body.splash-done main,
+    body.splash-done #site-footer {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: none;
     }
     body.splash-done #app-launch-splash {
       opacity: 0;
