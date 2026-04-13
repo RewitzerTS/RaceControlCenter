@@ -410,7 +410,7 @@ function parsePenaltySeconds(value = '') {
 
 
 function toAbsoluteRaceMs(row, leaderMs = null) {
-  const parsedMs = parseTimeStringToMs ? parseTimeStringToMs(row?.race_time) : parseRaceTimeToMs(row?.race_time);
+  const parsedMs = parseTimeStringToMs(row?.race_time);
   if (!Number.isFinite(parsedMs)) return null;
 
   const finishPosition = Number(row?.finish_position || 0);
@@ -1645,9 +1645,9 @@ async function saveManualResults() {
           finish_position: entry.finish_position ? Number(entry.finish_position) : null,
           grid_position: entry.grid_position ? Number(entry.grid_position) : null,
           fastest_lap_time: fastestLapTime,
-          fastest_lap_time_ms: parseTimeFieldToMs(fastestLapTime),
+          fastest_lap_time_ms: parseTimeStringToMs(fastestLapTime),
           race_time: raceTime,
-          race_time_ms: parseTimeFieldToMs(raceTime),
+          race_time_ms: parseTimeStringToMs(raceTime),
           awarded_points: entry.awarded_points ? Number(entry.awarded_points) : 0,
           participation_status: entry.participation_status || 'PLAYER'
         }
