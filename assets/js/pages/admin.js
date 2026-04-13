@@ -46,6 +46,7 @@ const state = {
   isGeneratingSeason: false,
   seasonFinalizePreview: null,
   eventsBound: false,
+  headerEventsBound: false,
   authListenerBound: false,
   initialized: false
 };
@@ -681,33 +682,70 @@ function editDriver(id, displayName, aiDriverReference, gamertag, leagueTeam, ca
 
 async function refreshSessionStatus() {
   const statusEl = document.getElementById('admin-session-status');
-  if (!statusEl) return;
-
   const { data, error } = await window.supabaseClient.auth.getSession();
+  const session = data?.session || null;
+
+  if (statusEl) {
+    if (error) {
+      statusEl.textContent = `Sessionfehler: ${error.message}`;
+    } else {
+      statusEl.textContent = session
+        ? `Eingeloggt als ${session.user.email}`
+        : 'Keine aktive Session';
+    }
+  }
+
+  updateHeaderAuthUi(session, error);
+  updateAdminOverview();
+}
+
+function updateHeaderAuthUi(session, error = null) {
+  const authWrap = document.getElementById('admin-header-auth');
+  const statusEl = document.getElementById('admin-header-auth-status');
+  const emailInput = document.getElementById('admin-header-email');
+  const passwordInput = document.getElementById('admin-header-password');
+  const loginBtn = document.getElementById('admin-header-login-btn');
+  const logoutBtn = document.getElementById('admin-header-logout-btn');
+
+  if (!authWrap || !statusEl) return;
+  authWrap.hidden = false;
+
   if (error) {
     statusEl.textContent = `Sessionfehler: ${error.message}`;
     return;
   }
 
-  statusEl.textContent = data.session
-    ? `Eingeloggt als ${data.session.user.email}`
-    : 'Keine aktive Session';
-  updateAdminOverview();
+  const isLoggedIn = Boolean(session);
+  statusEl.textContent = isLoggedIn
+    ? `Eingeloggt als ${session.user.email}`
+    : 'Nicht eingeloggt';
+
+  if (emailInput) emailInput.hidden = isLoggedIn;
+  if (passwordInput) passwordInput.hidden = isLoggedIn;
+  if (loginBtn) loginBtn.hidden = isLoggedIn;
+  if (logoutBtn) logoutBtn.hidden = !isLoggedIn;
 }
 
-async function signInAdmin() {
-  clearFeedback('admin-auth-feedback');
-  const email = getTrimmedValue('admin-email');
-  const password = getValue('admin-password');
-
+async function signInAdminWithCredentials(email, password, feedbackId = 'admin-auth-feedback') {
+  clearFeedback(feedbackId);
   const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) return showFeedback('admin-auth-feedback', `Login fehlgeschlagen: ${error.message}`, true);
+  if (error) {
+    showFeedback(feedbackId, `Login fehlgeschlagen: ${error.message}`, true);
+    return false;
+  }
 
-  showFeedback('admin-auth-feedback', 'Erfolgreich eingeloggt. Session bleibt bestehen.');
+  showFeedback(feedbackId, 'Erfolgreich eingeloggt. Session bleibt bestehen.');
   await Promise.all([
     refreshSessionStatus(),
     updateManualResultsVisibility()
   ]);
+  return true;
+}
+
+async function signInAdmin() {
+  const email = getTrimmedValue('admin-email');
+  const password = getValue('admin-password');
+  await signInAdminWithCredentials(email, password);
 }
 
 async function signOutAdmin() {
@@ -720,6 +758,20 @@ async function signOutAdmin() {
     refreshSessionStatus(),
     updateManualResultsVisibility()
   ]);
+}
+
+async function signInAdminFromHeader() {
+  const email = getTrimmedValue('admin-header-email');
+  const password = getValue('admin-header-password');
+  if (!email || !password) {
+    showFeedback('admin-auth-feedback', 'Bitte E-Mail und Passwort im Header ausfüllen.', true);
+    return;
+  }
+
+  setValue('admin-email', email);
+  setValue('admin-password', password);
+  const success = await signInAdminWithCredentials(email, password);
+  if (success) setValue('admin-header-password', '');
 }
 
 async function loadDrivers() {
@@ -1921,6 +1973,21 @@ function bindUiEvents() {
   });
 }
 
+function bindHeaderAuthEvents() {
+  if (state.headerEventsBound) return;
+  state.headerEventsBound = true;
+
+  document.addEventListener('click', (event) => {
+    if (event.target.id === 'admin-header-login-btn') {
+      signInAdminFromHeader();
+      return;
+    }
+    if (event.target.id === 'admin-header-logout-btn') {
+      signOutAdmin();
+    }
+  });
+}
+
 function bindAuthListener() {
   if (state.authListenerBound) return;
   state.authListenerBound = true;
@@ -1938,7 +2005,12 @@ async function initAdminPage() {
   populateDriverDropdowns();
   enableAdminCollapsibles();
   bindUiEvents();
+  bindHeaderAuthEvents();
   bindAuthListener();
+
+  document.addEventListener('layout:loaded', () => {
+    refreshSessionStatus();
+  });
 
   await Promise.all([
     populateStewardDriverSelects(),

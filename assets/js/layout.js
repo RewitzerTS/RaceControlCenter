@@ -29,6 +29,12 @@ function updateActiveNavigation() {
   });
 }
 
+function updateAdminHeaderVisibility() {
+  const adminAuth = document.getElementById('admin-header-auth');
+  if (!adminAuth) return;
+  adminAuth.hidden = resolveCurrentPage() !== 'admin';
+}
+
 async function injectLayoutPart(selector, file) {
   const target = document.querySelector(selector);
   if (!target) return;
@@ -49,6 +55,7 @@ async function loadSiteLayout() {
     );
 
     updateActiveNavigation();
+    updateAdminHeaderVisibility();
     document.dispatchEvent(new CustomEvent('layout:loaded'));
   } catch (error) {
     console.error(error);
