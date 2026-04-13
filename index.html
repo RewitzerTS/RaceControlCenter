@@ -833,21 +833,69 @@
       .main-podium {
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
+      .podium-grid {
+        gap: 12px;
+      }
+      .podium-grid .dashboard-card {
+        padding: 14px;
+        border-radius: 18px;
+      }
+      .podium-grid .card-title-row {
+        margin-bottom: 10px;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .podium-grid .card-label {
+        margin-bottom: 4px;
+        font-size: .62rem;
+      }
+      .podium-grid .card-title-row h2 {
+        font-size: 1.06rem;
+      }
+      .podium-grid .btn-secondary-ghost {
+        min-height: 30px;
+        padding: 0 8px;
+        font-size: .7rem;
+      }
+      .main-podium {
+        gap: 8px;
+        min-height: 0;
+      }
       .podium-column,
       .podium-column.p1,
       .podium-column.p2,
       .podium-column.p3 {
-        min-height: 170px;
-        padding: 52px 10px 12px;
+        min-height: 142px;
+        padding: 42px 8px 10px;
+        border-radius: 16px 16px 10px 10px;
       }
       .podium-column h3 { font-size: .9rem; }
       .podium-column p,
       .podium-card-lite span { font-size: .78rem; }
+      .podium-points {
+        margin-top: 8px;
+        font-size: 1.12rem;
+      }
       .podium-rank,
       .podium-card-lite .place {
         width: 34px;
         height: 34px;
       }
+      .driver-link-list {
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .driver-link-row {
+        gap: 8px;
+        padding: 9px 10px;
+        border-radius: 12px;
+      }
+      .small-rank {
+        width: 30px;
+        height: 30px;
+      }
+      .driver-link-row strong { font-size: .84rem; }
+      .driver-link-row span { font-size: .76rem; }
       .status-strip {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
