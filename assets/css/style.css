@@ -131,6 +131,23 @@ button, input, textarea, select {
   background: rgba(44,143,166,0.14);
 }
 
+.admin-header-auth {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.admin-header-auth-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.admin-header-auth-btn {
+  padding: 8px 12px;
+}
+
 .page-hero {
   padding: 34px 0 16px;
 }
