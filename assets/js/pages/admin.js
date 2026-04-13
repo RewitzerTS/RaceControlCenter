@@ -1797,7 +1797,8 @@ function toggleAdminPanel(panel, shouldCollapse = null) {
 
 function enableAdminCollapsibles() {
   const sections = [...document.querySelectorAll('.admin-layout > .panel')];
-  sections.forEach((panel, index) => {
+  sections.forEach((panel) => {
+    if (panel.tagName === 'DETAILS') return;
     if (panel.dataset.collapsibleReady === 'true') return;
     const title = panel.querySelector('h3');
     if (!title) return;
@@ -1823,7 +1824,6 @@ function enableAdminCollapsibles() {
     headerRow.appendChild(toggle);
 
     panel.dataset.collapsibleReady = 'true';
-    if (index > 1) toggleAdminPanel(panel, true);
   });
 }
 
