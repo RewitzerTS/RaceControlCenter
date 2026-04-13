@@ -1,5 +1,135 @@
 let trendChartInstance = null;
 
+function buildComparisonModelFromDynamicData(matrixData) {
+  const chartRaces = matrixData.completedRaces.slice().sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
+  const labels = chartRaces.map((race) => `R${race.round_number}`);
+  const raceOrder = new Map(matrixData.completedRaces.map((race, index) => [race.id, index]));
+  const drivers = matrixData.rows.map((entry) => {
+    const perRacePoints = chartRaces.map((race) => entry.raceCells[raceOrder.get(race.id)]?.points || 0);
+    let running = 0;
+    const cumulative = perRacePoints.map((value) => {
+      running += value;
+      return running;
+    });
+    return {
+      id: String(entry.driver.id),
+      label: getDriverDisplayLabel(entry.driver),
+      perRacePoints,
+      cumulative,
+      total: entry.total
+    };
+  });
+  return { labels, drivers };
+}
+
+function buildComparisonModelFromStaticData(data, rows) {
+  const labels = data.races.map((_, index) => `R${index + 1}`);
+  const drivers = rows.map((entry, index) => {
+    let running = 0;
+    const cumulative = entry.points.map((value) => {
+      running += value;
+      return running;
+    });
+    return {
+      id: String(index),
+      label: entry.driver,
+      perRacePoints: entry.points.slice(),
+      cumulative,
+      total: entry.total
+    };
+  });
+  return { labels, drivers };
+}
+
+function renderDriverComparison(model) {
+  const selectA = document.getElementById('compare-driver-a');
+  const selectB = document.getElementById('compare-driver-b');
+  const output = document.getElementById('results-compare-output');
+  if (!selectA || !selectB || !output) return;
+
+  const optionsHtml = ['<option value="">Bitte wählen…</option>']
+    .concat(model.drivers.map((driver) => `<option value="${window.escapeHtml(driver.id)}">${window.escapeHtml(driver.label)}</option>`))
+    .join('');
+  selectA.innerHTML = optionsHtml;
+  selectB.innerHTML = optionsHtml;
+
+  const createMetricCard = (title, valueA, valueB, deltaText) => `
+    <div class="results-compare-metric">
+      <div class="results-compare-metric-title">${window.escapeHtml(title)}</div>
+      <div class="results-compare-metric-values">
+        <span>${window.escapeHtml(valueA)}</span>
+        <span>${window.escapeHtml(valueB)}</span>
+      </div>
+      <div class="muted">${window.escapeHtml(deltaText)}</div>
+    </div>
+  `;
+
+  const renderState = () => {
+    if (selectA.value && selectA.value === selectB.value) {
+      selectB.value = '';
+    }
+
+    const driverA = model.drivers.find((driver) => driver.id === selectA.value);
+    const driverB = model.drivers.find((driver) => driver.id === selectB.value);
+
+    if (!driverA && !driverB) {
+      output.innerHTML = '<div class="notice">Wähle mindestens einen Fahrer, um Kennzahlen zu sehen.</div>';
+      return;
+    }
+
+    if (driverA && !driverB) {
+      const bestRace = Math.max(...driverA.perRacePoints, 0);
+      const avg = driverA.perRacePoints.length ? (driverA.total / driverA.perRacePoints.length) : 0;
+      output.innerHTML = `
+        <div class="results-compare-single">
+          <strong>${window.escapeHtml(driverA.label)}</strong>
+          <span>Total: ${driverA.total} Punkte</span>
+          <span>Schnitt: ${avg.toFixed(2)} Punkte/Rennen</span>
+          <span>Bestes Rennen: ${bestRace} Punkte</span>
+        </div>
+      `;
+      return;
+    }
+
+    if (!driverA || !driverB) {
+      output.innerHTML = '<div class="notice">Bitte zwei Fahrer auswählen, um den direkten Vergleich zu sehen.</div>';
+      return;
+    }
+
+    const avgA = driverA.perRacePoints.length ? driverA.total / driverA.perRacePoints.length : 0;
+    const avgB = driverB.perRacePoints.length ? driverB.total / driverB.perRacePoints.length : 0;
+    const bestA = Math.max(...driverA.perRacePoints, 0);
+    const bestB = Math.max(...driverB.perRacePoints, 0);
+    const raceWinsA = driverA.perRacePoints.filter((value, index) => value > (driverB.perRacePoints[index] || 0)).length;
+    const raceWinsB = driverB.perRacePoints.filter((value, index) => value > (driverA.perRacePoints[index] || 0)).length;
+    const ties = model.labels.length - raceWinsA - raceWinsB;
+    const totalDelta = driverA.total - driverB.total;
+    const totalDeltaText = totalDelta === 0
+      ? 'Gesamtgleichstand'
+      : (totalDelta > 0
+        ? `${driverA.label} liegt ${totalDelta} Punkte vorne`
+        : `${driverB.label} liegt ${Math.abs(totalDelta)} Punkte vorne`);
+
+    output.innerHTML = `
+      <div class="results-compare-head">
+        <strong>${window.escapeHtml(driverA.label)}</strong>
+        <span>vs.</span>
+        <strong>${window.escapeHtml(driverB.label)}</strong>
+      </div>
+      <div class="results-compare-metrics-grid">
+        ${createMetricCard('Total', `${driverA.total}`, `${driverB.total}`, totalDeltaText)}
+        ${createMetricCard('Schnitt pro Rennen', avgA.toFixed(2), avgB.toFixed(2), 'Durchschnittspunkte')}
+        ${createMetricCard('Bestes Rennen', `${bestA}`, `${bestB}`, 'Höchste Punkteausbeute')}
+        ${createMetricCard('Direkte Duelle', `${raceWinsA} Siege`, `${raceWinsB} Siege`, `${ties} Gleichstände`)}
+      </div>
+    `;
+  };
+
+  selectA.addEventListener('change', renderState);
+  selectB.addEventListener('change', renderState);
+  renderState();
+}
+
 function renderStaticResultsOverride() {
   const data = window.RCC_STATIC_RESULTS_14;
   if (!data) return false;
@@ -53,6 +183,7 @@ function renderStaticResultsOverride() {
   `;
 
   renderStaticTrendChart(data, sortedRows);
+  renderDriverComparison(buildComparisonModelFromStaticData(data, sortedRows));
   return true;
 }
 
@@ -245,6 +376,7 @@ async function loadResultsPage() {
     const matrixData = buildMatrixData(drivers, races, raceResults, resolver);
     renderMatrix(wrap, labelEl, matrixData);
     renderTrendChart(matrixData);
+    renderDriverComparison(buildComparisonModelFromDynamicData(matrixData));
   } catch (error) {
     console.error(error);
     wrap.innerHTML = '<div class="notice">Fehler beim Laden der Saisonergebnisse.</div>';
