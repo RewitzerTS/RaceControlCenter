@@ -1,257 +1,97 @@
-let trendChartInstance = null;
-
-function renderStaticResultsOverride() {
-  const data = window.RCC_STATIC_RESULTS_14;
-  if (!data) return false;
-  const wrap = document.getElementById('results-matrix-wrap');
-  const labelEl = document.getElementById('results-matrix-label');
-  if (!wrap || !labelEl) return false;
-
-  const sortedRows = data.rows
-    .map((row) => ({ ...row, total: row.points.reduce((sum, value) => sum + value, 0) }))
-    .sort((a, b) => b.total - a.total || a.driver.localeCompare(b.driver, 'de'));
-
-  labelEl.textContent = `${data.races.length} gewertete Rennen · ${sortedRows.length} Fahrer`;
-
-  const head = data.races.map((race, index) => `
-    <th class="results-race-header" title="${window.escapeHtml(`R${index + 1} · ${race}`)}">
-      <span class="results-race-head-full">${window.escapeHtml(race)}</span>
-      <span class="results-race-head-compact">R${index + 1}</span>
-    </th>
-  `).join('');
-
-  const body = sortedRows.map((row) => {
-    const cells = row.points.map((value, index) => {
-      const tone = row.classes?.[index] || '';
-      const classes = ['results-points-cell'];
-      const valueClasses = ['results-points-value'];
-      if (tone === 'bot') valueClasses.push('results-points-value--bot');
-      if (tone === 'player') valueClasses.push('results-points-value--fl-chip');
-      return `<td class="${classes.join(' ')}"><div class="results-cell-stack"><span class="${valueClasses.join(' ')}">${value}</span></div></td>`;
-    }).join('');
-
-    return `
-      <tr>
-        <td class="sticky-driver"><span class="driver-label-text">${window.escapeHtml(row.driver)}</span></td>
-        ${cells}
-        <td class="results-total-cell"><strong>${row.total}</strong></td>
-      </tr>
-    `;
-  }).join('');
-
-  wrap.innerHTML = `
-    <table class="results-matrix-table">
-      <thead>
-        <tr>
-          <th class="sticky-driver sticky-driver-head">Fahrer</th>
-          ${head}
-          <th class="results-total-head">Total</th>
-        </tr>
-      </thead>
-      <tbody>${body}</tbody>
-    </table>
-  `;
-
-  renderStaticTrendChart(data, sortedRows);
-  return true;
+function formatFastestLapCell(value, isFastest) {
+  const safe = String(value ?? '').trim();
+  if (!safe) return '—';
+  return isFastest ? `<span class="lap-chip">${safe}</span>` : safe;
 }
 
-function renderStaticTrendChart(data, rows) {
-  const canvas = document.getElementById('results-trend-chart');
-  if (!canvas || !window.Chart) return;
-  if (trendChartInstance) trendChartInstance.destroy();
-
-  const labels = data.races.map((_, index) => `R${index + 1}`);
-  const datasets = rows.map((entry) => {
-    let running = 0;
-    const points = entry.points.map((value) => {
-      running += value;
-      return running;
-    });
-    return {
-      label: entry.driver,
-      data: points,
-      tension: 0.25,
-      fill: false,
-      pointRadius: 2,
-      pointHoverRadius: 4,
-      borderWidth: 2
-    };
-  });
-
-  trendChartInstance = new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      interaction: { mode: 'nearest', intersect: false },
-      plugins: { legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 10, usePointStyle: true, padding: 14 } } },
-      scales: {
-        x: { ticks: { color: '#b9c5d1' }, grid: { color: 'rgba(255,255,255,0.08)' } },
-        y: { ticks: { color: '#b9c5d1' }, grid: { color: 'rgba(255,255,255,0.08)' } }
-      }
-    }
-  });
-}
-
-function getDriverDisplayLabel(driver) {
-  if (!driver) return 'Unbekannt';
-  const extras = [];
-  if (driver.gamertag) extras.push(driver.gamertag);
-  const medalMatch = String(driver.display_name || '').match(/(🥇|🥈|🥉)$/);
-  return `${driver.display_name}${extras.length ? ` / ${extras.join(' / ')}` : ''}${medalMatch ? ` ${medalMatch[1]}` : ''}`;
-}
-
-function buildMatrixData(drivers, races, raceResults, resolver) {
-  const completedRaces = races.filter((race) => race.status === 'completed').sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
-  const raceIds = new Set(completedRaces.map((race) => race.id));
-  const resultsByRace = window.RCCData.groupBy(raceResults.filter((row) => raceIds.has(row.race_id)), (row) => row.race_id);
-  const fastestByRace = new Map();
-  completedRaces.forEach((race) => fastestByRace.set(race.id, window.RCCData.getFastestLapDriverId(resultsByRace.get(race.id) || [])));
-
-  const rows = drivers.map((driver) => {
-    const raceCells = completedRaces.map((race) => {
-      const row = (resultsByRace.get(race.id) || []).find((entry) => entry.driver_id === driver.id);
-      const snapshot = resolver?.resolveDriverSnapshot(driver.id, race.id) || driver;
-      const fastestDriverId = fastestByRace.get(race.id);
-      const points = row ? window.RCCData.getAwardedRacePoints(row, fastestDriverId) : 0;
-      return {
-        points,
-        isBot: String(row?.participation_status || '').toUpperCase() === 'BOT',
-        hasFastestLapBonus: row?.driver_id === fastestDriverId && window.RCCData.isTopTen(row?.finish_position),
-        carName: snapshot?.car_name || driver.car_name || '—'
-      };
-    });
-
-    const total = raceCells.reduce((sum, cell) => sum + cell.points, 0);
-    return { driver, raceCells, total };
-  }).sort((a, b) => b.total - a.total || a.driver.display_name.localeCompare(b.driver.display_name, 'de'));
-
-  return { completedRaces, rows };
-}
-
-function renderMatrix(container, labelEl, matrixData) {
-  const { completedRaces, rows } = matrixData;
-  labelEl.textContent = `${completedRaces.length} gewertete Rennen · ${rows.length} Fahrer`;
-
-  const head = completedRaces.map((race) => `
-    <th class="results-race-header" title="${window.escapeHtml(`R${race.round_number} · ${race.grand_prix_name}`)}">
-      <span class="results-race-head-full">${window.escapeHtml(race.grand_prix_name)}</span>
-      <span class="results-race-head-compact">R${race.round_number}</span>
-    </th>
-  `).join('');
-  const body = rows.map((entry) => {
-    const cells = entry.raceCells.map((cell) => {
-      const classes = ['results-points-cell'];
-      const valueClasses = ['results-points-value'];
-      if (cell.isBot) valueClasses.push('results-points-value--bot');
-      if (cell.hasFastestLapBonus) valueClasses.push('results-points-value--fl-chip');
-      const cellValue = `<span class="${valueClasses.join(' ')}">${cell.points}</span>`;
-      return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}"><div class="results-cell-stack">${cellValue}</div></td>`;
-    }).join('');
-
-    return `
-      <tr>
-        <td class="sticky-driver"><span class="driver-label-text">${window.escapeHtml(getDriverDisplayLabel(entry.driver))}</span></td>
-        ${cells}
-        <td class="results-total-cell"><strong>${entry.total}</strong></td>
-      </tr>
-    `;
-  }).join('');
-
-  container.innerHTML = `
-    <table class="results-matrix-table">
-      <thead>
-        <tr>
-          <th class="sticky-driver sticky-driver-head">Fahrer</th>
-          ${head}
-          <th class="results-total-head">Total</th>
-        </tr>
-      </thead>
-      <tbody>${body}</tbody>
-    </table>
-  `;
-}
-
-function renderTrendChart(matrixData) {
-  const canvas = document.getElementById('results-trend-chart');
-  if (!canvas || !window.Chart) return;
-  if (trendChartInstance) trendChartInstance.destroy();
-
-  const chartRaces = matrixData.completedRaces.slice().sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
-  const labels = chartRaces.map((race) => `R${race.round_number}`);
-  const raceOrder = new Map(matrixData.completedRaces.map((race, index) => [race.id, index]));
-  const datasets = matrixData.rows.map((entry) => {
-    let running = 0;
-    const chronologicalCells = chartRaces.map((race) => entry.raceCells[raceOrder.get(race.id)]);
-    const data = chronologicalCells.map((cell) => {
-      running += cell?.points || 0;
-      return running;
-    });
-    return {
-      label: entry.driver.display_name,
-      data,
-      tension: 0.25,
-      fill: false,
-      pointRadius: 2,
-      pointHoverRadius: 4,
-      borderWidth: 2
-    };
-  });
-
-  trendChartInstance = new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      interaction: {
-        mode: 'nearest',
-        intersect: false
-      },
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            color: '#ffffff',
-            boxWidth: 10,
-            usePointStyle: true,
-            padding: 14
-          }
-        }
-      },
-      scales: {
-        x: { ticks: { color: '#b9c5d1' }, grid: { color: 'rgba(255,255,255,0.08)' } },
-        y: { ticks: { color: '#b9c5d1' }, grid: { color: 'rgba(255,255,255,0.08)' } }
-      }
-    }
-  });
+function formatParticipationCell(value) {
+  const normalized = String(value || '').toLowerCase();
+  if (normalized === 'bot') return '<span class="bot-time">BOT</span>';
+  if (normalized === 'player') return 'PLAYER';
+  return value || '—';
 }
 
 async function loadResultsPage() {
-  const wrap = document.getElementById('results-matrix-wrap');
-  const labelEl = document.getElementById('results-matrix-label');
-  try {
-    const currentSeason = await window.RCCData.fetchCurrentSeason();
-    const [drivers, races, raceResults, assignments] = await Promise.all([
-      window.RCCData.fetchDrivers(),
-      window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
-      window.RCCData.fetchRaceResults(),
-      window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
-    ]);
+  const listRoot = document.querySelector('[data-results-root]');
+  const legendRoot = document.querySelector('[data-results-legend]');
+  if (!window.supabaseClient || !listRoot) return;
 
-    const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
-    const matrixData = buildMatrixData(drivers, races, raceResults, resolver);
-    renderMatrix(wrap, labelEl, matrixData);
-    renderTrendChart(matrixData);
-  } catch (error) {
-    console.error(error);
-    wrap.innerHTML = '<div class="notice">Fehler beim Laden der Saisonergebnisse.</div>';
+  const [{ data: season }, { data: races, error: racesError }, { data: rows, error: resultsError }] = await Promise.all([
+    window.supabaseClient.from('seasons').select('id, name').eq('is_active', true).maybeSingle(),
+    window.supabaseClient.from('races').select('id, grand_prix_name, round_number').order('round_number', { ascending: true }),
+    window.supabaseClient
+      .from('race_results')
+      .select('race_id, finish_position, awarded_points, fastest_lap_time, participation_status, drivers(display_name, league_team)')
+  ]);
+
+  if (racesError || resultsError) {
+    console.error(racesError || resultsError);
+    listRoot.innerHTML = '<div class="notice">Ergebnisse konnten nicht geladen werden.</div>';
+    return;
   }
+
+  if (legendRoot) {
+    legendRoot.innerHTML = `
+      <span class="legend-chip lap-chip">Fastest Lap</span>
+      <span class="legend-chip"><span class="bot-time">BOT</span> = BOT gefahren</span>
+      <span class="legend-chip">${season?.name ? `Saison ${season.name}` : 'Laufende Saison'}</span>
+    `;
+  }
+
+  const rowsByRace = new Map();
+  (rows || []).forEach((row) => {
+    if (!rowsByRace.has(row.race_id)) rowsByRace.set(row.race_id, []);
+    rowsByRace.get(row.race_id).push(row);
+  });
+
+  listRoot.innerHTML = (races || []).map((race) => {
+    const resultRows = rowsByRace.get(race.id) || [];
+    if (!resultRows.length) return `
+      <section class="panel">
+        <h3>${race.grand_prix_name}</h3>
+        <div class="notice">Noch keine Ergebnisse vorhanden.</div>
+      </section>
+    `;
+
+    let fastestLapDriver = null;
+    const lapRows = resultRows.filter((row) => row.fastest_lap_time);
+    if (lapRows.length) {
+      fastestLapDriver = [...lapRows].sort((a,b) => String(a.fastest_lap_time).localeCompare(String(b.fastest_lap_time), 'de'))[0]?.drivers?.display_name || null;
+    }
+
+    const sorted = [...resultRows].sort((a,b) => Number(a.finish_position || 999) - Number(b.finish_position || 999));
+    return `
+      <section class="panel">
+        <h3>${race.round_number ? `${race.round_number}. ` : ''}${race.grand_prix_name}</h3>
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Fahrer</th>
+                <th>Team</th>
+                <th>Schnellste Runde</th>
+                <th>Punkte</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sorted.map((row) => `
+                <tr>
+                  <td>${row.finish_position ?? '—'}</td>
+                  <td>${row.drivers?.display_name || '—'}</td>
+                  <td>${row.drivers?.league_team || '—'}</td>
+                  <td>${formatFastestLapCell(row.fastest_lap_time, row.drivers?.display_name === fastestLapDriver)}</td>
+                  <td><span class="points-value">${row.awarded_points ?? 0}</span></td>
+                  <td>${formatParticipationCell(row.participation_status)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    `;
+  }).join('');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (renderStaticResultsOverride()) return;
-  loadResultsPage();
-});
+document.addEventListener('DOMContentLoaded', loadResultsPage);
