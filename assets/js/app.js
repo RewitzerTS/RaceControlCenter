@@ -1,7 +1,8 @@
 const RCC_STORAGE_KEYS = {
   schedule: 'rcc_schedule',
   stewardNotes: 'rcc_stewards_notes',
-  importedCsv: 'rcc_imported_results'
+  importedCsv: 'rcc_imported_results',
+  splashSeen: 'rcc_splash_seen'
 };
 
 function isStandaloneMode() {
@@ -19,11 +20,17 @@ function initStandaloneSplashScreen() {
 
   const splash = document.getElementById('app-launch-splash');
   if (!splash) return;
+  if (sessionStorage.getItem(RCC_STORAGE_KEYS.splashSeen) === '1') {
+    splash.setAttribute('hidden', 'hidden');
+    document.body.classList.add('splash-done');
+    return;
+  }
   if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   const shouldShowSplash = isStandaloneMode() || isMobileDevice();
   if (!shouldShowSplash) return;
 
+  sessionStorage.setItem(RCC_STORAGE_KEYS.splashSeen, '1');
   document.body.classList.add('splash-active');
   window.setTimeout(() => {
     document.body.classList.add('splash-exit');
