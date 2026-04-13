@@ -486,8 +486,9 @@ function getFastestLapWinnerId(rows) {
   return winnerId;
 }
 
-async function recalculateOfficialRaceResults(raceId) {
+async function recalculateOfficialRaceResults(raceId, options = {}) {
   if (!raceId) return;
+  const recalculatePoints = options.recalculatePoints !== false;
 
   const [{ data: resultRows, error: resultsError }, { data: penaltyRows, error: penaltiesError }, { data: importItem, error: importError }] = await Promise.all([
     window.supabaseClient
@@ -552,20 +553,60 @@ async function recalculateOfficialRaceResults(raceId) {
     const finishPosition = Number(row.finish_position || 0);
     const basePoints = getPointsForPosition(finishPosition);
     const hasFastestLapBonus = fastestLapWinnerId && row.driver_id === fastestLapWinnerId && finishPosition <= 10;
+    const updatePayload = {
+      finish_position: finishPosition,
+      race_time: row.race_time,
+      awarded_points: recalculatePoints
+        ? basePoints + (hasFastestLapBonus ? 1 : 0)
+        : (row.awarded_points ?? 0)
+    };
 
     return window.supabaseClient
       .from('race_results')
-      .update({
-        finish_position: finishPosition,
-        race_time: row.race_time,
-        awarded_points: basePoints + (hasFastestLapBonus ? 1 : 0)
-      })
+      .update(updatePayload)
       .eq('id', row.id);
   });
 
   const responses = await Promise.all(updates);
   const failed = responses.find((response) => response.error);
   if (failed?.error) throw failed.error;
+}
+
+async function loadManualPointsModeForRace(raceId) {
+  if (!raceId) return { autoMode: true };
+  try {
+    const { data, error } = await window.supabaseClient
+      .from('races')
+      .select('manual_points_mode')
+      .eq('id', raceId)
+      .maybeSingle();
+    if (error) return { autoMode: true };
+    return { autoMode: !Boolean(data?.manual_points_mode) };
+  } catch (_error) {
+    return { autoMode: true };
+  }
+}
+
+async function persistManualPointsModeForRace(raceId, autoMode) {
+  if (!raceId) return;
+  try {
+    await window.supabaseClient
+      .from('races')
+      .update({ manual_points_mode: !autoMode })
+      .eq('id', raceId);
+  } catch (_error) {
+    // Optionales Feld. Wenn die Spalte fehlt, nutzen wir einfach den UI-Modus.
+  }
+}
+
+function updateManualPointsModeUi(autoMode) {
+  const toggle = document.getElementById('manual-points-mode-auto');
+  if (toggle) toggle.checked = Boolean(autoMode);
+  const pointsInputs = document.querySelectorAll('#manual-results-wrap [data-field="awarded_points"]');
+  pointsInputs.forEach((input) => {
+    input.disabled = Boolean(autoMode);
+    input.title = autoMode ? 'Auto-Modus aktiv: Punkte werden aus Position und schnellster Runde berechnet.' : '';
+  });
 }
 
 
@@ -1567,6 +1608,7 @@ async function loadManualResultsEditor() {
   const raceId = document.getElementById('manual-race-select')?.value;
   const wrap = document.getElementById('manual-results-wrap');
   if (!raceId || !wrap) return;
+  const { autoMode } = await loadManualPointsModeForRace(raceId);
 
   const [{ data: rows, error: rowsError }, { data: drivers, error: driversError }] = await Promise.all([
     window.supabaseClient
@@ -1610,6 +1652,7 @@ async function loadManualResultsEditor() {
       </tbody>
     </table>
   `;
+  updateManualPointsModeUi(autoMode);
   setManualResultsDirty(false);
 }
 
@@ -1654,7 +1697,9 @@ async function saveManualResults() {
     if (failed?.error) return showFeedback('manual-results-feedback', `Fehler beim Speichern: ${failed.error.message}`, true);
 
     const manualRaceId = document.getElementById('manual-race-select')?.value || null;
+    const autoPointsMode = document.getElementById('manual-points-mode-auto')?.checked !== false;
     if (manualRaceId) {
+      await persistManualPointsModeForRace(manualRaceId, autoPointsMode);
       const { data: manualImport } = await window.supabaseClient
         .from('race_result_imports')
         .select('id')
@@ -1695,10 +1740,15 @@ async function saveManualResults() {
         }
       }
 
-      await recalculateOfficialRaceResults(manualRaceId);
+      await recalculateOfficialRaceResults(manualRaceId, { recalculatePoints: autoPointsMode });
     }
 
-    showFeedback('manual-results-feedback', 'Rennergebnisse gespeichert. Punkte und schnellste Runde wurden neu berechnet.');
+    showFeedback(
+      'manual-results-feedback',
+      autoPointsMode
+        ? 'Rennergebnisse gespeichert. Punkte wurden aus Position und schnellster Runde neu berechnet.'
+        : 'Rennergebnisse gespeichert. Manuell gepflegte Punkte wurden beibehalten.'
+    );
     await loadManualResultsEditor();
   } catch (error) {
     console.error(error);
@@ -1852,6 +1902,11 @@ function bindUiEvents() {
 
   document.getElementById('manual-results-wrap')?.addEventListener('change', (event) => {
     if (event.target.closest('[data-id][data-field]')) setManualResultsDirty(true);
+  });
+  document.getElementById('manual-points-mode-auto')?.addEventListener('change', (event) => {
+    const autoMode = Boolean(event.target?.checked);
+    updateManualPointsModeUi(autoMode);
+    setManualResultsDirty(true);
   });
 
   document.getElementById('csv-file')?.addEventListener('change', async (event) => {
