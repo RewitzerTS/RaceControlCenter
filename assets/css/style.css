@@ -770,6 +770,32 @@ textarea { min-height: 120px; resize: vertical; }
   }
 }
 
+@media (max-width: 760px) {
+  body[data-page="fahrer-wm"] .table-header,
+  body[data-page="team-wm"] .table-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  body[data-page="fahrer-wm"] .table-header h2,
+  body[data-page="team-wm"] .table-header h2 {
+    font-size: 1rem;
+  }
+
+  body[data-page="fahrer-wm"] .table-wrap table,
+  body[data-page="team-wm"] .table-wrap table {
+    min-width: 640px;
+  }
+
+  body[data-page="fahrer-wm"] .standings-table th,
+  body[data-page="fahrer-wm"] .standings-table td,
+  body[data-page="team-wm"] .standings-table th,
+  body[data-page="team-wm"] .standings-table td {
+    padding: 9px 10px;
+    font-size: 0.8rem;
+  }
+}
+
 /* Modular layout helpers */
 .page-title-compact {
   font-size: 2.8rem;
