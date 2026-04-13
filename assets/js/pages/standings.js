@@ -1,16 +1,9 @@
-
 function getDriverBasePoints(entry) {
-  const override = window.RCC_STANDINGS_OVERRIDE?.driverPoints;
-  if (!override) return 0;
-  return Number.isFinite(override[entry.driverName])
-    ? override[entry.driverName]
-    : (override[entry.driverName?.split(' / ')[0]?.trim()] ?? 0);
+  return 0;
 }
 
 function getTeamBasePoints(entry) {
-  const override = window.RCC_STANDINGS_OVERRIDE?.teamPoints;
-  if (!override) return 0;
-  return Number.isFinite(override[entry.teamName]) ? override[entry.teamName] : 0;
+  return 0;
 }
 
 function mergeCorrectedDriverStandings(baseStandings, incrementalStandings) {
