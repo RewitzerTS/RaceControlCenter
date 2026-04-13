@@ -1639,6 +1639,9 @@ body.hof-page {
 .hof-season-card { position: relative; overflow: hidden; border-radius: 30px; padding: 26px; background: linear-gradient(180deg, rgba(7, 10, 18, 0.78), rgba(7, 10, 18, 0.9)), rgba(255,255,255,0.03); border: 1px solid rgba(255, 215, 130, 0.18); box-shadow: 0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06); backdrop-filter: blur(12px); }
 .hof-season-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255, 215, 130, 0.08), transparent 35%, transparent 65%, rgba(255,255,255,0.03)); pointer-events: none; }
 .hof-season-card--featured { margin-bottom: 6px; }
+.hof-feature-interactive { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.hof-feature-interactive:hover { transform: translateY(-2px); box-shadow: 0 24px 55px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08); }
+.hof-feature-interactive:focus-visible { outline: 2px solid rgba(255, 225, 149, 0.9); outline-offset: 4px; }
 .hof-season-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
 .hof-season-eyebrow { font-size: 0.78rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--secondary); }
 .hof-season-title { margin: 6px 0 0; font-size: clamp(1.35rem, 3vw, 2rem); }
@@ -1664,6 +1667,22 @@ body.hof-page {
 .hof-total-name { margin-top: 8px; font-size: 1.2rem; font-weight: 800; color: #fff3cf; }
 .hof-total-stats { margin-top: 8px; color: rgba(241,245,249,0.82); line-height: 1.55; }
 .hof-empty { padding: 18px; border-radius: 18px; background: rgba(10, 16, 28, 0.78); border: 1px solid rgba(255,255,255,0.08); color: rgba(241,245,249,0.82); text-align: center; }
+.hof-confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 1500; overflow: hidden; opacity: 0; transition: opacity 0.2s ease; }
+.hof-confetti-layer.is-visible { opacity: 1; }
+.hof-confetti-piece {
+  position: absolute;
+  top: -26px;
+  border-radius: 2px;
+  box-shadow: 0 0 14px rgba(255, 203, 75, 0.32);
+  animation-name: hofConfettiRain;
+  animation-timing-function: cubic-bezier(0.18, 0.75, 0.34, 1);
+  animation-fill-mode: forwards;
+}
+@keyframes hofConfettiRain {
+  0% { transform: translate3d(0, -20px, 0) rotate(0deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate3d(var(--hof-confetti-drift), calc(100vh + 42px), 0) rotate(640deg); opacity: 0; }
+}
 @media (max-width: 960px) { .hof-season-grid, .hof-totals-split { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { body.hof-page { background: radial-gradient(circle at 50% -4%, rgba(255, 220, 132, 0.18), transparent 44%), linear-gradient(180deg, rgba(3, 7, 18, 0.7), rgba(3, 7, 18, 0.97)), url("../images/HOF.png") center top / cover no-repeat fixed; } .hof-hero { padding: 28px 0 4px; } .hof-season-card { padding: 18px; border-radius: 22px; } .hof-season-header { align-items: flex-start; } .hof-star { width: 30px; height: 30px; } .hof-champion-card { min-height: 240px; padding: 18px 14px 18px; } .hof-champion-image { width: min(210px, 76%); } }
 
