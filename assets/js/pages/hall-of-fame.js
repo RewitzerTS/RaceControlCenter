@@ -107,6 +107,79 @@ function renderCurrentFeature(record, sourceLabel = '') {
         <div class="hof-support-text hof-support-text--lineup">${escapeHtml(record.constructor_champion_lineup || '—')}</div>
       </article>
     </div>`;
+  attachChampionConfetti(root);
+}
+
+function attachChampionConfetti(featureRoot) {
+  if (!featureRoot) return;
+  featureRoot.setAttribute('role', 'button');
+  featureRoot.setAttribute('tabindex', '0');
+  featureRoot.setAttribute('aria-label', 'Amtierende Weltmeister feiern');
+  featureRoot.classList.add('hof-feature-interactive');
+  const trigger = () => startGoldenConfetti(5000);
+  featureRoot.addEventListener('click', trigger);
+  featureRoot.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    trigger();
+  });
+}
+
+let confettiTimer = null;
+let confettiCleanupTimer = null;
+let confettiHost = null;
+let confettiCounter = 0;
+
+function startGoldenConfetti(durationMs = 5000) {
+  if (!document.body) return;
+  if (!confettiHost) {
+    confettiHost = document.createElement('div');
+    confettiHost.className = 'hof-confetti-layer';
+    document.body.appendChild(confettiHost);
+  }
+
+  window.clearInterval(confettiTimer);
+  window.clearTimeout(confettiCleanupTimer);
+
+  confettiHost.classList.add('is-visible');
+  confettiTimer = window.setInterval(() => spawnGoldenConfetti(confettiHost), 140);
+  spawnGoldenConfetti(confettiHost);
+
+  confettiCleanupTimer = window.setTimeout(() => {
+    window.clearInterval(confettiTimer);
+    confettiTimer = null;
+    confettiHost.classList.remove('is-visible');
+    window.setTimeout(() => {
+      if (confettiHost) confettiHost.innerHTML = '';
+    }, 900);
+  }, durationMs);
+}
+
+function spawnGoldenConfetti(host) {
+  const burstSize = 9;
+  for (let i = 0; i < burstSize; i += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'hof-confetti-piece';
+    const size = 6 + Math.random() * 8;
+    const left = Math.random() * 100;
+    const drift = -90 + Math.random() * 180;
+    const duration = 2.2 + Math.random() * 1.6;
+    const delay = Math.random() * 0.4;
+    const opacity = 0.62 + Math.random() * 0.38;
+    const hue = 41 + Math.floor(Math.random() * 12);
+    piece.style.width = `${size}px`;
+    piece.style.height = `${Math.max(5, size * 0.62)}px`;
+    piece.style.left = `${left}%`;
+    piece.style.opacity = opacity.toFixed(2);
+    piece.style.background = `hsl(${hue} 98% 62%)`;
+    piece.style.setProperty('--hof-confetti-drift', `${drift.toFixed(1)}px`);
+    piece.style.animationDuration = `${duration.toFixed(2)}s`;
+    piece.style.animationDelay = `${delay.toFixed(2)}s`;
+    piece.style.transform = `translate3d(0, -22px, 0) rotate(${Math.random() * 360}deg)`;
+    piece.dataset.id = String(confettiCounter++);
+    host.appendChild(piece);
+    window.setTimeout(() => piece.remove(), (duration + delay + 0.35) * 1000);
+  }
 }
 
 function renderHistoryCard(record, index) {
