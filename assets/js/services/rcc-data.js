@@ -86,7 +86,9 @@ function getBasePointsForPosition(position) {
 }
 
 function getAwardedRacePoints(row, fastestLapDriverId = null) {
-  const storedPoints = safeNumber(row?.awarded_points, 0);
+  const storedPoints = Number(row?.awarded_points);
+  if (Number.isFinite(storedPoints)) return storedPoints;
+
   const position = safeNumber(row?.finish_position, 0);
   const basePoints = getBasePointsForPosition(position);
   const hasFastestLapBonus = Boolean(
@@ -95,10 +97,7 @@ function getAwardedRacePoints(row, fastestLapDriverId = null) {
     && isTopTen(position)
   );
 
-  if (!hasFastestLapBonus) return storedPoints;
-  if (storedPoints >= basePoints + 1) return storedPoints;
-  if (storedPoints === basePoints) return basePoints + 1;
-  return storedPoints;
+  return basePoints + (hasFastestLapBonus ? 1 : 0);
 }
 
 async function fetchCurrentSeason() {
