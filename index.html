@@ -17,6 +17,41 @@
   <meta name="mobile-web-app-capable" content="yes">
 
   <style>
+    #app-launch-splash {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 20% 20%, rgba(44,143,166,0.22), transparent 38%), #0B0F1A;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity .35s ease;
+    }
+    #app-launch-splash img {
+      width: min(56vw, 220px);
+      height: auto;
+      filter: drop-shadow(0 8px 24px rgba(44,143,166,0.35));
+      animation: splashPulse 1.9s ease-in-out infinite;
+    }
+    body.splash-active #app-launch-splash {
+      display: flex;
+      opacity: 1;
+    }
+    body.splash-active #site-header,
+    body.splash-active main,
+    body.splash-active #site-footer {
+      opacity: 0;
+      pointer-events: none;
+    }
+    body.splash-done #app-launch-splash {
+      opacity: 0;
+      pointer-events: none;
+    }
+    @keyframes splashPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.03); opacity: .84; }
+    }
     .dashboard-shell {
       padding: 16px 0 42px;
     }
@@ -778,6 +813,10 @@
   </style>
 </head>
 <body data-page="index">
+  <div id="app-launch-splash" aria-hidden="true">
+    <img src="assets/images/logo.png" alt="Race Control Center Logo">
+  </div>
+
   <div id="site-header"></div>
 
   <main class="dashboard-shell">

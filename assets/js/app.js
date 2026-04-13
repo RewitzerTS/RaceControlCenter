@@ -4,6 +4,26 @@ const RCC_STORAGE_KEYS = {
   importedCsv: 'rcc_imported_results'
 };
 
+function isStandaloneMode() {
+  const standaloneMedia = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  const iosStandalone = window.navigator.standalone === true;
+  return standaloneMedia || iosStandalone;
+}
+
+function initStandaloneSplashScreen() {
+  if (document.body?.dataset.page !== 'index' || !isStandaloneMode()) return;
+
+  const splash = document.getElementById('app-launch-splash');
+  if (!splash) return;
+
+  document.body.classList.add('splash-active');
+  window.setTimeout(() => {
+    document.body.classList.remove('splash-active');
+    document.body.classList.add('splash-done');
+    window.setTimeout(() => splash.setAttribute('hidden', 'hidden'), 350);
+  }, 2000);
+}
+
 function initNavigation() {
   const navToggle = document.querySelector('[data-nav-toggle]');
   const mainNav = document.querySelector('[data-main-nav]');
@@ -107,5 +127,6 @@ function initTrackMapModal() {
 
 document.addEventListener('DOMContentLoaded', initNavigation);
 document.addEventListener('DOMContentLoaded', initTrackMapModal);
+document.addEventListener('DOMContentLoaded', initStandaloneSplashScreen);
 document.addEventListener('layout:loaded', initNavigation);
 document.addEventListener('layout:loaded', initTrackMapModal);
