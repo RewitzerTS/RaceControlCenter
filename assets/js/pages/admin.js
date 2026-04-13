@@ -486,8 +486,9 @@ function getFastestLapWinnerId(rows) {
   return winnerId;
 }
 
-async function recalculateOfficialRaceResults(raceId) {
+async function recalculateOfficialRaceResults(raceId, options = {}) {
   if (!raceId) return;
+  const preserveManualPoints = Boolean(options.preserveManualPoints);
 
   const [{ data: resultRows, error: resultsError }, { data: penaltyRows, error: penaltiesError }, { data: importItem, error: importError }] = await Promise.all([
     window.supabaseClient
@@ -552,14 +553,18 @@ async function recalculateOfficialRaceResults(raceId) {
     const finishPosition = Number(row.finish_position || 0);
     const basePoints = getPointsForPosition(finishPosition);
     const hasFastestLapBonus = fastestLapWinnerId && row.driver_id === fastestLapWinnerId && finishPosition <= 10;
+    const updatePayload = {
+      finish_position: finishPosition,
+      race_time: row.race_time
+    };
+
+    if (!preserveManualPoints) {
+      updatePayload.awarded_points = basePoints + (hasFastestLapBonus ? 1 : 0);
+    }
 
     return window.supabaseClient
       .from('race_results')
-      .update({
-        finish_position: finishPosition,
-        race_time: row.race_time,
-        awarded_points: basePoints + (hasFastestLapBonus ? 1 : 0)
-      })
+      .update(updatePayload)
       .eq('id', row.id);
   });
 
@@ -1695,10 +1700,13 @@ async function saveManualResults() {
         }
       }
 
-      await recalculateOfficialRaceResults(manualRaceId);
+      await recalculateOfficialRaceResults(manualRaceId, { preserveManualPoints: true });
     }
 
-    showFeedback('manual-results-feedback', 'Rennergebnisse gespeichert. Punkte und schnellste Runde wurden neu berechnet.');
+    showFeedback(
+      'manual-results-feedback',
+      'Rennergebnisse gespeichert. Platzierungen und Rennzeiten wurden aktualisiert; manuelle Punkte wurden beibehalten.'
+    );
     await loadManualResultsEditor();
   } catch (error) {
     console.error(error);
