@@ -1332,6 +1332,58 @@ textarea { min-height: 120px; resize: vertical; }
   z-index: 2;
 }
 
+.results-compare-controls {
+  margin: 14px 0 10px;
+}
+
+.results-compare-output {
+  margin-top: 10px;
+}
+
+.results-compare-single {
+  display: grid;
+  gap: 6px;
+  color: var(--text);
+}
+
+.results-compare-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.results-compare-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.results-compare-metric {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.03);
+  padding: 10px 12px;
+}
+
+.results-compare-metric-title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.results-compare-metric-values {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 700px) {
+  .results-compare-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .fastest-lap-points,
 .fastest-lap-value {
   color: #d8a4ff;
