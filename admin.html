@@ -26,16 +26,30 @@
         <div class="eyebrow">Admin</div>
         <h1 class="page-title page-title-compact">Admin Center</h1>
         <p class="page-subtitle">Modularer Saison-, Kalender- und Ergebnis-Workflow mit persistentem Login und moderner UI.</p>
-      <div class="admin-overview-grid" id="admin-overview-grid">
-        <article class="admin-overview-card"><span class="admin-overview-label">Aktive Saison</span><strong id="admin-overview-season">Lädt…</strong><small id="admin-overview-races">Rennen werden geladen</small></article>
-        <article class="admin-overview-card"><span class="admin-overview-label">Session</span><strong id="admin-overview-session">Prüfung…</strong><small id="admin-overview-session-sub">Admin-Login Status</small></article>
-        <article class="admin-overview-card"><span class="admin-overview-label">Workflow</span><strong id="admin-overview-imports">0 Entwürfe</strong><small id="admin-overview-imports-sub">Importe warten auf Freigabe</small></article>
-        <article class="admin-overview-card"><span class="admin-overview-label">Bereich</span><strong id="admin-overview-focus">Produktmodus</strong><small id="admin-overview-focus-sub">Import, Stewarding und Saisonabschluss</small></article>
-      </div>
+        <div class="admin-overview-grid" id="admin-overview-grid">
+          <article class="admin-overview-card"><span class="admin-overview-label">Aktive Saison</span><strong id="admin-overview-season">Lädt…</strong><small id="admin-overview-races">Rennen werden geladen</small></article>
+          <article class="admin-overview-card"><span class="admin-overview-label">Session</span><strong id="admin-overview-session">Prüfung…</strong><small id="admin-overview-session-sub">Admin-Login Status</small></article>
+          <article class="admin-overview-card"><span class="admin-overview-label">Workflow</span><strong id="admin-overview-imports">0 Entwürfe</strong><small id="admin-overview-imports-sub">Importe warten auf Freigabe</small></article>
+          <article class="admin-overview-card"><span class="admin-overview-label">Bereich</span><strong id="admin-overview-focus">Produktmodus</strong><small id="admin-overview-focus-sub">Import, Stewarding und Saisonabschluss</small></article>
+        </div>
       </div>
     </div>
 
+    <div class="container panel section-spacer-top">
+      <h3>Schnellnavigation</h3>
+      <div class="card-actions">
+        <a class="button-secondary" href="#admin-section-auth">Login</a>
+        <a class="button-secondary" href="#admin-section-calendar">Kalender</a>
+        <a class="button-secondary" href="#admin-section-results">Ergebnisse</a>
+        <a class="button-secondary" href="#admin-section-stewarding">Stewarding</a>
+        <a class="button-secondary" href="#admin-section-drivers">Fahrer</a>
+      </div>
+      <div class="notice">Tipp: Öffne nur den Bereich, den du gerade brauchst. So bleibt die Oberfläche deutlich übersichtlicher.</div>
+    </div>
+
     <div class="container admin-layout">
+      <details class="panel" id="admin-section-auth" open>
+        <summary><strong>1) Login & Session</strong></summary>
       <section class="panel admin-panel-accent">
         <h3>Admin Login</h3>
         <div class="form-grid">
@@ -49,7 +63,10 @@
         <div class="notice" id="admin-session-status">Session wird geprüft...</div>
         <div id="admin-auth-feedback" class="notice" hidden></div>
       </section>
+      </details>
 
+      <details class="panel" id="admin-section-calendar" open>
+        <summary><strong>2) Saison & Rennkalender</strong></summary>
       <section class="panel season-panel">
         <h3>Saisonverwaltung</h3>
         <div class="detail-list" id="season-summary">Saison wird geladen...</div>
@@ -85,7 +102,10 @@
         </div>
         <div id="race-feedback" class="notice" hidden></div>
       </section>
+      </details>
 
+      <details class="panel" id="admin-section-results" open>
+        <summary><strong>3) Ergebnisse & Freigabe</strong></summary>
       <section class="panel">
         <h3>Ergebnisse per Excel/CSV importieren</h3>
         <div class="notice">Erwartete Spalten: Grand Prix, Pos, Fahrer, Startposition, Boxenstopps, Schnellste Runde, Renndauer, Punkte. Du kannst hier direkt zwei Rennen nacheinander vorbereiten.</div>
@@ -105,32 +125,6 @@
         </div>
         <div id="csv-feedback" class="notice" hidden></div>
       </section>
-
-      <section class="panel">
-        <h3>Steward-Eintrag anlegen</h3>
-        <div class="form-grid">
-          <div class="field"><label for="incident-race">Rennen</label><select id="incident-race"><option value="">Rennen werden geladen...</option></select></div>
-          <div class="field"><label for="incident-title">Vorfall</label><input id="incident-title" placeholder="z. B. Kollision Runde 18"></div>
-          <div class="field"><label for="incident-driver-1">Fahrer 1 (Einreicher)</label><select id="incident-driver-1"><option value="">Bitte wählen</option></select></div>
-          <div class="field"><label for="incident-driver-2">Fahrer 2 (Beschuldigter)</label><select id="incident-driver-2"><option value="">Bitte wählen</option></select></div>
-          <div class="field full"><label for="incident-description">Beschreibung</label><textarea id="incident-description" placeholder="Was ist passiert?"></textarea></div>
-          <div class="field full"><label for="incident-decision">Entscheidung</label><textarea id="incident-decision" rows="6" placeholder="Hier kommt die ausführliche Steward-Entscheidung hinein."></textarea></div>
-          <div class="field"><label for="incident-consequence">Konsequenz</label><select id="incident-consequence">
-            <option value="Keine" selected>Keine</option>
-            <option value="+3 Sekunden">+3 Sekunden</option>
-            <option value="+5 Sekunden">+5 Sekunden</option>
-            <option value="+10 Sekunden">+10 Sekunden</option>
-            <option value="-3 Sekunden">-3 Sekunden</option>
-            <option value="-5 Sekunden">-5 Sekunden</option>
-            <option value="-10 Sekunden">-10 Sekunden</option>
-          </select></div>
-        </div>
-        <button type="button" class="button-primary" id="save-incident-btn">Steward-Eintrag speichern</button>
-        <div id="incident-feedback" class="notice" hidden></div>
-      </section>
-
-
-
       <section class="panel admin-panel-wide">
         <h3>Freigabe-Workflow für Rennergebnisse</h3>
         <div class="notice">CSV-Importe werden zunächst als Entwurf gespeichert. Erst nach Steward-Prüfung und Freigabe werden die finalen Ergebnisse öffentlich.</div>
@@ -157,7 +151,36 @@
           <div id="manual-results-feedback" class="notice" hidden></div>
         </div>
       </section>
+      </details>
 
+      <details class="panel" id="admin-section-stewarding" open>
+        <summary><strong>4) Stewarding</strong></summary>
+        <section class="panel">
+          <h3>Steward-Eintrag anlegen</h3>
+          <div class="form-grid">
+            <div class="field"><label for="incident-race">Rennen</label><select id="incident-race"><option value="">Rennen werden geladen...</option></select></div>
+            <div class="field"><label for="incident-title">Vorfall</label><input id="incident-title" placeholder="z. B. Kollision Runde 18"></div>
+            <div class="field"><label for="incident-driver-1">Fahrer 1 (Einreicher)</label><select id="incident-driver-1"><option value="">Bitte wählen</option></select></div>
+            <div class="field"><label for="incident-driver-2">Fahrer 2 (Beschuldigter)</label><select id="incident-driver-2"><option value="">Bitte wählen</option></select></div>
+            <div class="field full"><label for="incident-description">Beschreibung</label><textarea id="incident-description" placeholder="Was ist passiert?"></textarea></div>
+            <div class="field full"><label for="incident-decision">Entscheidung</label><textarea id="incident-decision" rows="6" placeholder="Hier kommt die ausführliche Steward-Entscheidung hinein."></textarea></div>
+            <div class="field"><label for="incident-consequence">Konsequenz</label><select id="incident-consequence">
+              <option value="Keine" selected>Keine</option>
+              <option value="+3 Sekunden">+3 Sekunden</option>
+              <option value="+5 Sekunden">+5 Sekunden</option>
+              <option value="+10 Sekunden">+10 Sekunden</option>
+              <option value="-3 Sekunden">-3 Sekunden</option>
+              <option value="-5 Sekunden">-5 Sekunden</option>
+              <option value="-10 Sekunden">-10 Sekunden</option>
+            </select></div>
+          </div>
+          <button type="button" class="button-primary" id="save-incident-btn">Steward-Eintrag speichern</button>
+          <div id="incident-feedback" class="notice" hidden></div>
+        </section>
+      </details>
+
+      <details class="panel" id="admin-section-drivers" open>
+        <summary><strong>5) Fahrer-Stammdaten</strong></summary>
       <section class="panel admin-panel-wide">
         <h3>Fahrer-Stammdaten</h3>
         <input type="hidden" id="driver-id">
@@ -175,6 +198,7 @@
         <div id="driver-feedback" class="notice" hidden></div>
         <div class="section-spacer-top"><h4>Bereits angelegte Fahrer</h4><div class="notice">Sortierung nach Auto, damit Teamkollegen direkt beieinander stehen.</div><div id="driver-list" class="stack-list driver-admin-grid"></div></div>
       </section>
+      </details>
     </div>
   </main>
 
