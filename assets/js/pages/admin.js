@@ -45,6 +45,30 @@ const RULE_CONFIG_FIELDS = {
   qualifying: 'rule-qualifying'
 };
 
+
+const DEFAULT_FAQ_ITEMS = [
+  {
+    question: 'Wie melde ich mich für ein Rennen an oder ab?',
+    answer: 'Bitte die Anmeldung erfolgt über eine Umfrage auf Whatsapp. Eine Abmeldung sollte spätestens fünf Minuten vor Rennbeginn ebenfalls über Whatsapp erfolgen, damit das Rennen pünktlich starten kann.'
+  },
+  {
+    question: 'Was passiert, wenn ich kurzfristig nicht teilnehmen kann?',
+    answer: 'Das ist nicht schlimm, dein Ersatzfahrer wird sich für dich ins Cockpit setzen. Die Punkte werden in der Ergebnisübersicht dann entsprechend markiert.'
+  },
+  {
+    question: 'Wann werden Rennergebnisse und Tabellen aktualisiert?',
+    answer: 'Sobald die Stewards alle Vorfälle abschließend besprochen und mögliche Konsequenzen verhängt haben.'
+  },
+  {
+    question: 'Wo reiche ich einen Vorfall ein und welche Infos brauche ich dafür?',
+    answer: 'Vorfälle reichst du als Videoclip direkt über die Whatsapp Gruppe mit dem Vermerk „bewerten“ ein.'
+  },
+  {
+    question: 'Wo werden Entscheidungen der Rennleitung veröffentlicht?',
+    answer: 'Die Entscheidungen findest du über den Kalender, indem du das entsprechende Rennen öffnest.'
+  }
+];
+
 const state = {
   isSavingDriver: false,
   isDeletingDriver: false,
@@ -711,10 +735,71 @@ function applyRulesConfigToForm(config = {}) {
   });
 }
 
+
+function normalizeFaqItems(items) {
+  const source = Array.isArray(items) && items.length ? items : DEFAULT_FAQ_ITEMS;
+  return source
+    .map((item) => ({
+      id: String(item?.id || '').trim() || (window.crypto?.randomUUID?.() || `faq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+      question: String(item?.question || '').trim(),
+      answer: String(item?.answer || '').trim()
+    }))
+    .filter((item) => item.question && item.answer);
+}
+
+function renderFaqEditorItems(items = []) {
+  const list = document.getElementById('faq-editor-list');
+  if (!list) return;
+
+  const normalizedItems = normalizeFaqItems(items);
+  list.innerHTML = normalizedItems.map((item, index) => `
+    <article class="faq-editor-item" data-faq-id="${window.escapeHtml(item.id)}">
+      <div class="field full">
+        <label>Frage ${index + 1}</label>
+        <input type="text" class="faq-question-input" value="${escapeHtmlAttr(item.question)}" placeholder="Frage eingeben">
+      </div>
+      <div class="field full">
+        <label>Antwort</label>
+        <textarea class="faq-answer-input" rows="3" placeholder="Antwort eingeben">${window.escapeHtml(item.answer)}</textarea>
+      </div>
+      <div class="card-actions">
+        <button type="button" class="button-secondary delete-faq-btn" data-faq-id="${window.escapeHtml(item.id)}">FAQ löschen</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function addFaqEditorItem() {
+  const existing = readFaqItemsFromForm();
+  existing.push({
+    id: window.crypto?.randomUUID?.() || `faq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    question: '',
+    answer: ''
+  });
+  renderFaqEditorItems(existing);
+}
+
+function removeFaqEditorItem(faqId) {
+  const filtered = readFaqItemsFromForm().filter((item) => item.id !== faqId);
+  renderFaqEditorItems(filtered);
+}
+
+function readFaqItemsFromForm() {
+  const rows = [...document.querySelectorAll('#faq-editor-list .faq-editor-item')];
+  return rows
+    .map((row) => ({
+      id: String(row.dataset.faqId || '').trim() || (window.crypto?.randomUUID?.() || `faq-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+      question: String(row.querySelector('.faq-question-input')?.value || '').trim(),
+      answer: String(row.querySelector('.faq-answer-input')?.value || '').trim()
+    }))
+    .filter((item) => item.question && item.answer);
+}
+
 async function loadRulesContent() {
   try {
     const content = await window.RCCData.fetchLeagueContent();
     applyRulesConfigToForm(content.rules_config || {});
+    renderFaqEditorItems(content.faq_items || []);
   } catch (error) {
     console.error(error);
     showFeedback('rules-feedback', `Fehler beim Laden der Regeln: ${error.message}`, true);
@@ -729,9 +814,12 @@ async function saveRulesContent() {
   try {
     await requireAdminSession();
 
+    const faqItems = readFaqItemsFromForm();
     const payload = {
       id: 'default',
-      rules_config: buildRulesConfigFromForm()
+      rules_config: buildRulesConfigFromForm(),
+      faq_items: faqItems,
+      faq_text: faqItems.map((item) => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n')
     };
 
     const { error } = await window.supabaseClient
@@ -739,7 +827,7 @@ async function saveRulesContent() {
       .upsert(payload, { onConflict: 'id' });
     if (error) throw error;
 
-    showFeedback('rules-feedback', 'Regeln wurden gespeichert.');
+    showFeedback('rules-feedback', 'Regeln & FAQs wurden gespeichert.');
   } catch (error) {
     console.error(error);
     showFeedback('rules-feedback', `Fehler beim Speichern: ${error.message}`, true);
@@ -2036,6 +2124,7 @@ function bindUiEvents() {
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
   document.getElementById('save-rules-btn')?.addEventListener('click', saveRulesContent);
+  document.getElementById('add-faq-btn')?.addEventListener('click', addFaqEditorItem);
   document.getElementById('load-manual-results-btn')?.addEventListener('click', loadManualResultsEditor);
   const manualSaveBtn = document.getElementById('save-manual-results-btn');
   manualSaveBtn?.addEventListener('click', saveManualResults);
@@ -2098,6 +2187,12 @@ function bindUiEvents() {
         editBtn.dataset.leagueTeam || '',
         editBtn.dataset.carName || ''
       );
+      return;
+    }
+
+    const deleteFaqBtn = event.target.closest('.delete-faq-btn');
+    if (deleteFaqBtn) {
+      removeFaqEditorItem(deleteFaqBtn.dataset.faqId || '');
       return;
     }
 

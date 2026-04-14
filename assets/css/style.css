@@ -2484,3 +2484,38 @@ body.hof-page {
   display: grid;
   gap: 6px;
 }
+
+.faq-list {
+  display: grid;
+  gap: 10px;
+}
+
+.faq-item {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 12px;
+}
+
+.faq-item summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.faq-item p {
+  margin: 10px 0 0;
+  color: var(--text-secondary);
+}
+
+.faq-editor-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.faq-editor-item {
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.015);
+}
