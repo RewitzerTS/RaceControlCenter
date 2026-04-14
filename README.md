@@ -38,3 +38,5 @@ Die komplette Ordnerstruktur hochladen. Besonders wichtig:
 - Saison- und Rennlogik liegt zentral in `assets/js/services/rcc-data.js`.
 - Zeitabhängige Fahrzeug-/BOT-Zuordnungen laufen über `assets/js/services/rcc-driver-context.js`.
 - Die SQL-Migration für saubere Mid-Season-Wechsel liegt in `database/2026-driver-season-assignments.sql`.
+- Slot-basierte 10-Team/20-Fahrer-Logik mit historisierter Punktezuordnung liegt in `database/2026-v11.1-season-slot-ledger.sql`.
+- Ergebniszeilen können Punkte explizit auf einen Owner buchen (`points_owner_driver_id`) und Team/Auto zum Rennzeitpunkt einfrieren (`points_team_name`, `points_car_name`).
