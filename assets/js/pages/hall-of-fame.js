@@ -68,6 +68,29 @@ function buildConstructorTotals(records) {
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'de'));
 }
 
+const HOF_IMAGE_META = Object.freeze({
+  star: { src: 'assets/images/Stern.png', width: 2048, height: 1365 },
+  helmet: { src: 'assets/images/Helm.png', width: 2048, height: 1365 },
+  trophy: { src: 'assets/images/Pokal.png', width: 1536, height: 1024 }
+});
+
+function renderOptimizedImage({
+  src,
+  alt = '',
+  className = '',
+  width,
+  height,
+  loading = 'lazy',
+  decoding = 'async',
+  fetchpriority = 'low',
+  ariaHidden = false
+}) {
+  const safeClass = className ? ` class="${className}"` : '';
+  const safeAlt = escapeHtml(alt);
+  const hiddenAttr = ariaHidden ? ' aria-hidden="true"' : '';
+  return `<img src="${src}" alt="${safeAlt}"${safeClass} width="${width}" height="${height}" loading="${loading}" decoding="${decoding}" fetchpriority="${fetchpriority}"${hiddenAttr}>`;
+}
+
 function renderCurrentFeature(record, sourceLabel = '') {
   const root = document.getElementById('hof-current-feature');
   const subtitle = document.getElementById('hof-current-subtitle');
@@ -82,17 +105,35 @@ function renderCurrentFeature(record, sourceLabel = '') {
   root.className = 'hof-season-card hof-season-card--featured';
   root.innerHTML = `
     <div class="hof-season-header">
-      <img src="assets/images/Stern.png" alt="" class="hof-star hof-star--left" aria-hidden="true">
+      ${renderOptimizedImage({
+    ...HOF_IMAGE_META.star,
+    className: 'hof-star hof-star--left',
+    loading: 'eager',
+    fetchpriority: 'high',
+    ariaHidden: true
+  })}
       <div>
         <div class="hof-season-eyebrow">Amtierende Champions</div>
         <h2 class="hof-season-title">${escapeHtml(formatSeasonLabel(record.season_name))}</h2>
       </div>
-      <img src="assets/images/Stern.png" alt="" class="hof-star hof-star--right" aria-hidden="true">
+      ${renderOptimizedImage({
+    ...HOF_IMAGE_META.star,
+    className: 'hof-star hof-star--right',
+    loading: 'eager',
+    fetchpriority: 'high',
+    ariaHidden: true
+  })}
     </div>
     <div class="hof-season-grid">
       <article class="hof-champion-card hof-champion-card--driver">
         <div class="hof-medal-glow"></div>
-        <img src="assets/images/Helm.png" alt="Fahrer Weltmeister" class="hof-champion-image">
+        ${renderOptimizedImage({
+    ...HOF_IMAGE_META.helmet,
+    alt: 'Fahrer Weltmeister',
+    className: 'hof-champion-image',
+    loading: 'eager',
+    fetchpriority: 'high'
+  })}
         <div class="hof-champion-meta">Fahrer-Weltmeister</div>
         <div class="hof-champion-name">${escapeHtml(record.driver_champion || '—')}</div>
         <div class="hof-support-pill">Team des Champions</div>
@@ -100,7 +141,13 @@ function renderCurrentFeature(record, sourceLabel = '') {
       </article>
       <article class="hof-champion-card hof-champion-card--constructor">
         <div class="hof-medal-glow"></div>
-        <img src="assets/images/Pokal.png" alt="Konstrukteurs Weltmeister" class="hof-champion-image">
+        ${renderOptimizedImage({
+    ...HOF_IMAGE_META.trophy,
+    alt: 'Konstrukteurs Weltmeister',
+    className: 'hof-champion-image',
+    loading: 'eager',
+    fetchpriority: 'high'
+  })}
         <div class="hof-champion-meta">Konstrukteurs-Weltmeister</div>
         <div class="hof-champion-name">${escapeHtml(record.constructor_champion || '—')}</div>
         <div class="hof-support-pill">Weltmeister-Lineup</div>
@@ -186,17 +233,29 @@ function renderHistoryCard(record, index) {
   return `
     <section class="hof-season-card">
       <div class="hof-season-header">
-        <img src="assets/images/Stern.png" alt="" class="hof-star hof-star--left" aria-hidden="true">
+        ${renderOptimizedImage({
+    ...HOF_IMAGE_META.star,
+    className: 'hof-star hof-star--left',
+    ariaHidden: true
+  })}
         <div>
           <div class="hof-season-eyebrow">Hall of Fame</div>
           <h2 class="hof-season-title">${escapeHtml(formatSeasonLabel(record.season_name, index))}</h2>
         </div>
-        <img src="assets/images/Stern.png" alt="" class="hof-star hof-star--right" aria-hidden="true">
+        ${renderOptimizedImage({
+    ...HOF_IMAGE_META.star,
+    className: 'hof-star hof-star--right',
+    ariaHidden: true
+  })}
       </div>
       <div class="hof-season-grid">
         <article class="hof-champion-card hof-champion-card--driver">
           <div class="hof-medal-glow"></div>
-          <img src="assets/images/Helm.png" alt="Fahrer Weltmeister" class="hof-champion-image">
+          ${renderOptimizedImage({
+    ...HOF_IMAGE_META.helmet,
+    alt: 'Fahrer Weltmeister',
+    className: 'hof-champion-image'
+  })}
           <div class="hof-champion-meta">Fahrer-Weltmeister</div>
           <div class="hof-champion-name">${escapeHtml(record.driver_champion || '—')}</div>
           <div class="hof-support-pill">Team des Champions</div>
@@ -204,7 +263,11 @@ function renderHistoryCard(record, index) {
         </article>
         <article class="hof-champion-card hof-champion-card--constructor">
           <div class="hof-medal-glow"></div>
-          <img src="assets/images/Pokal.png" alt="Konstrukteurs Weltmeister" class="hof-champion-image">
+          ${renderOptimizedImage({
+    ...HOF_IMAGE_META.trophy,
+    alt: 'Konstrukteurs Weltmeister',
+    className: 'hof-champion-image'
+  })}
           <div class="hof-champion-meta">Konstrukteurs-Weltmeister</div>
           <div class="hof-champion-name">${escapeHtml(record.constructor_champion || '—')}</div>
           <div class="hof-support-pill">Weltmeister-Lineup</div>
