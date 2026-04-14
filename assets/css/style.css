@@ -1790,7 +1790,20 @@ body.hof-page {
 .hof-feature-interactive:hover { transform: translateY(-2px); box-shadow: 0 24px 55px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08); }
 .hof-feature-interactive:focus-visible { outline: 2px solid rgba(255, 225, 149, 0.9); outline-offset: 4px; }
 .hof-season-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
-.hof-season-eyebrow { font-size: 0.78rem; letter-spacing: 0.24em; text-transform: uppercase; color: var(--secondary); }
+.hof-season-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff4cd;
+  background: linear-gradient(180deg, rgba(255, 215, 130, 0.2), rgba(255, 215, 130, 0.08));
+  border: 1px solid rgba(255, 225, 149, 0.38);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
 .hof-season-title { margin: 6px 0 0; font-size: clamp(1.35rem, 3vw, 2rem); }
 .hof-star { width: 42px; height: 42px; opacity: 0.92; filter: drop-shadow(0 0 16px rgba(255, 216, 117, 0.28)); }
 .hof-star--left { transform: rotate(-11deg); }
