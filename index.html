@@ -1115,8 +1115,22 @@
     (function () {
       const escapeHtml = window.escapeHtml || ((value) => String(value ?? ''));
       const ACCENT_COLORS = ['#36d4c7', '#b78cff', '#f5c451', '#ff7a7a', '#7dc5ff'];
+      const REAL_WORLD_F1_NEWS_FEEDS = [
+        'https://www.motorsport.com/rss/f1/news/',
+        'https://www.autosport.com/rss/feed/f1'
+      ];
+      const F1_ON_THIS_DAY_MOMENTS = [
+        { monthDay: '05-25', year: 2008, text: 'Lewis Hamilton gewann in Monaco seinen ersten Grand Prix.' },
+        { monthDay: '05-14', year: 2006, text: 'Fernando Alonso gewann den Europa Grand Prix am Nürburgring.' },
+        { monthDay: '06-13', year: 1993, text: 'Alain Prost gewann den Kanada GP und zog in der WM davon.' },
+        { monthDay: '07-18', year: 1965, text: 'Jim Clark gewann in Zandvoort und dominierte die Saison.' },
+        { monthDay: '08-30', year: 2020, text: 'Pierre Gasly holte in Monza seinen ersten F1-Sieg.' },
+        { monthDay: '09-27', year: 1970, text: 'Jochen Rindt wurde posthum Formel-1-Weltmeister.' },
+        { monthDay: '11-14', year: 2010, text: 'Sebastian Vettel wurde in Abu Dhabi erstmals Weltmeister.' }
+      ];
       let countdownTimer = null;
       let countdownRefreshTriggered = false;
+      let storylineRefreshTimer = null;
       const WEEKLY_STORYLINE_TEMPLATES = [
         ({ lead, chase }) => `${lead.driverName} verteidigt die Spitze mit ${lead.points} Punkten, aber ${chase.driverName} bleibt direkt in Schlagdistanz.`,
         ({ lead, latestRace }) => `${latestRace?.grand_prix_name || 'Das letzte Rennen'} hat das Momentum verschoben – ${lead.driverName} reist als Gejagter weiter.`,
@@ -1185,6 +1199,99 @@
         const week = Math.floor((now - start) / (7 * 24 * 60 * 60 * 1000));
         const template = WEEKLY_STORYLINE_TEMPLATES[week % WEEKLY_STORYLINE_TEMPLATES.length];
         return template(context);
+      }
+
+      function normalizeStorylineText(value) {
+        return String(value || '')
+          .replace(/<[^>]*>/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      function shuffle(array) {
+        const copy = [...array];
+        for (let i = copy.length - 1; i > 0; i -= 1) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+
+      function getTodayHistoricMessages() {
+        const now = new Date();
+        const monthDay = `${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+        return F1_ON_THIS_DAY_MOMENTS
+          .filter((entry) => entry.monthDay === monthDay)
+          .map((entry) => `Heute vor ${now.getUTCFullYear() - entry.year} Jahren: ${entry.text}`);
+      }
+
+      async function fetchRealWorldF1News(limit = 5) {
+        const items = [];
+        for (const feedUrl of REAL_WORLD_F1_NEWS_FEEDS) {
+          try {
+            const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=8`);
+            if (!response.ok) continue;
+            const payload = await response.json();
+            const feedItems = Array.isArray(payload?.items) ? payload.items : [];
+            feedItems.forEach((entry) => {
+              if (!entry?.title) return;
+              items.push({
+                headline: normalizeStorylineText(entry.title),
+                source: normalizeStorylineText(payload?.feed?.title || 'F1 News'),
+                timestamp: entry.pubDate ? new Date(entry.pubDate).getTime() : 0
+              });
+            });
+          } catch (error) {
+            console.debug('F1-News Feed nicht erreichbar', feedUrl, error);
+          }
+          if (items.length >= limit * 2) break;
+        }
+        return items
+          .filter((entry) => entry.headline)
+          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+          .slice(0, limit)
+          .map((entry) => `F1 Live · ${entry.headline} (${entry.source})`);
+      }
+
+      function buildSeasonMessages(context) {
+        const messages = [];
+        if (context?.lead && context?.chase) {
+          messages.push(getWeeklyStoryline(context));
+          messages.push(`WM-Update: ${context.lead.driverName} führt mit ${context.lead.points} Punkten vor ${context.chase.driverName} (${context.chase.points}).`);
+        }
+        if (context?.topTeam) {
+          messages.push(`Team-Entwicklung: ${context.topTeam.teamName} setzt mit ${context.topTeam.points} Punkten den Maßstab in der Konstrukteurswertung.`);
+        }
+        const completed = Array.isArray(context?.completedRaces)
+          ? context.completedRaces.slice().sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0))
+          : [];
+        completed.slice(0, 3).forEach((race, index) => {
+          messages.push(`Rennrückblick ${index + 1}: ${race.grand_prix_name || `Runde ${race.round_number || '?'}`} wurde am ${formatDateLong(race.race_date)} abgeschlossen.`);
+        });
+        return messages.map(normalizeStorylineText).filter(Boolean);
+      }
+
+      async function buildStorylineTickerMessages(context) {
+        const seasonMessages = buildSeasonMessages(context);
+        const historicMessages = getTodayHistoricMessages();
+        const liveNews = await fetchRealWorldF1News(6);
+        const mixed = shuffle([...seasonMessages, ...historicMessages, ...liveNews]);
+        return mixed.length ? mixed : ['Storyline wird vorbereitet – sobald neue Ergebnisse und News verfügbar sind, startet die Laufschrift automatisch.'];
+      }
+
+      function renderStorylineTicker(messages) {
+        const container = document.getElementById('hero-storyline');
+        if (!container) return;
+        const unique = [];
+        messages.forEach((entry) => {
+          if (!entry || unique.includes(entry)) return;
+          unique.push(entry);
+        });
+        const visibleMessages = unique.slice(0, 16);
+        const loopMessages = [...visibleMessages, ...visibleMessages];
+        const itemHtml = loopMessages.map((text) => `<span class="storyline-item">${escapeHtml(text)}</span>`).join('');
+        const duration = Math.max(45, visibleMessages.length * 7);
+        container.innerHTML = `<div class="storyline-ticker" role="status" aria-live="polite" tabindex="0"><div class="storyline-ticker-track" style="--ticker-duration:${duration}s;">${itemHtml}</div></div>`;
       }
 
       function initScrollAnimations() {
@@ -1570,16 +1677,19 @@
             <div class="side-kpi"><span>Saisonrunde</span><strong>${nextRace?.round_number || racesWithLifecycle.length || '-'}</strong></div>
           `;
 
-          const heroStorylineEl = document.getElementById('hero-storyline');
-          if (heroStorylineEl) {
-            heroStorylineEl.textContent = getWeeklyStoryline({
-              lead: driverStandings[0],
-              chase: driverStandings[1],
-              currentSeason,
-              latestRace,
-              topTeam: teamStandings[0]
-            });
-          }
+          const storylineContext = {
+            lead: driverStandings[0],
+            chase: driverStandings[1],
+            currentSeason,
+            latestRace,
+            topTeam: teamStandings[0],
+            completedRaces
+          };
+          renderStorylineTicker(await buildStorylineTickerMessages(storylineContext));
+          if (storylineRefreshTimer) window.clearInterval(storylineRefreshTimer);
+          storylineRefreshTimer = window.setInterval(async () => {
+            renderStorylineTicker(await buildStorylineTickerMessages(storylineContext));
+          }, 120000);
 
           if (latestRace) {
             const latestRows = (resultsByRace.get(latestRace.id) || []).slice().sort((a, b) => Number(a.finish_position || 999) - Number(b.finish_position || 999));
@@ -1657,7 +1767,7 @@
         } catch (error) {
           console.error(error);
           document.getElementById('hero-next-race').innerHTML = '<div class="empty-state">Fehler beim Laden der Startseite.</div>';
-          document.getElementById('hero-storyline').textContent = 'Dashboard konnte nicht geladen werden.';
+          renderStorylineTicker(['Dashboard konnte nicht geladen werden. Bitte Seite aktualisieren.']);
           initScrollAnimations();
         }
       }
