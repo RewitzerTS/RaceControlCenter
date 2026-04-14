@@ -1325,6 +1325,12 @@ body[data-page="admin"] .button-danger:focus-visible {
   min-width: 82px;
 }
 
+.results-stat-head,
+.results-stat-cell {
+  text-align: center;
+  min-width: 78px;
+}
+
 @media (max-width: 1100px) {
   .results-matrix-table {
     min-width: 920px;
