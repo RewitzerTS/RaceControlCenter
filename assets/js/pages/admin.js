@@ -41,6 +41,7 @@ const state = {
   isDiscarding: false,
   isImportingResults: false,
   isSavingRace: false,
+  isShiftingRaceDates: false,
   isSavingIncident: false,
   isStartingSeason: false,
   isGeneratingSeason: false,
@@ -597,6 +598,21 @@ function setText(id, value) {
   if (el) el.textContent = value ?? '';
 }
 
+function parseIsoDateToUtcMs(dateString) {
+  const normalized = String(dateString || '').trim();
+  if (!normalized) return Number.NaN;
+  const [year, month, day] = normalized.split('-').map((value) => Number(value));
+  if (!year || !month || !day) return Number.NaN;
+  return Date.UTC(year, month - 1, day);
+}
+
+function addDaysToIsoDate(dateString, dayDelta) {
+  const baseMs = parseIsoDateToUtcMs(dateString);
+  if (!Number.isFinite(baseMs)) return '';
+  const nextDate = new Date(baseMs + (Number(dayDelta) || 0) * 86400000);
+  return `${nextDate.getUTCFullYear()}-${String(nextDate.getUTCMonth() + 1).padStart(2, '0')}-${String(nextDate.getUTCDate()).padStart(2, '0')}`;
+}
+
 async function requireAdminSession() {
   const { data, error } = await window.supabaseClient.auth.getSession();
   if (error) throw error;
@@ -896,7 +912,7 @@ async function loadRaceOptions() {
   const season = await getCurrentSeasonSafe();
   let query = window.supabaseClient
     .from('races')
-    .select('id, round_number, grand_prix_name, status')
+    .select('id, round_number, grand_prix_name, race_date, status')
     .order('round_number', { ascending: true });
 
   if (season?.id) query = query.eq('season_id', season.id);
@@ -916,6 +932,14 @@ async function loadRaceOptions() {
   const manualSelect = document.getElementById('manual-race-select');
   if (manualSelect) {
     manualSelect.innerHTML = '<option value="">Rennen wählen</option>' + sortedRaces.map((race) => `<option value="${race.id}">${race.grand_prix_name} · R${race.round_number}</option>`).join('');
+  }
+
+  const raceShiftSelect = document.getElementById('race-shift-source');
+  if (raceShiftSelect) {
+    const roundSortedRaces = [...(data || [])].sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
+    raceShiftSelect.innerHTML = roundSortedRaces.length
+      ? '<option value="">Bitte Rennen wählen</option>' + roundSortedRaces.map((race) => `<option value="${race.id}" data-race-date="${race.race_date || ''}" data-round="${race.round_number || ''}">R${race.round_number} · ${race.grand_prix_name} · ${race.race_date || 'kein Datum'}</option>`).join('')
+      : '<option value="">Noch keine Rennen vorhanden</option>';
   }
 
   await renderPublishWorkflow();
@@ -982,6 +1006,81 @@ async function saveRace() {
     showFeedback('race-feedback', `Fehler beim Speichern: ${error.message}`, true);
   } finally {
     state.isSavingRace = false;
+  }
+}
+
+async function shiftRaceDates() {
+  if (state.isShiftingRaceDates) return;
+  state.isShiftingRaceDates = true;
+  clearFeedback('race-shift-feedback');
+
+  try {
+    await requireAdminSession();
+    const sourceRaceId = getValue('race-shift-source');
+    const newRaceDate = getValue('race-shift-date');
+    if (!sourceRaceId || !newRaceDate) {
+      return showFeedback('race-shift-feedback', 'Bitte ein Rennen und das neue Renndatum auswählen.', true);
+    }
+
+    const season = await getCurrentSeasonSafe();
+    let query = window.supabaseClient
+      .from('races')
+      .select('id, round_number, grand_prix_name, race_date')
+      .order('round_number', { ascending: true });
+    if (season?.id) query = query.eq('season_id', season.id);
+
+    const { data: races, error } = await query;
+    if (error) {
+      return showFeedback('race-shift-feedback', `Rennen konnten nicht geladen werden: ${error.message}`, true);
+    }
+
+    const selectedRace = (races || []).find((race) => String(race.id) === String(sourceRaceId));
+    if (!selectedRace?.race_date) {
+      return showFeedback('race-shift-feedback', 'Das gewählte Rennen hat kein gültiges Renndatum.', true);
+    }
+
+    const oldDateMs = parseIsoDateToUtcMs(selectedRace.race_date);
+    const newDateMs = parseIsoDateToUtcMs(newRaceDate);
+    if (!Number.isFinite(oldDateMs) || !Number.isFinite(newDateMs)) {
+      return showFeedback('race-shift-feedback', 'Ungültiges Datum. Bitte erneut versuchen.', true);
+    }
+
+    const dayDelta = Math.round((newDateMs - oldDateMs) / 86400000);
+    if (!dayDelta) {
+      return showFeedback('race-shift-feedback', 'Neues Datum entspricht dem bestehenden Renndatum. Keine Änderung nötig.');
+    }
+
+    const affectedRaces = (races || []).filter((race) => Number(race.round_number || 0) >= Number(selectedRace.round_number || 0));
+    if (!affectedRaces.length) {
+      return showFeedback('race-shift-feedback', 'Es wurden keine Folge-Rennen zum Verschieben gefunden.', true);
+    }
+
+    const updateResults = await Promise.all(
+      affectedRaces.map((race) => window.supabaseClient
+        .from('races')
+        .update({ race_date: addDaysToIsoDate(race.race_date, dayDelta) })
+        .eq('id', race.id))
+    );
+
+    const failedUpdate = updateResults.find((result) => result.error);
+    if (failedUpdate?.error) {
+      return showFeedback('race-shift-feedback', `Fehler beim Verschieben: ${failedUpdate.error.message}`, true);
+    }
+
+    showFeedback(
+      'race-shift-feedback',
+      `${selectedRace.grand_prix_name} und ${Math.max(affectedRaces.length - 1, 0)} Folge-Rennen wurden um ${dayDelta} ${Math.abs(dayDelta) === 1 ? 'Tag' : 'Tage'} verschoben.`
+    );
+    setValue('race-shift-date', '');
+    await Promise.all([
+      loadRaceOptions(),
+      loadSeasonSummary()
+    ]);
+  } catch (error) {
+    console.error(error);
+    showFeedback('race-shift-feedback', `Fehler beim Verschieben: ${error.message}`, true);
+  } finally {
+    state.isShiftingRaceDates = false;
   }
 }
 
@@ -1834,6 +1933,7 @@ function bindUiEvents() {
   document.getElementById('admin-login-btn')?.addEventListener('click', signInAdmin);
   document.getElementById('admin-logout-btn')?.addEventListener('click', signOutAdmin);
   document.getElementById('save-race-btn')?.addEventListener('click', saveRace);
+  document.getElementById('shift-race-btn')?.addEventListener('click', shiftRaceDates);
   document.getElementById('save-driver-btn')?.addEventListener('click', saveDriver);
   document.getElementById('reset-driver-btn')?.addEventListener('click', resetDriverForm);
   document.getElementById('save-incident-btn')?.addEventListener('click', saveStewardIncident);
@@ -1886,6 +1986,11 @@ function bindUiEvents() {
   document.getElementById('race-grand-prix-name')?.addEventListener('change', (event) => {
     const selectedOption = event.target.options[event.target.selectedIndex];
     setValue('race-circuit-name', selectedOption?.dataset?.circuit || '');
+  });
+
+  document.getElementById('race-shift-source')?.addEventListener('change', (event) => {
+    const selectedOption = event.target.options[event.target.selectedIndex];
+    setValue('race-shift-date', selectedOption?.dataset?.raceDate || '');
   });
 
   document.addEventListener('click', (event) => {

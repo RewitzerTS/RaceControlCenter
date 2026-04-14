@@ -101,6 +101,22 @@
           <button type="button" class="button-secondary" id="generate-season-btn">Komplette Saison zufällig erstellen</button>
         </div>
         <div id="race-feedback" class="notice" hidden></div>
+
+        <h3 class="section-spacer-top">Renntag verschieben</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label for="race-shift-source">Rennen</label>
+            <select id="race-shift-source"><option value="">Bitte Rennen wählen</option></select>
+          </div>
+          <div class="field">
+            <label for="race-shift-date">Neues Renndatum</label>
+            <input id="race-shift-date" type="date">
+          </div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="button-secondary" id="shift-race-btn">Renntag + Folge-Rennen verschieben</button>
+        </div>
+        <div id="race-shift-feedback" class="notice" hidden></div>
       </section>
       </details>
 
