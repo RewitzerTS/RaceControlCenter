@@ -32,6 +32,18 @@ const DEFAULT_RACE_TIME = '20:00';
 const DEFAULT_RACE_STATUS = 'upcoming';
 const DEFAULT_RACE_WEATHER = 'dynamisch';
 const DEFAULT_RACE_DAYS = 'Sonntag';
+const RULE_CONFIG_FIELDS = {
+  ai_strength: 'rule-ai-strength',
+  race_distance: 'rule-race-distance',
+  vehicle_performance: 'rule-vehicle-performance',
+  fastest_lap_point: 'rule-fastest-lap-point',
+  damage: 'rule-damage',
+  safety_car: 'rule-safety-car',
+  red_flag: 'rule-red-flag',
+  ghosting: 'rule-ghosting',
+  assists: 'rule-assists',
+  qualifying: 'rule-qualifying'
+};
 
 const state = {
   isSavingDriver: false,
@@ -43,6 +55,7 @@ const state = {
   isSavingRace: false,
   isShiftingRaceDates: false,
   isSavingIncident: false,
+  isSavingRulesContent: false,
   isStartingSeason: false,
   isGeneratingSeason: false,
   seasonFinalizePreview: null,
@@ -683,6 +696,60 @@ function resetDriverForm() {
   setValue('driver-ai-reference', '');
   setValue('driver-car-name', '');
   clearFeedback('driver-feedback');
+}
+
+function buildRulesConfigFromForm() {
+  return Object.entries(RULE_CONFIG_FIELDS).reduce((config, [key, fieldId]) => {
+    config[key] = getTrimmedValue(fieldId);
+    return config;
+  }, {});
+}
+
+function applyRulesConfigToForm(config = {}) {
+  Object.entries(RULE_CONFIG_FIELDS).forEach(([key, fieldId]) => {
+    setValue(fieldId, String(config[key] || '').trim());
+  });
+}
+
+async function loadRulesContent() {
+  try {
+    const content = await window.RCCData.fetchLeagueContent();
+    setValue('rules-text', content.rules_text || '');
+    setValue('faq-text', content.faq_text || '');
+    applyRulesConfigToForm(content.rules_config || {});
+  } catch (error) {
+    console.error(error);
+    showFeedback('rules-feedback', `Fehler beim Laden der Regeln: ${error.message}`, true);
+  }
+}
+
+async function saveRulesContent() {
+  if (state.isSavingRulesContent) return;
+  state.isSavingRulesContent = true;
+  clearFeedback('rules-feedback');
+
+  try {
+    await requireAdminSession();
+
+    const payload = {
+      id: 'default',
+      rules_text: getValue('rules-text'),
+      faq_text: getValue('faq-text'),
+      rules_config: buildRulesConfigFromForm()
+    };
+
+    const { error } = await window.supabaseClient
+      .from('league_content')
+      .upsert(payload, { onConflict: 'id' });
+    if (error) throw error;
+
+    showFeedback('rules-feedback', 'Regeln & FAQs wurden gespeichert.');
+  } catch (error) {
+    console.error(error);
+    showFeedback('rules-feedback', `Fehler beim Speichern: ${error.message}`, true);
+  } finally {
+    state.isSavingRulesContent = false;
+  }
 }
 
 function editDriver(id, displayName, aiDriverReference, gamertag, leagueTeam, carName) {
@@ -1972,6 +2039,7 @@ function bindUiEvents() {
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
+  document.getElementById('save-rules-btn')?.addEventListener('click', saveRulesContent);
   document.getElementById('load-manual-results-btn')?.addEventListener('click', loadManualResultsEditor);
   const manualSaveBtn = document.getElementById('save-manual-results-btn');
   manualSaveBtn?.addEventListener('click', saveManualResults);
@@ -2084,7 +2152,8 @@ async function initAdminPage() {
     renderPublishWorkflow(),
     updateManualResultsVisibility(),
     populateManualRaceSelect(),
-    updateAdminOverview()
+    updateAdminOverview(),
+    loadRulesContent()
   ]);
   renderImportPreviewTable([]);
   setImportPreviewBanner('');
