@@ -79,6 +79,7 @@ const state = {
   isSavingRace: false,
   isShiftingRaceDates: false,
   isSavingIncident: false,
+  isDeletingIncident: false,
   isSavingRulesContent: false,
   isStartingSeason: false,
   isGeneratingSeason: false,
@@ -87,6 +88,8 @@ const state = {
   authListenerBound: false,
   initialized: false
 };
+
+let stewardCaseCache = [];
 
 function sortByLabel(items, getLabel) {
   return [...items].sort((a, b) => String(getLabel(a) || '').localeCompare(String(getLabel(b) || ''), 'de', { sensitivity: 'base' }));
@@ -671,6 +674,157 @@ async function populateStewardDriverSelects() {
     if (!select) return;
     renderOptions(select, data || [], (driver) => `<option value="${driver.id}">${window.escapeHtml(driver.display_name)}</option>`);
   });
+}
+
+function resetStewardIncidentForm() {
+  ['incident-edit-id', 'incident-race', 'incident-title', 'incident-description', 'incident-decision', 'incident-driver-1', 'incident-driver-2'].forEach((id) => setValue(id, ''));
+  setValue('incident-consequence', 'Keine');
+  const raceSelect = document.getElementById('incident-race');
+  if (raceSelect) raceSelect.disabled = false;
+  const saveButton = document.getElementById('save-incident-btn');
+  if (saveButton) saveButton.textContent = 'Steward-Eintrag speichern';
+}
+
+async function upsertPenaltyForStewardCase(entryId, raceId, driver2Id, title, decision, consequence) {
+  const seconds = parsePenaltySeconds(consequence);
+  const { data: existingPenalty, error: existingPenaltyError } = await window.supabaseClient
+    .from('race_penalties')
+    .select('id')
+    .eq('steward_case_id', entryId)
+    .maybeSingle();
+
+  if (existingPenaltyError) throw existingPenaltyError;
+
+  if (!driver2Id || !seconds) {
+    if (existingPenalty?.id) {
+      const { error: deletePenaltyError } = await window.supabaseClient.from('race_penalties').delete().eq('id', existingPenalty.id);
+      if (deletePenaltyError) throw deletePenaltyError;
+    }
+    return;
+  }
+
+  const payload = {
+    race_id: raceId,
+    driver_id: driver2Id,
+    steward_case_id: entryId,
+    penalty_type: seconds > 0 ? 'time_penalty' : 'time_credit',
+    time_delta_ms: Math.round(seconds * 1000),
+    reason: [title, consequence, decision].filter(Boolean).join(' · ')
+  };
+
+  if (existingPenalty?.id) {
+    const { error: updatePenaltyError } = await window.supabaseClient.from('race_penalties').update(payload).eq('id', existingPenalty.id);
+    if (updatePenaltyError) throw updatePenaltyError;
+  } else {
+    const { error: insertPenaltyError } = await window.supabaseClient.from('race_penalties').insert([payload]);
+    if (insertPenaltyError) throw insertPenaltyError;
+  }
+}
+
+function renderStewardCaseAdminList() {
+  const list = document.getElementById('admin-incident-list');
+  if (!list) return;
+  if (!stewardCaseCache.length) {
+    list.innerHTML = '<div class="notice">Noch kein Steward-Fall vorhanden.</div>';
+    return;
+  }
+
+  list.innerHTML = stewardCaseCache.map((entry) => {
+    const involved = [entry.driver1?.display_name && `Fahrer 1: ${entry.driver1.display_name}`, entry.driver2?.display_name && `Fahrer 2: ${entry.driver2.display_name}`]
+      .filter(Boolean)
+      .join(' · ');
+    return `
+      <article class="incident-item">
+        <strong>${window.escapeHtml(entry.races?.grand_prix_name || 'Rennen')} · ${window.escapeHtml(entry.title || 'Steward-Fall')}</strong>
+        <span class="muted">${window.escapeHtml(entry.description || 'Keine Beschreibung')}</span>
+        <span class="muted">${window.escapeHtml(involved || 'Keine Fahrer zugeordnet')}</span>
+        <span class="muted">Entscheidung: ${window.escapeHtml(entry.decision_text || '—')}</span>
+        <span class="muted">Konsequenz: ${window.escapeHtml(entry.consequence || 'Keine')}</span>
+        <div class="card-actions">
+          <button type="button" class="button-secondary edit-incident-btn" data-id="${entry.id}">Bearbeiten</button>
+          <button type="button" class="button-secondary button-danger delete-incident-btn" data-id="${entry.id}">Löschen</button>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+function editStewardIncident(entryId) {
+  const entry = stewardCaseCache.find((item) => String(item.id) === String(entryId));
+  if (!entry) return;
+  setValue('incident-edit-id', entry.id);
+  setValue('incident-race', entry.race_id || '');
+  setValue('incident-title', entry.title || '');
+  setValue('incident-description', entry.description || '');
+  setValue('incident-decision', entry.decision_text || '');
+  setValue('incident-consequence', entry.consequence || 'Keine');
+  setValue('incident-driver-1', entry.driver_1_id || '');
+  setValue('incident-driver-2', entry.driver_2_id || '');
+  const raceSelect = document.getElementById('incident-race');
+  if (raceSelect) raceSelect.disabled = true;
+  const saveButton = document.getElementById('save-incident-btn');
+  if (saveButton) saveButton.textContent = 'Steward-Fall aktualisieren';
+  showFeedback('incident-feedback', `Bearbeitungsmodus aktiv: ${entry.races?.grand_prix_name || 'Rennen'} · ${entry.title || 'Steward-Fall'}`);
+}
+
+async function loadStewardCasesForAdmin() {
+  const list = document.getElementById('admin-incident-list');
+  if (!list) return;
+  list.innerHTML = '<div class="notice">Steward-Fälle werden geladen...</div>';
+
+  const { data, error } = await window.supabaseClient
+    .from('steward_cases')
+    .select(`
+      id,
+      race_id,
+      title,
+      description,
+      decision_text,
+      consequence,
+      driver_1_id,
+      driver_2_id,
+      created_at,
+      races:race_id ( grand_prix_name ),
+      driver1:driver_1_id ( display_name ),
+      driver2:driver_2_id ( display_name )
+    `)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    const relationMissing = error.code === 'PGRST205' || error.code === '42P01';
+    list.innerHTML = `<div class="notice">${relationMissing ? 'Steward-Datenbank noch nicht eingerichtet.' : 'Fehler beim Laden der Steward-Fälle.'}</div>`;
+    return;
+  }
+
+  stewardCaseCache = data || [];
+  renderStewardCaseAdminList();
+}
+
+async function deleteStewardIncident(entryId) {
+  if (state.isDeletingIncident) return;
+  state.isDeletingIncident = true;
+  clearFeedback('incident-feedback');
+  try {
+    await requireAdminSession();
+    const entry = stewardCaseCache.find((item) => String(item.id) === String(entryId));
+    if (!entry) throw new Error('Steward-Fall nicht gefunden.');
+    if (!window.confirm('Diesen Steward-Fall wirklich löschen?')) return;
+
+    const { error: deletePenaltiesError } = await window.supabaseClient.from('race_penalties').delete().eq('steward_case_id', entryId);
+    if (deletePenaltiesError) throw deletePenaltiesError;
+    const { error: deleteCaseError } = await window.supabaseClient.from('steward_cases').delete().eq('id', entryId);
+    if (deleteCaseError) throw deleteCaseError;
+    if (entry.race_id) await recalculateOfficialRaceResults(entry.race_id);
+
+    resetStewardIncidentForm();
+    showFeedback('incident-feedback', 'Steward-Fall gelöscht und Rennergebnis neu berechnet.');
+    await Promise.all([loadStewardCasesForAdmin(), loadSeasonSummary(), renderPublishWorkflow()]);
+  } catch (error) {
+    console.error(error);
+    showFeedback('incident-feedback', `Löschen fehlgeschlagen: ${error.message}`, true);
+  } finally {
+    state.isDeletingIncident = false;
+  }
 }
 
 function populateDriverDropdowns() {
@@ -1272,6 +1426,7 @@ async function saveStewardIncident() {
 
   try {
     await requireAdminSession();
+    const incidentId = getValue('incident-edit-id');
     const raceId = getValue('incident-race');
     const driver1Id = getValue('incident-driver-1') || null;
     const driver2Id = getValue('incident-driver-2') || null;
@@ -1295,43 +1450,42 @@ async function saveStewardIncident() {
       status: 'closed'
     };
 
-    const { data: createdCase, error: caseError } = await window.supabaseClient
-      .from('steward_cases')
-      .insert([casePayload])
-      .select('id')
-      .single();
-
-    if (caseError) {
-      return showFeedback('incident-feedback', `Fehler beim Speichern: ${caseError.message}`, true);
-    }
-
-    const seconds = parsePenaltySeconds(consequence);
-    if (driver2Id && seconds) {
-      const { error: penaltyError } = await window.supabaseClient.from('race_penalties').insert([{
-        race_id: raceId,
-        driver_id: driver2Id,
-        steward_case_id: createdCase.id,
-        penalty_type: seconds > 0 ? 'time_penalty' : 'time_credit',
-        time_delta_ms: Math.round(seconds * 1000),
-        reason: [title, consequence, decision].filter(Boolean).join(' · ')
-      }]);
-
-      if (penaltyError) {
-        return showFeedback('incident-feedback', `Fall gespeichert, Strafe aber nicht: ${penaltyError.message}`, true);
+    let stewardCaseId = incidentId;
+    if (incidentId) {
+      const { error: caseError } = await window.supabaseClient
+        .from('steward_cases')
+        .update(casePayload)
+        .eq('id', incidentId);
+      if (caseError) {
+        return showFeedback('incident-feedback', `Fehler beim Aktualisieren: ${caseError.message}`, true);
       }
+    } else {
+      const { data: createdCase, error: caseError } = await window.supabaseClient
+        .from('steward_cases')
+        .insert([casePayload])
+        .select('id')
+        .single();
+      if (caseError) {
+        return showFeedback('incident-feedback', `Fehler beim Speichern: ${caseError.message}`, true);
+      }
+      stewardCaseId = createdCase.id;
     }
+
+    await upsertPenaltyForStewardCase(stewardCaseId, raceId, driver2Id, title, decision, consequence);
 
     await recalculateOfficialRaceResults(raceId);
 
-    ['incident-race', 'incident-title', 'incident-description', 'incident-decision', 'incident-driver-1', 'incident-driver-2'].forEach((id) => setValue(id, ''));
-    setValue('incident-consequence', 'Keine');
+    const seconds = parsePenaltySeconds(consequence);
+    const wasEdit = Boolean(incidentId);
+    resetStewardIncidentForm();
     showFeedback('incident-feedback', driver2Id && seconds
-      ? 'Steward-Eintrag erfolgreich gespeichert. Die Zeitkorrektur wurde direkt auf das offizielle Rennergebnis angewendet.'
-      : 'Steward-Eintrag erfolgreich gespeichert. Ergebnisse und Wertungen wurden aktualisiert.');
+      ? (wasEdit ? 'Steward-Fall aktualisiert. Zeitkorrektur und Ergebnis wurden neu berechnet.' : 'Steward-Eintrag erfolgreich gespeichert. Die Zeitkorrektur wurde direkt auf das offizielle Rennergebnis angewendet.')
+      : (wasEdit ? 'Steward-Fall aktualisiert. Ergebnisse und Wertungen wurden aktualisiert.' : 'Steward-Eintrag erfolgreich gespeichert. Ergebnisse und Wertungen wurden aktualisiert.'));
     await Promise.all([
       renderPublishWorkflow(),
       loadSeasonSummary(),
-      loadRaceOptions()
+      loadRaceOptions(),
+      loadStewardCasesForAdmin()
     ]);
   } catch (error) {
     console.error(error);
@@ -2118,6 +2272,7 @@ function bindUiEvents() {
   document.getElementById('save-driver-btn')?.addEventListener('click', saveDriver);
   document.getElementById('reset-driver-btn')?.addEventListener('click', resetDriverForm);
   document.getElementById('save-incident-btn')?.addEventListener('click', saveStewardIncident);
+  document.getElementById('reset-incident-btn')?.addEventListener('click', resetStewardIncidentForm);
   document.getElementById('import-results-btn')?.addEventListener('click', () => importRaceResults({ previewFieldId: 'csv-preview' }));
   document.getElementById('import-results-btn-2')?.addEventListener('click', () => importRaceResults({ previewFieldId: 'csv-preview-2' }));
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
@@ -2211,6 +2366,18 @@ function bindUiEvents() {
     const discardBtn = event.target.closest('.discard-results-btn');
     if (discardBtn) {
       discardPendingResults(discardBtn.dataset.importId || '');
+      return;
+    }
+
+    const editIncidentBtn = event.target.closest('.edit-incident-btn');
+    if (editIncidentBtn) {
+      editStewardIncident(editIncidentBtn.dataset.id || '');
+      return;
+    }
+
+    const deleteIncidentBtn = event.target.closest('.delete-incident-btn');
+    if (deleteIncidentBtn) {
+      deleteStewardIncident(deleteIncidentBtn.dataset.id || '');
     }
   });
 }
@@ -2236,6 +2403,7 @@ async function initAdminPage() {
 
   await Promise.all([
     populateStewardDriverSelects(),
+    loadStewardCasesForAdmin(),
     refreshSessionStatus(),
     loadSeasonSummary(),
     loadDrivers(),

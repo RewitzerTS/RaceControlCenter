@@ -27,10 +27,34 @@ async function loadCalendar() {
 
   try {
     const season = await window.RCCData.fetchCurrentSeason();
-    const races = await window.RCCData.fetchRaces({ seasonId: season?.id });
+    const [races, stewardResponse] = await Promise.all([
+      window.RCCData.fetchRaces({ seasonId: season?.id }),
+      window.supabaseClient
+        .from('steward_cases')
+        .select('race_id, decision_text, created_at')
+        .order('created_at', { ascending: false })
+    ]);
+
+    const stewardByRace = new Map();
+    if (!stewardResponse.error) {
+      (stewardResponse.data || []).forEach((entry) => {
+        if (!entry?.race_id) return;
+        if (!stewardByRace.has(entry.race_id)) {
+          stewardByRace.set(entry.race_id, { count: 0, latestDecision: '' });
+        }
+        const raceStewardData = stewardByRace.get(entry.race_id);
+        raceStewardData.count += 1;
+        if (!raceStewardData.latestDecision && entry.decision_text) {
+          const normalizedDecision = String(entry.decision_text).trim();
+          raceStewardData.latestDecision = normalizedDecision.length > 80 ? `${normalizedDecision.slice(0, 77)}…` : normalizedDecision;
+        }
+      });
+    }
 
     const racesWithLifecycle = races.map((race) => ({
       ...race,
+      steward_count: stewardByRace.get(race.id)?.count || 0,
+      latest_steward_decision: stewardByRace.get(race.id)?.latestDecision || '',
       status: window.getRaceLifecycleStatus ? window.getRaceLifecycleStatus(race) : race.status
     }));
 
