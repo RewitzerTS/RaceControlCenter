@@ -44,10 +44,6 @@ function renderStaticResultsOverride() {
       <thead>
         <tr>
           <th class="sticky-driver sticky-driver-head">Fahrer</th>
-          <th class="results-stat-head">Ø Start</th>
-          <th class="results-stat-head">Ø Ziel</th>
-          <th class="results-stat-head">Ø ± Pos.</th>
-          <th class="results-stat-head">Ø Platz.</th>
           ${head}
           <th class="results-total-head">Total</th>
         </tr>
@@ -107,22 +103,6 @@ function getDriverDisplayLabel(driver) {
   return `${driver.display_name}${extras.length ? ` / ${extras.join(' / ')}` : ''}${medalMatch ? ` ${medalMatch[1]}` : ''}`;
 }
 
-function toNumericPosition(value) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-}
-
-function formatAverage(value) {
-  return Number.isFinite(value) ? value.toFixed(1) : '—';
-}
-
-function formatDelta(value) {
-  if (!Number.isFinite(value)) return '—';
-  if (value > 0) return `+${value.toFixed(1)}`;
-  if (value < 0) return value.toFixed(1);
-  return '±0.0';
-}
-
 function buildMatrixData(drivers, races, raceResults, resolver) {
   const completedRaces = races.filter((race) => race.status === 'completed').sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
   const raceIds = new Set(completedRaces.map((race) => race.id));
@@ -136,41 +116,16 @@ function buildMatrixData(drivers, races, raceResults, resolver) {
       const snapshot = resolver?.resolveDriverSnapshot(driver.id, race.id) || driver;
       const fastestDriverId = fastestByRace.get(race.id);
       const points = row ? window.RCCData.getAwardedRacePoints(row, fastestDriverId) : 0;
-      const startPosition = toNumericPosition(row?.start_position);
-      const finishPosition = toNumericPosition(row?.finish_position);
       return {
         points,
         isBot: String(row?.participation_status || '').toUpperCase() === 'BOT',
-        hasResult: Boolean(row),
         hasFastestLapBonus: row?.driver_id === fastestDriverId && window.RCCData.isTopTen(row?.finish_position),
-        startPosition,
-        finishPosition,
-        positionDelta: startPosition && finishPosition ? (startPosition - finishPosition) : null,
         carName: snapshot?.car_name || driver.car_name || '—'
       };
     });
 
     const total = raceCells.reduce((sum, cell) => sum + cell.points, 0);
-    const playerCells = raceCells.filter((cell) => cell.hasResult && !cell.isBot);
-    const starts = playerCells.map((cell) => cell.startPosition).filter((value) => Number.isFinite(value));
-    const finishes = playerCells.map((cell) => cell.finishPosition).filter((value) => Number.isFinite(value));
-    const avgStart = starts.length ? starts.reduce((sum, value) => sum + value, 0) / starts.length : NaN;
-    const avgFinish = finishes.length ? finishes.reduce((sum, value) => sum + value, 0) / finishes.length : NaN;
-    const deltas = playerCells.map((cell) => cell.positionDelta).filter((value) => Number.isFinite(value));
-    const avgDelta = deltas.length ? deltas.reduce((sum, value) => sum + value, 0) / deltas.length : NaN;
-
-    return {
-      driver,
-      raceCells,
-      total,
-      hasPlayerParticipation: playerCells.length > 0,
-      stats: {
-        avgStart,
-        avgFinish,
-        avgDelta,
-        avgPlacement: avgFinish
-      }
-    };
+    return { driver, raceCells, total };
   }).sort((a, b) => b.total - a.total || a.driver.display_name.localeCompare(b.driver.display_name, 'de'));
 
   return { completedRaces, rows };
@@ -178,8 +133,7 @@ function buildMatrixData(drivers, races, raceResults, resolver) {
 
 function renderMatrix(container, labelEl, matrixData) {
   const { completedRaces, rows } = matrixData;
-  const playerCount = rows.filter((entry) => entry.hasPlayerParticipation).length;
-  labelEl.textContent = `${completedRaces.length} gewertete Rennen · ${playerCount} Spieler`;
+  labelEl.textContent = `${completedRaces.length} gewertete Rennen · ${rows.length} Fahrer`;
 
   const head = completedRaces.map((race) => `
     <th class="results-race-header" title="${window.escapeHtml(`R${race.round_number} · ${race.grand_prix_name}`)}">
@@ -200,10 +154,6 @@ function renderMatrix(container, labelEl, matrixData) {
     return `
       <tr>
         <td class="sticky-driver"><span class="driver-label-text">${window.escapeHtml(getDriverDisplayLabel(entry.driver))}</span></td>
-        <td class="results-stat-cell">${formatAverage(entry.stats.avgStart)}</td>
-        <td class="results-stat-cell">${formatAverage(entry.stats.avgFinish)}</td>
-        <td class="results-stat-cell">${formatDelta(entry.stats.avgDelta)}</td>
-        <td class="results-stat-cell">${formatAverage(entry.stats.avgPlacement)}</td>
         ${cells}
         <td class="results-total-cell"><strong>${entry.total}</strong></td>
       </tr>
@@ -215,10 +165,6 @@ function renderMatrix(container, labelEl, matrixData) {
       <thead>
         <tr>
           <th class="sticky-driver sticky-driver-head">Fahrer</th>
-          <th class="results-stat-head">Ø Start</th>
-          <th class="results-stat-head">Ø Ziel</th>
-          <th class="results-stat-head">Ø ± Pos.</th>
-          <th class="results-stat-head">Ø Platz.</th>
           ${head}
           <th class="results-total-head">Total</th>
         </tr>
