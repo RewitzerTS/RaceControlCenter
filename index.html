@@ -1262,12 +1262,6 @@
         if (context?.topTeam) {
           messages.push(`Team-Entwicklung: ${context.topTeam.teamName} setzt mit ${context.topTeam.points} Punkten den Maßstab in der Konstrukteurswertung.`);
         }
-        const completed = Array.isArray(context?.completedRaces)
-          ? context.completedRaces.slice().sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0))
-          : [];
-        completed.slice(0, 3).forEach((race, index) => {
-          messages.push(`Rennrückblick ${index + 1}: ${race.grand_prix_name || `Runde ${race.round_number || '?'}`} wurde am ${formatDateLong(race.race_date)} abgeschlossen.`);
-        });
         return messages.map(normalizeStorylineText).filter(Boolean);
       }
 
@@ -1290,7 +1284,7 @@
         const visibleMessages = unique.slice(0, 16);
         const loopMessages = [...visibleMessages, ...visibleMessages];
         const itemHtml = loopMessages.map((text) => `<span class="storyline-item">${escapeHtml(text)}</span>`).join('');
-        const duration = Math.max(45, visibleMessages.length * 7);
+        const duration = Math.max(50, visibleMessages.length * 8);
         container.innerHTML = `<div class="storyline-ticker" role="status" aria-live="polite" tabindex="0"><div class="storyline-ticker-track" style="--ticker-duration:${duration}s;">${itemHtml}</div></div>`;
       }
 
