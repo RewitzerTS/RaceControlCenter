@@ -2519,3 +2519,20 @@ body.hof-page {
   padding: 12px;
   background: rgba(255, 255, 255, 0.015);
 }
+
+.rules-faq-page-layout {
+  display: grid;
+  gap: 18px;
+}
+
+.rules-faq-dual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+@media (max-width: 860px) {
+  .rules-faq-dual {
+    grid-template-columns: 1fr;
+  }
+}
