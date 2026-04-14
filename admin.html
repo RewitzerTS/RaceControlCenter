@@ -43,6 +43,7 @@
         <a class="button-secondary" href="#admin-section-results">Ergebnisse</a>
         <a class="button-secondary" href="#admin-section-stewarding">Stewarding</a>
         <a class="button-secondary" href="#admin-section-drivers">Fahrer</a>
+        <a class="button-secondary" href="#admin-section-rules">Regeln & FAQs</a>
       </div>
       <div class="notice">Tipp: Öffne nur den Bereich, den du gerade brauchst. So bleibt die Oberfläche deutlich übersichtlicher.</div>
     </div>
@@ -227,6 +228,30 @@
         </div>
         <div id="driver-feedback" class="notice" hidden></div>
         <div class="section-spacer-top"><h4>Bereits angelegte Fahrer</h4><div class="notice">Gruppiert nach Auto/Team, damit Teamkollegen zusammen angezeigt werden und schneller bearbeitet werden können.</div><div id="driver-list" class="stack-list driver-admin-grid"></div></div>
+      </section>
+      </details>
+
+      <details class="panel admin-panel-wide" id="admin-section-rules" open>
+        <summary><strong>6) Regeln & FAQs</strong></summary>
+      <section class="panel admin-panel-wide admin-panel-accent">
+        <h3>Regeln (öffentlich)</h3>
+        <div class="notice">Die Regelseite übernimmt direkt diese Einstellungen.</div>
+        <div class="form-grid">
+          <div class="field"><label for="rule-ai-strength">KI Stärke</label><input id="rule-ai-strength" placeholder="z. B. 95"></div>
+          <div class="field"><label for="rule-race-distance">Renndistanz</label><input id="rule-race-distance" placeholder="z. B. 50%"></div>
+          <div class="field"><label for="rule-vehicle-performance">Fahrzeug-Performance</label><select id="rule-vehicle-performance"><option value="">Bitte wählen</option><option value="gleiche Leistung">gleiche Leistung</option><option value="Reale Leistung">Reale Leistung</option></select></div>
+          <div class="field"><label for="rule-fastest-lap-point">Extra Punkt für schnellste Runde</label><select id="rule-fastest-lap-point"><option value="">Bitte wählen</option><option value="ja">ja</option><option value="nein">nein</option></select></div>
+          <div class="field"><label for="rule-damage">Schaden</label><select id="rule-damage"><option value="">Bitte wählen</option><option value="keinen">keinen</option><option value="reduziert">reduziert</option><option value="standard">standard</option><option value="simulation">simulation</option></select></div>
+          <div class="field"><label for="rule-safety-car">Safety Car Wahrscheinlichkeit</label><select id="rule-safety-car"><option value="">Bitte wählen</option><option value="Keine">Keine</option><option value="reduziert">reduziert</option><option value="standard">standard</option><option value="erhöht">erhöht</option></select></div>
+          <div class="field"><label for="rule-red-flag">Red Flag Wahrscheinlichkeit</label><select id="rule-red-flag"><option value="">Bitte wählen</option><option value="kein">kein</option><option value="reduziert">reduziert</option><option value="standard">standard</option><option value="erhöht">erhöht</option></select></div>
+          <div class="field"><label for="rule-ghosting">Ghosting</label><select id="rule-ghosting"><option value="">Bitte wählen</option><option value="an">an</option><option value="aus">aus</option></select></div>
+          <div class="field"><label for="rule-assists">Fahrhilfen</label><select id="rule-assists"><option value="">Bitte wählen</option><option value="Alle erlaubt">Alle erlaubt</option><option value="eingeschränkt erlaubt">eingeschränkt erlaubt</option><option value="keine erlaubt">keine erlaubt</option></select></div>
+          <div class="field"><label for="rule-qualifying">Qualifying</label><select id="rule-qualifying"><option value="">Bitte wählen</option><option value="keins">keins</option><option value="Blitz Quali">Blitz Quali</option><option value="volle Quali">volle Quali</option></select></div>
+        </div>
+        <div class="card-actions">
+          <button type="button" class="button-primary" id="save-rules-btn">Regeln speichern</button>
+        </div>
+        <div id="rules-feedback" class="notice" hidden></div>
       </section>
       </details>
     </div>
