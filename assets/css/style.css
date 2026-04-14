@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;500;700&display=swap');
+
 :root {
   --bg-main: #021B34;
   --bg-deep: #01111f;
@@ -1384,6 +1386,10 @@ body[data-page="admin"] .button-danger:focus-visible {
   gap: 10px;
   padding-right: 34px;
   color: var(--text);
+  font-family: "Atkinson Hyperlegible", "Segoe UI", Inter, Arial, sans-serif;
+  font-size: clamp(0.98rem, 1.3vw, 1.08rem);
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 .storyline-item::after {
   content: '•';
