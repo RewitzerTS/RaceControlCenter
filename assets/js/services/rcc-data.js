@@ -163,32 +163,6 @@ async function fetchRaceResults(options = {}) {
   return data || [];
 }
 
-const DEFAULT_LEAGUE_CONTENT = {
-  id: 'default',
-  rules_text: '',
-  faq_text: '',
-  rules_config: {}
-};
-
-async function fetchLeagueContent() {
-  const client = window.supabaseClient;
-  if (!client) return { ...DEFAULT_LEAGUE_CONTENT };
-
-  const { data, error } = await client
-    .from('league_content')
-    .select('id, rules_text, faq_text, rules_config, updated_at')
-    .eq('id', 'default')
-    .maybeSingle();
-
-  if (error && error.code !== 'PGRST116') throw error;
-  if (!data) return { ...DEFAULT_LEAGUE_CONTENT };
-  return {
-    ...DEFAULT_LEAGUE_CONTENT,
-    ...data,
-    rules_config: data.rules_config && typeof data.rules_config === 'object' ? data.rules_config : {}
-  };
-}
-
 function buildStandings({ drivers, races, raceResults, resolver } = {}) {
   const raceIds = new Set((races || []).map((race) => race.id));
   const scopedResults = (raceResults || []).filter((row) => raceIds.has(row.race_id));
@@ -313,6 +287,5 @@ window.RCCData = {
   fetchDrivers,
   fetchRaces,
   fetchRaceResults,
-  fetchLeagueContent,
   buildStandings
 };

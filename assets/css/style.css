@@ -2469,12 +2469,3 @@ body.hof-page {
     padding-right: 6px;
   }
 }
-
-.rules-rich-text p {
-  margin: 0 0 12px;
-  line-height: 1.65;
-}
-
-.rules-rich-text p:last-child {
-  margin-bottom: 0;
-}
