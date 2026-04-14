@@ -176,54 +176,39 @@ function buildStandings({ drivers, races, raceResults, resolver } = {}) {
 
   const driversMap = new Map();
   const teamsMap = new Map();
-  const baseDriversById = new Map((drivers || []).map((driver) => [driver.id, driver]));
 
-  function getOrCreateDriverEntry(driverId, raceId = null) {
-    if (driversMap.has(driverId)) return driversMap.get(driverId);
-
-    const baseDriver = baseDriversById.get(driverId);
-    const snapshot = resolver?.resolveDriverSnapshot(driverId, raceId) || baseDriver;
-    if (!snapshot) return null;
-
-    const entry = {
-      driverId: snapshot.id,
-      driverName: snapshot.display_name || 'Unbekannt',
-      normalizedName: normalizeDriverName(snapshot.display_name),
-      leagueTeam: snapshot.league_team || 'Ohne Team',
-      carName: snapshot.car_name || '—',
+  for (const driver of drivers || []) {
+    const baseSnapshot = resolver?.resolveDriverSnapshot(driver.id, races?.[0]?.id) || driver;
+    driversMap.set(driver.id, {
+      driverId: driver.id,
+      driverName: driver.display_name || 'Unbekannt',
+      normalizedName: normalizeDriverName(driver.display_name),
+      leagueTeam: baseSnapshot?.league_team || driver.league_team || 'Ohne Team',
+      carName: baseSnapshot?.car_name || driver.car_name || '—',
       wins: 0,
       podiums: 0,
       fastestLaps: 0,
       points: 0
-    };
-    driversMap.set(driverId, entry);
-    return entry;
-  }
-
-  for (const driver of drivers || []) {
-    getOrCreateDriverEntry(driver.id, races?.[0]?.id || null);
+    });
   }
 
   for (const row of scopedResults) {
-    const sourceDriverId = row.driver_id;
-    const pointsOwnerDriverId = row.points_owner_driver_id || sourceDriverId;
-    const snapshot = resolver?.resolveDriverSnapshot(sourceDriverId, row.race_id) || baseDriversById.get(sourceDriverId);
+    const snapshot = resolver?.resolveDriverSnapshot(row.driver_id, row.race_id) || (drivers || []).find((driver) => driver.id === row.driver_id);
     if (!snapshot?.id) continue;
 
-    const driverEntry = getOrCreateDriverEntry(pointsOwnerDriverId, row.race_id);
-    if (!driverEntry) continue;
+    const driverEntry = driversMap.get(snapshot.id);
     const position = safeNumber(row.finish_position, null);
-    const hasFastestLap = fastestLapWinnerByRace.get(row.race_id) === sourceDriverId;
+    const hasFastestLap = fastestLapWinnerByRace.get(row.race_id) === snapshot.id;
     const points = getAwardedRacePoints(row, fastestLapWinnerByRace.get(row.race_id));
 
     driverEntry.points += points;
-    driverEntry.leagueTeam = row.points_team_name || snapshot.league_team || driverEntry.leagueTeam;
-    driverEntry.carName = row.points_car_name || snapshot.car_name || driverEntry.carName;
+    driverEntry.leagueTeam = snapshot.league_team || driverEntry.leagueTeam;
+    driverEntry.carName = snapshot.car_name || driverEntry.carName;
     if (position === 1) driverEntry.wins += 1;
     if ([1, 2, 3].includes(position)) driverEntry.podiums += 1;
     if (hasFastestLap) driverEntry.fastestLaps += 1;
 
-    const teamName = row.points_team_name || snapshot.league_team || 'Ohne Team';
+    const teamName = snapshot.league_team || 'Ohne Team';
     if (!teamsMap.has(teamName)) {
       teamsMap.set(teamName, {
         teamName,
