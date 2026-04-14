@@ -1827,18 +1827,6 @@ body.hof-page {
   min-height: 100vh;
 }
 
-.hof-page-main::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 18%, rgba(255, 214, 102, 0.18), transparent 34%),
-    radial-gradient(circle at 18% 84%, rgba(255,255,255,0.05), transparent 24%),
-    radial-gradient(circle at 82% 84%, rgba(255,255,255,0.05), transparent 24%),
-    linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 34%);
-}
-
 .hof-hero { padding: 48px 0 12px; }
 .hof-hero-copy { max-width: 760px; padding: 28px 0 8px; }
 .hof-hero-copy h1 { margin: 0 0 12px; font-size: clamp(2.4rem, 6vw, 4rem); line-height: 0.96; letter-spacing: 0.03em; text-transform: uppercase; text-shadow: 0 10px 30px rgba(0,0,0,0.35); }
