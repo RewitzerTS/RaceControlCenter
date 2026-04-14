@@ -169,7 +169,7 @@ function createRaceCard(race) {
               <div class="race-meta-sub">${escapeHtml(race.circuit_name || track?.circuitName || 'Strecke offen')}</div>
               <div class="race-result">Wetter: <strong>${escapeHtml(formatWeatherLabel(race.weather))}</strong></div>
               ${race.steward_count
-    ? `<div class="race-result">Steward: <strong>${escapeHtml(String(race.steward_count))} ${race.steward_count === 1 ? 'Fall' : 'Fälle'}</strong>${race.latest_steward_decision ? ` · ${escapeHtml(race.latest_steward_decision)}` : ''}</div>`
+    ? `<div class="race-result">Steward: <strong>${escapeHtml(String(race.steward_count))} ${race.steward_count === 1 ? 'Fall' : 'Fälle'}</strong></div>`
     : ''}
             </div>
             <div class="track-map-card">
