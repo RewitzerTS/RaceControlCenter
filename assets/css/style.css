@@ -821,8 +821,9 @@ textarea { min-height: 120px; resize: vertical; }
     font-size: 0.68rem;
     letter-spacing: 0.08em;
     line-height: 1.25;
-    white-space: normal;
-    word-break: break-word;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
   }
 
   body[data-page="fahrer-wm"] .standings-table td,
