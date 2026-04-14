@@ -167,7 +167,8 @@ const DEFAULT_LEAGUE_CONTENT = {
   id: 'default',
   rules_text: '',
   faq_text: '',
-  rules_config: {}
+  rules_config: {},
+  faq_items: []
 };
 
 async function fetchLeagueContent() {
@@ -176,7 +177,7 @@ async function fetchLeagueContent() {
 
   const { data, error } = await client
     .from('league_content')
-    .select('id, rules_text, faq_text, rules_config, updated_at')
+    .select('id, rules_text, faq_text, rules_config, faq_items, updated_at')
     .eq('id', 'default')
     .maybeSingle();
 
@@ -185,7 +186,8 @@ async function fetchLeagueContent() {
   return {
     ...DEFAULT_LEAGUE_CONTENT,
     ...data,
-    rules_config: data.rules_config && typeof data.rules_config === 'object' ? data.rules_config : {}
+    rules_config: data.rules_config && typeof data.rules_config === 'object' ? data.rules_config : {},
+    faq_items: Array.isArray(data.faq_items) ? data.faq_items : []
   };
 }
 
