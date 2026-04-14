@@ -753,58 +753,29 @@ async function loadDrivers() {
     return;
   }
 
-  if (!data?.length) {
-    list.innerHTML = '<div class="notice">Noch keine Fahrer angelegt.</div>';
-    return;
-  }
-
-  const groupedByCar = new Map();
-  data.forEach((driver) => {
-    const teamName = String(driver.car_name || '').trim() || 'Ohne Team/Auto';
-    if (!groupedByCar.has(teamName)) groupedByCar.set(teamName, []);
-    groupedByCar.get(teamName).push(driver);
-  });
-
-  const teamCards = [...groupedByCar.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0], 'de', { sensitivity: 'base' }))
-    .map(([teamName, teamDrivers]) => {
-      const sortedDrivers = [...teamDrivers].sort((a, b) =>
-        String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
-
-      return `
-        <article class="list-card driver-team-card">
-          <header class="driver-team-card-head">
-            <h5>${window.escapeHtml(teamName)}</h5>
-            <span class="driver-team-count">${sortedDrivers.length} Fahrer</span>
-          </header>
-          <div class="driver-team-members">
-            ${sortedDrivers.map((driver) => `
-              <div class="driver-team-member">
-                <div class="driver-team-member-main">
-                  <strong>${window.escapeHtml(driver.display_name)}</strong>
-                  <span class="muted">AI Fahrer: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
-                  <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
-                  <span class="muted">Liga-Team: ${window.escapeHtml(driver.league_team || '—')}</span>
-                </div>
-                <div class="card-actions compact-driver-actions">
-                  <button type="button" class="button-secondary edit-driver-btn"
-                    data-id="${driver.id}"
-                    data-display-name="${escapeHtmlAttr(driver.display_name)}"
-                    data-ai-driver-reference="${escapeHtmlAttr(driver.ai_driver_reference)}"
-                    data-gamertag="${escapeHtmlAttr(driver.gamertag)}"
-                    data-league-team="${escapeHtmlAttr(driver.league_team)}"
-                    data-car-name="${escapeHtmlAttr(driver.car_name)}">Bearbeiten</button>
-                  <button type="button" class="button-secondary delete-driver-btn"
-                    data-id="${driver.id}"
-                    data-display-name="${escapeHtmlAttr(driver.display_name)}">Löschen</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </article>`;
-    });
-
-  list.innerHTML = teamCards.join('');
+  list.innerHTML = data?.length
+    ? data.map((driver) => `
+      <div class="list-card">
+        <strong>${window.escapeHtml(driver.display_name)}</strong>
+        <span class="muted">AI Fahrer: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
+        <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
+        <span class="muted">Liga-Team: ${window.escapeHtml(driver.league_team || '—')}</span>
+        <span class="muted">Auto: ${window.escapeHtml(driver.car_name || '—')}</span>
+        <div class="card-actions" style="margin-top:10px;">
+          <button type="button" class="button-secondary edit-driver-btn"
+            data-id="${driver.id}"
+            data-display-name="${escapeHtmlAttr(driver.display_name)}"
+            data-ai-driver-reference="${escapeHtmlAttr(driver.ai_driver_reference)}"
+            data-gamertag="${escapeHtmlAttr(driver.gamertag)}"
+            data-league-team="${escapeHtmlAttr(driver.league_team)}"
+            data-car-name="${escapeHtmlAttr(driver.car_name)}">Bearbeiten</button>
+          <button type="button" class="button-secondary delete-driver-btn"
+            data-id="${driver.id}"
+            data-display-name="${escapeHtmlAttr(driver.display_name)}">Löschen</button>
+        </div>
+      </div>
+    `).join('')
+    : '<div class="notice">Noch keine Fahrer angelegt.</div>';
 }
 
 async function saveDriver() {

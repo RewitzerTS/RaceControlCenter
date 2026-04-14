@@ -1477,65 +1477,12 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-admin-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .compact-driver-card {
   padding: 14px;
-}
-
-.driver-team-card {
-  gap: 14px;
-}
-
-.driver-team-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.driver-team-card-head h5 {
-  margin: 0;
-  font-size: 1.05rem;
-  letter-spacing: 0.03em;
-}
-
-.driver-team-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 28px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(124, 77, 255, 0.2);
-  border: 1px solid rgba(124, 77, 255, 0.35);
-  color: #d8c7ff;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.driver-team-members {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.driver-team-member {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-}
-
-.driver-team-member-main {
-  display: grid;
-  gap: 4px;
 }
 
 .driver-admin-card-head {
@@ -1578,10 +1525,6 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 @media (max-width: 860px) {
   .driver-admin-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .driver-team-members {
     grid-template-columns: 1fr;
   }
 
