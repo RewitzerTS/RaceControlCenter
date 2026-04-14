@@ -61,6 +61,16 @@ function formatStatusLabel(status) {
   return status === 'completed' ? 'Gefahren' : 'Anstehend';
 }
 
+function getRaceLifecycleStatus(race, now = new Date()) {
+  if (!race) return 'upcoming';
+  if (race.status === 'completed') return 'completed';
+  if (race.status !== 'upcoming') return race.status || 'upcoming';
+
+  const scheduledStart = parseRaceDateValue(race, race.race_time);
+  if (!scheduledStart) return race.status;
+  return scheduledStart.getTime() <= now.getTime() ? 'completed' : 'upcoming';
+}
+
 function formatWeatherLabel(weather) {
   if (!weather) return 'offen';
   return String(weather).charAt(0).toUpperCase() + String(weather).slice(1);
@@ -224,6 +234,7 @@ window.formatRaceDate = formatRaceDate;
 window.formatRaceDateTime = formatRaceDateTime;
 window.toRaceInputDate = toRaceInputDate;
 window.formatStatusLabel = formatStatusLabel;
+window.getRaceLifecycleStatus = getRaceLifecycleStatus;
 window.formatWeatherLabel = formatWeatherLabel;
 window.parseTimeFieldToMs = parseTimeFieldToMs;
 window.createRaceCard = createRaceCard;

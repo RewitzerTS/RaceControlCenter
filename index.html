@@ -1116,6 +1116,7 @@
       const escapeHtml = window.escapeHtml || ((value) => String(value ?? ''));
       const ACCENT_COLORS = ['#36d4c7', '#b78cff', '#f5c451', '#ff7a7a', '#7dc5ff'];
       let countdownTimer = null;
+      let countdownRefreshTriggered = false;
       const WEEKLY_STORYLINE_TEMPLATES = [
         ({ lead, chase }) => `${lead.driverName} verteidigt die Spitze mit ${lead.points} Punkten, aber ${chase.driverName} bleibt direkt in Schlagdistanz.`,
         ({ lead, latestRace }) => `${latestRace?.grand_prix_name || 'Das letzte Rennen'} hat das Momentum verschoben – ${lead.driverName} reist als Gejagter weiter.`,
@@ -1442,6 +1443,16 @@
               <div class="countdown-item"><strong>00</strong><span>Min</span></div>
               <div class="countdown-item"><strong>00</strong><span>Sek</span></div>
             `;
+            if (countdownTimer) {
+              clearInterval(countdownTimer);
+              countdownTimer = null;
+            }
+            if (!countdownRefreshTriggered) {
+              countdownRefreshTriggered = true;
+              window.setTimeout(() => {
+                loadDashboard();
+              }, 500);
+            }
             return;
           }
 
@@ -1487,6 +1498,7 @@
       }
 
       async function loadDashboard() {
+        countdownRefreshTriggered = false;
         try {
           const currentSeason = await window.RCCData.fetchCurrentSeason();
           const [drivers, races, raceResults, assignments] = await Promise.all([
@@ -1495,6 +1507,10 @@
             window.RCCData.fetchRaceResults(),
             window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
           ]);
+          const racesWithLifecycle = races.map((race) => ({
+            ...race,
+            status: window.getRaceLifecycleStatus ? window.getRaceLifecycleStatus(race) : race.status
+          }));
 
           const driversById = new Map(drivers.map((driver) => [driver.id, driver]));
           const resultsByRace = raceResults.reduce((map, row) => {
@@ -1503,12 +1519,12 @@
             return map;
           }, new Map());
 
-          const completedRaces = races.filter((race) => race.status === 'completed');
-          const upcomingRaces = races.filter((race) => race.status === 'upcoming');
+          const completedRaces = racesWithLifecycle.filter((race) => race.status === 'completed');
+          const upcomingRaces = racesWithLifecycle.filter((race) => race.status === 'upcoming');
           const nextRace = upcomingRaces[0] || null;
           const latestRace = completedRaces.slice().sort((a, b) => Number(b.round_number) - Number(a.round_number))[0] || null;
-          const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
-          const standings = window.RCCData.buildStandings({ drivers, races, raceResults, resolver });
+          const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races: racesWithLifecycle, assignments });
+          const standings = window.RCCData.buildStandings({ drivers, races: racesWithLifecycle, raceResults, resolver });
           const driverStandings = standings.driverStandings;
           const teamStandings = standings.teamStandings;
 
@@ -1546,12 +1562,12 @@
           startCountdown(nextRace);
 
           document.getElementById('side-kpis').innerHTML = `
-            <div class="side-kpi"><span>Rennen</span><strong>${races.length}</strong></div>
+            <div class="side-kpi"><span>Rennen</span><strong>${racesWithLifecycle.length}</strong></div>
             <div class="side-kpi"><span>Gefahren</span><strong>${completedRaces.length}</strong></div>
             <div class="side-kpi"><span>Offen</span><strong>${upcomingRaces.length}</strong></div>
             <div class="side-kpi"><span>Fahrer</span><strong>${drivers.length}</strong></div>
             <div class="side-kpi"><span>Teams</span><strong>${teamStandings.length}</strong></div>
-            <div class="side-kpi"><span>Saisonrunde</span><strong>${nextRace?.round_number || races.length || '-'}</strong></div>
+            <div class="side-kpi"><span>Saisonrunde</span><strong>${nextRace?.round_number || racesWithLifecycle.length || '-'}</strong></div>
           `;
 
           const heroStorylineEl = document.getElementById('hero-storyline');
@@ -1635,7 +1651,7 @@
           document.getElementById('team-podium').innerHTML = createPodiumMarkup(teamStandings.slice(0, 3), 'team');
           document.getElementById('team-podium-list').innerHTML = createRankRows(teamStandings.slice(3, 8), 'team');
 
-          renderTimeline(races);
+          renderTimeline(racesWithLifecycle);
           renderChart(driverStandings.slice(0, 5), completedRaces, resultsByRace, driversById);
           initScrollAnimations();
         } catch (error) {
