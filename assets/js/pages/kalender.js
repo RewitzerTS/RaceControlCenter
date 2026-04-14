@@ -29,8 +29,15 @@ async function loadCalendar() {
     const season = await window.RCCData.fetchCurrentSeason();
     const races = await window.RCCData.fetchRaces({ seasonId: season?.id });
 
-    const upcoming = races.filter((race) => race.status === 'upcoming');
-    const completed = races.filter((race) => race.status === 'completed').sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
+    const racesWithLifecycle = races.map((race) => ({
+      ...race,
+      status: window.getRaceLifecycleStatus ? window.getRaceLifecycleStatus(race) : race.status
+    }));
+
+    const upcoming = racesWithLifecycle.filter((race) => race.status === 'upcoming');
+    const completed = racesWithLifecycle
+      .filter((race) => race.status === 'completed')
+      .sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
 
     if (upcomingContainer) upcomingContainer.innerHTML = upcoming.length ? upcoming.map(window.createRaceCard).join('') : '<div class="notice">Keine kommenden Rennen vorhanden.</div>';
     if (completedContainer) completedContainer.innerHTML = completed.length ? completed.map(window.createRaceCard).join('') : '<div class="notice">Noch keine Rennen gefahren.</div>';
