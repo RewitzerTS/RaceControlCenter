@@ -1835,13 +1835,23 @@ async function importRaceResults(options = {}) {
     const { data: raceData, error: raceError } = await raceQuery.maybeSingle();
     if (raceError || !raceData) return showFeedback('csv-feedback', `Rennen "${grandPrixName}" wurde in der aktiven Saison nicht gefunden.`, true);
 
-    const { count: existingPublishedResultsCount, error: existingPublishedResultsError } = await window.supabaseClient
-      .from('race_results')
-      .select('id', { count: 'exact', head: true })
-      .eq('race_id', raceData.id);
+    const [{ count: existingPublishedResultsCount, error: existingPublishedResultsError }, { count: existingPenaltiesCount, error: existingPenaltiesError }] = await Promise.all([
+      window.supabaseClient
+        .from('race_results')
+        .select('id', { count: 'exact', head: true })
+        .eq('race_id', raceData.id),
+      window.supabaseClient
+        .from('race_penalties')
+        .select('id', { count: 'exact', head: true })
+        .eq('race_id', raceData.id)
+    ]);
 
-    if (existingPublishedResultsError) {
-      return showFeedback('csv-feedback', `Vorhandene Rennergebnisse konnten nicht geprüft werden: ${existingPublishedResultsError.message}`, true);
+    if (existingPublishedResultsError || existingPenaltiesError) {
+      return showFeedback(
+        'csv-feedback',
+        `Vorhandene Rennergebnisse/Steward-Entscheidungen konnten nicht geprüft werden: ${(existingPublishedResultsError || existingPenaltiesError).message}`,
+        true
+      );
     }
 
     if ((existingPublishedResultsCount || 0) > 0 && !overwritePublished) {
@@ -1892,7 +1902,10 @@ async function importRaceResults(options = {}) {
     const correctionInfo = (existingPublishedResultsCount || 0) > 0
       ? ' Korrekturimport aktiv: Bei der nächsten Freigabe wird der bisher veröffentlichte Stand vollständig überschrieben.'
       : '';
-    showFeedback('csv-feedback', `Ergebnisse für "${grandPrixName}" wurden als Prüfstand importiert. Steward-Fälle können jetzt direkt auf die Freigabe-Vorschau wirken.${correctionInfo}`);
+    const stewardInfo = (existingPenaltiesCount || 0) > 0
+      ? ` ${existingPenaltiesCount} Steward-Entscheidung${existingPenaltiesCount === 1 ? ' bleibt' : 'en bleiben'} aktiv und ${existingPenaltiesCount === 1 ? 'wird' : 'werden'} bei der Freigabe automatisch auf den neuen Import angewendet.`
+      : '';
+    showFeedback('csv-feedback', `Ergebnisse für "${grandPrixName}" wurden als Prüfstand importiert. Steward-Fälle können jetzt direkt auf die Freigabe-Vorschau wirken.${correctionInfo}${stewardInfo}`);
   } catch (error) {
     console.error(error);
     showFeedback('csv-feedback', `Fehler beim Import: ${error.message}`, true);
