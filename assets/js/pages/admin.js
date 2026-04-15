@@ -219,8 +219,12 @@ function buildDriverLookupMap(drivers = []) {
   drivers.forEach((driver) => {
     const gamertagKey = normalizeDriverLookup(driver.gamertag);
     const aiKey = normalizeDriverLookup(driver.ai_driver_reference);
+    const displayNameKey = normalizeDriverLookup(driver.display_name);
     if (gamertagKey) map.set(gamertagKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Gamertag', label: driver.gamertag || driver.display_name || 'Spieler' });
     if (aiKey) map.set(aiKey, { driver_id: driver.id, participation_status: 'BOT', source: 'AI-Fahrer', label: driver.ai_driver_reference || driver.display_name || 'BOT' });
+    if (displayNameKey && !map.has(displayNameKey)) {
+      map.set(displayNameKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Anzeigename', label: driver.display_name || driver.gamertag || 'Spieler' });
+    }
   });
   return map;
 }
