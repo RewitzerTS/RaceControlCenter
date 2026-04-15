@@ -1814,6 +1814,7 @@ async function importRaceResults(options = {}) {
     await requireAdminSession();
 
     const previewFieldId = options.previewFieldId || 'csv-preview';
+    const overwritePublished = Boolean(options.overwritePublished);
     const csvText = getTrimmedValue(previewFieldId);
     if (!csvText) return showFeedback('csv-feedback', 'Bitte zuerst eine CSV-Datei laden.', true);
 
@@ -1833,6 +1834,19 @@ async function importRaceResults(options = {}) {
 
     const { data: raceData, error: raceError } = await raceQuery.maybeSingle();
     if (raceError || !raceData) return showFeedback('csv-feedback', `Rennen "${grandPrixName}" wurde in der aktiven Saison nicht gefunden.`, true);
+
+    const { count: existingPublishedResultsCount, error: existingPublishedResultsError } = await window.supabaseClient
+      .from('race_results')
+      .select('id', { count: 'exact', head: true })
+      .eq('race_id', raceData.id);
+
+    if (existingPublishedResultsError) {
+      return showFeedback('csv-feedback', `Vorhandene Rennergebnisse konnten nicht geprüft werden: ${existingPublishedResultsError.message}`, true);
+    }
+
+    if ((existingPublishedResultsCount || 0) > 0 && !overwritePublished) {
+      return showFeedback('csv-feedback', `Für "${grandPrixName}" sind bereits veröffentlichte Ergebnisse vorhanden. Aktiviere „Bereits veröffentlichte Rennergebnisse überschreiben (Korrekturimport)“, um den Stand zu ersetzen.`, true);
+    }
 
     const { data: existingImport } = await window.supabaseClient
       .from('race_result_imports')
@@ -1875,7 +1889,10 @@ async function importRaceResults(options = {}) {
 
     await window.supabaseClient.from('races').update({ status: 'upcoming' }).eq('id', raceData.id);
     await renderPublishWorkflow();
-    showFeedback('csv-feedback', `Ergebnisse für "${grandPrixName}" wurden als Prüfstand importiert. Steward-Fälle können jetzt direkt auf die Freigabe-Vorschau wirken.`);
+    const correctionInfo = (existingPublishedResultsCount || 0) > 0
+      ? ' Korrekturimport aktiv: Bei der nächsten Freigabe wird der bisher veröffentlichte Stand vollständig überschrieben.'
+      : '';
+    showFeedback('csv-feedback', `Ergebnisse für "${grandPrixName}" wurden als Prüfstand importiert. Steward-Fälle können jetzt direkt auf die Freigabe-Vorschau wirken.${correctionInfo}`);
   } catch (error) {
     console.error(error);
     showFeedback('csv-feedback', `Fehler beim Import: ${error.message}`, true);
@@ -2277,8 +2294,14 @@ function bindUiEvents() {
   document.getElementById('reset-driver-btn')?.addEventListener('click', resetDriverForm);
   document.getElementById('save-incident-btn')?.addEventListener('click', saveStewardIncident);
   document.getElementById('reset-incident-btn')?.addEventListener('click', resetStewardIncidentForm);
-  document.getElementById('import-results-btn')?.addEventListener('click', () => importRaceResults({ previewFieldId: 'csv-preview' }));
-  document.getElementById('import-results-btn-2')?.addEventListener('click', () => importRaceResults({ previewFieldId: 'csv-preview-2' }));
+  document.getElementById('import-results-btn')?.addEventListener('click', () => importRaceResults({
+    previewFieldId: 'csv-preview',
+    overwritePublished: document.getElementById('csv-overwrite-published')?.checked
+  }));
+  document.getElementById('import-results-btn-2')?.addEventListener('click', () => importRaceResults({
+    previewFieldId: 'csv-preview-2',
+    overwritePublished: document.getElementById('csv-overwrite-published')?.checked
+  }));
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
