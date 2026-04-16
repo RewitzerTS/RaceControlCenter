@@ -42,6 +42,27 @@ async function injectLayoutPart(selector, file) {
   target.innerHTML = await response.text();
 }
 
+function injectLayoutFallback() {
+  const header = document.querySelector('#site-header');
+  if (header && !header.innerHTML.trim()) {
+    header.innerHTML = `
+      <header class="site-header fallback-layout">
+        <a class="brand" href="index.html">Race Control Center</a>
+        <div class="notice">Navigation konnte nicht geladen werden.</div>
+      </header>
+    `;
+  }
+
+  const footer = document.querySelector('#site-footer');
+  if (footer && !footer.innerHTML.trim()) {
+    footer.innerHTML = `
+      <footer class="site-footer fallback-layout">
+        <p>Footer konnte nicht geladen werden.</p>
+      </footer>
+    `;
+  }
+}
+
 async function loadSiteLayout() {
   try {
     await Promise.all(
@@ -52,6 +73,9 @@ async function loadSiteLayout() {
     document.dispatchEvent(new CustomEvent('layout:loaded'));
   } catch (error) {
     console.error(error);
+    injectLayoutFallback();
+    updateActiveNavigation();
+    document.dispatchEvent(new CustomEvent('layout:loaded'));
   }
 }
 
