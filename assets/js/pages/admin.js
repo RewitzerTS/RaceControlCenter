@@ -107,6 +107,7 @@ function showFeedback(id, message, isError = false) {
   el.hidden = false;
   el.style.display = 'block';
   el.textContent = message;
+  el.dataset.level = isError ? 'error' : 'info';
   el.classList.toggle('notice-error', isError);
 }
 
@@ -116,6 +117,7 @@ function clearFeedback(id) {
   el.hidden = true;
   el.style.display = 'none';
   el.textContent = '';
+  delete el.dataset.level;
   el.classList.remove('notice-error');
 }
 
@@ -223,15 +225,19 @@ function renderImportPreviewTable(rows, summary = {}) {
 
 function buildDriverLookupMap(drivers = []) {
   const map = new Map();
+  const register = (key, payload) => {
+    if (!key) return;
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(payload);
+  };
+
   drivers.forEach((driver) => {
     const gamertagKey = normalizeDriverLookup(driver.gamertag);
     const aiKey = normalizeDriverLookup(driver.ai_driver_reference);
     const displayNameKey = normalizeDriverLookup(driver.display_name);
-    if (gamertagKey) map.set(gamertagKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Gamertag', label: driver.gamertag || driver.display_name || 'Spieler' });
-    if (aiKey) map.set(aiKey, { driver_id: driver.id, participation_status: 'BOT', source: 'AI-Fahrer', label: driver.ai_driver_reference || driver.display_name || 'BOT' });
-    if (displayNameKey && !map.has(displayNameKey)) {
-      map.set(displayNameKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Anzeigename', label: driver.display_name || driver.gamertag || 'Spieler' });
-    }
+    register(gamertagKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Gamertag', label: driver.gamertag || driver.display_name || 'Spieler' });
+    register(aiKey, { driver_id: driver.id, participation_status: 'BOT', source: 'AI-Fahrer', label: driver.ai_driver_reference || driver.display_name || 'BOT' });
+    register(displayNameKey, { driver_id: driver.id, participation_status: 'PLAYER', source: 'Anzeigename', label: driver.display_name || driver.gamertag || 'Spieler' });
   });
   return map;
 }
@@ -251,6 +257,7 @@ async function analyzeCsvImport(csvText) {
   const driverMap = buildDriverLookupMap(drivers || []);
   const preparedRows = [];
   const missingDrivers = [];
+  const ambiguousDrivers = [];
   const duplicates = new Set();
   const seenNormalized = new Set();
   const previewRows = [];
@@ -261,8 +268,8 @@ async function analyzeCsvImport(csvText) {
     if (normalized && seenNormalized.has(`${grandPrixName}::${normalized}`)) duplicates.add(rawDriverName);
     seenNormalized.add(`${grandPrixName}::${normalized}`);
 
-    const mapped = driverMap.get(normalized);
-    if (!mapped) {
+    const mappedCandidates = driverMap.get(normalized) || [];
+    if (!mappedCandidates.length) {
       missingDrivers.push(rawDriverName || '');
       previewRows.push({
         rawDriverName,
@@ -275,6 +282,21 @@ async function analyzeCsvImport(csvText) {
       continue;
     }
 
+    if (mappedCandidates.length > 1) {
+      const candidateLabels = [...new Set(mappedCandidates.map((candidate) => candidate.label).filter(Boolean))];
+      ambiguousDrivers.push(rawDriverName || '');
+      previewRows.push({
+        rawDriverName,
+        grandPrixName,
+        matchedLabel: candidateLabels.join(' / ') || 'Mehrdeutig',
+        matchSource: 'Mehrere Treffer',
+        statusLabel: 'Mehrdeutig',
+        statusClass: 'preview-badge--error'
+      });
+      continue;
+    }
+
+    const mapped = mappedCandidates[0];
     preparedRows.push({
       driver_id: mapped.driver_id,
       finish_position: Number(row['pos'] || 0) || null,
@@ -295,18 +317,27 @@ async function analyzeCsvImport(csvText) {
     });
   }
 
-  const summary = { total: parsedRows.length, matched: preparedRows.length, conflicts: missingDrivers.length + duplicates.size };
+  const summary = { total: parsedRows.length, matched: preparedRows.length, conflicts: missingDrivers.length + duplicates.size + ambiguousDrivers.length };
   renderImportPreviewTable(previewRows, summary);
-  if (missingDrivers.length || duplicates.size) {
+  if (missingDrivers.length || duplicates.size || ambiguousDrivers.length) {
     const parts = [];
     if (missingDrivers.length) parts.push(`Nicht gefunden: ${[...new Set(missingDrivers)].join(', ')}`);
+    if (ambiguousDrivers.length) parts.push(`Mehrdeutige Zuordnung: ${[...new Set(ambiguousDrivers)].join(', ')}`);
     if (duplicates.size) parts.push(`Doppelte CSV-Einträge: ${[...duplicates].join(', ')}`);
     setImportPreviewBanner(parts.join(' · '), false, true);
   } else {
     setImportPreviewBanner('Import-Vorschau erfolgreich. Alle Fahrer wurden sauber gemappt.', false, false);
   }
 
-  return { ok: !missingDrivers.length && !duplicates.size, parsedRows, preparedRows, grandPrixName, missingDrivers, duplicates: [...duplicates] };
+  return {
+    ok: !missingDrivers.length && !duplicates.size && !ambiguousDrivers.length,
+    parsedRows,
+    preparedRows,
+    grandPrixName,
+    missingDrivers,
+    ambiguousDrivers,
+    duplicates: [...duplicates]
+  };
 }
 
 async function previewCsvFromField(fieldId) {
@@ -668,7 +699,38 @@ async function requireAdminSession() {
   const { data, error } = await window.supabaseClient.auth.getSession();
   if (error) throw error;
   if (!data.session) throw new Error('Keine aktive Session. Bitte zuerst einloggen.');
+  if (!isAdminSession(data.session)) {
+    throw new Error('Eingeloggt, aber keine Admin-Berechtigung. Bitte Admin-Rolle (JWT) oder freigegebene E-Mail prüfen.');
+  }
   return data.session;
+}
+
+function getConfiguredAdminEmails() {
+  const configured = window.RCC_ADMIN_EMAILS;
+  if (Array.isArray(configured)) {
+    return configured.map((value) => String(value || '').trim().toLowerCase()).filter(Boolean);
+  }
+  if (typeof configured === 'string') {
+    return configured.split(',').map((value) => value.trim().toLowerCase()).filter(Boolean);
+  }
+  return [];
+}
+
+function hasElevatedRole(user = {}) {
+  const appRole = String(user?.app_metadata?.role || '').trim().toLowerCase();
+  const userRole = String(user?.user_metadata?.role || '').trim().toLowerCase();
+  const claimsRole = String(user?.role || '').trim().toLowerCase();
+  const allowedRoles = new Set(['admin', 'owner', 'steward_admin', 'league_admin']);
+  return allowedRoles.has(appRole) || allowedRoles.has(userRole) || allowedRoles.has(claimsRole);
+}
+
+function isAdminSession(session) {
+  if (!session?.user) return false;
+  if (hasElevatedRole(session.user)) return true;
+  const configuredEmails = getConfiguredAdminEmails();
+  if (!configuredEmails.length) return false;
+  const email = String(session.user.email || '').trim().toLowerCase();
+  return Boolean(email && configuredEmails.includes(email));
 }
 
 async function populateStewardDriverSelects() {
@@ -1022,7 +1084,9 @@ async function refreshSessionStatus() {
   }
 
   statusEl.textContent = data.session
-    ? `Eingeloggt als ${data.session.user.email}`
+    ? (isAdminSession(data.session)
+      ? `Admin aktiv: ${data.session.user.email}`
+      : `Eingeloggt ohne Admin-Rechte: ${data.session.user.email}`)
     : 'Keine aktive Session';
   updateAdminOverview();
 }
@@ -2102,12 +2166,14 @@ async function updateManualResultsVisibility() {
   const statusEl = document.getElementById('manual-results-status');
   const panelEl = document.getElementById('manual-results-panel');
   const { data } = await window.supabaseClient.auth.getSession();
-  const loggedIn = Boolean(data.session);
-  if (panelEl) panelEl.classList.toggle('hidden', !loggedIn);
+  const adminActive = isAdminSession(data?.session || null);
+  if (panelEl) panelEl.classList.toggle('hidden', !adminActive);
   if (statusEl) {
-    statusEl.textContent = loggedIn
+    statusEl.textContent = adminActive
       ? `Manuelle Ergebnisbearbeitung aktiv für ${data.session.user.email}`
-      : 'Nur nach erfolgreichem Login sichtbar und nutzbar.';
+      : data?.session
+        ? 'Eingeloggt, aber ohne Admin-Berechtigung.'
+        : 'Nur nach erfolgreichem Login sichtbar und nutzbar.';
   }
 }
 
@@ -2283,7 +2349,7 @@ async function saveManualResults() {
 function setManualResultsDirty(isDirty = true) {
   state.manualResultsDirty = Boolean(isDirty);
   const feedback = document.getElementById('manual-results-feedback');
-  if (feedback && !feedback.hidden && !feedback.dataset.error && state.manualResultsDirty) {
+  if (feedback && !feedback.hidden && feedback.dataset.level !== 'error' && state.manualResultsDirty) {
     feedback.hidden = true;
   }
 
@@ -2328,7 +2394,8 @@ async function updateAdminOverview() {
     setAdminOverviewValue('admin-overview-imports-sub', pendingCount ? 'Importe warten auf Freigabe' : 'Kein offener Import im Workflow');
 
     const session = sessionResponse?.data?.session || null;
-    setAdminOverviewValue('admin-overview-session', session ? 'Admin aktiv' : 'Nicht eingeloggt');
+    const adminActive = isAdminSession(session);
+    setAdminOverviewValue('admin-overview-session', adminActive ? 'Admin aktiv' : (session ? 'Login ohne Admin-Rechte' : 'Nicht eingeloggt'));
     setAdminOverviewValue('admin-overview-session-sub', session?.user?.email || 'Bitte Admin-Login prüfen');
   } catch (error) {
     console.error(error);
