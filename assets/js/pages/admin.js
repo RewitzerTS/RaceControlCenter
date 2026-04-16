@@ -157,6 +157,12 @@ function buildDriverLookupKeys(driver) {
   return [...keys];
 }
 
+function resolveDriverLogoSource(driver = {}) {
+  return window.resolveDriverLogoSource?.(driver)
+    || window.findMatchingTeamLogoName?.([driver.car_name, driver.league_team])
+    || String(driver.car_name || driver.league_team || '').trim();
+}
+
 
 function getImportPreviewElements() {
   return {
@@ -1080,12 +1086,13 @@ async function loadDrivers() {
     .map(([teamName, teamDrivers]) => {
       const sortedDrivers = [...teamDrivers].sort((a, b) =>
         String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
+      const teamLogoSource = teamDrivers.map((driver) => resolveDriverLogoSource(driver)).find(Boolean) || teamName;
 
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
             <h5 class="driver-team-title-with-logo">
-              ${window.createTeamLogoBadge?.(teamName, { size: 'large' }) || ''}
+              ${window.createTeamLogoBadge?.(teamLogoSource, { size: 'large', label: teamName }) || ''}
               <span>${window.escapeHtml(teamName)}</span>
             </h5>
             <span class="driver-team-count">${sortedDrivers.length} Fahrer</span>
@@ -1098,7 +1105,7 @@ async function loadDrivers() {
                   <span class="muted">AI Fahrer: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
                   <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
                   <span class="muted">Liga-Team: ${window.escapeHtml(driver.league_team || '—')}</span>
-                  <span class="muted">Auto: ${window.createTeamLogoBadge?.(window.findMatchingTeamLogoName?.([driver.car_name, driver.league_team]) || driver.car_name || driver.league_team || '', { size: 'large' }) || window.escapeHtml(driver.car_name || '—')}</span>
+                  <span class="muted">Auto: ${window.createTeamLogoBadge?.(resolveDriverLogoSource(driver), { size: 'large', label: driver.car_name || driver.league_team || 'Auto' }) || window.escapeHtml(driver.car_name || '—')}</span>
                 </div>
                 <div class="card-actions compact-driver-actions">
                   <button type="button" class="button-secondary edit-driver-btn"

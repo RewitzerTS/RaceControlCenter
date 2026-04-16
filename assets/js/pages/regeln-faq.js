@@ -84,6 +84,12 @@ function renderRulesConfig(config = {}) {
     </div>`;
 }
 
+function resolveDriverLogoSource(driver = {}) {
+  return window.resolveDriverLogoSource?.(driver)
+    || window.findMatchingTeamLogoName?.([driver.car_name, driver.league_team])
+    || String(driver.car_name || driver.league_team || '').trim();
+}
+
 function renderVehiclePairs(drivers = []) {
   const list = document.getElementById('vehicle-pair-list');
   if (!list) return;
@@ -104,11 +110,14 @@ function renderVehiclePairs(drivers = []) {
     .sort((a, b) => a[0].localeCompare(b[0], 'de', { sensitivity: 'base' }))
     .map(([teamName, members]) => {
       const sortedMembers = [...members].sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
+      const logoSource = members
+        .map((driver) => resolveDriverLogoSource(driver))
+        .find(Boolean) || teamName;
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
             <h5 class="driver-team-title-with-logo">
-              ${window.createTeamLogoBadge?.(teamName, { size: 'large' }) || ''}
+              ${window.createTeamLogoBadge?.(logoSource, { size: 'large', label: teamName }) || ''}
               <span class="sr-only">${window.escapeHtml(teamName)}</span>
             </h5>
             <span class="driver-team-count">${sortedMembers.length} Fahrer</span>

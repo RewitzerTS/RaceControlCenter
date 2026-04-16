@@ -87,6 +87,18 @@ function findMatchingTeamLogoName(candidates = []) {
   return names.find((name) => Boolean(getTeamLogoMeta(name))) || names[0];
 }
 
+function resolveDriverLogoSource(driver = {}) {
+  const candidates = [
+    driver.car_name,
+    driver.carName,
+    driver.league_team,
+    driver.leagueTeam
+  ];
+  return findMatchingTeamLogoName(candidates)
+    || candidates.map((value) => String(value || '').trim()).find(Boolean)
+    || '';
+}
+
 function isDirectImageSource(value) {
   const text = String(value || '').trim();
   if (!text) return false;
@@ -379,4 +391,5 @@ window.createFlagBadge = createFlagBadge;
 window.createLeaderCard = createLeaderCard;
 window.getTeamLogoMeta = getTeamLogoMeta;
 window.findMatchingTeamLogoName = findMatchingTeamLogoName;
+window.resolveDriverLogoSource = resolveDriverLogoSource;
 window.createTeamLogoBadge = createTeamLogoBadge;
