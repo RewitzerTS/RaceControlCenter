@@ -139,14 +139,49 @@ function renderVehiclePairs(drivers = []) {
   list.innerHTML = cards.join('');
 }
 
-function resolveDriversForLatestCompletedRace({ drivers = [], races = [], assignments = [] } = {}) {
-  const completedRaces = (races || [])
-    .filter((race) => race.status === 'completed')
-    .sort((a, b) => a.round_number - b.round_number);
-  const latestCompletedRace = completedRaces[completedRaces.length - 1];
+function resolveReferenceRaceForCurrentAssignments(races = []) {
+  const sortedRaces = [...(races || [])]
+    .filter((race) => Number.isFinite(Number(race?.round_number)))
+    .sort((a, b) => Number(a.round_number) - Number(b.round_number));
+  if (!sortedRaces.length) return null;
 
-  if (!latestCompletedRace || !window.RCCDriverContext?.createAssignmentResolver) {
-    return drivers;
+  const nextRace = sortedRaces.find((race) => race.status !== 'completed');
+  return nextRace || sortedRaces[sortedRaces.length - 1];
+}
+
+function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignments = [] } = {}) {
+  const referenceRace = resolveReferenceRaceForCurrentAssignments(races);
+  if (!window.RCCDriverContext?.createAssignmentResolver) return drivers;
+
+  if (!referenceRace) {
+    const latestAssignmentByDriver = new Map();
+    const getAssignmentRound = (row) => {
+      const explicitRound = Number(row?.effective_round_number);
+      if (Number.isFinite(explicitRound)) return explicitRound;
+      if (row?.is_primary) return 0;
+      return Number.MAX_SAFE_INTEGER;
+    };
+
+    [...(assignments || [])]
+      .sort((left, right) => {
+        const roundDiff = getAssignmentRound(left) - getAssignmentRound(right);
+        if (roundDiff !== 0) return roundDiff;
+        return new Date(left?.created_at || 0).getTime() - new Date(right?.created_at || 0).getTime();
+      })
+      .forEach((assignment) => {
+        if (assignment?.driver_id) latestAssignmentByDriver.set(assignment.driver_id, assignment);
+      });
+
+    return (drivers || []).map((driver) => {
+      const assignment = latestAssignmentByDriver.get(driver.id);
+      if (!assignment) return driver;
+      return {
+        ...driver,
+        car_name: assignment.car_name || driver.car_name,
+        ai_driver_reference: assignment.ai_driver_reference || driver.ai_driver_reference,
+        team_id: assignment.team_id || driver.team_id
+      };
+    });
   }
 
   const resolver = window.RCCDriverContext.createAssignmentResolver({
@@ -156,7 +191,7 @@ function resolveDriversForLatestCompletedRace({ drivers = [], races = [], assign
   });
 
   return (drivers || []).map((driver) =>
-    resolver.resolveDriverSnapshot(driver.id, latestCompletedRace.id) || driver
+    resolver.resolveDriverSnapshot(driver.id, referenceRace.id) || driver
   );
 }
 
@@ -170,13 +205,13 @@ async function initRulesFaqPage() {
       window.RCCData.fetchLeagueContent(),
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
-      window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
+      window.RCCDriverContext?.fetchDriverSeasonAssignments?.({ seasonId: currentSeason?.id }) || Promise.resolve([])
     ]);
-    const latestRaceDrivers = resolveDriversForLatestCompletedRace({ drivers, races, assignments });
+    const currentAssignmentDrivers = resolveDriversForCurrentAssignments({ drivers, races, assignments });
 
     renderRulesConfig(content.rules_config || {});
     renderFaqItems(content.faq_items || []);
-    renderVehiclePairs(latestRaceDrivers || []);
+    renderVehiclePairs(currentAssignmentDrivers || []);
   } catch (error) {
     console.error(error);
     const list = document.getElementById('vehicle-pair-list');
