@@ -77,6 +77,7 @@ const state = {
   isDiscarding: false,
   isImportingResults: false,
   isSavingRace: false,
+  isDeletingRace: false,
   isShiftingRaceDates: false,
   isSavingIncident: false,
   isDeletingIncident: false,
@@ -1281,6 +1282,14 @@ async function loadRaceOptions() {
       : '<option value="">Noch keine Rennen vorhanden</option>';
   }
 
+  const raceDeleteSelect = document.getElementById('race-delete-source');
+  if (raceDeleteSelect) {
+    const roundSortedRaces = [...(data || [])].sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
+    raceDeleteSelect.innerHTML = roundSortedRaces.length
+      ? '<option value="">Bitte Rennen wählen</option>' + roundSortedRaces.map((race) => `<option value="${race.id}">R${race.round_number} · ${race.grand_prix_name} · ${race.race_date || 'kein Datum'}</option>`).join('')
+      : '<option value="">Noch keine Rennen vorhanden</option>';
+  }
+
   await renderPublishWorkflow();
 }
 
@@ -1420,6 +1429,81 @@ async function shiftRaceDates() {
     showFeedback('race-shift-feedback', `Fehler beim Verschieben: ${error.message}`, true);
   } finally {
     state.isShiftingRaceDates = false;
+  }
+}
+
+async function deleteRaceFromCalendar() {
+  if (state.isDeletingRace) return;
+  state.isDeletingRace = true;
+  clearFeedback('race-delete-feedback');
+
+  try {
+    await requireAdminSession();
+    const raceId = getValue('race-delete-source');
+    if (!raceId) {
+      return showFeedback('race-delete-feedback', 'Bitte ein Rennen zum Entfernen auswählen.', true);
+    }
+
+    const season = await getCurrentSeasonSafe();
+    let query = window.supabaseClient
+      .from('races')
+      .select('id, round_number, grand_prix_name')
+      .order('round_number', { ascending: true });
+    if (season?.id) query = query.eq('season_id', season.id);
+
+    const { data: races, error: racesError } = await query;
+    if (racesError) {
+      return showFeedback('race-delete-feedback', `Rennen konnten nicht geladen werden: ${racesError.message}`, true);
+    }
+
+    const selectedRace = (races || []).find((entry) => String(entry.id) === String(raceId));
+    if (!selectedRace) {
+      return showFeedback('race-delete-feedback', 'Das gewählte Rennen wurde nicht gefunden.', true);
+    }
+
+    if (!window.confirm(`Soll "${selectedRace.grand_prix_name}" (R${selectedRace.round_number}) wirklich aus dem Rennkalender entfernt werden?`)) {
+      return;
+    }
+
+    const { error: deleteResultsError } = await window.supabaseClient.from('race_results').delete().eq('race_id', selectedRace.id);
+    if (deleteResultsError) {
+      return showFeedback('race-delete-feedback', `Rennergebnisse konnten nicht entfernt werden: ${deleteResultsError.message}`, true);
+    }
+
+    const { error: deleteRaceError } = await window.supabaseClient.from('races').delete().eq('id', selectedRace.id);
+    if (deleteRaceError) {
+      return showFeedback('race-delete-feedback', `Rennen konnte nicht entfernt werden: ${deleteRaceError.message}`, true);
+    }
+
+    const racesToReorder = (races || [])
+      .filter((entry) => Number(entry.round_number || 0) > Number(selectedRace.round_number || 0))
+      .sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
+
+    if (racesToReorder.length) {
+      const reorderUpdates = await Promise.all(
+        racesToReorder.map((entry) => window.supabaseClient
+          .from('races')
+          .update({ round_number: Number(entry.round_number || 0) - 1 })
+          .eq('id', entry.id))
+      );
+
+      const failedUpdate = reorderUpdates.find((result) => result.error);
+      if (failedUpdate?.error) {
+        return showFeedback('race-delete-feedback', `Rennen wurde entfernt, aber Rundennummern konnten nicht vollständig angepasst werden: ${failedUpdate.error.message}`, true);
+      }
+    }
+
+    showFeedback('race-delete-feedback', `${selectedRace.grand_prix_name} wurde aus dem Rennkalender entfernt.`);
+    setValue('race-delete-source', '');
+    await Promise.all([
+      loadRaceOptions(),
+      loadSeasonSummary()
+    ]);
+  } catch (error) {
+    console.error(error);
+    showFeedback('race-delete-feedback', `Fehler beim Entfernen: ${error.message}`, true);
+  } finally {
+    state.isDeletingRace = false;
   }
 }
 
@@ -2302,6 +2386,7 @@ function bindUiEvents() {
   document.getElementById('admin-login-btn')?.addEventListener('click', signInAdmin);
   document.getElementById('admin-logout-btn')?.addEventListener('click', signOutAdmin);
   document.getElementById('save-race-btn')?.addEventListener('click', saveRace);
+  document.getElementById('delete-race-btn')?.addEventListener('click', deleteRaceFromCalendar);
   document.getElementById('shift-race-btn')?.addEventListener('click', shiftRaceDates);
   document.getElementById('save-driver-btn')?.addEventListener('click', saveDriver);
   document.getElementById('reset-driver-btn')?.addEventListener('click', resetDriverForm);
