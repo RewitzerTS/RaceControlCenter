@@ -72,6 +72,7 @@ const DEFAULT_FAQ_ITEMS = [
 const state = {
   isSavingDriver: false,
   isDeletingDriver: false,
+  isSwappingDriverVehicle: false,
   isSavingManualResults: false,
   isPublishing: false,
   isDiscarding: false,
@@ -85,6 +86,8 @@ const state = {
   isStartingSeason: false,
   isGeneratingSeason: false,
   seasonFinalizePreview: null,
+  driversCache: [],
+  selectedSwapSourceDriverId: null,
   eventsBound: false,
   authListenerBound: false,
   initialized: false
@@ -1073,6 +1076,101 @@ function editDriver(id, displayName, aiDriverReference, gamertag, leagueTeam, ca
   showFeedback('driver-feedback', `Bearbeitungsmodus: ${displayName}`);
 }
 
+function closeDriverSwapModal() {
+  const modal = document.getElementById('driver-swap-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  setValue('driver-swap-target', '');
+  state.selectedSwapSourceDriverId = null;
+}
+
+function openDriverSwapModal(sourceDriverId) {
+  const modal = document.getElementById('driver-swap-modal');
+  const select = document.getElementById('driver-swap-target');
+  const label = document.getElementById('driver-swap-source-label');
+  if (!modal || !select || !label) return;
+
+  const sourceDriver = state.driversCache.find((driver) => String(driver.id) === String(sourceDriverId));
+  if (!sourceDriver) {
+    showFeedback('driver-feedback', 'Fahrer für den Tausch konnte nicht gefunden werden.', true);
+    return;
+  }
+
+  const swapCandidates = [...state.driversCache]
+    .filter((driver) => String(driver.id) !== String(sourceDriver.id))
+    .sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
+
+  renderOptions(
+    select,
+    swapCandidates,
+    (driver) => `<option value="${driver.id}">${window.escapeHtml(driver.display_name || 'Unbekannt')} · ${window.escapeHtml(driver.car_name || 'kein Auto')} · ${window.escapeHtml(driver.ai_driver_reference || 'kein AI Fahrer')}</option>`,
+    'Fahrer auswählen'
+  );
+  label.textContent = sourceDriver.display_name || 'Unbekannt';
+  state.selectedSwapSourceDriverId = sourceDriver.id;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+async function swapDriverVehicle() {
+  if (state.isSwappingDriverVehicle) return;
+  const sourceId = state.selectedSwapSourceDriverId;
+  const targetId = getTrimmedValue('driver-swap-target');
+
+  if (!sourceId || !targetId) {
+    showFeedback('driver-swap-feedback', 'Bitte einen Fahrer zum Tauschen auswählen.', true);
+    return;
+  }
+
+  const sourceDriver = state.driversCache.find((driver) => String(driver.id) === String(sourceId));
+  const targetDriver = state.driversCache.find((driver) => String(driver.id) === String(targetId));
+  if (!sourceDriver || !targetDriver) {
+    showFeedback('driver-swap-feedback', 'Fahrer konnten nicht geladen werden. Bitte neu versuchen.', true);
+    return;
+  }
+
+  if (!window.confirm(`Fahrzeug + AI Fahrer von "${sourceDriver.display_name}" und "${targetDriver.display_name}" tauschen?`)) return;
+
+  state.isSwappingDriverVehicle = true;
+  clearFeedback('driver-swap-feedback');
+  clearFeedback('driver-feedback');
+
+  try {
+    await requireAdminSession();
+
+    const firstUpdate = window.supabaseClient
+      .from('drivers')
+      .update({
+        car_name: targetDriver.car_name || null,
+        ai_driver_reference: targetDriver.ai_driver_reference || null
+      })
+      .eq('id', sourceDriver.id);
+    const secondUpdate = window.supabaseClient
+      .from('drivers')
+      .update({
+        car_name: sourceDriver.car_name || null,
+        ai_driver_reference: sourceDriver.ai_driver_reference || null
+      })
+      .eq('id', targetDriver.id);
+
+    const [{ error: firstError }, { error: secondError }] = await Promise.all([firstUpdate, secondUpdate]);
+    if (firstError) throw firstError;
+    if (secondError) throw secondError;
+
+    closeDriverSwapModal();
+    showFeedback('driver-feedback', `Fahrzeug + AI Fahrer wurden zwischen "${sourceDriver.display_name}" und "${targetDriver.display_name}" getauscht.`);
+    await loadDrivers();
+  } catch (error) {
+    console.error(error);
+    showFeedback('driver-swap-feedback', `Fehler beim Tauschen: ${error.message}`, true);
+  } finally {
+    state.isSwappingDriverVehicle = false;
+  }
+}
+
 async function refreshSessionStatus() {
   const statusEl = document.getElementById('admin-session-status');
   if (!statusEl) return;
@@ -1134,9 +1232,12 @@ async function loadDrivers() {
   }
 
   if (!data?.length) {
+    state.driversCache = [];
     list.innerHTML = '<div class="notice">Noch keine Fahrer angelegt.</div>';
     return;
   }
+
+  state.driversCache = data;
 
   const groupedByCar = new Map();
   data.forEach((driver) => {
@@ -1174,6 +1275,8 @@ async function loadDrivers() {
                     data-gamertag="${escapeHtmlAttr(driver.gamertag)}"
                     data-league-team="${escapeHtmlAttr(driver.league_team)}"
                     data-car-name="${escapeHtmlAttr(driver.car_name)}">Bearbeiten</button>
+                  <button type="button" class="button-secondary swap-driver-btn"
+                    data-id="${driver.id}">Fahrzeug tauschen</button>
                   <button type="button" class="button-secondary delete-driver-btn"
                     data-id="${driver.id}"
                     data-display-name="${escapeHtmlAttr(driver.display_name)}">Löschen</button>
@@ -2528,6 +2631,10 @@ function bindUiEvents() {
     setValue('race-shift-date', selectedOption?.dataset?.raceDate || '');
   });
 
+  document.getElementById('driver-swap-confirm-btn')?.addEventListener('click', swapDriverVehicle);
+  document.getElementById('driver-swap-cancel-btn')?.addEventListener('click', closeDriverSwapModal);
+  document.getElementById('driver-swap-backdrop')?.addEventListener('click', closeDriverSwapModal);
+
   document.addEventListener('click', (event) => {
     const editBtn = event.target.closest('.edit-driver-btn');
     if (editBtn) {
@@ -2551,6 +2658,13 @@ function bindUiEvents() {
     const deleteBtn = event.target.closest('.delete-driver-btn');
     if (deleteBtn) {
       deleteDriver(deleteBtn.dataset.id || '', deleteBtn.dataset.displayName || '');
+      return;
+    }
+
+    const swapBtn = event.target.closest('.swap-driver-btn');
+    if (swapBtn) {
+      clearFeedback('driver-swap-feedback');
+      openDriverSwapModal(swapBtn.dataset.id || '');
       return;
     }
 
