@@ -90,7 +90,7 @@ function ensureTrackMapModal() {
   modal.className = 'trackmap-lightbox hidden';
   modal.innerHTML = `
     <div class="trackmap-lightbox-backdrop" data-trackmap-close></div>
-    <div class="trackmap-lightbox-dialog" role="dialog" aria-modal="true" aria-label="Track Map Vorschau">
+    <div class="trackmap-lightbox-dialog" role="dialog" aria-modal="true" aria-labelledby="trackmap-lightbox-title">
       <button type="button" class="trackmap-lightbox-close" data-trackmap-close aria-label="Track Map schließen">×</button>
       <div class="trackmap-lightbox-title" id="trackmap-lightbox-title">Track Map</div>
       <img id="trackmap-lightbox-image" class="trackmap-lightbox-image" src="" alt="Vergrößerte Track Map">
@@ -99,24 +99,59 @@ function ensureTrackMapModal() {
   document.body.appendChild(modal);
 }
 
+let trackMapLastFocusedElement = null;
+
+function trapFocusInModal(event) {
+  const modal = document.getElementById('trackmap-lightbox');
+  if (!modal || modal.classList.contains('hidden')) return;
+  if (event.key !== 'Tab') return;
+
+  const focusables = modal.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusables.length) return;
+
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+    return;
+  }
+
+  if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
 function closeTrackMapModal() {
   const modal = document.getElementById('trackmap-lightbox');
   if (!modal) return;
   modal.classList.add('hidden');
   document.body.classList.remove('modal-open');
+
+  if (trackMapLastFocusedElement && typeof trackMapLastFocusedElement.focus === 'function') {
+    trackMapLastFocusedElement.focus();
+  }
+  trackMapLastFocusedElement = null;
 }
 
-function openTrackMapModal(src, title) {
+function openTrackMapModal(src, title, triggerElement) {
   ensureTrackMapModal();
   const modal = document.getElementById('trackmap-lightbox');
   const image = document.getElementById('trackmap-lightbox-image');
   const titleEl = document.getElementById('trackmap-lightbox-title');
+  const closeBtn = modal?.querySelector('.trackmap-lightbox-close');
   if (!modal || !image || !titleEl) return;
+  trackMapLastFocusedElement = triggerElement || document.activeElement;
   image.src = src;
   image.alt = title || 'Vergrößerte Track Map';
   titleEl.textContent = title || 'Track Map';
   modal.classList.remove('hidden');
   document.body.classList.add('modal-open');
+  if (closeBtn) closeBtn.focus();
 }
 
 function initTrackMapModal() {
@@ -129,7 +164,11 @@ function initTrackMapModal() {
     if (trigger) {
       event.preventDefault();
       event.stopPropagation();
-      openTrackMapModal(trigger.dataset.trackmapOpen, trigger.dataset.trackmapTitle || 'Track Map');
+      openTrackMapModal(
+        trigger.dataset.trackmapOpen,
+        trigger.dataset.trackmapTitle || 'Track Map',
+        trigger
+      );
       return;
     }
 
@@ -139,7 +178,11 @@ function initTrackMapModal() {
   });
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeTrackMapModal();
+    if (event.key === 'Escape') {
+      closeTrackMapModal();
+      return;
+    }
+    trapFocusInModal(event);
   });
 }
 

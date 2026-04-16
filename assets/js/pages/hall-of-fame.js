@@ -157,6 +157,10 @@ function renderCurrentFeature(record, sourceLabel = '') {
   attachChampionConfetti(root);
 }
 
+function prefersReducedMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 function attachChampionConfetti(featureRoot) {
   if (!featureRoot) return;
   featureRoot.setAttribute('role', 'button');
@@ -178,6 +182,7 @@ let confettiHost = null;
 let confettiCounter = 0;
 
 function startGoldenConfetti(durationMs = 5000) {
+  if (prefersReducedMotion()) return;
   if (!document.body) return;
   if (!confettiHost) {
     confettiHost = document.createElement('div');
