@@ -9,52 +9,52 @@ function escapeHtml(value) {
 
 const TEAM_LOGO_MAP = [
   {
-    keys: ['mclaren', 'mclaren f1', 'mclaren formula 1'],
+    keys: ['mclaren', 'mclaren f1', 'mclaren formula 1', 'mclaren formula 1 team', 'mclaren f1 team'],
     name: 'McLaren',
     logoUrl: 'assets/images/team-logos/mclaren.svg'
   },
   {
-    keys: ['ferrari', 'scuderia ferrari', 'ferrari hp'],
+    keys: ['ferrari', 'scuderia ferrari', 'ferrari hp', 'scuderia ferrari hp', 'ferrari f1 team'],
     name: 'Ferrari',
     logoUrl: 'assets/images/team-logos/ferrari.svg'
   },
   {
-    keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull'],
+    keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull', 'oracle red bull racing', 'red bull racing honda rbpt'],
     name: 'Red Bull Racing',
     logoUrl: 'assets/images/team-logos/red-bull.svg'
   },
   {
-    keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas'],
+    keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas', 'mercedes amg petronas', 'mercedes amg petronas f1 team'],
     name: 'Mercedes',
     logoUrl: 'assets/images/team-logos/mercedes.svg'
   },
   {
-    keys: ['aston martin', 'aston martin aramco'],
+    keys: ['aston martin', 'aston martin aramco', 'aston martin aramco formula one team', 'aston martin f1 team'],
     name: 'Aston Martin',
     logoUrl: 'assets/images/team-logos/aston-martin.svg'
   },
   {
-    keys: ['alpine', 'renault', 'bwt alpine'],
+    keys: ['alpine', 'renault', 'bwt alpine', 'bwt alpine f1 team', 'alpine f1 team'],
     name: 'Alpine',
     logoUrl: 'assets/images/team-logos/alpine.svg'
   },
   {
-    keys: ['haas', 'moneygram haas'],
+    keys: ['haas', 'moneygram haas', 'moneygram haas f1 team', 'haas f1 team'],
     name: 'Haas',
     logoUrl: 'assets/images/team-logos/haas.svg'
   },
   {
-    keys: ['racing bulls', 'rb', 'rb f1', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'alpha tauri', 'alphatauri', 'toro rosso'],
+    keys: ['racing bulls', 'rb', 'rb f1', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'visa cash app rb f1 team', 'visa cash app racing bulls f1 team', 'alpha tauri', 'alphatauri', 'toro rosso'],
     name: 'Racing Bulls',
     logoUrl: 'assets/images/team-logos/racing-bulls.svg'
   },
   {
-    keys: ['williams', 'atlassian williams'],
+    keys: ['williams', 'atlassian williams', 'atlassian williams racing', 'williams racing'],
     name: 'Williams',
     logoUrl: 'assets/images/team-logos/williams.svg'
   },
   {
-    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'alfa romeo'],
+    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'alfa romeo'],
     name: 'Sauber',
     logoUrl: 'assets/images/team-logos/sauber.svg'
   }
@@ -78,6 +78,15 @@ function getTeamLogoMeta(teamName) {
   ) || null;
 }
 
+function findMatchingTeamLogoName(candidates = []) {
+  const names = (Array.isArray(candidates) ? candidates : [candidates])
+    .map((value) => String(value || '').trim())
+    .filter(Boolean);
+
+  if (!names.length) return '';
+  return names.find((name) => Boolean(getTeamLogoMeta(name))) || names[0];
+}
+
 function createTeamLogoBadge(teamName, options = {}) {
   const safeTeamName = String(teamName || '').trim() || 'Unbekanntes Team';
   const logoMeta = getTeamLogoMeta(safeTeamName);
@@ -88,14 +97,19 @@ function createTeamLogoBadge(teamName, options = {}) {
     return `<span class="team-logo-fallback">${label}</span>`;
   }
 
+  const primaryLogoUrl = String(logoMeta.logoUrl || '');
+  const fallbackLogoUrl = primaryLogoUrl.replace(/\.svg$/i, '.png');
+
   return `
     <span class="team-logo-badge${sizeClass}" title="${label}" aria-label="${label}">
       <img
-        src="${escapeHtml(logoMeta.logoUrl)}"
+        src="${escapeHtml(primaryLogoUrl)}"
+        data-fallback-src="${escapeHtml(fallbackLogoUrl)}"
+        data-fallback-used="0"
         alt="${label}"
         loading="lazy"
         referrerpolicy="no-referrer"
-        onerror="this.parentElement.classList.add('is-fallback'); this.remove(); this.parentElement.textContent='${label}';"
+        onerror="if (this.dataset.fallbackUsed !== '1' && this.dataset.fallbackSrc && this.dataset.fallbackSrc !== this.src) { this.dataset.fallbackUsed = '1'; this.src = this.dataset.fallbackSrc; } else { this.parentElement.classList.add('is-fallback'); this.remove(); this.parentElement.textContent='${label}'; }"
       >
     </span>
   `;
@@ -340,4 +354,5 @@ window.createTrackMapSvg = createTrackMapSvg;
 window.createFlagBadge = createFlagBadge;
 window.createLeaderCard = createLeaderCard;
 window.getTeamLogoMeta = getTeamLogoMeta;
+window.findMatchingTeamLogoName = findMatchingTeamLogoName;
 window.createTeamLogoBadge = createTeamLogoBadge;
