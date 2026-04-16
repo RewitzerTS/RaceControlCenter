@@ -109,6 +109,16 @@ function isDirectImageSource(value) {
   return /\.(png|jpe?g|webp|svg)(?:[?#].*)?$/i.test(text);
 }
 
+const TEAM_LOGO_CACHE_BUSTER = '2026-04-16-1';
+
+function withCacheBuster(url) {
+  const source = String(url || '').trim();
+  if (!source || /^data:image\//i.test(source) || /^https?:\/\//i.test(source)) return source;
+
+  const separator = source.includes('?') ? '&' : '?';
+  return `${source}${separator}v=${encodeURIComponent(TEAM_LOGO_CACHE_BUSTER)}`;
+}
+
 function createTeamLogoBadge(teamName, options = {}) {
   const safeTeamName = String(teamName || '').trim() || 'Unbekanntes Team';
   const logoMeta = getTeamLogoMeta(safeTeamName);
@@ -120,7 +130,7 @@ function createTeamLogoBadge(teamName, options = {}) {
     return `
       <span class="team-logo-badge${sizeClass}" title="${label}" aria-label="${label}">
         <img
-          src="${escapeHtml(safeTeamName)}"
+          src="${escapeHtml(withCacheBuster(safeTeamName))}"
           alt="${label}"
           loading="lazy"
           referrerpolicy="no-referrer"
@@ -134,7 +144,7 @@ function createTeamLogoBadge(teamName, options = {}) {
     return `<span class="team-logo-fallback">${label}</span>`;
   }
 
-  const primaryLogoUrl = String(logoMeta.logoUrl || '');
+  const primaryLogoUrl = withCacheBuster(String(logoMeta.logoUrl || ''));
   const fallbackLogoUrl = primaryLogoUrl.match(/\.png(?:[?#].*)?$/i)
     ? primaryLogoUrl.replace(/\.png(?=([?#].*)?$)/i, '.svg')
     : primaryLogoUrl.replace(/\.svg(?=([?#].*)?$)/i, '.png');
