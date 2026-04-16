@@ -36,7 +36,10 @@ function renderDriverStandings(standings) {
       <td>${index + 1}</td>
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.driverName)}</td>
-      <td>${window.escapeHtml(entry.leagueTeam || '—')}</td>
+      <td>${window.createTeamLogoBadge?.(
+    window.findMatchingTeamLogoName?.([entry.leagueTeam, entry.carName]) || entry.leagueTeam || entry.carName || '',
+    { size: 'large', label: entry.leagueTeam || entry.carName || 'Team' }
+  ) || window.escapeHtml(entry.leagueTeam || '—')}</td>
       <td>${window.createTeamLogoBadge?.(
     window.findMatchingTeamLogoName?.([entry.carName, entry.leagueTeam]) || entry.carName || entry.leagueTeam || '',
     { size: 'large', label: entry.carName || entry.leagueTeam || 'Auto' }
@@ -62,7 +65,10 @@ function renderTeamStandings(standings) {
     <tr class="${index < 3 ? `podium-${index + 1}` : ''}">
       <td>${index + 1}</td>
       <td class="trend-cell">${entry.trend}</td>
-      <td>${window.escapeHtml(entry.teamName || '—')}</td>
+      <td>${window.createTeamLogoBadge?.(
+    window.findMatchingTeamLogoName?.([entry.teamName, entry.car1, entry.car2]) || entry.teamName || entry.car1 || entry.car2 || '',
+    { size: 'large', label: entry.teamName || 'Team' }
+  ) || window.escapeHtml(entry.teamName || '—')}</td>
       <td>${window.escapeHtml(entry.driver1 || '—')}</td>
       <td>${window.createTeamLogoBadge?.(
     window.findMatchingTeamLogoName?.([entry.car1, entry.teamName]) || entry.car1 || entry.teamName || '',
