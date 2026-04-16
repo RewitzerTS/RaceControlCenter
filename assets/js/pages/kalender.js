@@ -18,6 +18,56 @@ function bindCalendarToggles() {
   activate(document.querySelector('.calendar-toggle.active')?.dataset.target || 'upcoming-section');
 }
 
+function bindArchiveActions() {
+  const selectEl = document.getElementById('archive-season-select');
+  const openBtn = document.getElementById('archive-open-btn');
+  const hintEl = document.getElementById('archive-season-hint');
+  if (!selectEl || !openBtn) return;
+
+  const updateState = () => {
+    const hasSeason = Boolean(selectEl.value);
+    openBtn.disabled = !hasSeason;
+    if (hintEl) {
+      hintEl.textContent = hasSeason
+        ? `Ausgewählt: ${selectEl.options[selectEl.selectedIndex]?.textContent || 'Saison'}`
+        : 'Bitte eine abgeschlossene Saison auswählen.';
+    }
+  };
+
+  const openArchive = () => {
+    if (!selectEl.value) return;
+    window.location.href = `saison-archiv.html?season=${encodeURIComponent(selectEl.value)}`;
+  };
+
+  selectEl.addEventListener('change', updateState);
+  openBtn.addEventListener('click', openArchive);
+  updateState();
+}
+
+async function loadSeasonArchiveSelector() {
+  const selectEl = document.getElementById('archive-season-select');
+  const hintEl = document.getElementById('archive-season-hint');
+  if (!selectEl) return;
+
+  try {
+    const seasons = await window.RCCData.fetchSeasons({ archivedOnly: true });
+    if (!seasons.length) {
+      selectEl.innerHTML = '<option value="">Keine abgeschlossenen Saisons vorhanden</option>';
+      if (hintEl) hintEl.textContent = 'Sobald eine Saison abgeschlossen ist, erscheint sie hier automatisch.';
+      return;
+    }
+
+    selectEl.innerHTML = `
+      <option value="">Bitte Saison wählen</option>
+      ${seasons.map((season) => `<option value="${window.escapeHtml(String(season.id))}">${window.escapeHtml(season.name || `Saison ${season.id}`)}</option>`).join('')}
+    `;
+  } catch (error) {
+    console.error(error);
+    selectEl.innerHTML = '<option value="">Archiv konnte nicht geladen werden</option>';
+    if (hintEl) hintEl.textContent = 'Fehler beim Laden des Archivs.';
+  }
+}
+
 async function loadCalendar() {
   const upcomingContainer = document.getElementById('upcoming-races');
   const completedContainer = document.getElementById('completed-races');
@@ -68,5 +118,7 @@ async function loadCalendar() {
 
 document.addEventListener('DOMContentLoaded', () => {
   bindCalendarToggles();
+  bindArchiveActions();
+  loadSeasonArchiveSelector();
   loadCalendar();
 });

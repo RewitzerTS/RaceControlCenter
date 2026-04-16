@@ -116,6 +116,23 @@ async function fetchCurrentSeason() {
   return data || null;
 }
 
+async function fetchSeasons(options = {}) {
+  const client = window.supabaseClient;
+  if (!client) return [];
+
+  let query = client
+    .from('seasons')
+    .select('id, name, is_active, created_at')
+    .order('id', { ascending: false });
+
+  if (options.archivedOnly) query = query.eq('is_active', false);
+  if (options.activeOnly) query = query.eq('is_active', true);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
 async function fetchSeasonHistory(limit = 6) {
   const client = window.supabaseClient;
   if (!client) return [];
@@ -311,6 +328,7 @@ window.RCCData = {
   getAwardedRacePoints,
   groupBy,
   fetchCurrentSeason,
+  fetchSeasons,
   fetchSeasonHistory,
   fetchDrivers,
   fetchRaces,

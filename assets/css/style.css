@@ -1240,6 +1240,32 @@ body[data-page="admin"] .button-danger:focus-visible {
   margin-bottom: 16px;
 }
 
+.archive-subtitle {
+  margin-top: 0;
+}
+
+.archive-select-row {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+}
+
+.archive-control-panel {
+  max-width: 540px;
+}
+
+.archive-race-card {
+  margin-bottom: 18px;
+}
+
+.archive-race-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  color: var(--text-muted);
+  margin: 6px 0 14px;
+}
+
 .compact-home-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
