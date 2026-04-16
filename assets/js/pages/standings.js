@@ -37,7 +37,7 @@ function renderDriverStandings(standings) {
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.driverName)}</td>
       <td>${window.escapeHtml(entry.leagueTeam || '—')}</td>
-      <td>${window.createTeamLogoBadge?.(entry.carName || '', { size: 'large' }) || window.escapeHtml(entry.carName || '—')}</td>
+      <td>${window.escapeHtml(entry.carName || '—')}</td>
       <td>${entry.wins ?? 0}</td>
       <td>${entry.podiums ?? 0}</td>
       <td>${entry.fastestLaps ?? 0}</td>
@@ -61,9 +61,9 @@ function renderTeamStandings(standings) {
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.teamName || '—')}</td>
       <td>${window.escapeHtml(entry.driver1 || '—')}</td>
-      <td>${window.createTeamLogoBadge?.(entry.car1 || '', { size: 'large' }) || window.escapeHtml(entry.car1 || '—')}</td>
+      <td>${window.escapeHtml(entry.car1 || '—')}</td>
       <td>${window.escapeHtml(entry.driver2 || '—')}</td>
-      <td>${window.createTeamLogoBadge?.(entry.car2 || '', { size: 'large' }) || window.escapeHtml(entry.car2 || '—')}</td>
+      <td>${window.escapeHtml(entry.car2 || '—')}</td>
       <td><strong>${entry.points ?? 0}</strong></td>
     </tr>
   `).join('');
