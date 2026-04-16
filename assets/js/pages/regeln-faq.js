@@ -95,21 +95,21 @@ function renderVehiclePairs(drivers = []) {
 
   const groupedByCar = new Map();
   drivers.forEach((driver) => {
-    const carName = String(driver.car_name || '').trim() || 'Ohne Fahrzeug';
-    if (!groupedByCar.has(carName)) groupedByCar.set(carName, []);
-    groupedByCar.get(carName).push(driver);
+    const teamName = String(driver.car_name || driver.league_team || '').trim() || 'Ohne Team';
+    if (!groupedByCar.has(teamName)) groupedByCar.set(teamName, []);
+    groupedByCar.get(teamName).push(driver);
   });
 
   const cards = [...groupedByCar.entries()]
     .sort((a, b) => a[0].localeCompare(b[0], 'de', { sensitivity: 'base' }))
-    .map(([carName, members]) => {
+    .map(([teamName, members]) => {
       const sortedMembers = [...members].sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
             <h5 class="driver-team-title-with-logo">
-              ${window.createTeamLogoBadge?.(carName, { size: 'large' }) || ''}
-              <span class="sr-only">${window.escapeHtml(carName)}</span>
+              ${window.createTeamLogoBadge?.(teamName, { size: 'large' }) || ''}
+              <span class="sr-only">${window.escapeHtml(teamName)}</span>
             </h5>
             <span class="driver-team-count">${sortedMembers.length} Fahrer</span>
           </header>

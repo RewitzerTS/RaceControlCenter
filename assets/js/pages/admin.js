@@ -1098,7 +1098,7 @@ async function loadDrivers() {
                   <span class="muted">AI Fahrer: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
                   <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
                   <span class="muted">Liga-Team: ${window.escapeHtml(driver.league_team || '—')}</span>
-                  <span class="muted">Auto: ${window.createTeamLogoBadge?.(driver.car_name || '', { size: 'large' }) || window.escapeHtml(driver.car_name || '—')}</span>
+                  <span class="muted">Auto: ${window.createTeamLogoBadge?.(window.findMatchingTeamLogoName?.([driver.car_name, driver.league_team]) || driver.car_name || driver.league_team || '', { size: 'large' }) || window.escapeHtml(driver.car_name || '—')}</span>
                 </div>
                 <div class="card-actions compact-driver-actions">
                   <button type="button" class="button-secondary edit-driver-btn"
