@@ -9,52 +9,52 @@ function escapeHtml(value) {
 
 const TEAM_LOGO_MAP = [
   {
-    keys: ['mclaren', 'mclaren f1', 'mclaren formula 1', 'mclaren formula 1 team', 'mclaren f1 team'],
+    keys: ['mclaren', 'mclaren f1', 'mclaren formula 1'],
     name: 'McLaren',
     logoUrl: 'assets/images/team-logos/mclaren.svg'
   },
   {
-    keys: ['ferrari', 'scuderia ferrari', 'ferrari hp', 'scuderia ferrari hp', 'ferrari f1 team'],
+    keys: ['ferrari', 'scuderia ferrari', 'ferrari hp'],
     name: 'Ferrari',
     logoUrl: 'assets/images/team-logos/ferrari.svg'
   },
   {
-    keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull', 'oracle red bull racing', 'red bull racing honda rbpt'],
+    keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull'],
     name: 'Red Bull Racing',
     logoUrl: 'assets/images/team-logos/red-bull.svg'
   },
   {
-    keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas', 'mercedes amg petronas', 'mercedes amg petronas f1 team'],
+    keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas'],
     name: 'Mercedes',
     logoUrl: 'assets/images/team-logos/mercedes.svg'
   },
   {
-    keys: ['aston martin', 'aston martin aramco', 'aston martin aramco formula one team', 'aston martin f1 team'],
+    keys: ['aston martin', 'aston martin aramco'],
     name: 'Aston Martin',
     logoUrl: 'assets/images/team-logos/aston-martin.svg'
   },
   {
-    keys: ['alpine', 'renault', 'bwt alpine', 'bwt alpine f1 team', 'alpine f1 team'],
+    keys: ['alpine', 'renault', 'bwt alpine'],
     name: 'Alpine',
     logoUrl: 'assets/images/team-logos/alpine.svg'
   },
   {
-    keys: ['haas', 'moneygram haas', 'moneygram haas f1 team', 'haas f1 team'],
+    keys: ['haas', 'moneygram haas'],
     name: 'Haas',
     logoUrl: 'assets/images/team-logos/haas.svg'
   },
   {
-    keys: ['racing bulls', 'rb', 'rb f1', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'visa cash app rb f1 team', 'visa cash app racing bulls f1 team', 'alpha tauri', 'alphatauri', 'toro rosso'],
+    keys: ['racing bulls', 'rb', 'rb f1', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'alpha tauri', 'alphatauri', 'toro rosso'],
     name: 'Racing Bulls',
     logoUrl: 'assets/images/team-logos/racing-bulls.svg'
   },
   {
-    keys: ['williams', 'atlassian williams', 'atlassian williams racing', 'williams racing'],
+    keys: ['williams', 'atlassian williams'],
     name: 'Williams',
     logoUrl: 'assets/images/team-logos/williams.svg'
   },
   {
-    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'alfa romeo'],
+    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'alfa romeo'],
     name: 'Sauber',
     logoUrl: 'assets/images/team-logos/sauber.svg'
   }
