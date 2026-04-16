@@ -139,19 +139,44 @@ function renderVehiclePairs(drivers = []) {
   list.innerHTML = cards.join('');
 }
 
+function resolveDriversForLatestCompletedRace({ drivers = [], races = [], assignments = [] } = {}) {
+  const completedRaces = (races || [])
+    .filter((race) => race.status === 'completed')
+    .sort((a, b) => a.round_number - b.round_number);
+  const latestCompletedRace = completedRaces[completedRaces.length - 1];
+
+  if (!latestCompletedRace || !window.RCCDriverContext?.createAssignmentResolver) {
+    return drivers;
+  }
+
+  const resolver = window.RCCDriverContext.createAssignmentResolver({
+    drivers,
+    races,
+    assignments
+  });
+
+  return (drivers || []).map((driver) =>
+    resolver.resolveDriverSnapshot(driver.id, latestCompletedRace.id) || driver
+  );
+}
+
 async function initRulesFaqPage() {
   renderRulesConfig({});
   renderFaqItems([]);
 
   try {
-    const [content, drivers] = await Promise.all([
+    const currentSeason = await window.RCCData.fetchCurrentSeason();
+    const [content, drivers, races, assignments] = await Promise.all([
       window.RCCData.fetchLeagueContent(),
-      window.RCCData.fetchDrivers()
+      window.RCCData.fetchDrivers(),
+      window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
+      window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
     ]);
+    const latestRaceDrivers = resolveDriversForLatestCompletedRace({ drivers, races, assignments });
 
     renderRulesConfig(content.rules_config || {});
     renderFaqItems(content.faq_items || []);
-    renderVehiclePairs(drivers || []);
+    renderVehiclePairs(latestRaceDrivers || []);
   } catch (error) {
     console.error(error);
     const list = document.getElementById('vehicle-pair-list');
