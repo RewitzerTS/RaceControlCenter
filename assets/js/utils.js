@@ -11,52 +11,52 @@ const TEAM_LOGO_MAP = [
   {
     keys: ['mclaren', 'mclaren f1', 'mclaren formula 1', 'mclaren formula 1 team', 'mclaren f1 team'],
     name: 'McLaren',
-    logoUrl: 'assets/images/team-logos/mclaren.svg'
+    logoUrl: 'assets/images/team-logos/mclaren.png'
   },
   {
     keys: ['ferrari', 'scuderia ferrari', 'ferrari hp', 'scuderia ferrari hp', 'ferrari f1 team'],
     name: 'Ferrari',
-    logoUrl: 'assets/images/team-logos/ferrari.svg'
+    logoUrl: 'assets/images/team-logos/ferrari.png'
   },
   {
     keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull', 'oracle red bull racing', 'red bull racing honda rbpt'],
     name: 'Red Bull Racing',
-    logoUrl: 'assets/images/team-logos/red-bull.svg'
+    logoUrl: 'assets/images/team-logos/red-bull.png'
   },
   {
     keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas', 'mercedes amg petronas', 'mercedes amg petronas f1 team'],
     name: 'Mercedes',
-    logoUrl: 'assets/images/team-logos/mercedes.svg'
+    logoUrl: 'assets/images/team-logos/mercedes.png'
   },
   {
     keys: ['aston martin', 'aston martin aramco', 'aston martin aramco formula one team', 'aston martin f1 team'],
     name: 'Aston Martin',
-    logoUrl: 'assets/images/team-logos/aston-martin.svg'
+    logoUrl: 'assets/images/team-logos/aston-martin.png'
   },
   {
     keys: ['alpine', 'renault', 'bwt alpine', 'bwt alpine f1 team', 'alpine f1 team'],
     name: 'Alpine',
-    logoUrl: 'assets/images/team-logos/alpine.svg'
+    logoUrl: 'assets/images/team-logos/alpine.png'
   },
   {
     keys: ['haas', 'moneygram haas', 'moneygram haas f1 team', 'haas f1 team'],
     name: 'Haas',
-    logoUrl: 'assets/images/team-logos/haas.svg'
+    logoUrl: 'assets/images/team-logos/haas.png'
   },
   {
     keys: ['racing bulls', 'rb', 'rb f1', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'visa cash app rb f1 team', 'visa cash app racing bulls f1 team', 'alpha tauri', 'alphatauri', 'toro rosso'],
     name: 'Racing Bulls',
-    logoUrl: 'assets/images/team-logos/racing-bulls.svg'
+    logoUrl: 'assets/images/team-logos/racing-bulls.png'
   },
   {
     keys: ['williams', 'atlassian williams', 'atlassian williams racing', 'williams racing'],
     name: 'Williams',
-    logoUrl: 'assets/images/team-logos/williams.svg'
+    logoUrl: 'assets/images/team-logos/williams.png'
   },
   {
-    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'alfa romeo'],
+    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'alfa romeo', 'audi', 'audi f1'],
     name: 'Sauber',
-    logoUrl: 'assets/images/team-logos/sauber.svg'
+    logoUrl: 'assets/images/team-logos/sauber.png'
   }
 ];
 
@@ -120,7 +120,9 @@ function createTeamLogoBadge(teamName, options = {}) {
   }
 
   const primaryLogoUrl = String(logoMeta.logoUrl || '');
-  const fallbackLogoUrl = primaryLogoUrl.replace(/\.svg$/i, '.png');
+  const fallbackLogoUrl = primaryLogoUrl.match(/\.png(?:[?#].*)?$/i)
+    ? primaryLogoUrl.replace(/\.png(?=([?#].*)?$)/i, '.svg')
+    : primaryLogoUrl.replace(/\.svg(?=([?#].*)?$)/i, '.png');
 
   return `
     <span class="team-logo-badge${sizeClass}" title="${label}" aria-label="${label}">
