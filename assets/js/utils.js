@@ -7,6 +7,100 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+const TEAM_LOGO_MAP = [
+  {
+    keys: ['mclaren'],
+    name: 'McLaren',
+    logoUrl: 'https://logo.clearbit.com/mclaren.com'
+  },
+  {
+    keys: ['ferrari', 'scuderia ferrari'],
+    name: 'Ferrari',
+    logoUrl: 'https://logo.clearbit.com/ferrari.com'
+  },
+  {
+    keys: ['red bull', 'redbull', 'red bull racing'],
+    name: 'Red Bull Racing',
+    logoUrl: 'https://logo.clearbit.com/redbullracing.com'
+  },
+  {
+    keys: ['mercedes', 'mercedes amg', 'mercedes-amg'],
+    name: 'Mercedes',
+    logoUrl: 'https://logo.clearbit.com/mercedesamgf1.com'
+  },
+  {
+    keys: ['aston martin'],
+    name: 'Aston Martin',
+    logoUrl: 'https://logo.clearbit.com/astonmartinf1.com'
+  },
+  {
+    keys: ['alpine', 'renault'],
+    name: 'Alpine',
+    logoUrl: 'https://logo.clearbit.com/alpinef1.com'
+  },
+  {
+    keys: ['haas'],
+    name: 'Haas',
+    logoUrl: 'https://logo.clearbit.com/haasf1team.com'
+  },
+  {
+    keys: ['racing bulls', 'rb', 'vcarb', 'visa cash app rb', 'alpha tauri', 'alphatauri', 'toro rosso'],
+    name: 'Racing Bulls',
+    logoUrl: 'https://logo.clearbit.com/visacashapprb.com'
+  },
+  {
+    keys: ['williams'],
+    name: 'Williams',
+    logoUrl: 'https://logo.clearbit.com/williamsf1.com'
+  },
+  {
+    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'alfa romeo'],
+    name: 'Sauber',
+    logoUrl: 'https://logo.clearbit.com/stakef1team.com'
+  }
+];
+
+function normalizeTeamName(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function getTeamLogoMeta(teamName) {
+  const normalizedTeam = normalizeTeamName(teamName);
+  if (!normalizedTeam) return null;
+
+  return TEAM_LOGO_MAP.find((entry) =>
+    entry.keys.some((key) => normalizedTeam.includes(normalizeTeamName(key)))
+  ) || null;
+}
+
+function createTeamLogoBadge(teamName, options = {}) {
+  const safeTeamName = String(teamName || '').trim() || 'Unbekanntes Team';
+  const logoMeta = getTeamLogoMeta(safeTeamName);
+  const sizeClass = options.size === 'large' ? ' team-logo-badge--large' : '';
+  const label = escapeHtml(safeTeamName);
+
+  if (!logoMeta?.logoUrl) {
+    return `<span class="team-logo-fallback">${label}</span>`;
+  }
+
+  return `
+    <span class="team-logo-badge${sizeClass}" title="${label}" aria-label="${label}">
+      <img
+        src="${escapeHtml(logoMeta.logoUrl)}"
+        alt="${label}"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        onerror="this.parentElement.classList.add('is-fallback'); this.remove(); this.parentElement.textContent='${label}';"
+      >
+    </span>
+  `;
+}
+
 function parseRaceDateValue(value, explicitTime = '') {
   if (!value) return null;
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
@@ -245,3 +339,5 @@ window.getRaceTrackMeta = getRaceTrackMeta;
 window.createTrackMapSvg = createTrackMapSvg;
 window.createFlagBadge = createFlagBadge;
 window.createLeaderCard = createLeaderCard;
+window.getTeamLogoMeta = getTeamLogoMeta;
+window.createTeamLogoBadge = createTeamLogoBadge;
