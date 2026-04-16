@@ -7,6 +7,100 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+const TEAM_LOGO_MAP = [
+  {
+    keys: ['mclaren'],
+    name: 'McLaren',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/5/53/McLaren_Racing_logo.svg'
+  },
+  {
+    keys: ['ferrari', 'scuderia ferrari'],
+    name: 'Ferrari',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/d/d7/Scuderia_Ferrari_Logo.svg'
+  },
+  {
+    keys: ['red bull', 'redbull', 'red bull racing'],
+    name: 'Red Bull Racing',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/f/f9/Red_Bull_Racing_logo.svg'
+  },
+  {
+    keys: ['mercedes', 'mercedes amg', 'mercedes-amg'],
+    name: 'Mercedes',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/2/21/Mercedes-AMG_Petronas_F1_Logo.svg'
+  },
+  {
+    keys: ['aston martin'],
+    name: 'Aston Martin',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/7/77/Aston_Martin_Aramco_Cognizant_F1_Team_logo.svg'
+  },
+  {
+    keys: ['alpine', 'renault'],
+    name: 'Alpine',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Alpine_F1_Team_Logo.svg'
+  },
+  {
+    keys: ['haas'],
+    name: 'Haas',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/d/d4/Haas_F1_Team_logo.svg'
+  },
+  {
+    keys: ['racing bulls', 'rb', 'alpha tauri', 'alphatauri', 'toro rosso'],
+    name: 'Racing Bulls',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/16/Racing_Bulls_Formula_One_Team_Logo.svg'
+  },
+  {
+    keys: ['williams'],
+    name: 'Williams',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Williams_Racing_2020_logo.svg'
+  },
+  {
+    keys: ['sauber', 'stake', 'kick sauber', 'alfa romeo'],
+    name: 'Sauber',
+    logoUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e6/Stake_F1_Team_Kick_Sauber_logo.svg'
+  }
+];
+
+function normalizeTeamName(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+function getTeamLogoMeta(teamName) {
+  const normalizedTeam = normalizeTeamName(teamName);
+  if (!normalizedTeam) return null;
+
+  return TEAM_LOGO_MAP.find((entry) =>
+    entry.keys.some((key) => normalizedTeam.includes(normalizeTeamName(key)))
+  ) || null;
+}
+
+function createTeamLogoBadge(teamName, options = {}) {
+  const safeTeamName = String(teamName || '').trim() || 'Unbekanntes Team';
+  const logoMeta = getTeamLogoMeta(safeTeamName);
+  const sizeClass = options.size === 'large' ? ' team-logo-badge--large' : '';
+  const label = escapeHtml(safeTeamName);
+
+  if (!logoMeta?.logoUrl) {
+    return `<span class="team-logo-fallback">${label}</span>`;
+  }
+
+  return `
+    <span class="team-logo-badge${sizeClass}" title="${label}" aria-label="${label}">
+      <img
+        src="${escapeHtml(logoMeta.logoUrl)}"
+        alt="${label}"
+        loading="lazy"
+        referrerpolicy="no-referrer"
+        onerror="this.parentElement.classList.add('is-fallback'); this.remove(); this.parentElement.textContent='${label}';"
+      >
+    </span>
+  `;
+}
+
 function parseRaceDateValue(value, explicitTime = '') {
   if (!value) return null;
   if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
@@ -245,3 +339,5 @@ window.getRaceTrackMeta = getRaceTrackMeta;
 window.createTrackMapSvg = createTrackMapSvg;
 window.createFlagBadge = createFlagBadge;
 window.createLeaderCard = createLeaderCard;
+window.getTeamLogoMeta = getTeamLogoMeta;
+window.createTeamLogoBadge = createTeamLogoBadge;
