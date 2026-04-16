@@ -11,52 +11,52 @@ const TEAM_LOGO_MAP = [
   {
     keys: ['mclaren'],
     name: 'McLaren',
-    logoUrl: 'https://logo.clearbit.com/mclaren.com'
+    logoUrl: 'assets/images/team-logos/mclaren.svg'
   },
   {
     keys: ['ferrari', 'scuderia ferrari'],
     name: 'Ferrari',
-    logoUrl: 'https://logo.clearbit.com/ferrari.com'
+    logoUrl: 'assets/images/team-logos/ferrari.svg'
   },
   {
     keys: ['red bull', 'redbull', 'red bull racing'],
     name: 'Red Bull Racing',
-    logoUrl: 'https://logo.clearbit.com/redbullracing.com'
+    logoUrl: 'assets/images/team-logos/red-bull.svg'
   },
   {
     keys: ['mercedes', 'mercedes amg', 'mercedes-amg'],
     name: 'Mercedes',
-    logoUrl: 'https://logo.clearbit.com/mercedesamgf1.com'
+    logoUrl: 'assets/images/team-logos/mercedes.svg'
   },
   {
     keys: ['aston martin'],
     name: 'Aston Martin',
-    logoUrl: 'https://logo.clearbit.com/astonmartinf1.com'
+    logoUrl: 'assets/images/team-logos/aston-martin.svg'
   },
   {
     keys: ['alpine', 'renault'],
     name: 'Alpine',
-    logoUrl: 'https://logo.clearbit.com/alpinef1.com'
+    logoUrl: 'assets/images/team-logos/alpine.svg'
   },
   {
     keys: ['haas'],
     name: 'Haas',
-    logoUrl: 'https://logo.clearbit.com/haasf1team.com'
+    logoUrl: 'assets/images/team-logos/haas.svg'
   },
   {
     keys: ['racing bulls', 'rb', 'vcarb', 'visa cash app rb', 'alpha tauri', 'alphatauri', 'toro rosso'],
     name: 'Racing Bulls',
-    logoUrl: 'https://logo.clearbit.com/visacashapprb.com'
+    logoUrl: 'assets/images/team-logos/racing-bulls.svg'
   },
   {
     keys: ['williams'],
     name: 'Williams',
-    logoUrl: 'https://logo.clearbit.com/williamsf1.com'
+    logoUrl: 'assets/images/team-logos/williams.svg'
   },
   {
     keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'alfa romeo'],
     name: 'Sauber',
-    logoUrl: 'https://logo.clearbit.com/stakef1team.com'
+    logoUrl: 'assets/images/team-logos/sauber.svg'
   }
 ];
 
