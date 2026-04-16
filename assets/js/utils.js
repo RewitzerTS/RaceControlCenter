@@ -11,52 +11,52 @@ const TEAM_LOGO_MAP = [
   {
     keys: ['mclaren'],
     name: 'McLaren',
-    logoUrl: 'assets/images/team-logos/mclaren.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/McLaren_Racing_logo.svg'
   },
   {
     keys: ['ferrari', 'scuderia ferrari'],
     name: 'Ferrari',
-    logoUrl: 'assets/images/team-logos/ferrari.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Scuderia_Ferrari_HP_logo_24.svg'
   },
   {
     keys: ['red bull', 'redbull', 'red bull racing'],
     name: 'Red Bull Racing',
-    logoUrl: 'assets/images/team-logos/red-bull.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Red_Bull_Racing_Logo_2026.svg'
   },
   {
     keys: ['mercedes', 'mercedes amg', 'mercedes-amg'],
     name: 'Mercedes',
-    logoUrl: 'assets/images/team-logos/mercedes.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mercedes-AMG_Petronas_F1_Team_logo_(2026).svg'
   },
   {
     keys: ['aston martin'],
     name: 'Aston Martin',
-    logoUrl: 'assets/images/team-logos/aston-martin.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Aston_Martin_Lagonda_brand_logo.svg'
   },
   {
     keys: ['alpine', 'renault'],
     name: 'Alpine',
-    logoUrl: 'assets/images/team-logos/alpine.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Alpine_F1_Team_Logo.svg'
   },
   {
     keys: ['haas'],
     name: 'Haas',
-    logoUrl: 'assets/images/team-logos/haas.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/TGR_Haas_F1_Team_Logo_(2026).svg'
   },
   {
     keys: ['racing bulls', 'rb', 'vcarb', 'visa cash app rb', 'alpha tauri', 'alphatauri', 'toro rosso'],
     name: 'Racing Bulls',
-    logoUrl: 'assets/images/team-logos/racing-bulls.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/VCARB_F1_logo.svg'
   },
   {
     keys: ['williams'],
     name: 'Williams',
-    logoUrl: 'assets/images/team-logos/williams.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Atlassian_Williams_F1_Team_logo.svg'
   },
   {
     keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'alfa romeo'],
     name: 'Sauber',
-    logoUrl: 'assets/images/team-logos/sauber.svg'
+    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Sauber_Motorsport_logo.svg'
   }
 ];
 
