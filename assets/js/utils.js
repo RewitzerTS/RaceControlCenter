@@ -11,55 +11,55 @@ const TEAM_LOGO_MAP = [
   {
     keys: ['mclaren', 'mclaren f1', 'mclaren formula 1', 'mclaren formula 1 team', 'mclaren f1 team', 'mclaren mercedes'],
     name: 'McLaren',
-    logoUrl: 'assets/images/team-logos/mclaren.svg'
+    logoUrl: 'assets/images/team-logos/mclaren.png'
   },
   {
     keys: ['ferrari', 'scuderia ferrari', 'ferrari hp', 'scuderia ferrari hp', 'ferrari f1 team', 'scuderia ferrari mission winnow', 'ferrari mission winnow'],
     name: 'Ferrari',
-    logoUrl: 'assets/images/team-logos/ferrari.svg'
+    logoUrl: 'assets/images/team-logos/ferrari.png'
   },
   {
     keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull', 'oracle red bull racing', 'red bull racing honda rbpt', 'red bull honda', 'red bull racing honda', 'infiniti red bull racing'],
     name: 'Red Bull Racing',
-    logoUrl: 'assets/images/team-logos/red-bull.svg'
+    logoUrl: 'assets/images/team-logos/red-bull.png'
   },
   {
     keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas', 'mercedes amg petronas', 'mercedes amg petronas f1 team', 'mercedes amg petronas formula one team'],
     name: 'Mercedes',
-    logoUrl: 'assets/images/team-logos/mercedes.svg'
+    logoUrl: 'assets/images/team-logos/mercedes.png'
   },
   {
     keys: ['aston martin', 'aston martin aramco', 'aston martin aramco formula one team', 'aston martin f1 team', 'aston martin cognizant', 'aston martin cognizant formula one team'],
     name: 'Aston Martin',
-    logoUrl: 'assets/images/team-logos/aston-martin.svg'
+    logoUrl: 'assets/images/team-logos/aston-martin.png'
   },
   {
     // Legacy mapping: Renault-Einträge sollen bewusst auf das aktuelle Alpine-Branding zeigen.
     keys: ['alpine', 'renault', 'renault f1', 'renault f1 team', 'bwt alpine', 'bwt alpine f1 team', 'alpine f1 team'],
     name: 'Alpine',
-    logoUrl: 'assets/images/team-logos/alpine.svg'
+    logoUrl: 'assets/images/team-logos/alpine.png'
   },
   {
     keys: ['haas', 'moneygram haas', 'moneygram haas f1 team', 'haas f1 team', 'uralkali haas', 'uralkali haas f1 team'],
     name: 'Haas',
-    logoUrl: 'assets/images/team-logos/haas.svg'
+    logoUrl: 'assets/images/team-logos/haas.png'
   },
   {
     // Legacy mapping: AlphaTauri/Toro Rosso sollen bewusst auf das heutige Racing-Bulls-Logo gemappt werden.
     keys: ['racing bulls', 'rb', 'rb f1', 'rb f1 team', 'rb honda rbpt', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'visa cash app rb f1 team', 'visa cash app racing bulls f1 team', 'alpha tauri', 'alphatauri', 'scuderia alphatauri', 'scuderia alpha tauri', 'toro rosso', 'scuderia toro rosso'],
     name: 'Racing Bulls',
-    logoUrl: 'assets/images/team-logos/racing-bulls.svg'
+    logoUrl: 'assets/images/team-logos/racing-bulls.png'
   },
   {
     keys: ['williams', 'atlassian williams', 'atlassian williams racing', 'williams racing', 'williams mercedes'],
     name: 'Williams',
-    logoUrl: 'assets/images/team-logos/williams.svg'
+    logoUrl: 'assets/images/team-logos/williams.png'
   },
   {
     // Legacy mapping: Alfa Romeo/Audi-Bezeichnungen sollen bewusst auf das Sauber-Logo zeigen.
     keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'kick sauber ferrari', 'stake sauber', 'alfa romeo', 'alfa romeo racing', 'alfa romeo f1 team', 'alfa romeo racing orlen', 'audi', 'audi f1', 'audi f1 team'],
     name: 'Sauber',
-    logoUrl: 'assets/images/team-logos/sauber.svg'
+    logoUrl: 'assets/images/team-logos/sauber.png'
   }
 ];
 
