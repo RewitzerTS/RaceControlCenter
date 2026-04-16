@@ -274,6 +274,26 @@
   </main>
 
   <div id="site-footer"></div>
+
+  <div id="driver-swap-modal" class="trackmap-lightbox hidden" aria-hidden="true">
+    <div id="driver-swap-backdrop" class="trackmap-lightbox-backdrop"></div>
+    <div class="trackmap-lightbox-dialog driver-swap-dialog" role="dialog" aria-modal="true" aria-labelledby="driver-swap-title">
+      <h3 id="driver-swap-title" class="trackmap-lightbox-title">Mit welchem Fahrer soll getauscht werden?</h3>
+      <p class="muted">Ausgewählter Fahrer: <strong id="driver-swap-source-label">—</strong></p>
+      <div class="field section-spacer-top">
+        <label for="driver-swap-target">Tauschpartner</label>
+        <select id="driver-swap-target">
+          <option value="">Fahrer auswählen</option>
+        </select>
+      </div>
+      <div id="driver-swap-feedback" class="notice" hidden></div>
+      <div class="card-actions section-spacer-top">
+        <button type="button" class="button-primary" id="driver-swap-confirm-btn">Jetzt tauschen</button>
+        <button type="button" class="button-secondary" id="driver-swap-cancel-btn">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="assets/js/supabase-client.js"></script>
   <script defer src="assets/js/data/tracks.js"></script>
