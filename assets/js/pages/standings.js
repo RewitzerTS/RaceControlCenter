@@ -37,7 +37,10 @@ function renderDriverStandings(standings) {
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.driverName)}</td>
       <td>${window.escapeHtml(entry.leagueTeam || '—')}</td>
-      <td>${window.createTeamLogoBadge?.(window.findMatchingTeamLogoName?.([entry.carName, entry.leagueTeam]) || entry.carName || entry.leagueTeam || '', { size: 'large' }) || window.escapeHtml(entry.carName || entry.leagueTeam || '—')}</td>
+      <td>${window.createTeamLogoBadge?.(
+    window.findMatchingTeamLogoName?.([entry.carName, entry.leagueTeam]) || entry.carName || entry.leagueTeam || '',
+    { size: 'large', label: entry.carName || entry.leagueTeam || 'Auto' }
+  ) || window.escapeHtml(entry.carName || entry.leagueTeam || '—')}</td>
       <td>${entry.wins ?? 0}</td>
       <td>${entry.podiums ?? 0}</td>
       <td>${entry.fastestLaps ?? 0}</td>
@@ -61,9 +64,15 @@ function renderTeamStandings(standings) {
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.teamName || '—')}</td>
       <td>${window.escapeHtml(entry.driver1 || '—')}</td>
-      <td>${window.createTeamLogoBadge?.(window.findMatchingTeamLogoName?.([entry.car1, entry.teamName]) || entry.car1 || entry.teamName || '', { size: 'large' }) || window.escapeHtml(entry.car1 || entry.teamName || '—')}</td>
+      <td>${window.createTeamLogoBadge?.(
+    window.findMatchingTeamLogoName?.([entry.car1, entry.teamName]) || entry.car1 || entry.teamName || '',
+    { size: 'large', label: entry.car1 || entry.teamName || 'Auto 1' }
+  ) || window.escapeHtml(entry.car1 || entry.teamName || '—')}</td>
       <td>${window.escapeHtml(entry.driver2 || '—')}</td>
-      <td>${window.createTeamLogoBadge?.(window.findMatchingTeamLogoName?.([entry.car2, entry.teamName]) || entry.car2 || entry.teamName || '', { size: 'large' }) || window.escapeHtml(entry.car2 || entry.teamName || '—')}</td>
+      <td>${window.createTeamLogoBadge?.(
+    window.findMatchingTeamLogoName?.([entry.car2, entry.teamName]) || entry.car2 || entry.teamName || '',
+    { size: 'large', label: entry.car2 || entry.teamName || 'Auto 2' }
+  ) || window.escapeHtml(entry.car2 || entry.teamName || '—')}</td>
       <td><strong>${entry.points ?? 0}</strong></td>
     </tr>
   `).join('');
