@@ -34,7 +34,7 @@ function renderStaticResultsOverride() {
       <tr>
         <td class="sticky-driver"><span class="driver-label-text">${window.escapeHtml(row.driver)}</span></td>
         ${cells}
-        <td class="results-total-cell"><strong>${row.total}</strong></td>
+        <td class="results-total-cell sticky-total"><strong>${row.total}</strong></td>
       </tr>
     `;
   }).join('');
@@ -45,7 +45,7 @@ function renderStaticResultsOverride() {
         <tr>
           <th class="sticky-driver sticky-driver-head">Fahrer</th>
           ${head}
-          <th class="results-total-head">Total</th>
+          <th class="results-total-head sticky-total">Total</th>
         </tr>
       </thead>
       <tbody>${body}</tbody>
@@ -155,7 +155,7 @@ function renderMatrix(container, labelEl, matrixData) {
       <tr>
         <td class="sticky-driver"><span class="driver-label-text">${window.escapeHtml(getDriverDisplayLabel(entry.driver))}</span></td>
         ${cells}
-        <td class="results-total-cell"><strong>${entry.total}</strong></td>
+        <td class="results-total-cell sticky-total"><strong>${entry.total}</strong></td>
       </tr>
     `;
   }).join('');
@@ -166,7 +166,7 @@ function renderMatrix(container, labelEl, matrixData) {
         <tr>
           <th class="sticky-driver sticky-driver-head">Fahrer</th>
           ${head}
-          <th class="results-total-head">Total</th>
+          <th class="results-total-head sticky-total">Total</th>
         </tr>
       </thead>
       <tbody>${body}</tbody>

@@ -1325,6 +1325,21 @@ body[data-page="admin"] .button-danger:focus-visible {
   min-width: 82px;
 }
 
+.sticky-total {
+  position: sticky;
+  right: 0;
+  background: rgba(2, 27, 52, 0.98);
+  box-shadow: -10px 0 18px rgba(1, 17, 31, 0.18);
+}
+
+.results-total-head.sticky-total {
+  z-index: 3;
+}
+
+.results-total-cell.sticky-total {
+  z-index: 2;
+}
+
 @media (max-width: 1100px) {
   .results-matrix-table {
     min-width: 920px;
@@ -1493,6 +1508,14 @@ body[data-page="admin"] .button-danger:focus-visible {
 }
 
 .results-matrix-table tbody .sticky-driver {
+  z-index: 2;
+}
+
+.results-matrix-table thead .sticky-total {
+  z-index: 3;
+}
+
+.results-matrix-table tbody .sticky-total {
   z-index: 2;
 }
 
