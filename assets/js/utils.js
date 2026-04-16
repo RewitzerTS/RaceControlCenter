@@ -87,11 +87,33 @@ function findMatchingTeamLogoName(candidates = []) {
   return names.find((name) => Boolean(getTeamLogoMeta(name))) || names[0];
 }
 
+function isDirectImageSource(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  if (/^data:image\//i.test(text)) return true;
+  return /\.(png|jpe?g|webp|svg)(?:[?#].*)?$/i.test(text);
+}
+
 function createTeamLogoBadge(teamName, options = {}) {
   const safeTeamName = String(teamName || '').trim() || 'Unbekanntes Team';
   const logoMeta = getTeamLogoMeta(safeTeamName);
   const sizeClass = options.size === 'large' ? ' team-logo-badge--large' : '';
-  const label = escapeHtml(safeTeamName);
+  const labelSource = String(options.label || safeTeamName).trim() || safeTeamName;
+  const label = escapeHtml(labelSource);
+
+  if (isDirectImageSource(safeTeamName)) {
+    return `
+      <span class="team-logo-badge${sizeClass}" title="${label}" aria-label="${label}">
+        <img
+          src="${escapeHtml(safeTeamName)}"
+          alt="${label}"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          onerror="this.parentElement.classList.add('is-fallback'); this.remove(); this.parentElement.textContent='${label}';"
+        >
+      </span>
+    `;
+  }
 
   if (!logoMeta?.logoUrl) {
     return `<span class="team-logo-fallback">${label}</span>`;
