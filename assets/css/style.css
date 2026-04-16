@@ -73,8 +73,8 @@ button, input, textarea, select {
 }
 
 .brand-logo {
-  width: 92px;
-  height: 92px;
+  width: 100px;
+  height: 100px;
   object-fit: contain;
   flex: 0 0 auto;
 }
@@ -754,8 +754,8 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .brand-logo {
-    width: 46px;
-    height: 46px;
+    width: 52px;
+    height: 52px;
   }
 
   .brand-title {
