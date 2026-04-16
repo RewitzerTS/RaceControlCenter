@@ -1150,15 +1150,10 @@ async function loadDrivers() {
     .map(([teamName, teamDrivers]) => {
       const sortedDrivers = [...teamDrivers].sort((a, b) =>
         String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
-      const teamLogoSource = teamDrivers.map((driver) => resolveDriverLogoSourceForAdmin(driver)).find(Boolean) || teamName;
-
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
-            <h5 class="driver-team-title-with-logo">
-              ${window.createTeamLogoBadge?.(teamLogoSource, { size: 'large', label: teamName }) || ''}
-              <span>${window.escapeHtml(teamName)}</span>
-            </h5>
+            <h5>${window.escapeHtml(teamName)}</h5>
             <span class="driver-team-count">${sortedDrivers.length} Fahrer</span>
           </header>
           <div class="driver-team-members">
