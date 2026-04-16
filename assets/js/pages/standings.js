@@ -22,7 +22,7 @@ function withTeamTrends(current, previous, hasPreviousRace = false) {
   }));
 }
 
-function renderDriverStandings(standings) {
+function renderDriverStandings(standings, latestDriverSnapshots = new Map()) {
   const tbody = document.getElementById('drivers-standings-body');
   if (!tbody) return;
 
@@ -31,14 +31,22 @@ function renderDriverStandings(standings) {
     return;
   }
 
-  tbody.innerHTML = standings.map((entry, index) => `
+  tbody.innerHTML = standings.map((entry, index) => {
+    const snapshot = latestDriverSnapshots.get(entry.driverId) || {};
+    const logoSource = window.findMatchingTeamLogoName?.([
+      snapshot.car_name,
+      snapshot.league_team,
+      entry.carName,
+      entry.leagueTeam
+    ]) || snapshot.car_name || snapshot.league_team || entry.carName || entry.leagueTeam || '';
+    return `
     <tr class="${index < 3 ? `podium-${index + 1}` : ''}">
       <td>${index + 1}</td>
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.driverName)}</td>
       <td>${window.escapeHtml(entry.leagueTeam || '—')}</td>
       <td>${window.createTeamLogoBadge?.(
-    window.findMatchingTeamLogoName?.([entry.carName, entry.leagueTeam]) || entry.carName || entry.leagueTeam || '',
+    logoSource,
     { size: 'large', label: entry.carName || entry.leagueTeam || 'Auto' }
   ) || window.escapeHtml(entry.carName || entry.leagueTeam || '—')}</td>
       <td>${entry.wins ?? 0}</td>
@@ -46,10 +54,11 @@ function renderDriverStandings(standings) {
       <td>${entry.fastestLaps ?? 0}</td>
       <td><strong>${entry.points ?? 0}</strong></td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
 
-function renderTeamStandings(standings) {
+function renderTeamStandings(standings, latestDriverSnapshots = new Map()) {
   const tbody = document.getElementById('teams-standings-body');
   if (!tbody) return;
 
@@ -58,24 +67,44 @@ function renderTeamStandings(standings) {
     return;
   }
 
-  tbody.innerHTML = standings.map((entry, index) => `
+  const snapshotByName = new Map(
+    [...latestDriverSnapshots.values()].map((snapshot) => [String(snapshot?.display_name || '').trim(), snapshot])
+  );
+
+  tbody.innerHTML = standings.map((entry, index) => {
+    const driver1Snapshot = snapshotByName.get(String(entry.driver1 || '').trim()) || {};
+    const driver2Snapshot = snapshotByName.get(String(entry.driver2 || '').trim()) || {};
+    const car1LogoSource = window.findMatchingTeamLogoName?.([
+      driver1Snapshot.car_name,
+      driver1Snapshot.league_team,
+      entry.car1,
+      entry.teamName
+    ]) || driver1Snapshot.car_name || driver1Snapshot.league_team || entry.car1 || entry.teamName || '';
+    const car2LogoSource = window.findMatchingTeamLogoName?.([
+      driver2Snapshot.car_name,
+      driver2Snapshot.league_team,
+      entry.car2,
+      entry.teamName
+    ]) || driver2Snapshot.car_name || driver2Snapshot.league_team || entry.car2 || entry.teamName || '';
+    return `
     <tr class="${index < 3 ? `podium-${index + 1}` : ''}">
       <td>${index + 1}</td>
       <td class="trend-cell">${entry.trend}</td>
       <td>${window.escapeHtml(entry.teamName || '—')}</td>
       <td>${window.escapeHtml(entry.driver1 || '—')}</td>
       <td>${window.createTeamLogoBadge?.(
-    window.findMatchingTeamLogoName?.([entry.car1, entry.teamName]) || entry.car1 || entry.teamName || '',
+    car1LogoSource,
     { size: 'large', label: entry.car1 || entry.teamName || 'Auto 1' }
   ) || window.escapeHtml(entry.car1 || entry.teamName || '—')}</td>
       <td>${window.escapeHtml(entry.driver2 || '—')}</td>
       <td>${window.createTeamLogoBadge?.(
-    window.findMatchingTeamLogoName?.([entry.car2, entry.teamName]) || entry.car2 || entry.teamName || '',
+    car2LogoSource,
     { size: 'large', label: entry.car2 || entry.teamName || 'Auto 2' }
   ) || window.escapeHtml(entry.car2 || entry.teamName || '—')}</td>
       <td><strong>${entry.points ?? 0}</strong></td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function updateStandingsMeta(currentSeason, driverCount, teamCount) {
@@ -133,6 +162,15 @@ async function loadStandingsPage() {
     });
 
     const hasPreviousRace = previousRaces.length > 0;
+    const latestCompletedRace = completedRaces[completedRaces.length - 1] || null;
+    const latestDriverSnapshots = latestCompletedRace
+      ? new Map(
+        (drivers || []).map((driver) => [
+          driver.id,
+          resolver.resolveDriverSnapshot(driver.id, latestCompletedRace.id) || driver
+        ])
+      )
+      : new Map();
 
     const driverStandings = withDriverTrends(
       currentStandings.driverStandings || [],
@@ -146,8 +184,8 @@ async function loadStandingsPage() {
       hasPreviousRace
     );
 
-    renderDriverStandings(driverStandings);
-    renderTeamStandings(teamStandings);
+    renderDriverStandings(driverStandings, latestDriverSnapshots);
+    renderTeamStandings(teamStandings, latestDriverSnapshots);
     updateStandingsMeta(currentSeason, driverStandings.length, teamStandings.length);
   } catch (error) {
     console.error(error);
