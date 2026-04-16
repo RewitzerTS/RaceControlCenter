@@ -9,54 +9,54 @@ function escapeHtml(value) {
 
 const TEAM_LOGO_MAP = [
   {
-    keys: ['mclaren'],
+    keys: ['mclaren', 'mclaren f1', 'mclaren formula 1'],
     name: 'McLaren',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/McLaren_Racing_logo.svg'
+    logoUrl: 'assets/images/team-logos/mclaren.svg'
   },
   {
-    keys: ['ferrari', 'scuderia ferrari'],
+    keys: ['ferrari', 'scuderia ferrari', 'ferrari hp'],
     name: 'Ferrari',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Scuderia_Ferrari_HP_logo_24.svg'
+    logoUrl: 'assets/images/team-logos/ferrari.svg'
   },
   {
-    keys: ['red bull', 'redbull', 'red bull racing'],
+    keys: ['red bull', 'redbull', 'red bull racing', 'oracle red bull'],
     name: 'Red Bull Racing',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Red_Bull_Racing_Logo_2026.svg'
+    logoUrl: 'assets/images/team-logos/red-bull.svg'
   },
   {
-    keys: ['mercedes', 'mercedes amg', 'mercedes-amg'],
+    keys: ['mercedes', 'mercedes amg', 'mercedes-amg', 'petronas'],
     name: 'Mercedes',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Mercedes-AMG_Petronas_F1_Team_logo_(2026).svg'
+    logoUrl: 'assets/images/team-logos/mercedes.svg'
   },
   {
-    keys: ['aston martin'],
+    keys: ['aston martin', 'aston martin aramco'],
     name: 'Aston Martin',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Aston_Martin_Lagonda_brand_logo.svg'
+    logoUrl: 'assets/images/team-logos/aston-martin.svg'
   },
   {
-    keys: ['alpine', 'renault'],
+    keys: ['alpine', 'renault', 'bwt alpine'],
     name: 'Alpine',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Alpine_F1_Team_Logo.svg'
+    logoUrl: 'assets/images/team-logos/alpine.svg'
   },
   {
-    keys: ['haas'],
+    keys: ['haas', 'moneygram haas'],
     name: 'Haas',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/TGR_Haas_F1_Team_Logo_(2026).svg'
+    logoUrl: 'assets/images/team-logos/haas.svg'
   },
   {
-    keys: ['racing bulls', 'rb', 'vcarb', 'visa cash app rb', 'alpha tauri', 'alphatauri', 'toro rosso'],
+    keys: ['racing bulls', 'rb', 'rb f1', 'vcarb', 'visa cash app rb', 'visa cash app racing bulls', 'alpha tauri', 'alphatauri', 'toro rosso'],
     name: 'Racing Bulls',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/VCARB_F1_logo.svg'
+    logoUrl: 'assets/images/team-logos/racing-bulls.svg'
   },
   {
-    keys: ['williams'],
+    keys: ['williams', 'atlassian williams'],
     name: 'Williams',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Atlassian_Williams_F1_Team_logo.svg'
+    logoUrl: 'assets/images/team-logos/williams.svg'
   },
   {
-    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'alfa romeo'],
+    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'alfa romeo'],
     name: 'Sauber',
-    logoUrl: 'https://commons.wikimedia.org/wiki/Special:FilePath/Sauber_Motorsport_logo.svg'
+    logoUrl: 'assets/images/team-logos/sauber.svg'
   }
 ];
 
