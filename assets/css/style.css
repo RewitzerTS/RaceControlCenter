@@ -507,6 +507,10 @@ th {
   background: rgba(255,255,255,0.02);
 }
 
+.mobile-th-short {
+  display: none;
+}
+
 tbody tr:hover {
   background: rgba(255,255,255,0.02);
 }
@@ -778,6 +782,14 @@ textarea { min-height: 120px; resize: vertical; }
 }
 
 @media (max-width: 760px) {
+  body[data-page="fahrer-wm"] .mobile-th-full {
+    display: none;
+  }
+
+  body[data-page="fahrer-wm"] .mobile-th-short {
+    display: inline;
+  }
+
   body[data-page="fahrer-wm"] .table-header,
   body[data-page="team-wm"] .table-header {
     padding: 12px 14px;
