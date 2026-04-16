@@ -73,8 +73,8 @@ button, input, textarea, select {
 }
 
 .brand-logo {
-  width: 100px;
-  height: 100px;
+  width: 140px;
+  height: 140px;
   object-fit: contain;
   flex: 0 0 auto;
 }
