@@ -34,6 +34,7 @@
       <div class="calendar-toggle-row">
         <button type="button" class="btn primary calendar-toggle active" data-target="upcoming-section">Kommende Rennen</button>
         <button type="button" class="btn calendar-toggle" data-target="completed-section">Gefahrene Rennen</button>
+        <button type="button" class="btn calendar-toggle" data-target="archive-section">Archiv</button>
       </div>
     </div>
 
@@ -46,6 +47,19 @@
       <section class="panel calendar-section" id="completed-section">
         <h3>Gefahrene Rennen</h3>
         <div id="completed-races" class="calendar-grid"></div>
+      </section>
+
+      <section class="panel calendar-section" id="archive-section">
+        <h3>Saison-Archiv</h3>
+        <p class="muted archive-subtitle">Abgeschlossene Saisons öffnen, komplette Ergebnistabellen einsehen und über Streckenlinks direkt in die Renn-Details springen.</p>
+        <div class="archive-select-row">
+          <label for="archive-season-select">Saison auswählen</label>
+          <select id="archive-season-select">
+            <option value="">Archiv wird geladen...</option>
+          </select>
+          <button type="button" class="btn primary" id="archive-open-btn" disabled>Archiv öffnen</button>
+        </div>
+        <div id="archive-season-hint" class="notice">Bitte eine abgeschlossene Saison auswählen.</div>
       </section>
     </div>
   </main>
