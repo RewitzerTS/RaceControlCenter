@@ -84,7 +84,7 @@ function renderRulesConfig(config = {}) {
     </div>`;
 }
 
-function resolveDriverLogoSource(driver = {}) {
+function resolveDriverLogoSourceForView(driver = {}) {
   return window.resolveDriverLogoSource?.(driver)
     || window.findMatchingTeamLogoName?.([driver.car_name, driver.league_team])
     || String(driver.car_name || driver.league_team || '').trim();
@@ -111,7 +111,7 @@ function renderVehiclePairs(drivers = []) {
     .map(([teamName, members]) => {
       const sortedMembers = [...members].sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
       const logoSource = members
-        .map((driver) => resolveDriverLogoSource(driver))
+        .map((driver) => resolveDriverLogoSourceForView(driver))
         .find(Boolean) || teamName;
       return `
         <article class="list-card driver-team-card">
