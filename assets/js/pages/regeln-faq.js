@@ -107,10 +107,7 @@ function renderVehiclePairs(drivers = []) {
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
-            <h5 class="driver-team-title-with-logo">
-              ${window.createTeamLogoBadge?.(carName, { size: 'large' }) || ''}
-              <span>${window.escapeHtml(carName)}</span>
-            </h5>
+            <h5>${window.escapeHtml(carName)}</h5>
             <span class="driver-team-count">${sortedMembers.length} Fahrer</span>
           </header>
           <div class="driver-team-members">

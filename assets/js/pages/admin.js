@@ -1084,10 +1084,7 @@ async function loadDrivers() {
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
-            <h5 class="driver-team-title-with-logo">
-              ${window.createTeamLogoBadge?.(teamName, { size: 'large' }) || ''}
-              <span>${window.escapeHtml(teamName)}</span>
-            </h5>
+            <h5>${window.escapeHtml(teamName)}</h5>
             <span class="driver-team-count">${sortedDrivers.length} Fahrer</span>
           </header>
           <div class="driver-team-members">
@@ -1098,7 +1095,7 @@ async function loadDrivers() {
                   <span class="muted">AI Fahrer: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
                   <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
                   <span class="muted">Liga-Team: ${window.escapeHtml(driver.league_team || '—')}</span>
-                  <span class="muted">Auto: ${window.createTeamLogoBadge?.(driver.car_name || '', { size: 'large' }) || window.escapeHtml(driver.car_name || '—')}</span>
+                  <span class="muted">Auto: ${window.escapeHtml(driver.car_name || '—')}</span>
                 </div>
                 <div class="card-actions compact-driver-actions">
                   <button type="button" class="button-secondary edit-driver-btn"
