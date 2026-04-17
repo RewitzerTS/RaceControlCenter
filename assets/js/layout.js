@@ -2,6 +2,17 @@ const RCC_LAYOUT_TARGETS = [
   { selector: '#site-header', file: 'components/header.html' },
   { selector: '#site-footer', file: 'components/footer.html' }
 ];
+const RCC_LANGUAGE_STORAGE_KEY = 'rcc-language';
+const RCC_SUPPORTED_LANGUAGES = ['de', 'en', 'fr', 'es'];
+
+function getPreferredLanguage() {
+  const storedLanguage = localStorage.getItem(RCC_LANGUAGE_STORAGE_KEY);
+  return RCC_SUPPORTED_LANGUAGES.includes(storedLanguage) ? storedLanguage : 'de';
+}
+
+function applyPreferredLanguage() {
+  document.documentElement.lang = getPreferredLanguage();
+}
 
 function resolveCurrentPage() {
   const pageFromBody = document.body?.dataset?.page?.trim();
@@ -84,6 +95,7 @@ window.updateActiveNavigation = updateActiveNavigation;
 window.loadSiteLayout = loadSiteLayout;
 
 document.addEventListener('DOMContentLoaded', loadSiteLayout);
+document.addEventListener('DOMContentLoaded', applyPreferredLanguage);
 
 
 function setupAdminShortcut() {
@@ -118,3 +130,22 @@ function setupAdminShortcut() {
 }
 
 document.addEventListener('layout:loaded', setupAdminShortcut);
+
+function setupLanguageSelector() {
+  const languageSelect = document.querySelector('#footer-language-select');
+  if (!languageSelect || languageSelect.dataset.initialized === 'true') return;
+
+  languageSelect.value = getPreferredLanguage();
+
+  languageSelect.addEventListener('change', (event) => {
+    const selectedLanguage = event.target.value;
+    if (!RCC_SUPPORTED_LANGUAGES.includes(selectedLanguage)) return;
+
+    localStorage.setItem(RCC_LANGUAGE_STORAGE_KEY, selectedLanguage);
+    document.documentElement.lang = selectedLanguage;
+  });
+
+  languageSelect.dataset.initialized = 'true';
+}
+
+document.addEventListener('layout:loaded', setupLanguageSelector);
