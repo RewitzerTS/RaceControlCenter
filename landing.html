@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Race Control Center · Landing</title>
+  <meta name="description" content="Werde Teil des Race Control Center: Liga-Organisation, Wettbewerb, Stewarding und Community in einer Plattform.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/pages/landing.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+</head>
+<body data-page="landing">
+  <div id="site-header"></div>
+
+  <main class="landing-main">
+    <section class="landing-hero container" aria-labelledby="landing-title">
+      <div class="landing-hero__content">
+        <p class="eyebrow landing-kicker" data-hero-item>Championship Platform</p>
+        <h1 id="landing-title" class="landing-title" data-hero-item>Werde Teil des Race Control Center</h1>
+        <p class="landing-subline" data-hero-item>
+          Organisiere deine Liga professionell, fahre um echte Meisterschaften und erlebe maximale Transparenz durch Live-Standings, Stewarding und eine starke Community.
+        </p>
+        <div class="landing-actions" data-hero-item>
+          <a
+            class="btn-primary-glow landing-cta"
+            href="index.html"
+            data-cta-primary
+            data-track-event="landing_cta_primary_click"
+            data-track-target="join_flow"
+          >Jetzt beitreten</a>
+          <a
+            class="btn-secondary-ghost landing-cta"
+            href="#key-facts"
+            data-cta-secondary
+            data-track-event="landing_cta_secondary_click"
+            data-track-target="key_facts"
+          >Mehr erfahren</a>
+        </div>
+      </div>
+
+      <div class="landing-hero__visual" aria-label="Interaktive 3D-Vorschau">
+        <div class="landing-glow" aria-hidden="true"></div>
+        <div id="hero-3d" class="hero-3d" role="img" aria-label="Stilisierte 3D-Trophäe"></div>
+        <p class="hero-3d-hint">Interaktive 3D-Ansicht · für moderne Browser optimiert</p>
+      </div>
+    </section>
+
+    <section id="key-facts" class="landing-section container" aria-labelledby="facts-title">
+      <div class="section-heading">
+        <p class="eyebrow">Warum RCC?</p>
+        <h2 id="facts-title">Key Facts für deine Saison</h2>
+      </div>
+      <div class="facts-grid">
+        <article class="fact-card" data-animate-card>
+          <h3>Saisonmanagement</h3>
+          <p>Kompletter Rennkalender mit Event-Übersicht, Status und klaren Deadlines.</p>
+        </article>
+        <article class="fact-card" data-animate-card>
+          <h3>Fahrer & Teams</h3>
+          <p>Volle Transparenz über Fahrer-WM, Team-WM und aktuelle Leistungsentwicklungen.</p>
+        </article>
+        <article class="fact-card" data-animate-card>
+          <h3>Live-Standings</h3>
+          <p>Aktuelle Punkte, Podien und Storylines – jederzeit abrufbar für alle Teilnehmer.</p>
+        </article>
+        <article class="fact-card" data-animate-card>
+          <h3>Stewarding Workflow</h3>
+          <p>Standardisierte Entscheidungen und nachvollziehbare Kommunikation bei Vorfällen.</p>
+        </article>
+        <article class="fact-card" data-animate-card>
+          <h3>Historie & Hall of Fame</h3>
+          <p>Langfristige Motivation durch Archiv, Titelhistorie und öffentliche Erfolge.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section container" aria-labelledby="community-title" data-animate-block>
+      <div class="section-heading">
+        <p class="eyebrow">Community & Vertrauen</p>
+        <h2 id="community-title">Gemeinsam schneller, fairer, besser</h2>
+      </div>
+      <div class="proof-grid">
+        <article class="proof-card">
+          <p>„RCC hat unser Liga-Management von Chaos auf Profi-Level gebracht.“</p>
+          <span>— Liga-Admin</span>
+        </article>
+        <article class="proof-card">
+          <p>„Dank transparenter Stewards-Entscheidungen gibt es weniger Diskussionen und mehr Racing.“</p>
+          <span>— Stammfahrer</span>
+        </article>
+        <article class="proof-card">
+          <p>„Die Kombination aus Live-Daten und Hall of Fame motiviert die ganze Saison.“</p>
+          <span>— Team-Manager</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section container final-cta" aria-labelledby="final-title" data-animate-block>
+      <h2 id="final-title">Starte jetzt deine nächste Meisterschaft im Race Control Center.</h2>
+      <p>Baue Wettbewerb, Fairness und Community in einer Plattform auf – vom ersten Training bis zum Titelkampf.</p>
+      <a
+        class="btn-primary-glow landing-cta"
+        href="index.html"
+        data-cta-final
+        data-track-event="landing_cta_final_click"
+        data-track-target="final_join_flow"
+      >Jetzt beitreten</a>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="assets/js/layout.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/utils.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.min.js" defer></script>
+
+  <script src="assets/js/pages/landing.js" defer></script>
+  <script src="assets/js/pages/landing-3d.js" defer></script>
+</body>
+</html>
