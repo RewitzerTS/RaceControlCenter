@@ -1,5 +1,41 @@
+.landing-logo-anchor {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 8px);
+  left: max(14px, calc((100vw - min(var(--max), calc(100% - 28px))) / 2));
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(72px, 10vw, 120px);
+  opacity: 0.96;
+}
+
+.landing-logo-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.35));
+}
+
 .landing-main {
-  padding: 30px 0 70px;
+  position: relative;
+  padding: 132px 0 70px;
+  isolation: isolate;
+}
+
+.landing-main::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: center 50% / min(58vw, 580px) no-repeat url("../../images/logo.png");
+  opacity: 0.075;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.landing-main > * {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-hero {
@@ -156,8 +192,13 @@
 }
 
 @media (max-width: 720px) {
+  .landing-logo-anchor {
+    width: 84px;
+    top: calc(env(safe-area-inset-top) + 6px);
+  }
+
   .landing-main {
-    padding-top: 14px;
+    padding-top: 100px;
   }
 
   .facts-grid,
