@@ -4,6 +4,8 @@ const RCC_LAYOUT_TARGETS = [
 ];
 const RCC_LANGUAGE_STORAGE_KEY = 'rcc-language';
 const RCC_SUPPORTED_LANGUAGES = ['de', 'en', 'fr', 'es'];
+const RCC_TRANSLATE_COOKIE_NAME = 'googtrans';
+const RCC_SOURCE_LANGUAGE = 'de';
 
 function getPreferredLanguage() {
   const storedLanguage = localStorage.getItem(RCC_LANGUAGE_STORAGE_KEY);
@@ -90,12 +92,136 @@ async function loadSiteLayout() {
   }
 }
 
+function setTranslationCookie(targetLanguage) {
+  const cookieValue = `/${RCC_SOURCE_LANGUAGE}/${targetLanguage}`;
+  const maxAge = 60 * 60 * 24 * 365;
+
+  document.cookie = `${RCC_TRANSLATE_COOKIE_NAME}=${cookieValue};path=/;max-age=${maxAge}`;
+
+  if (window.location.hostname && window.location.hostname !== 'localhost') {
+    document.cookie = `${RCC_TRANSLATE_COOKIE_NAME}=${cookieValue};path=/;domain=${window.location.hostname};max-age=${maxAge}`;
+  }
+}
+
+function clearTranslationCookie() {
+  document.cookie = `${RCC_TRANSLATE_COOKIE_NAME}=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+
+  if (window.location.hostname && window.location.hostname !== 'localhost') {
+    document.cookie = `${RCC_TRANSLATE_COOKIE_NAME}=;path=/;domain=${window.location.hostname};expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  }
+}
+
+function ensureGoogleTranslateContainer() {
+  if (document.getElementById('google_translate_element')) return;
+
+  const container = document.createElement('div');
+  container.id = 'google_translate_element';
+  container.style.position = 'fixed';
+  container.style.left = '-9999px';
+  container.style.top = '-9999px';
+  container.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(container);
+}
+
+let googleTranslateLoadPromise = null;
+
+function loadGoogleTranslateScript() {
+  if (googleTranslateLoadPromise) return googleTranslateLoadPromise;
+
+  googleTranslateLoadPromise = new Promise((resolve, reject) => {
+    ensureGoogleTranslateContainer();
+
+    window.googleTranslateElementInit = () => {
+      if (!window.google || !window.google.translate) {
+        reject(new Error('Google Translate API nicht verfügbar.'));
+        return;
+      }
+
+      new window.google.translate.TranslateElement(
+        {
+          pageLanguage: RCC_SOURCE_LANGUAGE,
+          includedLanguages: RCC_SUPPORTED_LANGUAGES.filter((lang) => lang !== RCC_SOURCE_LANGUAGE).join(','),
+          autoDisplay: false
+        },
+        'google_translate_element'
+      );
+
+      resolve();
+    };
+
+    const existingScript = document.querySelector('script[data-google-translate="true"]');
+    if (existingScript) return;
+
+    const script = document.createElement('script');
+    script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleTranslate = 'true';
+    script.onerror = () => reject(new Error('Google Translate Script konnte nicht geladen werden.'));
+    document.head.appendChild(script);
+  });
+
+  return googleTranslateLoadPromise;
+}
+
+function applyGoogleTranslateLanguage(targetLanguage) {
+  const select = document.querySelector('.goog-te-combo');
+  if (!select) return false;
+
+  if (select.value === targetLanguage) return true;
+
+  select.value = targetLanguage;
+  select.dispatchEvent(new Event('change'));
+  return true;
+}
+
+async function applyLanguageSelection(selectedLanguage, { forceReload = false } = {}) {
+  document.documentElement.lang = selectedLanguage;
+
+  if (selectedLanguage === RCC_SOURCE_LANGUAGE) {
+    clearTranslationCookie();
+    if (forceReload) {
+      window.location.reload();
+    }
+    return;
+  }
+
+  setTranslationCookie(selectedLanguage);
+
+  try {
+    await loadGoogleTranslateScript();
+
+    let isApplied = applyGoogleTranslateLanguage(selectedLanguage);
+
+    if (!isApplied) {
+      window.setTimeout(() => applyGoogleTranslateLanguage(selectedLanguage), 220);
+      window.setTimeout(() => applyGoogleTranslateLanguage(selectedLanguage), 600);
+      if (forceReload) {
+        window.setTimeout(() => window.location.reload(), 900);
+      }
+    }
+  } catch (error) {
+    console.warn(error);
+    if (forceReload) {
+      window.location.reload();
+    }
+  }
+}
+
 window.resolveCurrentPage = resolveCurrentPage;
 window.updateActiveNavigation = updateActiveNavigation;
 window.loadSiteLayout = loadSiteLayout;
 
+
 document.addEventListener('DOMContentLoaded', loadSiteLayout);
 document.addEventListener('DOMContentLoaded', applyPreferredLanguage);
+
+document.addEventListener('DOMContentLoaded', () => {
+  const preferredLanguage = getPreferredLanguage();
+  if (preferredLanguage !== RCC_SOURCE_LANGUAGE) {
+    applyLanguageSelection(preferredLanguage);
+  }
+});
 
 
 function setupAdminShortcut() {
@@ -137,12 +263,12 @@ function setupLanguageSelector() {
 
   languageSelect.value = getPreferredLanguage();
 
-  languageSelect.addEventListener('change', (event) => {
+  languageSelect.addEventListener('change', async (event) => {
     const selectedLanguage = event.target.value;
     if (!RCC_SUPPORTED_LANGUAGES.includes(selectedLanguage)) return;
 
     localStorage.setItem(RCC_LANGUAGE_STORAGE_KEY, selectedLanguage);
-    document.documentElement.lang = selectedLanguage;
+    await applyLanguageSelection(selectedLanguage, { forceReload: true });
   });
 
   languageSelect.dataset.initialized = 'true';
