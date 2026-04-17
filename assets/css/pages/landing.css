@@ -27,10 +27,10 @@
   content: "";
   position: fixed;
   inset: 0;
-  background: center 50% / min(58vw, 580px) no-repeat url("../../images/logo.png");
+  background: center 50% / min(64vw, 640px) no-repeat url("../../images/logo.png");
   opacity: 0.075;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 .landing-main > * {
