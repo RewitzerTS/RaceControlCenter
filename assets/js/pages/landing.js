@@ -111,6 +111,22 @@
       });
     });
 
+
+    const landingLogo = document.querySelector('.landing-logo-anchor');
+    if (landingLogo && window.ScrollTrigger) {
+      gsap.to(landingLogo, {
+        y: -130,
+        autoAlpha: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '.landing-main',
+          start: 'top top',
+          end: 'top+=220 top',
+          scrub: true
+        }
+      });
+    }
+
     const heroVisual = document.querySelector('.landing-hero__visual');
     if (heroVisual) {
       heroVisual.addEventListener('pointermove', (event) => {
