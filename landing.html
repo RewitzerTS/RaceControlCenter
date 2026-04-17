@@ -43,10 +43,18 @@
         </div>
       </div>
 
-      <div class="landing-hero__visual" aria-label="Interaktive 3D-Vorschau">
+      <div class="landing-hero__visual" aria-label="Video-Vorschau Race Control Center">
         <div class="landing-glow" aria-hidden="true"></div>
-        <div id="hero-3d" class="hero-3d" role="img" aria-label="Stilisierte 3D-Trophäe"></div>
-        <p class="hero-3d-hint">Interaktive 3D-Ansicht · für moderne Browser optimiert</p>
+        <video
+          class="hero-video"
+          src="assets/videos/tvf1.mp4"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="metadata"
+          aria-label="RCC Hero Video"
+        ></video>
       </div>
     </section>
 
@@ -121,9 +129,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.min.js" defer></script>
-
   <script src="assets/js/pages/landing.js" defer></script>
-  <script src="assets/js/pages/landing-3d.js" defer></script>
 </body>
 </html>
