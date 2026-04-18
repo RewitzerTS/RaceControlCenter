@@ -103,12 +103,30 @@ button, input, textarea, select {
   display: none;
   position: relative;
   z-index: 1001;
+  align-items: center;
+  justify-content: center;
   touch-action: manipulation;
   border: 1px solid var(--line);
   background: rgba(255,255,255,0.04);
   color: var(--text);
-  border-radius: 12px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+}
+
+.mobile-toggle__icon {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mobile-toggle__icon span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
 .main-nav {
@@ -721,7 +739,7 @@ textarea { min-height: 120px; resize: vertical; }
 
   .header-inner {
     min-height: auto;
-    padding: calc(10px + env(safe-area-inset-top)) 0 10px;
+    padding: calc(6px + env(safe-area-inset-top)) 0 6px;
     align-items: center;
     flex-wrap: wrap;
   }
@@ -729,7 +747,7 @@ textarea { min-height: 120px; resize: vertical; }
   .main-nav {
     width: 100%;
     display: none;
-    padding-top: 8px;
+    padding-top: 6px;
     order: 3;
   }
 
@@ -783,26 +801,17 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .brand-logo {
-    width: 76px;
-    height: 76px;
+    width: 58px;
+    height: 58px;
   }
 
   .brand-title {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
   }
 
   .brand-subtitle {
     font-size: 0.62rem;
     letter-spacing: 0.16em;
-  }
-
-  .brand-title {
-    font-size: 1rem;
-  }
-
-  .brand-subtitle {
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
   }
 }
 
