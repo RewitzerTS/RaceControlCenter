@@ -1,5 +1,23 @@
 let trendChartInstance = null;
 
+function getRaceFlagFromCountryCode(countryCode) {
+  const emoji = window.getFlagEmoji?.(countryCode);
+  if (!emoji || emoji === '🏁') return '';
+  return emoji;
+}
+
+function getCompactLabelForStaticRace(raceName, fallbackRoundLabel) {
+  const track = window.findTrackByGrandPrixName?.(raceName);
+  const flag = getRaceFlagFromCountryCode(track?.countryCode);
+  return flag || fallbackRoundLabel;
+}
+
+function getCompactLabelForRace(race) {
+  const track = window.findTrackByRace?.(race);
+  const flag = getRaceFlagFromCountryCode(track?.countryCode || race?.country_code);
+  return flag || `R${race.round_number}`;
+}
+
 function renderStaticResultsOverride() {
   const data = window.RCC_STATIC_RESULTS_14;
   if (!data) return false;
@@ -16,7 +34,7 @@ function renderStaticResultsOverride() {
   const head = data.races.map((race, index) => `
     <th class="results-race-header" title="${window.escapeHtml(`R${index + 1} · ${race}`)}">
       <span class="results-race-head-full">${window.escapeHtml(race)}</span>
-      <span class="results-race-head-compact">R${index + 1}</span>
+      <span class="results-race-head-compact">${getCompactLabelForStaticRace(race, `R${index + 1}`)}</span>
     </th>
   `).join('');
 
@@ -138,7 +156,7 @@ function renderMatrix(container, labelEl, matrixData) {
   const head = completedRaces.map((race) => `
     <th class="results-race-header" title="${window.escapeHtml(`R${race.round_number} · ${race.grand_prix_name}`)}">
       <span class="results-race-head-full">${window.escapeHtml(race.grand_prix_name)}</span>
-      <span class="results-race-head-compact">R${race.round_number}</span>
+      <span class="results-race-head-compact">${getCompactLabelForRace(race)}</span>
     </th>
   `).join('');
   const body = rows.map((entry) => {
