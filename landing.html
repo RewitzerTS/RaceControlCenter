@@ -13,6 +13,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
 </head>
 <body data-page="landing">
+  <div class="landing-progress" aria-hidden="true"></div>
   <div class="landing-noise" aria-hidden="true"></div>
   <div class="landing-bg-orb landing-bg-orb--one" aria-hidden="true"></div>
   <div class="landing-bg-orb landing-bg-orb--two" aria-hidden="true"></div>
@@ -24,14 +25,36 @@
 
   <main class="landing-main">
     <section class="landing-hero container" aria-labelledby="landing-title">
-      <div class="landing-hero__content">
-        <h1 id="landing-title" class="landing-title" data-hero-item>Werde Teil des Race Control Center</h1>
-        <p class="landing-subline" data-hero-item>
-          Organisiere deine Liga professionell, fahre um echte Meisterschaften und erlebe maximale Transparenz durch Live-Standings, Stewarding und eine starke Community.
-        </p>
-        <div class="landing-status-row" data-hero-item>
+      <p class="eyebrow landing-hero__eyebrow" data-hero-item>Race Control Center · Competitive Racing OS</p>
+      <div class="landing-hero__grid">
+        <div class="landing-hero__content">
+          <h1 id="landing-title" class="landing-title" data-hero-item>Die Bühne für Meisterschaften, die man nicht vergisst.</h1>
+          <p class="landing-subline" data-hero-item>
+            Race Control Center orchestriert jede Saison wie ein Live-Event: präzise Organisation, transparente Entscheidungen und eine Dramaturgie, die Fahrer, Teams und Zuschauer bis ins Finale bindet.
+          </p>
+          <div class="landing-actions" data-hero-item>
+            <a
+              class="btn-primary-glow landing-cta landing-cta--primary"
+              href="index.html"
+              data-magnetic
+              data-cta-primary
+              data-track-event="landing_cta_primary_click"
+              data-track-target="join_flow"
+            >Liga starten</a>
+            <a
+              class="btn-secondary-ghost landing-cta"
+              href="#experience"
+              data-magnetic
+              data-cta-secondary
+              data-track-event="landing_cta_secondary_click"
+              data-track-target="experience"
+            >Erlebnis entdecken</a>
+          </div>
+        </div>
+
+        <div class="landing-hero__aside" data-hero-item>
           <article class="status-pill">
-            <span class="status-pill__label">Saisons</span>
+            <span class="status-pill__label">Saisons produziert</span>
             <strong class="status-pill__value" data-counter="120" data-counter-suffix="+">0</strong>
           </article>
           <article class="status-pill">
@@ -43,28 +66,15 @@
             <strong class="status-pill__value" data-counter="98" data-counter-suffix="%">0</strong>
           </article>
         </div>
-        <div class="landing-actions" data-hero-item>
-          <a
-            class="btn-primary-glow landing-cta"
-            href="index.html"
-            data-magnetic
-            data-cta-primary
-            data-track-event="landing_cta_primary_click"
-            data-track-target="join_flow"
-          >Jetzt beitreten</a>
-          <a
-            class="btn-secondary-ghost landing-cta"
-            href="#key-facts"
-            data-magnetic
-            data-cta-secondary
-            data-track-event="landing_cta_secondary_click"
-            data-track-target="key_facts"
-          >Mehr erfahren</a>
-        </div>
       </div>
 
-      <div class="landing-hero__visual" aria-label="Video-Vorschau Race Control Center">
+      <div class="landing-hero__visual" aria-label="Video-Vorschau Race Control Center" data-hero-item>
         <div class="landing-glow" aria-hidden="true"></div>
+        <div class="hero-visual-overlay" aria-hidden="true">
+          <span>Live Race Direction</span>
+          <span>Dynamic Championship Feed</span>
+          <span>Transparent Stewarding</span>
+        </div>
         <video
           class="hero-video"
           src="assets/videos/tvf1.mp4"
@@ -85,39 +95,62 @@
         <span>Dynamic Leaderboards</span>
         <span>Team Analytics</span>
         <span>Broadcast Ready</span>
+        <span>Predictive Race Notes</span>
         <span>Live Stewarding</span>
         <span>Race Intelligence</span>
         <span>Dynamic Leaderboards</span>
         <span>Team Analytics</span>
         <span>Broadcast Ready</span>
+        <span>Predictive Race Notes</span>
       </div>
     </section>
 
-    <section id="key-facts" class="landing-section container" aria-labelledby="facts-title">
+    <section id="experience" class="landing-section landing-sequence container" aria-labelledby="sequence-title">
+      <div class="section-heading" data-animate-block>
+        <p class="eyebrow">Inszeniertes Saison-Erlebnis</p>
+        <h2 id="sequence-title">Von der Anmeldung bis zur Zielflagge wie aus einem Guss.</h2>
+      </div>
+
+      <div class="sequence-grid">
+        <article class="sequence-step" data-animate-card>
+          <p class="sequence-step__index">01</p>
+          <h3>Onboarding mit Momentum</h3>
+          <p>Fahrer und Teams starten ohne Reibung in eine strukturierte Saison-Architektur mit klaren Zuständigkeiten und Deadline-Flow.</p>
+        </article>
+        <article class="sequence-step" data-animate-card>
+          <p class="sequence-step__index">02</p>
+          <h3>Rennen mit Echtzeit-Kontext</h3>
+          <p>Leaderboards, Zwischenstände und Storylines reagieren live auf jedes Ergebnis und schaffen sofort eine spürbare Championship-Spannung.</p>
+        </article>
+        <article class="sequence-step" data-animate-card>
+          <p class="sequence-step__index">03</p>
+          <h3>Stewarding, das Vertrauen aufbaut</h3>
+          <p>Dokumentierte Entscheidungen und transparente Kommunikation reduzieren Diskussionen und erhöhen die sportliche Glaubwürdigkeit.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="key-facts" class="landing-section container" aria-labelledby="facts-title" data-animate-block>
       <div class="section-heading">
-        <p class="eyebrow">Warum RCC?</p>
-        <h2 id="facts-title">Key Facts für deine Saison</h2>
+        <p class="eyebrow">Control Deck</p>
+        <h2 id="facts-title">Alle Werkzeuge für eine Premium-Liga in einem System.</h2>
       </div>
       <div class="facts-grid">
         <article class="fact-card" data-animate-card>
           <h3>Saisonmanagement</h3>
-          <p>Kompletter Rennkalender mit Event-Übersicht, Status und klaren Deadlines.</p>
+          <p>Kompletter Rennkalender mit Event-Übersicht, Status und klaren Deadlines für jede Rolle im Team.</p>
         </article>
         <article class="fact-card" data-animate-card>
-          <h3>Fahrer & Teams</h3>
-          <p>Volle Transparenz über Fahrer-WM, Team-WM und aktuelle Leistungsentwicklungen.</p>
-        </article>
-        <article class="fact-card" data-animate-card>
-          <h3>Live-Standings</h3>
-          <p>Aktuelle Punkte, Podien und Storylines – jederzeit abrufbar für alle Teilnehmer.</p>
+          <h3>Fahrer- & Team-WM</h3>
+          <p>Volle Transparenz über Performance, Trends und Tabellen – live, nachvollziehbar und jederzeit verfügbar.</p>
         </article>
         <article class="fact-card" data-animate-card>
           <h3>Stewarding Workflow</h3>
-          <p>Standardisierte Entscheidungen und nachvollziehbare Kommunikation bei Vorfällen.</p>
+          <p>Standardisierte Vorfallbearbeitung mit konsistenter Entscheidungshistorie statt Chat-Chaos.</p>
         </article>
         <article class="fact-card" data-animate-card>
           <h3>Historie & Hall of Fame</h3>
-          <p>Langfristige Motivation durch Archiv, Titelhistorie und öffentliche Erfolge.</p>
+          <p>Langfristige Motivation durch Archiv, Titelhistorie und öffentlich sichtbare Meilensteine.</p>
         </article>
       </div>
     </section>
@@ -125,29 +158,36 @@
     <section class="landing-section container" aria-labelledby="community-title" data-animate-block>
       <div class="section-heading">
         <p class="eyebrow">Community & Vertrauen</p>
-        <h2 id="community-title">Gemeinsam schneller, fairer, besser</h2>
+        <h2 id="community-title">Starke Stimmen aus echten Saisons.</h2>
       </div>
       <div class="proof-grid">
-        <article class="proof-card">
-          <p>„RCC hat unser Liga-Management von Chaos auf Profi-Level gebracht.“</p>
+        <article class="proof-card" data-animate-card>
+          <p>„RCC hat unser Liga-Management von chaotisch auf sendefähig transformiert.“</p>
           <span>— Liga-Admin</span>
         </article>
-        <article class="proof-card">
-          <p>„Dank transparenter Stewards-Entscheidungen gibt es weniger Diskussionen und mehr Racing.“</p>
+        <article class="proof-card" data-animate-card>
+          <p>„Transparente Stewarding-Entscheidungen haben die Diskussionen minimiert und den Fokus aufs Racing gebracht.“</p>
           <span>— Stammfahrer</span>
         </article>
-        <article class="proof-card">
-          <p>„Die Kombination aus Live-Daten und Hall of Fame motiviert die ganze Saison.“</p>
+        <article class="proof-card" data-animate-card>
+          <p>„Die Inszenierung rund um Live-Daten und Hall of Fame hält unsere ganze Community dauerhaft engagiert.“</p>
           <span>— Team-Manager</span>
         </article>
+      </div>
+      <div class="trust-rail" data-animate-block aria-label="Trust Kennzahlen">
+        <span>120+ Saisons</span>
+        <span>1600+ aktive Fahrer</span>
+        <span>98% Fälle gelöst</span>
+        <span>Broadcast-Ready Workflows</span>
       </div>
     </section>
 
     <section class="landing-section container final-cta" aria-labelledby="final-title" data-animate-block>
-      <h2 id="final-title">Starte jetzt deine nächste Meisterschaft im Race Control Center.</h2>
-      <p>Baue Wettbewerb, Fairness und Community in einer Plattform auf – vom ersten Training bis zum Titelkampf.</p>
+      <p class="eyebrow">Bereit für die nächste Saison?</p>
+      <h2 id="final-title">Starte jetzt eine Liga, die sich wie ein echtes Championship-Format anfühlt.</h2>
+      <p>Setze auf Klarheit, Vertrauen und Pace – vom ersten Training bis zum letzten Rennwochenende.</p>
       <a
-        class="btn-primary-glow landing-cta"
+        class="btn-primary-glow landing-cta landing-cta--primary"
         href="index.html"
         data-magnetic
         data-cta-final
