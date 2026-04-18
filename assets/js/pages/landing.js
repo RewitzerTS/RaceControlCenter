@@ -82,7 +82,13 @@
         opacity: 0,
         stagger: 0.13,
         clearProps: 'opacity,transform'
-      });
+      })
+      .from('.landing-marquee', {
+        y: 22,
+        opacity: 0,
+        duration: 0.62,
+        clearProps: 'opacity,transform'
+      }, '-=0.34');
 
     gsap.from('[data-animate-card]', {
       scrollTrigger: {
@@ -141,12 +147,111 @@
           overwrite: 'auto',
           ease: 'power2.out'
         });
+
+        gsap.to(heroVisual, {
+          rotateY: xNorm * 3.2,
+          rotateX: yNorm * -3.4,
+          transformPerspective: 900,
+          transformOrigin: 'center',
+          duration: 0.45,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      });
+
+      heroVisual.addEventListener('pointerleave', () => {
+        gsap.to(heroVisual, {
+          rotateX: 0,
+          rotateY: 0,
+          duration: 0.5,
+          ease: 'power2.out'
+        });
       });
     }
+
+    gsap.to('.landing-bg-orb--one', {
+      xPercent: 8,
+      yPercent: 10,
+      repeat: -1,
+      yoyo: true,
+      duration: 9,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to('.landing-bg-orb--two', {
+      xPercent: -9,
+      yPercent: -8,
+      repeat: -1,
+      yoyo: true,
+      duration: 11,
+      ease: 'sine.inOut'
+    });
+  }
+
+  function bindMagneticButtons() {
+    if (prefersReducedMotion || !window.gsap) return;
+
+    const buttons = document.querySelectorAll('[data-magnetic]');
+    buttons.forEach((button) => {
+      button.addEventListener('pointermove', (event) => {
+        const rect = button.getBoundingClientRect();
+        const offsetX = event.clientX - rect.left - rect.width / 2;
+        const offsetY = event.clientY - rect.top - rect.height / 2;
+
+        window.gsap.to(button, {
+          x: offsetX * 0.15,
+          y: offsetY * 0.28,
+          duration: 0.24,
+          ease: 'power2.out',
+          overwrite: 'auto'
+        });
+      });
+
+      button.addEventListener('pointerleave', () => {
+        window.gsap.to(button, {
+          x: 0,
+          y: 0,
+          duration: 0.42,
+          ease: 'elastic.out(1, 0.45)'
+        });
+      });
+    });
+  }
+
+  function initCounters() {
+    if (!window.gsap || !window.ScrollTrigger) return;
+
+    const counters = document.querySelectorAll('[data-counter]');
+    counters.forEach((counter) => {
+      const target = Number(counter.dataset.counter || 0);
+      const state = { value: 0 };
+      const suffix = counter.dataset.counterSuffix || '';
+
+      window.gsap.to(state, {
+        value: target,
+        duration: 1.8,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: counter,
+          start: 'top 88%',
+          once: true
+        },
+        onUpdate: () => {
+          const rounded = Math.round(state.value);
+          counter.textContent = `${rounded}${suffix}`;
+        }
+      });
+
+      if (prefersReducedMotion) {
+        counter.textContent = `${target}${suffix}`;
+      }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     bindCtaTracking();
     runGsapAnimations();
+    bindMagneticButtons();
+    initCounters();
   });
 })();
