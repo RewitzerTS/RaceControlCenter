@@ -13,6 +13,11 @@
   <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
 </head>
 <body data-page="landing">
+  <div class="landing-noise" aria-hidden="true"></div>
+  <div class="landing-bg-orb landing-bg-orb--one" aria-hidden="true"></div>
+  <div class="landing-bg-orb landing-bg-orb--two" aria-hidden="true"></div>
+  <div class="landing-bg-grid" aria-hidden="true"></div>
+
   <a class="landing-logo-anchor" href="index.html" aria-label="Race Control Center Startseite">
     <img src="assets/images/logo.png" alt="Race Control Center Logo" class="landing-logo-image">
   </a>
@@ -24,10 +29,25 @@
         <p class="landing-subline" data-hero-item>
           Organisiere deine Liga professionell, fahre um echte Meisterschaften und erlebe maximale Transparenz durch Live-Standings, Stewarding und eine starke Community.
         </p>
+        <div class="landing-status-row" data-hero-item>
+          <article class="status-pill">
+            <span class="status-pill__label">Saisons</span>
+            <strong class="status-pill__value" data-counter="120" data-counter-suffix="+">0</strong>
+          </article>
+          <article class="status-pill">
+            <span class="status-pill__label">Aktive Fahrer</span>
+            <strong class="status-pill__value" data-counter="1600" data-counter-suffix="+">0</strong>
+          </article>
+          <article class="status-pill">
+            <span class="status-pill__label">Steward-Fälle gelöst</span>
+            <strong class="status-pill__value" data-counter="98" data-counter-suffix="%">0</strong>
+          </article>
+        </div>
         <div class="landing-actions" data-hero-item>
           <a
             class="btn-primary-glow landing-cta"
             href="index.html"
+            data-magnetic
             data-cta-primary
             data-track-event="landing_cta_primary_click"
             data-track-target="join_flow"
@@ -35,6 +55,7 @@
           <a
             class="btn-secondary-ghost landing-cta"
             href="#key-facts"
+            data-magnetic
             data-cta-secondary
             data-track-event="landing_cta_secondary_click"
             data-track-target="key_facts"
@@ -54,6 +75,21 @@
           preload="metadata"
           aria-label="RCC Hero Video"
         ></video>
+      </div>
+    </section>
+
+    <section class="landing-marquee" aria-label="RCC Highlights">
+      <div class="landing-marquee__track">
+        <span>Live Stewarding</span>
+        <span>Race Intelligence</span>
+        <span>Dynamic Leaderboards</span>
+        <span>Team Analytics</span>
+        <span>Broadcast Ready</span>
+        <span>Live Stewarding</span>
+        <span>Race Intelligence</span>
+        <span>Dynamic Leaderboards</span>
+        <span>Team Analytics</span>
+        <span>Broadcast Ready</span>
       </div>
     </section>
 
@@ -113,6 +149,7 @@
       <a
         class="btn-primary-glow landing-cta"
         href="index.html"
+        data-magnetic
         data-cta-final
         data-track-event="landing_cta_final_click"
         data-track-target="final_join_flow"
