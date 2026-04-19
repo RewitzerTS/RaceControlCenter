@@ -749,14 +749,7 @@ textarea { min-height: 120px; resize: vertical; }
 
 @media (max-width: 860px) {
   body {
-    padding-top: calc(96px + env(safe-area-inset-top));
-  }
-
-  .site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    padding-top: 0;
   }
 
   .mobile-toggle { display: inline-flex; order: 2; }
