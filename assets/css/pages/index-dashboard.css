@@ -26,9 +26,7 @@
     body.splash-active #site-footer {
       opacity: 0;
       pointer-events: none;
-      transform: translateY(14px) scale(.992);
-      filter: blur(8px);
-      transition: opacity .42s ease, transform .56s ease, filter .56s ease;
+      transition: opacity .42s ease;
     }
     body.splash-exit #app-launch-splash {
       opacity: 0;
@@ -45,6 +43,9 @@
       opacity: 1;
       transform: translateY(0) scale(1);
       filter: none;
+    }
+    body.splash-done #site-header {
+      transform: none;
     }
     body.splash-done #app-launch-splash {
       opacity: 0;
