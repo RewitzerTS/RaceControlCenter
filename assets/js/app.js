@@ -15,6 +15,31 @@ function isMobileDevice() {
   return window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
 }
 
+function initGlobalScrollProgress() {
+  if (document.body?.dataset.scrollProgressBound === 'true') return;
+  document.body.dataset.scrollProgressBound = 'true';
+
+  let progressBar = document.querySelector('.site-scroll-progress');
+  if (!progressBar) {
+    progressBar = document.createElement('div');
+    progressBar.className = 'site-scroll-progress';
+    progressBar.setAttribute('aria-hidden', 'true');
+    document.body.prepend(progressBar);
+  }
+
+  const updateProgressBar = () => {
+    const root = document.documentElement;
+    const maxScrollableDistance = Math.max(root.scrollHeight - root.clientHeight, 1);
+    const progress = root.scrollTop / maxScrollableDistance;
+    const safeProgress = Math.max(0, Math.min(1, progress));
+    root.style.setProperty('--site-scroll-progress', `${safeProgress * 100}%`);
+  };
+
+  updateProgressBar();
+  window.addEventListener('scroll', updateProgressBar, { passive: true });
+  window.addEventListener('resize', updateProgressBar);
+}
+
 function initStandaloneSplashScreen() {
   if (document.body?.dataset.page !== 'index') return;
 
@@ -189,5 +214,6 @@ function initTrackMapModal() {
 document.addEventListener('DOMContentLoaded', initNavigation);
 document.addEventListener('DOMContentLoaded', initTrackMapModal);
 document.addEventListener('DOMContentLoaded', initStandaloneSplashScreen);
+document.addEventListener('DOMContentLoaded', initGlobalScrollProgress);
 document.addEventListener('layout:loaded', initNavigation);
 document.addEventListener('layout:loaded', initTrackMapModal);
