@@ -396,16 +396,21 @@
 .landing-cta {
   position: relative;
   overflow: hidden;
-  transition: transform 300ms ease, box-shadow 300ms ease;
+  transition: transform 260ms ease, box-shadow 260ms ease, filter 260ms ease;
   will-change: transform;
 }
 
 .landing-cta:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.015);
+  filter: brightness(1.08) saturate(1.12);
 }
 
 .landing-cta--primary {
   box-shadow: 0 18px 35px rgba(50, 94, 255, 0.36);
+}
+
+.landing-cta--primary:hover {
+  box-shadow: 0 24px 42px rgba(66, 124, 255, 0.5);
 }
 
 .landing-cta::after {
