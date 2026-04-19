@@ -107,12 +107,13 @@
 
 .landing-title {
   margin: 0;
-  max-width: 16ch;
+  max-width: 100%;
   font-size: clamp(2.5rem, 6.5vw, 5.3rem);
   line-height: 0.92;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   text-shadow: 0 10px 46px rgba(82, 64, 255, 0.37);
+  text-wrap: balance;
 }
 
 .landing-subline {
