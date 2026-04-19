@@ -18,11 +18,12 @@
   --radius: 22px;
   --max: 1280px;
   --site-scroll-progress: 0%;
+  --site-header-offset: 0px;
 }
 
 .site-scroll-progress {
   position: fixed;
-  inset: 0 auto auto 0;
+  inset: var(--site-header-offset, 0px) auto auto 0;
   height: 3px;
   width: var(--site-scroll-progress, 0%);
   z-index: 240;

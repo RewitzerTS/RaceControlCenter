@@ -27,21 +27,45 @@ function initGlobalScrollProgress() {
     document.body.prepend(progressBar);
   }
 
+  const root = document.documentElement;
+
+  const updateHeaderOffset = () => {
+    const siteHeader = document.querySelector('.site-header');
+    const headerHeight = siteHeader
+      ? Math.max(siteHeader.getBoundingClientRect().height, siteHeader.offsetHeight, 0)
+      : 0;
+    root.style.setProperty('--site-header-offset', `${Math.round(headerHeight)}px`);
+  };
+
   const updateProgressBar = () => {
-    const root = document.documentElement;
     const scrollElement = document.scrollingElement || document.documentElement || document.body;
-    const viewportHeight = window.innerHeight || root.clientHeight || scrollElement.clientHeight || 1;
+    const viewportHeight = window.visualViewport?.height || window.innerHeight || root.clientHeight || scrollElement.clientHeight || 1;
     const maxScrollableDistance = Math.max(scrollElement.scrollHeight - viewportHeight, 1);
-    const scrollTop = Math.max(window.scrollY || 0, scrollElement.scrollTop || 0, root.scrollTop || 0, document.body.scrollTop || 0);
+    const scrollTop = Math.max(0, window.scrollY || scrollElement.scrollTop || root.scrollTop || document.body.scrollTop || 0);
     const progress = scrollTop / maxScrollableDistance;
     const safeProgress = Math.max(0, Math.min(1, progress));
     root.style.setProperty('--site-scroll-progress', `${safeProgress * 100}%`);
     document.body.style.setProperty('--site-scroll-progress', `${safeProgress * 100}%`);
   };
 
-  updateProgressBar();
-  window.addEventListener('scroll', updateProgressBar, { passive: true });
-  window.addEventListener('resize', updateProgressBar);
+  let frameRequested = false;
+  const scheduleProgressUpdate = () => {
+    if (frameRequested) return;
+    frameRequested = true;
+
+    window.requestAnimationFrame(() => {
+      updateHeaderOffset();
+      updateProgressBar();
+      frameRequested = false;
+    });
+  };
+
+  scheduleProgressUpdate();
+  window.addEventListener('scroll', scheduleProgressUpdate, { passive: true });
+  window.addEventListener('resize', scheduleProgressUpdate);
+  window.addEventListener('orientationchange', scheduleProgressUpdate);
+  window.visualViewport?.addEventListener('resize', scheduleProgressUpdate);
+  window.visualViewport?.addEventListener('scroll', scheduleProgressUpdate);
 }
 
 function initStandaloneSplashScreen() {
