@@ -29,10 +29,14 @@ function initGlobalScrollProgress() {
 
   const updateProgressBar = () => {
     const root = document.documentElement;
-    const maxScrollableDistance = Math.max(root.scrollHeight - root.clientHeight, 1);
-    const progress = root.scrollTop / maxScrollableDistance;
+    const scrollElement = document.scrollingElement || document.documentElement || document.body;
+    const viewportHeight = window.innerHeight || root.clientHeight || scrollElement.clientHeight || 1;
+    const maxScrollableDistance = Math.max(scrollElement.scrollHeight - viewportHeight, 1);
+    const scrollTop = Math.max(window.scrollY || 0, scrollElement.scrollTop || 0, root.scrollTop || 0, document.body.scrollTop || 0);
+    const progress = scrollTop / maxScrollableDistance;
     const safeProgress = Math.max(0, Math.min(1, progress));
     root.style.setProperty('--site-scroll-progress', `${safeProgress * 100}%`);
+    document.body.style.setProperty('--site-scroll-progress', `${safeProgress * 100}%`);
   };
 
   updateProgressBar();
