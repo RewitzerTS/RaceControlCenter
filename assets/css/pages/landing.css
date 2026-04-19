@@ -91,18 +91,11 @@
 .landing-hero {
   position: relative;
   display: grid;
-  gap: 26px;
+  gap: 22px;
 }
 
 .landing-hero__eyebrow {
   margin-bottom: 4px;
-}
-
-.landing-hero__grid {
-  display: grid;
-  gap: 24px;
-  align-items: end;
-  grid-template-columns: minmax(0, 1.1fr) minmax(270px, 0.7fr);
 }
 
 .landing-title {
@@ -116,10 +109,13 @@
   text-wrap: balance;
 }
 
+.landing-hero__content {
+  max-width: 68ch;
+}
+
 .landing-subline {
   color: var(--landing-ink);
-  max-width: 66ch;
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   line-height: 1.7;
   font-size: clamp(1.03rem, 1.45vw, 1.24rem);
   text-wrap: pretty;
@@ -132,9 +128,17 @@
   margin-top: 26px;
 }
 
+.landing-actions .landing-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 .landing-hero__aside {
   display: grid;
   gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .status-pill {
@@ -423,10 +427,6 @@
 }
 
 @media (max-width: 1080px) {
-  .landing-hero__grid {
-    grid-template-columns: 1fr;
-  }
-
   .landing-hero__aside {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -459,6 +459,10 @@
   .proof-grid,
   .landing-actions {
     grid-template-columns: 1fr;
+  }
+
+  .landing-hero__aside {
+    gap: 10px;
   }
 
   .landing-actions {
