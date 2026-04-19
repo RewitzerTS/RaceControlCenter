@@ -3,17 +3,6 @@
   --landing-card: linear-gradient(165deg, rgba(11, 22, 44, 0.92), rgba(35, 25, 70, 0.68));
 }
 
-.landing-progress {
-  position: fixed;
-  inset: 0 auto auto 0;
-  height: 3px;
-  width: var(--scroll-progress, 0%);
-  z-index: 120;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(100, 219, 255, 0.8), rgba(153, 119, 255, 0.95));
-  box-shadow: 0 0 22px rgba(95, 188, 255, 0.62);
-  transition: width 120ms linear;
-}
-
 .landing-noise,
 .landing-bg-orb,
 .landing-bg-grid {

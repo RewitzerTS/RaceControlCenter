@@ -17,6 +17,19 @@
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   --radius: 22px;
   --max: 1280px;
+  --site-scroll-progress: 0%;
+}
+
+.site-scroll-progress {
+  position: fixed;
+  inset: 0 auto auto 0;
+  height: 3px;
+  width: var(--site-scroll-progress, 0%);
+  z-index: 240;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(100, 219, 255, 0.8), rgba(153, 119, 255, 0.95));
+  box-shadow: 0 0 22px rgba(95, 188, 255, 0.62);
+  transition: width 120ms linear;
 }
 
 * { box-sizing: border-box; }

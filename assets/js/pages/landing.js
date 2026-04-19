@@ -64,18 +64,6 @@
     });
   }
 
-  function updateProgressBar() {
-    const progress = document.documentElement.scrollTop / (document.documentElement.scrollHeight - document.documentElement.clientHeight || 1);
-    const safeProgress = Math.max(0, Math.min(1, progress));
-    document.documentElement.style.setProperty('--scroll-progress', `${safeProgress * 100}%`);
-  }
-
-  function bindScrollProgress() {
-    updateProgressBar();
-    window.addEventListener('scroll', updateProgressBar, { passive: true });
-    window.addEventListener('resize', updateProgressBar);
-  }
-
   function runGsapAnimations() {
     if (prefersReducedMotion || !window.gsap) return;
 
@@ -283,7 +271,6 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     bindCtaTracking();
-    bindScrollProgress();
     runGsapAnimations();
     bindMagneticButtons();
     initCounters();
