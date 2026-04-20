@@ -228,10 +228,26 @@ function renderImportPreviewTable(rows, summary = {}) {
 
 function buildDriverLookupMap(drivers = []) {
   const map = new Map();
+  const sourcePriority = {
+    'AI-Fahrer': 3,
+    Gamertag: 2,
+    Anzeigename: 1
+  };
+
   const register = (key, payload) => {
     if (!key) return;
     if (!map.has(key)) map.set(key, []);
-    map.get(key).push(payload);
+    const entries = map.get(key);
+    const existingIndex = entries.findIndex((entry) => entry.driver_id === payload.driver_id);
+    if (existingIndex === -1) {
+      entries.push(payload);
+      return;
+    }
+
+    const current = entries[existingIndex];
+    const currentPriority = sourcePriority[current.source] || 0;
+    const incomingPriority = sourcePriority[payload.source] || 0;
+    if (incomingPriority > currentPriority) entries[existingIndex] = payload;
   };
 
   drivers.forEach((driver) => {
