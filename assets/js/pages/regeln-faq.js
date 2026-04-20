@@ -90,7 +90,201 @@ function resolveDriverLogoSourceForView(driver = {}) {
     || String(driver.car_name || driver.league_team || '').trim();
 }
 
-function renderVehiclePairs(drivers = []) {
+function createEmptyDriverFacts() {
+  return {
+    championships: { driver: 0, constructor: 0 },
+    allTime: {
+      podiums: 0,
+      fastestLaps: 0,
+      averageStart: null,
+      averageFinish: null
+    },
+    currentSeason: {
+      podiums: 0,
+      fastestLaps: 0,
+      averageStart: null,
+      averageFinish: null
+    }
+  };
+}
+
+function formatAveragePosition(value) {
+  if (!Number.isFinite(value)) return '—';
+  return value.toFixed(2).replace('.', ',');
+}
+
+function createAverageTracker() {
+  return {
+    startTotal: 0,
+    finishTotal: 0,
+    startCount: 0,
+    finishCount: 0
+  };
+}
+
+function addAverageValue(tracker, startPosition, finishPosition) {
+  const start = Number(startPosition);
+  const finish = Number(finishPosition);
+
+  if (Number.isFinite(start) && start > 0) {
+    tracker.startTotal += start;
+    tracker.startCount += 1;
+  }
+
+  if (Number.isFinite(finish) && finish > 0) {
+    tracker.finishTotal += finish;
+    tracker.finishCount += 1;
+  }
+}
+
+function finalizeAverageTracker(tracker) {
+  return {
+    averageStart: tracker.startCount ? tracker.startTotal / tracker.startCount : null,
+    averageFinish: tracker.finishCount ? tracker.finishTotal / tracker.finishCount : null
+  };
+}
+
+function normalizeDriverNameForFacts(name) {
+  return window.RCCData?.normalizeDriverName?.(name) || String(name || '').trim().toLowerCase();
+}
+
+function computeFastestLapWinnersByRace(raceResults = []) {
+  const byRace = new Map();
+  (raceResults || []).forEach((row) => {
+    if (!byRace.has(row.race_id)) byRace.set(row.race_id, []);
+    byRace.get(row.race_id).push(row);
+  });
+
+  const winnerByRace = new Map();
+  byRace.forEach((rows, raceId) => {
+    const winner = window.RCCData?.getFastestLapDriverId?.(rows);
+    if (winner) winnerByRace.set(raceId, winner);
+  });
+  return winnerByRace;
+}
+
+function computeDriverFacts({
+  drivers = [],
+  races = [],
+  raceResults = [],
+  currentSeasonId = null,
+  championshipHistory = []
+} = {}) {
+  const byDriverId = new Map((drivers || []).map((driver) => [driver.id, createEmptyDriverFacts()]));
+  const racesById = new Map((races || []).map((race) => [race.id, race]));
+  const fastestLapWinnerByRace = computeFastestLapWinnersByRace(raceResults);
+  const allTimeAverageByDriver = new Map();
+  const currentSeasonAverageByDriver = new Map();
+
+  (raceResults || []).forEach((row) => {
+    if (!row?.driver_id || !byDriverId.has(row.driver_id)) return;
+    const race = racesById.get(row.race_id);
+    const raceSeasonId = race?.season_id;
+    const facts = byDriverId.get(row.driver_id);
+    const finishPosition = Number(row.finish_position);
+
+    if (Number.isFinite(finishPosition) && finishPosition >= 1 && finishPosition <= 3) {
+      facts.allTime.podiums += 1;
+      if (currentSeasonId !== null && raceSeasonId === currentSeasonId) facts.currentSeason.podiums += 1;
+    }
+
+    if (fastestLapWinnerByRace.get(row.race_id) === row.driver_id) {
+      facts.allTime.fastestLaps += 1;
+      if (currentSeasonId !== null && raceSeasonId === currentSeasonId) facts.currentSeason.fastestLaps += 1;
+    }
+
+    if (!allTimeAverageByDriver.has(row.driver_id)) {
+      allTimeAverageByDriver.set(row.driver_id, createAverageTracker());
+    }
+    addAverageValue(
+      allTimeAverageByDriver.get(row.driver_id),
+      row.start_position,
+      row.finish_position
+    );
+
+    if (currentSeasonId !== null && raceSeasonId === currentSeasonId) {
+      if (!currentSeasonAverageByDriver.has(row.driver_id)) {
+        currentSeasonAverageByDriver.set(row.driver_id, createAverageTracker());
+      }
+      addAverageValue(
+        currentSeasonAverageByDriver.get(row.driver_id),
+        row.start_position,
+        row.finish_position
+      );
+    }
+  });
+
+  const driversByNormalizedName = new Map();
+  (drivers || []).forEach((driver) => {
+    const normalized = normalizeDriverNameForFacts(driver.display_name);
+    if (!normalized) return;
+    if (!driversByNormalizedName.has(normalized)) driversByNormalizedName.set(normalized, []);
+    driversByNormalizedName.get(normalized).push(driver.id);
+  });
+
+  (championshipHistory || []).forEach((record) => {
+    const driverChampion = String(record?.driver_champion || '').trim();
+    if (driverChampion) {
+      const ids = driversByNormalizedName.get(normalizeDriverNameForFacts(driverChampion)) || [];
+      ids.forEach((id) => {
+        const facts = byDriverId.get(id);
+        if (facts) facts.championships.driver += 1;
+      });
+    }
+
+    String(record?.constructor_champion_lineup || '')
+      .split('&')
+      .map((entry) => String(entry || '').trim())
+      .filter(Boolean)
+      .map((entry) => entry.match(/^([^()]+?)(?:\s*\(([^)]+)\))?$/)?.[1] || entry)
+      .map((name) => String(name || '').trim())
+      .filter(Boolean)
+      .forEach((name) => {
+        const ids = driversByNormalizedName.get(normalizeDriverNameForFacts(name)) || [];
+        ids.forEach((id) => {
+          const facts = byDriverId.get(id);
+          if (facts) facts.championships.constructor += 1;
+        });
+      });
+  });
+
+  byDriverId.forEach((facts, driverId) => {
+    const allTimeAverages = finalizeAverageTracker(allTimeAverageByDriver.get(driverId) || createAverageTracker());
+    const currentSeasonAverages = finalizeAverageTracker(currentSeasonAverageByDriver.get(driverId) || createAverageTracker());
+    facts.allTime.averageStart = allTimeAverages.averageStart;
+    facts.allTime.averageFinish = allTimeAverages.averageFinish;
+    facts.currentSeason.averageStart = currentSeasonAverages.averageStart;
+    facts.currentSeason.averageFinish = currentSeasonAverages.averageFinish;
+  });
+
+  return byDriverId;
+}
+
+function renderDriverFactsList(facts = createEmptyDriverFacts()) {
+  const items = [];
+
+  if (facts.championships.driver > 0) {
+    items.push(`<li><strong>${facts.championships.driver}x</strong> Fahrer-WM gewonnen</li>`);
+  }
+  if (facts.championships.constructor > 0) {
+    items.push(`<li><strong>${facts.championships.constructor}x</strong> Konstrukteurs-Titel gewonnen</li>`);
+  }
+
+  items.push(`<li>Podien gesamt: <strong>${facts.allTime.podiums}</strong></li>`);
+  items.push(`<li>Schnellste Runden gesamt: <strong>${facts.allTime.fastestLaps}</strong></li>`);
+  items.push(`<li>Ø Startposition gesamt: <strong>${formatAveragePosition(facts.allTime.averageStart)}</strong></li>`);
+  items.push(`<li>Ø Endposition gesamt: <strong>${formatAveragePosition(facts.allTime.averageFinish)}</strong></li>`);
+  items.push('<li class="driver-facts-divider" aria-hidden="true"></li>');
+  items.push('<li class="driver-facts-season-label">Laufende Saison</li>');
+  items.push(`<li>Podien: <strong>${facts.currentSeason.podiums}</strong></li>`);
+  items.push(`<li>Schnellste Runden: <strong>${facts.currentSeason.fastestLaps}</strong></li>`);
+  items.push(`<li>Ø Startposition: <strong>${formatAveragePosition(facts.currentSeason.averageStart)}</strong></li>`);
+  items.push(`<li>Ø Endposition: <strong>${formatAveragePosition(facts.currentSeason.averageFinish)}</strong></li>`);
+
+  return `<ul class="driver-facts-list">${items.join('')}</ul>`;
+}
+
+function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
   const list = document.getElementById('vehicle-pair-list');
   if (!list) return;
 
@@ -124,19 +318,36 @@ function renderVehiclePairs(drivers = []) {
           </header>
           <div class="driver-team-members">
             ${sortedMembers.map((driver) => `
-              <div class="driver-team-member">
-                <div class="driver-team-member-main">
-                  <strong>${window.escapeHtml(driver.display_name || '—')}</strong>
-                  <span class="muted">KI Bot: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
-                  <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
-                </div>
-              </div>
+              <button type="button" class="driver-team-member driver-team-member-flip" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} drehen">
+                <span class="driver-team-member-inner">
+                  <span class="driver-team-member-front">
+                    <span class="driver-team-member-main">
+                      <strong>${window.escapeHtml(driver.display_name || '—')}</strong>
+                      <span class="muted">KI Bot: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
+                      <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
+                    </span>
+                    <span class="driver-card-hint">Tippen für Facts</span>
+                  </span>
+                  <span class="driver-team-member-back">
+                    <span class="driver-facts-heading">Fahrer Facts</span>
+                    ${renderDriverFactsList(driverFactsById.get(driver.id))}
+                    <span class="driver-card-hint">Erneut tippen zum Zurückdrehen</span>
+                  </span>
+                </span>
+              </button>
             `).join('')}
           </div>
         </article>`;
     });
 
   list.innerHTML = cards.join('');
+
+  list.querySelectorAll('.driver-team-member-flip').forEach((card) => {
+    card.addEventListener('click', () => {
+      card.classList.toggle('is-flipped');
+      card.setAttribute('aria-pressed', card.classList.contains('is-flipped') ? 'true' : 'false');
+    });
+  });
 }
 
 function resolveReferenceRaceForCurrentAssignments(races = []) {
@@ -201,17 +412,26 @@ async function initRulesFaqPage() {
 
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
-    const [content, drivers, races, assignments] = await Promise.all([
+    const [content, drivers, races, raceResults, seasons, assignments] = await Promise.all([
       window.RCCData.fetchLeagueContent(),
       window.RCCData.fetchDrivers(),
-      window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
+      window.RCCData.fetchRaces(),
+      window.RCCData.fetchRaceResults(),
+      window.RCCData.fetchSeasonHistory(100),
       window.RCCDriverContext?.fetchDriverSeasonAssignments?.({ seasonId: currentSeason?.id }) || Promise.resolve([])
     ]);
     const currentAssignmentDrivers = resolveDriversForCurrentAssignments({ drivers, races, assignments });
+    const driverFactsById = computeDriverFacts({
+      drivers: currentAssignmentDrivers,
+      races,
+      raceResults,
+      currentSeasonId: currentSeason?.id ?? null,
+      championshipHistory: seasons
+    });
 
     renderRulesConfig(content.rules_config || {});
     renderFaqItems(content.faq_items || []);
-    renderVehiclePairs(currentAssignmentDrivers || []);
+    renderVehiclePairs(currentAssignmentDrivers || [], driverFactsById);
   } catch (error) {
     console.error(error);
     const list = document.getElementById('vehicle-pair-list');
