@@ -1778,6 +1778,46 @@ body[data-page="admin"] .button-danger:focus-visible {
   background: rgba(255,255,255,0.03);
 }
 
+.driver-team-member-flip {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  perspective: 1100px;
+  min-height: 206px;
+  color: inherit;
+}
+
+.driver-team-member-flip:focus-visible {
+  outline: 2px solid rgba(110, 231, 242, 0.82);
+  outline-offset: 2px;
+}
+
+.driver-team-member-inner {
+  position: relative;
+  display: block;
+  min-height: 182px;
+  transform-style: preserve-3d;
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.driver-team-member-flip.is-flipped .driver-team-member-inner {
+  transform: rotateY(180deg);
+}
+
+.driver-team-member-front,
+.driver-team-member-back {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  backface-visibility: hidden;
+}
+
+.driver-team-member-back {
+  transform: rotateY(180deg);
+}
+
 .driver-team-member.is-missing-gamertag {
   border-color: rgba(244, 193, 77, 0.55);
   background: linear-gradient(180deg, rgba(244, 193, 77, 0.2), rgba(244, 193, 77, 0.08));
@@ -1786,6 +1826,53 @@ body[data-page="admin"] .button-danger:focus-visible {
 .driver-team-member-main {
   display: grid;
   gap: 4px;
+}
+
+.driver-card-hint {
+  margin-top: auto;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.driver-facts-heading {
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(216, 199, 255, 1);
+}
+
+.driver-facts-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 0.86rem;
+}
+
+.driver-facts-list li {
+  color: var(--text-muted);
+}
+
+.driver-facts-list li strong {
+  color: var(--text);
+}
+
+.driver-facts-season-label {
+  list-style: none;
+  margin-left: -18px;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(216, 199, 255, 1);
+  font-weight: 700;
+}
+
+.driver-facts-divider {
+  list-style: none;
+  margin: 3px 0 5px -18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .driver-admin-card-head {
