@@ -1771,8 +1771,8 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-team-member {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 9px 12px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
@@ -1783,7 +1783,7 @@ body[data-page="admin"] .button-danger:focus-visible {
   text-align: left;
   cursor: pointer;
   perspective: 1100px;
-  min-height: 206px;
+  min-height: 194px;
   color: inherit;
 }
 
@@ -1795,7 +1795,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 .driver-team-member-inner {
   position: relative;
   display: block;
-  min-height: 182px;
+  min-height: 168px;
   transform-style: preserve-3d;
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -1832,6 +1832,7 @@ body[data-page="admin"] .button-danger:focus-visible {
   margin-top: auto;
   color: var(--text-muted);
   font-size: 0.76rem;
+  font-weight: 400;
 }
 
 .driver-facts-heading {
@@ -2092,7 +2093,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-compare-table th,
 .driver-compare-table td {
-  padding: 7px 8px;
+  padding: 7px 5px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
@@ -2136,7 +2137,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 
   .driver-compare-table th,
   .driver-compare-table td {
-    padding: 6px;
+    padding: 6px 4px;
   }
 }
 
