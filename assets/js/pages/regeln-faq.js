@@ -433,7 +433,6 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
                       <span class="muted">KI Bot: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
                       <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
                     </span>
-                    <span class="driver-card-hint">Tippen für Facts</span>
                   </span>
                   <span class="driver-team-member-back">
                     <span class="driver-facts-heading">Fahrer Facts</span>
