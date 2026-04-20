@@ -151,6 +151,16 @@ function normalizeDriverNameForFacts(name) {
   return window.RCCData?.normalizeDriverName?.(name) || String(name || '').trim().toLowerCase();
 }
 
+function parseChampionLineupNames(lineup) {
+  return String(lineup || '')
+    .split(/\s*(?:&|,|\/|\+|\bund\b)\s*/i)
+    .map((entry) => String(entry || '').trim())
+    .filter(Boolean)
+    .map((entry) => entry.match(/^([^()]+?)(?:\s*\(([^)]+)\))?$/)?.[1] || entry)
+    .map((name) => String(name || '').trim())
+    .filter(Boolean);
+}
+
 function computeFastestLapWinnersByRace(raceResults = []) {
   const byRace = new Map();
   (raceResults || []).forEach((row) => {
@@ -240,13 +250,7 @@ function computeDriverFacts({
       });
     }
 
-    String(record?.constructor_champion_lineup || '')
-      .split('&')
-      .map((entry) => String(entry || '').trim())
-      .filter(Boolean)
-      .map((entry) => entry.match(/^([^()]+?)(?:\s*\(([^)]+)\))?$/)?.[1] || entry)
-      .map((name) => String(name || '').trim())
-      .filter(Boolean)
+    parseChampionLineupNames(record?.constructor_champion_lineup)
       .forEach((name) => {
         const ids = driversByNormalizedName.get(normalizeDriverNameForFacts(name)) || [];
         ids.forEach((id) => {
@@ -351,6 +355,11 @@ function renderDriverComparison(primaryDriver, compareDriver) {
       <p class="muted">${window.escapeHtml(primaryDriver.display_name || 'Fahrer A')} vs. ${window.escapeHtml(compareDriver.display_name || 'Fahrer B')}</p>
       <div class="driver-compare-table-wrap">
         <table class="driver-compare-table">
+          <colgroup>
+            <col class="driver-compare-col driver-compare-col-driver">
+            <col class="driver-compare-col driver-compare-col-metric">
+            <col class="driver-compare-col driver-compare-col-driver">
+          </colgroup>
           <thead>
             <tr>
               <th>${window.escapeHtml(primaryDriver.display_name || 'Fahrer A')}</th>
