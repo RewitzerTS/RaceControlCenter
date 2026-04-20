@@ -2068,6 +2068,10 @@ body[data-page="grid"] .driver-team-member-flip {
   transform: none;
 }
 
+.driver-card-modal-content .driver-team-member-flip.is-flipped .driver-team-member-inner {
+  transform: none;
+}
+
 .driver-card-modal-content .driver-team-member-front {
   display: none;
 }
