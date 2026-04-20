@@ -2041,6 +2041,8 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-card-modal-dialog {
   max-width: 640px;
+  margin-top: max(36px, calc(env(safe-area-inset-top, 0px) + 20px));
+  margin-bottom: 24px;
 }
 
 .driver-card-modal-content {
@@ -2200,7 +2202,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 
   .driver-card-modal-dialog {
     width: calc(100% - 12px);
-    margin: 6px auto;
+    margin: max(16px, calc(env(safe-area-inset-top, 0px) + 12px)) auto 14px;
     padding: 14px;
   }
 
