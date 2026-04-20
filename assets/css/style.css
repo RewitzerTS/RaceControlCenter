@@ -1157,6 +1157,28 @@ body[data-page="admin"] .button-danger:focus-visible {
   border-bottom: 0;
 }
 
+
+.steward-case-card {
+  gap: 8px;
+}
+
+.steward-case-title {
+  line-height: 1.4;
+}
+
+.steward-case-description {
+  line-height: 1.6;
+}
+
+.steward-case-meta {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.steward-case-meta strong {
+  color: var(--text);
+}
+
 .admin-panel-accent {
   border-color: rgba(124, 77, 255, 0.32);
 }
@@ -1659,7 +1681,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-admin-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1692,6 +1714,13 @@ body[data-page="admin"] .button-danger:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.driver-team-name {
+  font-size: clamp(0.92rem, 1.2vw, 1.02rem);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.02em;
 }
 
 .team-logo-badge {
@@ -1924,6 +1953,14 @@ body[data-page="grid"] .driver-team-member-flip {
 @media (max-width: 860px) {
   .driver-admin-grid {
     grid-template-columns: 1fr;
+  }
+
+  .driver-team-title-with-logo {
+    align-items: flex-start;
+  }
+
+  .driver-team-name {
+    overflow-wrap: anywhere;
   }
 
   .driver-team-members {
