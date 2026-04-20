@@ -34,6 +34,9 @@ const DEFAULT_FAQ_ITEMS = [
   }
 ];
 
+let currentDriversForCards = [];
+let currentDriverFactsById = new Map();
+
 function normalizeFaqItems(items) {
   const source = Array.isArray(items) && items.length ? items : DEFAULT_FAQ_ITEMS;
   return source
@@ -284,9 +287,84 @@ function renderDriverFactsList(facts = createEmptyDriverFacts()) {
   return `<ul class="driver-facts-list">${items.join('')}</ul>`;
 }
 
+function resolveComparisonMetrics(facts = createEmptyDriverFacts()) {
+  return [
+    { label: 'Fahrer-WM Titel', value: facts.championships.driver || 0, invert: false },
+    { label: 'Konstrukteurs-Titel', value: facts.championships.constructor || 0, invert: false },
+    { label: 'Podien gesamt', value: facts.allTime.podiums || 0, invert: false },
+    { label: 'Schnellste Runden gesamt', value: facts.allTime.fastestLaps || 0, invert: false },
+    { label: 'Ø Startposition gesamt', value: Number.isFinite(facts.allTime.averageStart) ? facts.allTime.averageStart : null, invert: true },
+    { label: 'Ø Endposition gesamt', value: Number.isFinite(facts.allTime.averageFinish) ? facts.allTime.averageFinish : null, invert: true },
+    { label: 'Podien (laufende Saison)', value: facts.currentSeason.podiums || 0, invert: false },
+    { label: 'Schnellste Runden (laufende Saison)', value: facts.currentSeason.fastestLaps || 0, invert: false },
+    { label: 'Ø Startposition (laufende Saison)', value: Number.isFinite(facts.currentSeason.averageStart) ? facts.currentSeason.averageStart : null, invert: true },
+    { label: 'Ø Endposition (laufende Saison)', value: Number.isFinite(facts.currentSeason.averageFinish) ? facts.currentSeason.averageFinish : null, invert: true }
+  ];
+}
+
+function formatCompareValue(value) {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+  if (Number.isInteger(value)) return String(value);
+  if (typeof value === 'number') return formatAveragePosition(value);
+  return String(value);
+}
+
+function getMetricWinnerClass(leftValue, rightValue, invert = false) {
+  const left = Number(leftValue);
+  const right = Number(rightValue);
+  if (!Number.isFinite(left) || !Number.isFinite(right) || left === right) return { left: '', right: '' };
+  const leftWins = invert ? left < right : left > right;
+  return {
+    left: leftWins ? 'is-better' : '',
+    right: leftWins ? '' : 'is-better'
+  };
+}
+
+function renderDriverComparison(primaryDriver, compareDriver) {
+  if (!primaryDriver || !compareDriver) return '';
+
+  const primaryFacts = currentDriverFactsById.get(primaryDriver.id) || createEmptyDriverFacts();
+  const compareFacts = currentDriverFactsById.get(compareDriver.id) || createEmptyDriverFacts();
+  const primaryMetrics = resolveComparisonMetrics(primaryFacts);
+  const compareMetrics = resolveComparisonMetrics(compareFacts);
+
+  const rows = primaryMetrics.map((metric, index) => {
+    const compareMetric = compareMetrics[index];
+    const winnerClass = getMetricWinnerClass(metric.value, compareMetric.value, metric.invert);
+    return `
+      <tr>
+        <td class="${winnerClass.left}">${window.escapeHtml(formatCompareValue(metric.value))}</td>
+        <th scope="row">${window.escapeHtml(metric.label)}</th>
+        <td class="${winnerClass.right}">${window.escapeHtml(formatCompareValue(compareMetric.value))}</td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <section class="driver-compare-panel" aria-live="polite">
+      <h4>Direktvergleich</h4>
+      <p class="muted">${window.escapeHtml(primaryDriver.display_name || 'Fahrer A')} vs. ${window.escapeHtml(compareDriver.display_name || 'Fahrer B')}</p>
+      <div class="driver-compare-table-wrap">
+        <table class="driver-compare-table">
+          <thead>
+            <tr>
+              <th>${window.escapeHtml(primaryDriver.display_name || 'Fahrer A')}</th>
+              <th>Wert</th>
+              <th>${window.escapeHtml(compareDriver.display_name || 'Fahrer B')}</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </section>
+  `;
+}
+
 function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
   const list = document.getElementById('vehicle-pair-list');
   if (!list) return;
+  currentDriversForCards = [...(drivers || [])];
+  currentDriverFactsById = driverFactsById instanceof Map ? driverFactsById : new Map();
 
   if (!drivers.length) {
     list.innerHTML = '<div class="notice">Noch keine Fahrer angelegt.</div>';
@@ -318,7 +396,7 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
           </header>
           <div class="driver-team-members">
             ${sortedMembers.map((driver) => `
-              <button type="button" class="driver-team-member driver-team-member-flip" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} drehen">
+              <button type="button" class="driver-team-member driver-team-member-flip" data-driver-id="${window.escapeHtml(String(driver.id || ''))}" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} drehen">
                 <span class="driver-team-member-inner">
                   <span class="driver-team-member-front">
                     <span class="driver-team-member-main">
@@ -344,7 +422,7 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
 
   list.querySelectorAll('.driver-team-member-flip').forEach((card) => {
     card.addEventListener('click', () => {
-      openDriverCardModal(card.outerHTML, card.dataset.driverName || '');
+      openDriverCardModal(card.dataset.driverId || null);
     });
   });
 }
@@ -360,21 +438,57 @@ function closeDriverCardModal() {
   document.body.classList.remove('modal-open');
 }
 
-function openDriverCardModal(cardMarkup, driverName) {
+function openDriverCardModal(driverId) {
   const modal = document.getElementById('driver-card-modal');
   const modalContent = document.getElementById('driver-card-modal-content');
   const title = document.getElementById('driver-card-modal-title');
   if (!modal || !modalContent) return;
 
-  modalContent.innerHTML = cardMarkup;
+  const selectedDriver = currentDriversForCards.find((driver) => String(driver.id) === String(driverId));
+  if (!selectedDriver) return;
+
+  const currentFacts = currentDriverFactsById.get(selectedDriver.id) || createEmptyDriverFacts();
+  const selectableDrivers = currentDriversForCards
+    .filter((driver) => String(driver.id) !== String(selectedDriver.id))
+    .sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
+
+  modalContent.innerHTML = `
+    <button type="button" class="driver-team-member driver-team-member-flip is-flipped" data-driver-id="${window.escapeHtml(String(selectedDriver.id || ''))}" data-driver-name="${window.escapeHtml(selectedDriver.display_name || 'Unbekannt')}" aria-pressed="true" aria-label="Fahrerkarte ${window.escapeHtml(selectedDriver.display_name || 'Unbekannt')}">
+      <span class="driver-team-member-inner">
+        <span class="driver-team-member-front">
+          <span class="driver-team-member-main">
+            <strong>${window.escapeHtml(selectedDriver.display_name || '—')}</strong>
+            <span class="muted">KI Bot: ${window.escapeHtml(selectedDriver.ai_driver_reference || '—')}</span>
+            <span class="muted">Gamertag: ${window.escapeHtml(selectedDriver.gamertag || '—')}</span>
+          </span>
+          <span class="driver-card-hint">Facts werden angezeigt</span>
+        </span>
+        <span class="driver-team-member-back">
+          <span class="driver-facts-heading">Fahrer Facts</span>
+          ${renderDriverFactsList(currentFacts)}
+          <span class="driver-card-hint">Direktvergleich unten auswählen</span>
+        </span>
+      </span>
+    </button>
+    <section class="driver-compare-controls">
+      <label for="driver-compare-select">Mit Fahrer vergleichen</label>
+      <select id="driver-compare-select" class="manual-results-select">
+        <option value="">Bitte wählen</option>
+        ${selectableDrivers.map((driver) => `<option value="${window.escapeHtml(String(driver.id))}">${window.escapeHtml(driver.display_name || 'Unbekannt')}</option>`).join('')}
+      </select>
+    </section>
+    <div id="driver-compare-content"></div>
+  `;
+
   if (title) {
-    title.textContent = driverName ? `Fahrerkarte · ${driverName}` : 'Fahrerkarte';
+    title.textContent = selectedDriver.display_name ? `Fahrerkarte · ${selectedDriver.display_name}` : 'Fahrerkarte';
   }
 
-  const modalCard = modalContent.querySelector('.driver-team-member-flip');
-  modalCard?.addEventListener('click', () => {
-    modalCard.classList.toggle('is-flipped');
-    modalCard.setAttribute('aria-pressed', modalCard.classList.contains('is-flipped') ? 'true' : 'false');
+  const compareSelect = modalContent.querySelector('#driver-compare-select');
+  const compareContent = modalContent.querySelector('#driver-compare-content');
+  compareSelect?.addEventListener('change', () => {
+    const compareDriver = currentDriversForCards.find((driver) => String(driver.id) === String(compareSelect.value));
+    compareContent.innerHTML = renderDriverComparison(selectedDriver, compareDriver);
   });
 
   modal.classList.remove('hidden');
