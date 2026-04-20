@@ -422,7 +422,7 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
           <header class="driver-team-card-head">
             <h5 class="driver-team-title-with-logo">
               ${window.createTeamLogoBadge?.(logoSource, { size: 'large', label: teamName }) || ''}
-              <span class="sr-only">${window.escapeHtml(teamName)}</span>
+              <span class="driver-team-name">${window.escapeHtml(teamName)}</span>
             </h5>
             <span class="driver-team-count">${sortedMembers.length} Fahrer</span>
           </header>

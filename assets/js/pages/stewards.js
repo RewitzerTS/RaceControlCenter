@@ -253,14 +253,14 @@ function renderStewardCases(list) {
   list.innerHTML = cachedCases.map((entry) => {
     const involved = [entry.driver1?.display_name && `Fahrer 1: ${entry.driver1.display_name}`, entry.driver2?.display_name && `Fahrer 2: ${entry.driver2.display_name}`].filter(Boolean).join(' · ');
     return `
-      <div class="incident-item">
-        <strong>${entry.races?.grand_prix_name || 'Rennen'} · ${window.escapeHtml(entry.title || '')}</strong>
-        <span class="muted">${window.escapeHtml(entry.description || '')}</span>
-        <span class="muted">${window.escapeHtml(involved || 'Keine Fahrer hinterlegt')}</span>
-        <span class="muted">Entscheidung: ${window.escapeHtml(entry.decision_text || '')}</span>
-        <span class="muted">Konsequenz: ${window.escapeHtml(entry.consequence || '')}</span>
+      <article class="incident-item steward-case-card">
+        <strong class="steward-case-title">${entry.races?.grand_prix_name || 'Rennen'} · ${window.escapeHtml(entry.title || '')}</strong>
+        <span class="muted steward-case-description">${window.escapeHtml(entry.description || '')}</span>
+        <span class="muted steward-case-meta">${window.escapeHtml(involved || 'Keine Fahrer hinterlegt')}</span>
+        <span class="muted steward-case-meta"><strong>Entscheidung:</strong> ${window.escapeHtml(entry.decision_text || '—')}</span>
+        <span class="muted steward-case-meta"><strong>Konsequenz:</strong> ${window.escapeHtml(entry.consequence || 'Keine')}</span>
         ${stewardSessionActive ? `<div class="card-actions"><button class="btn edit-steward-btn" data-id="${entry.id}">Bearbeiten</button><button class="btn delete-steward-btn" data-id="${entry.id}">Löschen</button></div>` : ''}
-      </div>
+      </article>
     `;
   }).join('');
 }
