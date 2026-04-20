@@ -366,7 +366,10 @@ function renderDriverComparison(primaryDriver, compareDriver) {
 
   return `
     <section class="driver-compare-panel" aria-live="polite">
-      <h4>Direktvergleich</h4>
+      <div class="driver-compare-panel-head">
+        <h4>Direktvergleich</h4>
+        <button type="button" class="driver-compare-close-button" data-driver-compare-close aria-label="Vergleich schließen">×</button>
+      </div>
       <p class="muted">${window.escapeHtml(primaryDriver.display_name || 'Fahrer A')} vs. ${window.escapeHtml(compareDriver.display_name || 'Fahrer B')}</p>
       <div class="driver-compare-table-wrap">
         <table class="driver-compare-table">
@@ -521,6 +524,12 @@ function openDriverCardModal(driverId) {
     const compareDriver = currentDriversForCards.find((driver) => String(driver.id) === String(compareSelect.value));
     primaryCard?.classList.toggle('is-hidden-for-comparison', Boolean(compareDriver));
     compareContent.innerHTML = renderDriverComparison(selectedDriver, compareDriver);
+    compareContent.querySelector('[data-driver-compare-close]')?.addEventListener('click', () => {
+      compareSelect.value = '';
+      primaryCard?.classList.remove('is-hidden-for-comparison');
+      compareContent.innerHTML = '';
+      compareSelect.focus();
+    });
   });
 
   modal.classList.remove('hidden');
