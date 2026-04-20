@@ -2087,6 +2087,28 @@ body[data-page="admin"] .button-danger:focus-visible {
   margin: 0 0 4px;
 }
 
+.driver-compare-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.driver-compare-close-button {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .driver-compare-table-wrap {
   overflow-x: auto;
 }
@@ -2099,11 +2121,11 @@ body[data-page="admin"] .button-danger:focus-visible {
 }
 
 .driver-compare-table .driver-compare-col-driver {
-  width: 34%;
+  width: 30%;
 }
 
 .driver-compare-table .driver-compare-col-metric {
-  width: 32%;
+  width: 40%;
 }
 
 .driver-compare-table th,
@@ -2200,11 +2222,11 @@ body[data-page="admin"] .button-danger:focus-visible {
   }
 
   .driver-compare-table .driver-compare-col-driver {
-    width: 30%;
+    width: 27%;
   }
 
   .driver-compare-table .driver-compare-col-metric {
-    width: 40%;
+    width: 46%;
   }
 }
 
