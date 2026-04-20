@@ -1785,7 +1785,7 @@ body[data-page="admin"] .button-danger:focus-visible {
   text-align: left;
   cursor: pointer;
   perspective: 1100px;
-  min-height: 194px;
+  min-height: 156px;
   color: inherit;
 }
 
@@ -1797,7 +1797,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 .driver-team-member-inner {
   position: relative;
   display: block;
-  min-height: 168px;
+  min-height: 130px;
   transform-style: preserve-3d;
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -2184,11 +2184,11 @@ body[data-page="admin"] .button-danger:focus-visible {
   }
 
   .driver-team-member-flip {
-    min-height: 146px;
+    min-height: 124px;
   }
 
   .driver-team-member-inner {
-    min-height: 130px;
+    min-height: 104px;
   }
 
   .driver-team-member-main {
