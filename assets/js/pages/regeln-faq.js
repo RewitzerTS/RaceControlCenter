@@ -201,7 +201,7 @@ function computeDriverFacts({
     }
     addAverageValue(
       allTimeAverageByDriver.get(row.driver_id),
-      row.start_position,
+      row.grid_position ?? row.start_position,
       row.finish_position
     );
 
@@ -211,18 +211,23 @@ function computeDriverFacts({
       }
       addAverageValue(
         currentSeasonAverageByDriver.get(row.driver_id),
-        row.start_position,
+        row.grid_position ?? row.start_position,
         row.finish_position
       );
     }
   });
 
   const driversByNormalizedName = new Map();
-  (drivers || []).forEach((driver) => {
-    const normalized = normalizeDriverNameForFacts(driver.display_name);
+  const addDriverAlias = (name, driverId) => {
+    const normalized = normalizeDriverNameForFacts(name);
     if (!normalized) return;
     if (!driversByNormalizedName.has(normalized)) driversByNormalizedName.set(normalized, []);
-    driversByNormalizedName.get(normalized).push(driver.id);
+    const ids = driversByNormalizedName.get(normalized);
+    if (!ids.includes(driverId)) ids.push(driverId);
+  };
+
+  (drivers || []).forEach((driver) => {
+    [driver.display_name, driver.gamertag, driver.ai_driver_reference].forEach((value) => addDriverAlias(value, driver.id));
   });
 
   (championshipHistory || []).forEach((record) => {

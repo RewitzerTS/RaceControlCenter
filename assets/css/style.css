@@ -1976,6 +1976,8 @@ body[data-page="admin"] .button-danger:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 1200;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .trackmap-lightbox.hidden {
@@ -2085,7 +2087,7 @@ body[data-page="admin"] .button-danger:focus-visible {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  min-width: 460px;
+  table-layout: fixed;
 }
 
 .driver-compare-table th,
@@ -2104,6 +2106,8 @@ body[data-page="admin"] .button-danger:focus-visible {
 .driver-compare-table tbody th {
   font-weight: 600;
   color: var(--text-muted);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .driver-compare-table td {
@@ -2113,6 +2117,27 @@ body[data-page="admin"] .button-danger:focus-visible {
 .driver-compare-table .is-better {
   color: #75f2b9;
   font-weight: 700;
+}
+
+@media (max-width: 680px) {
+  .driver-card-modal-dialog {
+    width: calc(100% - 12px);
+    margin: 6px auto;
+    padding: 14px;
+  }
+
+  .driver-card-modal-content {
+    max-width: 100%;
+  }
+
+  .driver-compare-table {
+    font-size: 0.86rem;
+  }
+
+  .driver-compare-table th,
+  .driver-compare-table td {
+    padding: 6px;
+  }
 }
 
 .manual-results-toolbar {
