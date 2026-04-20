@@ -2054,6 +2054,67 @@ body[data-page="admin"] .button-danger:focus-visible {
   font-size: 0.92rem;
 }
 
+.driver-compare-controls {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+}
+
+.driver-compare-controls label {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.driver-compare-panel {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+}
+
+.driver-compare-panel h4 {
+  margin: 0 0 4px;
+}
+
+.driver-compare-table-wrap {
+  overflow-x: auto;
+}
+
+.driver-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  min-width: 460px;
+}
+
+.driver-compare-table th,
+.driver-compare-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.driver-compare-table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(216, 199, 255, 1);
+}
+
+.driver-compare-table tbody th {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.driver-compare-table td {
+  text-align: center;
+}
+
+.driver-compare-table .is-better {
+  color: #75f2b9;
+  font-weight: 700;
+}
+
 .manual-results-toolbar {
   position: sticky;
   top: 10px;
