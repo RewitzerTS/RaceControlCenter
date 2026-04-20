@@ -139,7 +139,7 @@ async function fetchSeasonHistory(limit = 6) {
 
   const { data, error } = await client
     .from('championship_history')
-    .select('season_id, driver_champion, constructor_champion, created_at, seasons:season_id(name)')
+    .select('season_id, season_name, driver_champion, constructor_champion, constructor_champion_lineup, created_at, seasons:season_id(name)')
     .order('created_at', { ascending: false })
     .limit(limit);
 
