@@ -290,12 +290,8 @@ function computeDriverFacts({
 function renderDriverFactsList(facts = createEmptyDriverFacts()) {
   const items = [];
 
-  if (facts.championships.driver > 0) {
-    items.push(`<li><strong>${facts.championships.driver}x</strong> Fahrer-WM gewonnen</li>`);
-  }
-  if (facts.championships.constructor > 0) {
-    items.push(`<li><strong>${facts.championships.constructor}x</strong> Konstrukteurs-Titel gewonnen</li>`);
-  }
+  items.push(`<li>Fahrer-WM Titel: <strong>${facts.championships.driver}</strong></li>`);
+  items.push(`<li>Team-WM Titel: <strong>${facts.championships.constructor}</strong></li>`);
 
   items.push(`<li>Podien gesamt: <strong>${facts.allTime.podiums}</strong></li>`);
   items.push(`<li>Schnellste Runden gesamt: <strong>${facts.allTime.fastestLaps}</strong></li>`);
