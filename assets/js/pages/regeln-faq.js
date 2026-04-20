@@ -318,7 +318,7 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
           </header>
           <div class="driver-team-members">
             ${sortedMembers.map((driver) => `
-              <button type="button" class="driver-team-member driver-team-member-flip" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} drehen">
+              <button type="button" class="driver-team-member driver-team-member-flip" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} drehen">
                 <span class="driver-team-member-inner">
                   <span class="driver-team-member-front">
                     <span class="driver-team-member-main">
@@ -344,9 +344,55 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
 
   list.querySelectorAll('.driver-team-member-flip').forEach((card) => {
     card.addEventListener('click', () => {
-      card.classList.toggle('is-flipped');
-      card.setAttribute('aria-pressed', card.classList.contains('is-flipped') ? 'true' : 'false');
+      openDriverCardModal(card.outerHTML, card.dataset.driverName || '');
     });
+  });
+}
+
+function closeDriverCardModal() {
+  const modal = document.getElementById('driver-card-modal');
+  const modalContent = document.getElementById('driver-card-modal-content');
+  if (!modal || !modalContent) return;
+
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden', 'true');
+  modalContent.innerHTML = '';
+  document.body.classList.remove('modal-open');
+}
+
+function openDriverCardModal(cardMarkup, driverName) {
+  const modal = document.getElementById('driver-card-modal');
+  const modalContent = document.getElementById('driver-card-modal-content');
+  const title = document.getElementById('driver-card-modal-title');
+  if (!modal || !modalContent) return;
+
+  modalContent.innerHTML = cardMarkup;
+  if (title) {
+    title.textContent = driverName ? `Fahrerkarte · ${driverName}` : 'Fahrerkarte';
+  }
+
+  const modalCard = modalContent.querySelector('.driver-team-member-flip');
+  modalCard?.addEventListener('click', () => {
+    modalCard.classList.toggle('is-flipped');
+    modalCard.setAttribute('aria-pressed', modalCard.classList.contains('is-flipped') ? 'true' : 'false');
+  });
+
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function bindDriverCardModalEvents() {
+  const modal = document.getElementById('driver-card-modal');
+  if (!modal) return;
+
+  document.getElementById('driver-card-modal-close')?.addEventListener('click', closeDriverCardModal);
+  document.getElementById('driver-card-modal-backdrop')?.addEventListener('click', closeDriverCardModal);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (modal.classList.contains('hidden')) return;
+    closeDriverCardModal();
   });
 }
 
@@ -409,6 +455,7 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
 async function initRulesFaqPage() {
   renderRulesConfig({});
   renderFaqItems([]);
+  bindDriverCardModalEvents();
 
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();

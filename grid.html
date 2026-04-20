@@ -37,6 +37,15 @@
     </div>
   </main>
 
+  <div id="driver-card-modal" class="trackmap-lightbox hidden" aria-hidden="true">
+    <div id="driver-card-modal-backdrop" class="trackmap-lightbox-backdrop"></div>
+    <div class="trackmap-lightbox-dialog driver-card-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="driver-card-modal-title">
+      <button type="button" class="trackmap-lightbox-close" id="driver-card-modal-close" aria-label="Popup schließen">×</button>
+      <h3 id="driver-card-modal-title" class="trackmap-lightbox-title">Fahrerkarte</h3>
+      <div id="driver-card-modal-content" class="driver-card-modal-content"></div>
+    </div>
+  </div>
+
   <div id="site-footer"></div>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script defer src="assets/js/supabase-client.js"></script>

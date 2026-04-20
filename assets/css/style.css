@@ -2033,6 +2033,27 @@ body[data-page="admin"] .button-danger:focus-visible {
   max-width: 560px;
 }
 
+.driver-card-modal-dialog {
+  max-width: 640px;
+}
+
+.driver-card-modal-content {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.driver-card-modal-content .driver-team-member-flip {
+  min-height: 0;
+}
+
+.driver-card-modal-content .driver-team-member-inner {
+  min-height: 320px;
+}
+
+.driver-card-modal-content .driver-facts-list {
+  font-size: 0.92rem;
+}
+
 .manual-results-toolbar {
   position: sticky;
   top: 10px;
@@ -2067,6 +2088,10 @@ body[data-page="admin"] .button-danger:focus-visible {
 
   .trackmap-lightbox-image {
     max-height: calc(100vh - 120px);
+  }
+
+  .driver-card-modal-content .driver-team-member-inner {
+    min-height: 300px;
   }
 
   .manual-results-toolbar {
