@@ -2059,11 +2059,23 @@ body[data-page="admin"] .button-danger:focus-visible {
 }
 
 .driver-card-modal-content .driver-team-member-inner {
-  min-height: 320px;
+  min-height: 0;
+  transform: none;
+}
+
+.driver-card-modal-content .driver-team-member-front {
+  display: none;
+}
+
+.driver-card-modal-content .driver-team-member-back {
+  position: static;
+  transform: none;
+  backface-visibility: visible;
 }
 
 .driver-card-modal-content .driver-facts-list {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+  gap: 3px;
 }
 
 .driver-compare-controls {
@@ -2078,8 +2090,8 @@ body[data-page="admin"] .button-danger:focus-visible {
 }
 
 .driver-compare-panel {
-  margin-top: 14px;
-  padding: 14px;
+  margin-top: 10px;
+  padding: 10px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(255,255,255,0.03);
@@ -2123,21 +2135,21 @@ body[data-page="admin"] .button-danger:focus-visible {
 }
 
 .driver-compare-table .driver-compare-col-driver {
-  width: 30%;
+  width: 24%;
 }
 
 .driver-compare-table .driver-compare-col-metric {
-  width: 40%;
+  width: 52%;
 }
 
 .driver-compare-table th,
 .driver-compare-table td {
-  padding: 7px 5px;
+  padding: 5px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .driver-compare-table thead th {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: rgba(216, 199, 255, 1);
@@ -2154,9 +2166,9 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-compare-table td {
   text-align: center;
-  font-size: 0.96rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .driver-compare-table .is-better {
@@ -2211,24 +2223,24 @@ body[data-page="admin"] .button-danger:focus-visible {
   }
 
   .driver-compare-table {
-    font-size: 0.84rem;
+    font-size: 0.8rem;
   }
 
   .driver-compare-table th,
   .driver-compare-table td {
-    padding: 6px 4px;
+    padding: 4px 3px;
   }
 
   .driver-compare-table td {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
   }
 
   .driver-compare-table .driver-compare-col-driver {
-    width: 27%;
+    width: 22%;
   }
 
   .driver-compare-table .driver-compare-col-metric {
-    width: 46%;
+    width: 56%;
   }
 }
 
