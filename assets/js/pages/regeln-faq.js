@@ -428,20 +428,11 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
           </header>
           <div class="driver-team-members">
             ${sortedMembers.map((driver) => `
-              <button type="button" class="driver-team-member driver-team-member-flip" data-driver-id="${window.escapeHtml(String(driver.id || ''))}" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} drehen">
-                <span class="driver-team-member-inner">
-                  <span class="driver-team-member-front">
-                    <span class="driver-team-member-main">
-                      <strong>${window.escapeHtml(driver.display_name || '—')}</strong>
-                      <span class="muted">KI Bot: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
-                      <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
-                    </span>
-                  </span>
-                  <span class="driver-team-member-back">
-                    <span class="driver-facts-heading">Fahrer Facts</span>
-                    ${renderDriverFactsList(driverFactsById.get(driver.id))}
-                    <span class="driver-card-hint">Erneut tippen zum Zurückdrehen</span>
-                  </span>
+              <button type="button" class="driver-team-member driver-team-member-flip" data-driver-id="${window.escapeHtml(String(driver.id || ''))}" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} öffnen">
+                <span class="driver-team-member-main">
+                  <strong>${window.escapeHtml(driver.display_name || '—')}</strong>
+                  <span class="muted">KI Bot: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
+                  <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
                 </span>
               </button>
             `).join('')}
