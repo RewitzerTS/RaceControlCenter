@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Race Control Center · Regeln & FAQs</title>
+  <title>Race Control Center · Grid</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -17,30 +17,23 @@
   <meta name="apple-mobile-web-app-title" content="RCC">
   <meta name="mobile-web-app-capable" content="yes">
 </head>
-<body data-page="regeln-faq">
+<body data-page="grid">
   <div id="site-header"></div>
 
   <main class="section">
     <div class="container section-header">
       <div>
-        <div class="eyebrow">Liga-Info</div>
-        <h1 class="page-title page-title-compact">Regeln & FAQs</h1>
-        <p class="page-subtitle">Regelwerk und Antworten auf die häufigsten Fragen rund um die Liga.</p>
+        <div class="eyebrow">Grid</div>
+        <h1 class="page-title page-title-compact">Spieler, KI-Bots & Fahrzeuge</h1>
+        <p class="page-subtitle">Sortiert und gepaart nach Fahrzeugen.</p>
       </div>
     </div>
 
-    <div class="container rules-faq-page-layout">
-      <div class="rules-faq-dual">
-        <section class="panel">
-        <h3>Regeln</h3>
-        <div id="rules-config-list" class="detail-list">Lade Regeln…</div>
-        </section>
-
-        <section class="panel">
-        <h3>FAQs</h3>
-        <div id="faq-list" class="faq-list">Lade FAQs…</div>
-        </section>
-      </div>
+    <div class="container">
+      <section class="panel admin-panel-wide">
+        <h3>Spieler, KI-Bots & Fahrzeuge</h3>
+        <div id="vehicle-pair-list" class="stack-list driver-admin-grid">Lade Fahrerzuordnungen…</div>
+      </section>
     </div>
   </main>
 
