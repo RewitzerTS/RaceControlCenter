@@ -151,6 +151,14 @@ function normalizeDriverNameForFacts(name) {
   return window.RCCData?.normalizeDriverName?.(name) || String(name || '').trim().toLowerCase();
 }
 
+function stripTrailingAlias(value) {
+  return String(value || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*\]/g, ' ')
+    .replace(/\s+-\s+.*/g, ' ')
+    .trim();
+}
+
 function parseChampionLineupNames(lineup) {
   return String(lineup || '')
     .split(/\s*(?:&|,|\/|\+|\bund\b)\s*/i)
@@ -229,11 +237,18 @@ function computeDriverFacts({
 
   const driversByNormalizedName = new Map();
   const addDriverAlias = (name, driverId) => {
-    const normalized = normalizeDriverNameForFacts(name);
-    if (!normalized) return;
-    if (!driversByNormalizedName.has(normalized)) driversByNormalizedName.set(normalized, []);
-    const ids = driversByNormalizedName.get(normalized);
-    if (!ids.includes(driverId)) ids.push(driverId);
+    const fullName = stripTrailingAlias(name);
+    const normalized = normalizeDriverNameForFacts(fullName);
+    const aliases = new Set([normalized]);
+    const tokens = normalized.split(/\s+/).filter(Boolean);
+    if (tokens.length > 1) aliases.add(tokens[0]);
+
+    aliases.forEach((alias) => {
+      if (!alias) return;
+      if (!driversByNormalizedName.has(alias)) driversByNormalizedName.set(alias, []);
+      const ids = driversByNormalizedName.get(alias);
+      if (!ids.includes(driverId)) ids.push(driverId);
+    });
   };
 
   (drivers || []).forEach((driver) => {
@@ -241,7 +256,7 @@ function computeDriverFacts({
   });
 
   (championshipHistory || []).forEach((record) => {
-    const driverChampion = String(record?.driver_champion || '').trim();
+    const driverChampion = stripTrailingAlias(record?.driver_champion);
     if (driverChampion) {
       const ids = driversByNormalizedName.get(normalizeDriverNameForFacts(driverChampion)) || [];
       ids.forEach((id) => {
@@ -467,7 +482,8 @@ function openDriverCardModal(driverId) {
     .sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
 
   modalContent.innerHTML = `
-    <button type="button" class="driver-team-member driver-team-member-flip is-flipped" data-driver-id="${window.escapeHtml(String(selectedDriver.id || ''))}" data-driver-name="${window.escapeHtml(selectedDriver.display_name || 'Unbekannt')}" aria-pressed="true" aria-label="Fahrerkarte ${window.escapeHtml(selectedDriver.display_name || 'Unbekannt')}">
+    <section id="driver-card-modal-primary" class="driver-card-modal-primary">
+      <button type="button" class="driver-team-member driver-team-member-flip is-flipped" data-driver-id="${window.escapeHtml(String(selectedDriver.id || ''))}" data-driver-name="${window.escapeHtml(selectedDriver.display_name || 'Unbekannt')}" aria-pressed="true" aria-label="Fahrerkarte ${window.escapeHtml(selectedDriver.display_name || 'Unbekannt')}">
       <span class="driver-team-member-inner">
         <span class="driver-team-member-front">
           <span class="driver-team-member-main">
@@ -483,7 +499,8 @@ function openDriverCardModal(driverId) {
           <span class="driver-card-hint">Direktvergleich unten auswählen</span>
         </span>
       </span>
-    </button>
+      </button>
+    </section>
     <section class="driver-compare-controls">
       <label for="driver-compare-select">Mit Fahrer vergleichen</label>
       <select id="driver-compare-select" class="manual-results-select">
@@ -500,8 +517,10 @@ function openDriverCardModal(driverId) {
 
   const compareSelect = modalContent.querySelector('#driver-compare-select');
   const compareContent = modalContent.querySelector('#driver-compare-content');
+  const primaryCard = modalContent.querySelector('#driver-card-modal-primary');
   compareSelect?.addEventListener('change', () => {
     const compareDriver = currentDriversForCards.find((driver) => String(driver.id) === String(compareSelect.value));
+    primaryCard?.classList.toggle('is-hidden-for-comparison', Boolean(compareDriver));
     compareContent.innerHTML = renderDriverComparison(selectedDriver, compareDriver);
   });
 

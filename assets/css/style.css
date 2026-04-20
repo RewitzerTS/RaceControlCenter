@@ -2022,6 +2022,7 @@ body[data-page="admin"] .button-danger:focus-visible {
   position: absolute;
   top: 12px;
   right: 12px;
+  z-index: 4;
   width: 42px;
   height: 42px;
   border-radius: 999px;
@@ -2043,6 +2044,10 @@ body[data-page="admin"] .button-danger:focus-visible {
 .driver-card-modal-content {
   max-width: 480px;
   margin: 0 auto;
+}
+
+.driver-card-modal-primary.is-hidden-for-comparison {
+  display: none;
 }
 
 .driver-card-modal-content .driver-team-member-flip {
@@ -2088,15 +2093,15 @@ body[data-page="admin"] .button-danger:focus-visible {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 .driver-compare-table .driver-compare-col-driver {
-  width: 1%;
+  width: 34%;
 }
 
 .driver-compare-table .driver-compare-col-metric {
-  width: auto;
+  width: 32%;
 }
 
 .driver-compare-table th,
@@ -2110,7 +2115,8 @@ body[data-page="admin"] .button-danger:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: rgba(216, 199, 255, 1);
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .driver-compare-table tbody th {
@@ -2122,6 +2128,9 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .driver-compare-table td {
   text-align: center;
+  font-size: 0.96rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .driver-compare-table .is-better {
@@ -2141,12 +2150,30 @@ body[data-page="admin"] .button-danger:focus-visible {
   }
 
   .driver-compare-table {
-    font-size: 0.86rem;
+    font-size: 0.84rem;
   }
 
   .driver-compare-table th,
   .driver-compare-table td {
     padding: 6px 4px;
+  }
+
+  .driver-compare-table td {
+    font-size: 0.82rem;
+  }
+
+  .driver-compare-table .driver-compare-col-driver {
+    width: 30%;
+  }
+
+  .driver-compare-table .driver-compare-col-metric {
+    width: 40%;
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 860px) {
+  .driver-compare-table td {
+    font-size: 0.78rem;
   }
 }
 
