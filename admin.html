@@ -134,21 +134,15 @@
         <summary><strong>3) Ergebnisse & Freigabe</strong></summary>
       <section class="panel">
         <h3>Ergebnisse per Excel/CSV importieren</h3>
-        <div class="notice">Erwartete Spalten: Grand Prix, Pos, Fahrer, Startposition, Boxenstopps, Schnellste Runde, Renndauer, Punkte. Du kannst hier direkt zwei Rennen nacheinander vorbereiten.</div>
         <label class="checkbox-inline section-spacer-top">
           <input type="checkbox" id="csv-overwrite-published">
           Bereits veröffentlichte Rennergebnisse überschreiben (Korrekturimport)
         </label>
-        <div class="notice">Aktiviere den Korrekturimport, wenn ein Rennen schon veröffentlicht ist und du den kompletten Ergebnisstand per neuem CSV-Upload ersetzen möchtest.</div>
         <div class="notice" id="csv-conflict-banner" hidden></div>
         <div class="form-grid">
           <div class="field full"><label for="csv-file">CSV-Datei · Upload 1</label><input type="file" id="csv-file" accept=".csv"></div>
           <div class="field full"><label for="csv-preview">CSV-Vorschau · Upload 1</label><textarea id="csv-preview" placeholder="Hier erscheint der Inhalt der ersten importierten CSV."></textarea></div>
           <div class="field full"><button class="button-primary" type="button" id="import-results-btn">Upload 1 importieren</button></div>
-
-          <div class="field full"><label for="csv-file-2">CSV-Datei · Upload 2</label><input type="file" id="csv-file-2" accept=".csv"></div>
-          <div class="field full"><label for="csv-preview-2">CSV-Vorschau · Upload 2</label><textarea id="csv-preview-2" placeholder="Hier erscheint der Inhalt der zweiten importierten CSV."></textarea></div>
-          <div class="field full"><button class="button-secondary" type="button" id="import-results-btn-2">Upload 2 importieren</button></div>
         </div>
         <div class="section-spacer-top">
           <h4>Import-Mapping-Vorschau</h4>

@@ -2361,9 +2361,7 @@ async function startNewSeason() {
     if (createResponse.error) throw createResponse.error;
 
     setValue('csv-preview', '');
-    setValue('csv-preview-2', '');
     setValue('csv-file', '');
-    setValue('csv-file-2', '');
     ['race-grand-prix-name', 'race-circuit-name', 'race-date', 'race-notes'].forEach((id) => setValue(id, ''));
     setValue('race-time', DEFAULT_RACE_TIME);
     setValue('race-status', DEFAULT_RACE_STATUS);
@@ -2740,10 +2738,6 @@ function bindUiEvents() {
     previewFieldId: 'csv-preview',
     overwritePublished: document.getElementById('csv-overwrite-published')?.checked
   }));
-  document.getElementById('import-results-btn-2')?.addEventListener('click', () => importRaceResults({
-    previewFieldId: 'csv-preview-2',
-    overwritePublished: document.getElementById('csv-overwrite-published')?.checked
-  }));
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
@@ -2774,13 +2768,6 @@ function bindUiEvents() {
     if (!file) return;
     setValue('csv-preview', await file.text());
     previewCsvFromField('csv-preview');
-  });
-
-  document.getElementById('csv-file-2')?.addEventListener('change', async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setValue('csv-preview-2', await file.text());
-    previewCsvFromField('csv-preview-2');
   });
 
   document.getElementById('driver-ai-reference')?.addEventListener('change', (event) => {
