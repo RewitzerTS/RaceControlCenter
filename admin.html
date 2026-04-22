@@ -66,67 +66,73 @@
       <details class="panel" id="admin-section-calendar">
         <summary><strong>2) Saison & Rennkalender</strong></summary>
       <section class="panel season-panel">
-        <h3>Saisonverwaltung</h3>
-        <div class="detail-list" id="season-summary">Saison wird geladen...</div>
-        <div class="card-actions">
-          <button type="button" class="button-secondary" id="prepare-season-finalize-btn">Saisonabschluss prüfen</button>
-          <button type="button" class="button-primary button-danger" id="start-new-season-btn">Saison final abschließen</button>
-        </div>
-        <div class="notice">Beim Saisonwechsel bleiben alte Daten erhalten. Die neue Saison startet mit leerem Rennkalender.</div>
-        <div id="season-finalize-preview" class="notice" hidden></div>
-        <div id="season-feedback" class="notice" hidden></div>
-      </section>
+        <details class="panel admin-panel-accent" open>
+          <summary><strong>Saisonverwaltung</strong></summary>
+          <div class="detail-list" id="season-summary">Saison wird geladen...</div>
+          <div class="card-actions">
+            <button type="button" class="button-secondary" id="prepare-season-finalize-btn">Saisonabschluss prüfen</button>
+            <button type="button" class="button-primary button-danger" id="start-new-season-btn">Saison final abschließen</button>
+          </div>
+          <div class="notice">Beim Saisonwechsel bleiben alte Daten erhalten. Die neue Saison startet mit leerem Rennkalender.</div>
+          <div id="season-finalize-preview" class="notice" hidden></div>
+          <div id="season-feedback" class="notice" hidden></div>
+        </details>
 
-      <section class="panel admin-panel-accent">
-        <h3>Rennen anlegen</h3>
-        <div class="form-grid">
-          <div class="field">
-            <label for="race-grand-prix-name">Grand Prix</label>
-            <select id="race-grand-prix-name"><option value="">Bitte wählen</option></select>
+        <details class="panel admin-panel-accent section-spacer-top" open>
+          <summary><strong>Rennen anlegen</strong></summary>
+          <div class="form-grid">
+            <div class="field">
+              <label for="race-grand-prix-name">Grand Prix</label>
+              <select id="race-grand-prix-name"><option value="">Bitte wählen</option></select>
+            </div>
+            <div class="field">
+              <label for="race-circuit-name">Strecke</label>
+              <input id="race-circuit-name" placeholder="Wird automatisch befüllt">
+            </div>
+            <div class="field"><label for="race-date">Renndatum</label><input id="race-date" type="date"></div>
+            <div class="field"><label for="race-time">Uhrzeit</label><select id="race-time"></select></div>
+            <div class="field"><label for="race-status">Status</label><select id="race-status"><option value="upcoming" selected>upcoming</option><option value="completed">completed</option></select></div>
+            <div class="field"><label for="race-weather">Wetter</label><select id="race-weather"><option value="">Bitte wählen</option></select></div>
+            <div class="field full"><label for="race-notes">Notizen</label><textarea id="race-notes" placeholder="Zusätzliche Infos zum Rennen"></textarea></div>
           </div>
-          <div class="field">
-            <label for="race-circuit-name">Strecke</label>
-            <input id="race-circuit-name" placeholder="Wird automatisch befüllt">
+          <div class="card-actions">
+            <button type="button" class="button-primary" id="save-race-btn">Rennen speichern</button>
+            <button type="button" class="button-secondary" id="generate-season-btn">Komplette Saison zufällig erstellen</button>
           </div>
-          <div class="field"><label for="race-date">Renndatum</label><input id="race-date" type="date"></div>
-          <div class="field"><label for="race-time">Uhrzeit</label><select id="race-time"></select></div>
-          <div class="field"><label for="race-status">Status</label><select id="race-status"><option value="upcoming" selected>upcoming</option><option value="completed">completed</option></select></div>
-          <div class="field"><label for="race-weather">Wetter</label><select id="race-weather"><option value="">Bitte wählen</option></select></div>
-          <div class="field full"><label for="race-notes">Notizen</label><textarea id="race-notes" placeholder="Zusätzliche Infos zum Rennen"></textarea></div>
-        </div>
-        <div class="card-actions">
-          <button type="button" class="button-primary" id="save-race-btn">Rennen speichern</button>
-          <button type="button" class="button-secondary" id="generate-season-btn">Komplette Saison zufällig erstellen</button>
-        </div>
-        <div id="race-feedback" class="notice" hidden></div>
+          <div id="race-feedback" class="notice" hidden></div>
+        </details>
 
-        <h3 class="section-spacer-top">Renntag verschieben</h3>
-        <div class="form-grid">
-          <div class="field">
-            <label for="race-shift-source">Rennen</label>
-            <select id="race-shift-source"><option value="">Bitte Rennen wählen</option></select>
+        <details class="panel admin-panel-accent section-spacer-top" open>
+          <summary><strong>Renntag verschieben</strong></summary>
+          <div class="form-grid">
+            <div class="field">
+              <label for="race-shift-source">Rennen</label>
+              <select id="race-shift-source"><option value="">Bitte Rennen wählen</option></select>
+            </div>
+            <div class="field">
+              <label for="race-shift-date">Neues Renndatum</label>
+              <input id="race-shift-date" type="date">
+            </div>
           </div>
-          <div class="field">
-            <label for="race-shift-date">Neues Renndatum</label>
-            <input id="race-shift-date" type="date">
+          <div class="card-actions">
+            <button type="button" class="button-secondary" id="shift-race-btn">Renntag + Folge-Rennen verschieben</button>
           </div>
-        </div>
-        <div class="card-actions">
-          <button type="button" class="button-secondary" id="shift-race-btn">Renntag + Folge-Rennen verschieben</button>
-        </div>
-        <div id="race-shift-feedback" class="notice" hidden></div>
+          <div id="race-shift-feedback" class="notice" hidden></div>
+        </details>
 
-        <h3 class="section-spacer-top">Rennen entfernen</h3>
-        <div class="form-grid">
-          <div class="field">
-            <label for="race-delete-source">Rennen</label>
-            <select id="race-delete-source"><option value="">Bitte Rennen wählen</option></select>
+        <details class="panel admin-panel-accent section-spacer-top" open>
+          <summary><strong>Rennen entfernen</strong></summary>
+          <div class="form-grid">
+            <div class="field">
+              <label for="race-delete-source">Rennen</label>
+              <select id="race-delete-source"><option value="">Bitte Rennen wählen</option></select>
+            </div>
           </div>
-        </div>
-        <div class="card-actions">
-          <button type="button" class="button-secondary button-danger" id="delete-race-btn">Rennen aus Kalender entfernen</button>
-        </div>
-        <div id="race-delete-feedback" class="notice" hidden></div>
+          <div class="card-actions">
+            <button type="button" class="button-secondary button-danger" id="delete-race-btn">Rennen aus Kalender entfernen</button>
+          </div>
+          <div id="race-delete-feedback" class="notice" hidden></div>
+        </details>
       </section>
       </details>
 
