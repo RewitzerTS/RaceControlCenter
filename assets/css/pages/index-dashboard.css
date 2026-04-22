@@ -847,11 +847,28 @@
       .podium-column {
         padding: 42px 8px 10px;
         border-radius: 16px 16px 10px 10px;
+        overflow: hidden;
       }
-      .podium-column.p1 { min-height: 156px; }
-      .podium-column.p2 { min-height: 146px; }
-      .podium-column.p3 { min-height: 136px; }
-      .podium-column h3 { font-size: .9rem; }
+      .podium-column.p1 {
+        min-height: 168px;
+        max-height: 168px;
+      }
+      .podium-column.p2 {
+        min-height: 156px;
+        max-height: 156px;
+      }
+      .podium-column.p3 {
+        min-height: 144px;
+        max-height: 144px;
+      }
+      .podium-column h3 {
+        font-size: .9rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
       .podium-column p,
       .podium-card-lite span { font-size: .78rem; }
       .podium-points {
