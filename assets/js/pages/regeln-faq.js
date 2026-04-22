@@ -557,8 +557,11 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
 
     return {
       ...driver,
-      car_name: driver.car_name || assignment.car_name,
-      ai_driver_reference: driver.ai_driver_reference || assignment.ai_driver_reference,
+      // Grid muss die aktuelle Admin-Zuordnung direkt spiegeln.
+      // Deshalb werden Fahrzeug/KI immer aus `drivers` genommen,
+      // selbst wenn eine saisonale Assignment-Zeile existiert.
+      car_name: driver.car_name,
+      ai_driver_reference: driver.ai_driver_reference,
       team_id: driver.team_id || assignment.team_id
     };
   };
