@@ -555,19 +555,11 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
   const mergeDriverWithAssignment = (driver, assignment) => {
     if (!assignment) return driver;
 
-    const isPrimaryBaselineAssignment = Boolean(assignment.is_primary)
-      && !Number.isFinite(Number(assignment.effective_round_number))
-      && !assignment.effective_from_race_id;
-
     return {
       ...driver,
-      car_name: isPrimaryBaselineAssignment
-        ? (driver.car_name || assignment.car_name)
-        : (assignment.car_name || driver.car_name),
-      ai_driver_reference: isPrimaryBaselineAssignment
-        ? (driver.ai_driver_reference || assignment.ai_driver_reference)
-        : (assignment.ai_driver_reference || driver.ai_driver_reference),
-      team_id: assignment.team_id || driver.team_id
+      car_name: driver.car_name || assignment.car_name,
+      ai_driver_reference: driver.ai_driver_reference || assignment.ai_driver_reference,
+      team_id: driver.team_id || assignment.team_id
     };
   };
 
