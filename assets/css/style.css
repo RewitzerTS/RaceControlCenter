@@ -814,7 +814,7 @@ textarea { min-height: 120px; resize: vertical; }
     position: fixed;
     top: 0;
     right: 0;
-    width: min(320px, 86vw);
+    width: min(160px, 43vw);
     height: 100vh;
     padding: calc(84px + env(safe-area-inset-top)) 16px 18px;
     background: rgba(2, 27, 52, 0.96);
