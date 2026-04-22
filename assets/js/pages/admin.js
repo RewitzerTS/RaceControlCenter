@@ -1234,6 +1234,7 @@ async function swapDriverVehicle() {
 
 async function refreshSessionStatus() {
   const statusEl = document.getElementById('admin-session-status');
+  const inlineSession = document.getElementById('admin-session-inline');
   const inlineLabel = document.getElementById('admin-session-inline-label');
   const quickLogoutBtn = document.getElementById('admin-quick-logout-btn');
   const banner = document.getElementById('admin-session-banner');
@@ -1254,12 +1255,14 @@ async function refreshSessionStatus() {
 
   const session = data?.session || null;
   const adminActive = isAdminSession(session);
+  const hasSession = Boolean(session);
   const userEmail = session?.user?.email || '';
   statusEl.textContent = session
     ? (adminActive
       ? `Eingeloggt als Admin (${userEmail})`
       : `Eingeloggt ohne Admin-Rechte: ${userEmail}`)
     : 'Keine aktive Session';
+  statusEl.hidden = !hasSession;
 
   if (inlineLabel) {
     inlineLabel.innerHTML = session
@@ -1268,6 +1271,7 @@ async function refreshSessionStatus() {
         : `Eingeloggt als <strong>Benutzer</strong>${userEmail ? ` (${window.escapeHtml(userEmail)})` : ''}`)
       : 'Nicht eingeloggt';
   }
+  if (inlineSession) inlineSession.hidden = !hasSession;
   if (quickLogoutBtn) quickLogoutBtn.hidden = !session;
   if (loginForm) loginForm.hidden = Boolean(adminActive);
   if (loginActions) loginActions.hidden = Boolean(adminActive);
