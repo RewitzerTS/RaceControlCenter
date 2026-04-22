@@ -31,10 +31,15 @@ function initGlobalScrollProgress() {
 
   const updateHeaderOffset = () => {
     const siteHeader = document.querySelector('.site-header');
-    const headerHeight = siteHeader
-      ? Math.max(siteHeader.getBoundingClientRect().height, siteHeader.offsetHeight, 0)
+    const rawHeaderOffset = siteHeader
+      ? Math.max(siteHeader.getBoundingClientRect().bottom, siteHeader.offsetHeight, 0)
       : 0;
-    root.style.setProperty('--site-header-offset', `${Math.round(headerHeight)}px`);
+    const viewportHeight = window.visualViewport?.height || window.innerHeight || root.clientHeight || 0;
+    const maxReasonableHeaderOffset = viewportHeight > 0
+      ? Math.max(0, viewportHeight * 0.33)
+      : rawHeaderOffset;
+    const safeHeaderOffset = Math.min(rawHeaderOffset, maxReasonableHeaderOffset);
+    root.style.setProperty('--site-header-offset', `${Math.round(safeHeaderOffset)}px`);
 
     const viewportOffsetTop = window.visualViewport
       ? Math.max(0, Math.round(window.visualViewport.offsetTop || 0))
