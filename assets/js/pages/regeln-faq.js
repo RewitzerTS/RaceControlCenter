@@ -552,6 +552,25 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
   const referenceRace = resolveReferenceRaceForCurrentAssignments(races);
   if (!window.RCCDriverContext?.createAssignmentResolver) return drivers;
 
+  const mergeDriverWithAssignment = (driver, assignment) => {
+    if (!assignment) return driver;
+
+    const isPrimaryBaselineAssignment = Boolean(assignment.is_primary)
+      && !Number.isFinite(Number(assignment.effective_round_number))
+      && !assignment.effective_from_race_id;
+
+    return {
+      ...driver,
+      car_name: isPrimaryBaselineAssignment
+        ? (driver.car_name || assignment.car_name)
+        : (assignment.car_name || driver.car_name),
+      ai_driver_reference: isPrimaryBaselineAssignment
+        ? (driver.ai_driver_reference || assignment.ai_driver_reference)
+        : (assignment.ai_driver_reference || driver.ai_driver_reference),
+      team_id: assignment.team_id || driver.team_id
+    };
+  };
+
   if (!referenceRace) {
     const latestAssignmentByDriver = new Map();
     const getAssignmentRound = (row) => {
@@ -573,13 +592,7 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
 
     return (drivers || []).map((driver) => {
       const assignment = latestAssignmentByDriver.get(driver.id);
-      if (!assignment) return driver;
-      return {
-        ...driver,
-        car_name: assignment.car_name || driver.car_name,
-        ai_driver_reference: assignment.ai_driver_reference || driver.ai_driver_reference,
-        team_id: assignment.team_id || driver.team_id
-      };
+      return mergeDriverWithAssignment(driver, assignment);
     });
   }
 
@@ -589,9 +602,14 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
     assignments
   });
 
-  return (drivers || []).map((driver) =>
-    resolver.resolveDriverSnapshot(driver.id, referenceRace.id) || driver
-  );
+  return (drivers || []).map((driver) => {
+    const snapshot = resolver.resolveDriverSnapshot(driver.id, referenceRace.id) || driver;
+    const assignment = resolver.getAssignmentForRace(driver.id, referenceRace.id);
+    return {
+      ...snapshot,
+      ...mergeDriverWithAssignment(driver, assignment)
+    };
+  });
 }
 
 async function initRulesFaqPage() {
