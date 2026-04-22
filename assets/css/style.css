@@ -779,6 +779,22 @@ textarea { min-height: 120px; resize: vertical; }
     padding-top: calc(76px + env(safe-area-inset-top));
   }
 
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(1, 14, 27, 0.58);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 980;
+  }
+
+  body.nav-drawer-open::after {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .site-header {
     position: fixed;
     top: 0;
@@ -792,18 +808,29 @@ textarea { min-height: 120px; resize: vertical; }
     min-height: auto;
     padding: calc(6px + env(safe-area-inset-top)) 0 6px;
     align-items: center;
-    flex-wrap: wrap;
   }
 
   .main-nav {
-    width: 100%;
-    display: none;
-    padding-top: 6px;
-    order: 3;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 86vw);
+    height: 100vh;
+    padding: calc(84px + env(safe-area-inset-top)) 16px 18px;
+    background: rgba(2, 27, 52, 0.96);
+    border-left: 1px solid var(--line);
+    box-shadow: -20px 0 44px rgba(0, 0, 0, 0.42);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    z-index: 990;
+    transform: translateX(104%);
+    transition: transform 0.26s ease;
   }
 
   .main-nav .nav-extra-link {
-    display: none;
+    display: block;
   }
 
   .main-nav .nav-primary-link {
@@ -811,8 +838,7 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .nav-more {
-    display: block;
-    grid-column: 1 / -1;
+    display: none;
   }
 
   .nav-more-toggle {
@@ -832,12 +858,14 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .main-nav.open {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    transform: translateX(0);
   }
 
   .main-nav a {
-    text-align: center;
+    text-align: left;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
   }
 
   .hero-grid,
