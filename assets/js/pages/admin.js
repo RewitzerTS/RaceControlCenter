@@ -124,6 +124,19 @@ function clearFeedback(id) {
   el.classList.remove('notice-error');
 }
 
+async function confirmDangerousAction({
+  title = 'Sicherheitsabfrage',
+  details = '',
+  keyword = 'BESTÄTIGEN'
+} = {}) {
+  const message = `${title}\n\n${details}\n\nZur Bestätigung zuerst "OK" klicken und danach ${keyword} eingeben.`;
+  const confirmed = window.confirm(message);
+  if (!confirmed) return false;
+  const typed = window.prompt(`Bitte "${keyword}" eingeben, um fortzufahren:`, '');
+  if (typed === null) return false;
+  return typed.trim().toUpperCase() === keyword;
+}
+
 function escapeHtmlAttr(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -927,7 +940,12 @@ async function deleteStewardIncident(entryId) {
     await requireAdminSession();
     const entry = stewardCaseCache.find((item) => String(item.id) === String(entryId));
     if (!entry) throw new Error('Steward-Fall nicht gefunden.');
-    if (!window.confirm('Diesen Steward-Fall wirklich löschen?')) return;
+    const confirmed = await confirmDangerousAction({
+      title: 'Steward-Fall löschen?',
+      details: `${entry.title || 'Ausgewählter Fall'} wird inklusive Strafen entfernt.`,
+      keyword: 'LOESCHEN'
+    });
+    if (!confirmed) return;
 
     const { error: deletePenaltiesError } = await window.supabaseClient.from('race_penalties').delete().eq('steward_case_id', entryId);
     if (deletePenaltiesError) throw deletePenaltiesError;
@@ -1391,7 +1409,12 @@ async function saveDriver() {
 
 async function deleteDriver(id, displayName) {
   if (state.isDeletingDriver) return;
-  if (!window.confirm(`Möchtest du den Fahrer "${displayName}" wirklich löschen?`)) return;
+  const confirmed = await confirmDangerousAction({
+    title: `Fahrer "${displayName}" löschen?`,
+    details: 'Alle zugehörigen Ergebnis- und Stewarding-Zuordnungen werden bereinigt.',
+    keyword: 'LOESCHEN'
+  });
+  if (!confirmed) return;
   state.isDeletingDriver = true;
   clearFeedback('driver-feedback');
 
@@ -1618,6 +1641,13 @@ async function shiftRaceDates() {
       return showFeedback('race-shift-feedback', 'Es wurden keine Folge-Rennen zum Verschieben gefunden.', true);
     }
 
+    const confirmed = await confirmDangerousAction({
+      title: 'Renntermine verschieben?',
+      details: `${selectedRace.grand_prix_name} und ${Math.max(affectedRaces.length - 1, 0)} Folge-Rennen werden angepasst.`,
+      keyword: 'VERSCHIEBEN'
+    });
+    if (!confirmed) return;
+
     const updateResults = await Promise.all(
       affectedRaces.map((race) => window.supabaseClient
         .from('races')
@@ -1676,7 +1706,12 @@ async function deleteRaceFromCalendar() {
       return showFeedback('race-delete-feedback', 'Das gewählte Rennen wurde nicht gefunden.', true);
     }
 
-    if (!window.confirm(`Soll "${selectedRace.grand_prix_name}" (R${selectedRace.round_number}) wirklich aus dem Rennkalender entfernt werden?`)) {
+    const confirmed = await confirmDangerousAction({
+      title: `${selectedRace.grand_prix_name} (R${selectedRace.round_number}) entfernen?`,
+      details: 'Das Rennen und alle zugehörigen Ergebnisse werden gelöscht.',
+      keyword: 'ENTFERNEN'
+    });
+    if (!confirmed) {
       return;
     }
 
@@ -1939,6 +1974,12 @@ async function publishPendingResults(importId, raceId) {
 
     if (importError || !importItem) return showFeedback('publish-feedback', 'Kein Entwurf für dieses Rennen gefunden.', true);
     if (penaltiesError) return showFeedback('publish-feedback', 'Steward-Strafen konnten nicht geladen werden.', true);
+    const confirmed = await confirmDangerousAction({
+      title: `${importItem.races?.grand_prix_name || 'Rennen'} veröffentlichen?`,
+      details: 'Bestehende offizielle Ergebnisse dieses Rennens werden überschrieben.',
+      keyword: 'VEROEFFENTLICHEN'
+    });
+    if (!confirmed) return;
 
     const rows = (importItem.race_result_import_rows || []).map((row) => ({ ...row }));
     const adjustedRows = applyPenaltiesToRows(rows, penalties || []);
@@ -2020,7 +2061,12 @@ async function discardPendingResults(importId) {
       .maybeSingle();
 
     if (!item) return;
-    if (!window.confirm(`Entwurf für ${item.races?.grand_prix_name || 'dieses Rennen'} wirklich löschen?`)) return;
+    const confirmed = await confirmDangerousAction({
+      title: `Entwurf für ${item.races?.grand_prix_name || 'dieses Rennen'} löschen?`,
+      details: 'Der Entwurf und alle Importzeilen werden dauerhaft entfernt.',
+      keyword: 'ENTWURF'
+    });
+    if (!confirmed) return;
 
     const [{ error: rowsError }, { error: importError }] = await Promise.all([
       window.supabaseClient.from('race_result_import_rows').delete().eq('import_id', importId),
@@ -2239,12 +2285,11 @@ async function startNewSeason() {
     const currentSeason = preview.currentSeason;
     if (!currentSeason) throw new Error('Keine aktive Saison gefunden. Bitte SQL-Migration zuerst ausführen.');
 
-    const confirmed = window.confirm(`Saison ${currentSeason.name || ''} wirklich final abschließen?
-
-Fahrer-Weltmeister: ${preview.driverChampion?.driverName || '—'}
-Konstrukteurs-Weltmeister: ${preview.constructorChampion?.teamName || '—'}
-
-Danach wird automatisch eine neue Saison angelegt.`);
+    const confirmed = await confirmDangerousAction({
+      title: `Saison ${currentSeason.name || ''} final abschließen?`,
+      details: `Fahrer-Weltmeister: ${preview.driverChampion?.driverName || '—'}\nKonstrukteurs-Weltmeister: ${preview.constructorChampion?.teamName || '—'}\nDanach wird automatisch eine neue Saison angelegt.`,
+      keyword: 'SAISON'
+    });
     if (!confirmed) {
       return;
     }
@@ -2597,6 +2642,48 @@ function enableAdminCollapsibles() {
   });
 }
 
+function initAdminMobileTabs() {
+  const tabsRoot = document.getElementById('admin-mobile-tabs');
+  if (!tabsRoot || tabsRoot.dataset.bound === 'true') return;
+
+  const buttons = [...tabsRoot.querySelectorAll('[data-admin-tab-target]')];
+  const sections = buttons
+    .map((button) => document.getElementById(button.dataset.adminTabTarget))
+    .filter(Boolean);
+  if (!buttons.length || !sections.length) return;
+
+  const mediaQuery = window.matchMedia('(max-width: 860px)');
+  const setActiveTab = (targetId) => {
+    buttons.forEach((button) => {
+      const active = button.dataset.adminTabTarget === targetId;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+    sections.forEach((section) => {
+      section.hidden = section.id !== targetId;
+    });
+  };
+
+  const syncVisibility = () => {
+    if (!mediaQuery.matches) {
+      sections.forEach((section) => { section.hidden = false; });
+      tabsRoot.hidden = true;
+      return;
+    }
+    tabsRoot.hidden = false;
+    const activeBtn = buttons.find((button) => button.classList.contains('is-active')) || buttons[0];
+    if (activeBtn) setActiveTab(activeBtn.dataset.adminTabTarget);
+  };
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => setActiveTab(button.dataset.adminTabTarget));
+  });
+  mediaQuery.addEventListener('change', syncVisibility);
+  syncVisibility();
+
+  tabsRoot.dataset.bound = 'true';
+}
+
 function bindUiEvents() {
   if (state.eventsBound) return;
   state.eventsBound = true;
@@ -2754,6 +2841,7 @@ async function initAdminPage() {
   enableAdminCollapsibles();
   bindUiEvents();
   bindAuthListener();
+  initAdminMobileTabs();
 
   await Promise.all([
     populateStewardDriverSelects(),
