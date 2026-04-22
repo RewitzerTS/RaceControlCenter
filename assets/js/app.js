@@ -36,8 +36,8 @@ function initGlobalScrollProgress() {
       : 0;
     const viewportHeight = window.visualViewport?.height || window.innerHeight || root.clientHeight || 0;
     const maxReasonableHeaderOffset = viewportHeight > 0
-      ? Math.max(0, viewportHeight * 0.33)
-      : rawHeaderOffset;
+      ? Math.max(0, Math.min(96, viewportHeight * 0.2))
+      : 96;
     const safeHeaderOffset = Math.min(rawHeaderOffset, maxReasonableHeaderOffset);
     root.style.setProperty('--site-header-offset', `${Math.round(safeHeaderOffset)}px`);
 
