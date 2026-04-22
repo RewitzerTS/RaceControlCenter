@@ -69,7 +69,7 @@ function getFastestLapDriverId(rows) {
 
   for (const row of rows) {
     const lapTime = getFastestLapMs(row);
-    if (lapTime === null || !isTopTen(row?.finish_position)) continue;
+    if (lapTime === null) continue;
     if (bestTime === null || lapTime < bestTime) {
       bestTime = lapTime;
       winner = row.driver_id;

@@ -78,8 +78,6 @@ function getFastestLapWinnerId(rows) {
   let bestMs = null;
 
   rows.forEach((row) => {
-    const finishPosition = Number(row.finish_position || 0);
-    if (!finishPosition || finishPosition > 10) return;
     const lapMs = parseRaceTimeToMs(row.fastest_lap_time);
     if (!Number.isFinite(lapMs)) return;
     if (bestMs === null || lapMs < bestMs) {

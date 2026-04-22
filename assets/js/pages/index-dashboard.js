@@ -223,7 +223,7 @@
         let bestMs = null;
         rows.forEach((row) => {
           const ms = window.RCCData.parseLapTimeToMs(row.fastest_lap_time);
-          if (ms === null || !window.RCCData.isTopTen(row.finish_position)) return;
+          if (ms === null) return;
           if (bestMs === null || ms < bestMs) {
             bestMs = ms;
             bestId = row.driver_id;
