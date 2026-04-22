@@ -2133,6 +2133,7 @@ body[data-page="grid"] .driver-team-member-flip {
 
 .trackmap-lightbox-title {
   margin-bottom: 14px;
+  margin-right: 52px;
   font-size: 1rem;
   font-weight: 800;
 }
@@ -2147,7 +2148,7 @@ body[data-page="grid"] .driver-team-member-flip {
 
 .trackmap-lightbox-close {
   position: absolute;
-  top: 12px;
+  top: max(12px, calc(env(safe-area-inset-top, 0px) + 4px));
   right: 12px;
   z-index: 4;
   width: 42px;
@@ -2168,6 +2169,7 @@ body[data-page="grid"] .driver-team-member-flip {
   max-width: 640px;
   margin-top: max(36px, calc(env(safe-area-inset-top, 0px) + 20px));
   margin-bottom: 24px;
+  padding-top: max(22px, calc(env(safe-area-inset-top, 0px) + 10px));
 }
 
 .driver-card-modal-content {
@@ -2345,6 +2347,7 @@ body[data-page="grid"] .driver-team-member-flip {
     width: calc(100% - 12px);
     margin: max(16px, calc(env(safe-area-inset-top, 0px) + 12px)) auto 14px;
     padding: 14px;
+    padding-top: max(14px, calc(env(safe-area-inset-top, 0px) + 8px));
   }
 
   .driver-card-modal-content {
