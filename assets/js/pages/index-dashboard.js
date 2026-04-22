@@ -529,15 +529,15 @@
             heroNextRaceEl.innerHTML = nextTwoRaces.length ? nextTwoRaces.map((race, index) => {
               const meta = window.getRaceTrackMeta ? window.getRaceTrackMeta(race) : { track: null };
               return `
-                <article style="${index > 0 ? 'margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);' : ''}">
+                <article class="next-race-item" style="${index > 0 ? 'margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);' : ''}">
+                  <div class="showcase-meta">
+                    ${window.createFlagBadge ? window.createFlagBadge(meta.track?.countryCode, race.grand_prix_name) : '<span class="flag-badge flag-badge-fallback">🏁</span>'}
+                  </div>
                   <div class="card-label">Runde ${escapeHtml(race.round_number)}</div>
                   <h2 style="margin:0;font-size:${index === 0 ? '2rem' : '1.45rem'};">${escapeHtml(race.grand_prix_name || 'Grand Prix')}</h2>
                   <div class="champion-detail" style="margin-top:8px;">
                     ${escapeHtml(race.circuit_name || meta.track?.circuitName || 'Strecke offen')}<br>
                     ${formatDateLong(race.race_date)}
-                  </div>
-                  <div class="showcase-meta">
-                    <span class="ghost-chip">${window.createFlagBadge ? window.createFlagBadge(meta.track?.countryCode, race.grand_prix_name) : '🏁'}</span>
                   </div>
                 </article>
               `;
