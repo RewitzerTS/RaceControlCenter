@@ -125,7 +125,8 @@ async function loadRaceDetailPage() {
     resultsBody.innerHTML = results.length
       ? results.map((row) => {
           const snapshot = resolver.resolveDriverSnapshot(row.driver_id, race.id) || {};
-          const hasFastestLap = row.driver_id === fastestDriverId && window.RCCData.isTopTen(row.finish_position);
+          const hasFastestLap = row.driver_id === fastestDriverId;
+          const hasFastestLapBonus = hasFastestLap && window.RCCData.isTopTen(row.finish_position);
           const points = window.RCCData.getAwardedRacePoints(row, fastestDriverId);
           const fastestLapText = row.fastest_lap_time ? row.fastest_lap_time : '—';
           const statusText = String(row.participation_status || '').trim().toUpperCase();
@@ -141,7 +142,7 @@ async function loadRaceDetailPage() {
               <td>${row.finish_position ?? '—'}</td>
               <td>${hasFastestLap ? `<span class="fastest-lap-value">${window.escapeHtml(fastestLapText)}</span>` : window.escapeHtml(fastestLapText)}</td>
               <td>${window.escapeHtml(row.race_time || '—')}</td>
-              <td><strong>${points}</strong>${hasFastestLap ? '<span class="fastest-lap-bonus">+FL</span>' : ''}</td>
+              <td><strong class="${hasFastestLap ? 'fastest-lap-points' : ''}">${points}</strong>${hasFastestLapBonus ? '<span class="fastest-lap-bonus">+FL</span>' : ''}</td>
               <td><span class="status-chip ${statusChipClass}">${window.escapeHtml(statusLabel)}</span></td>
             </tr>
           `;
