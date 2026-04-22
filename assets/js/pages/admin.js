@@ -1236,8 +1236,11 @@ async function refreshSessionStatus() {
   const statusEl = document.getElementById('admin-session-status');
   const inlineLabel = document.getElementById('admin-session-inline-label');
   const quickLogoutBtn = document.getElementById('admin-quick-logout-btn');
+  const banner = document.getElementById('admin-session-banner');
+  const bannerLabel = document.getElementById('admin-session-banner-label');
   const loginForm = document.getElementById('admin-login-form');
   const loginActions = document.getElementById('admin-login-actions');
+  const authSection = document.getElementById('admin-section-auth');
   if (!statusEl) return;
 
   const { data, error } = await window.supabaseClient.auth.getSession();
@@ -1265,6 +1268,11 @@ async function refreshSessionStatus() {
   if (quickLogoutBtn) quickLogoutBtn.hidden = !session;
   if (loginForm) loginForm.hidden = Boolean(adminActive);
   if (loginActions) loginActions.hidden = Boolean(adminActive);
+  if (authSection) authSection.hidden = Boolean(adminActive);
+  if (banner) banner.hidden = !adminActive;
+  if (bannerLabel) {
+    bannerLabel.textContent = `Eingeloggt als Admin${userEmail ? ` (${userEmail})` : ''}`;
+  }
 
   updateAdminOverview();
 }
@@ -2702,6 +2710,7 @@ function bindUiEvents() {
 
   document.getElementById('admin-login-btn')?.addEventListener('click', signInAdmin);
   document.getElementById('admin-quick-logout-btn')?.addEventListener('click', signOutAdmin);
+  document.getElementById('admin-banner-logout-btn')?.addEventListener('click', signOutAdmin);
   document.getElementById('save-race-btn')?.addEventListener('click', saveRace);
   document.getElementById('delete-race-btn')?.addEventListener('click', deleteRaceFromCalendar);
   document.getElementById('shift-race-btn')?.addEventListener('click', shiftRaceDates);
