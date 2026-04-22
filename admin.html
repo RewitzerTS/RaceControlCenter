@@ -33,6 +33,8 @@
       <button type="button" class="admin-mobile-tab is-active" data-admin-tab-target="admin-section-calendar" role="tab" aria-selected="true">Kalender</button>
       <button type="button" class="admin-mobile-tab" data-admin-tab-target="admin-section-results" role="tab" aria-selected="false">Ergebnisse</button>
       <button type="button" class="admin-mobile-tab" data-admin-tab-target="admin-section-stewarding" role="tab" aria-selected="false">Stewarding</button>
+      <button type="button" class="admin-mobile-tab" data-admin-tab-target="admin-section-drivers" role="tab" aria-selected="false">Fahrer</button>
+      <button type="button" class="admin-mobile-tab" data-admin-tab-target="admin-section-rules" role="tab" aria-selected="false">Regeln</button>
     </div>
 
     <div class="container admin-layout">
@@ -40,13 +42,16 @@
         <summary><strong>1) Login & Session</strong></summary>
       <section class="panel admin-panel-accent">
         <h3>Admin Login</h3>
-        <div class="form-grid">
+        <div class="admin-session-inline" id="admin-session-inline">
+          <span id="admin-session-inline-label">Nicht eingeloggt</span>
+          <button type="button" class="button-secondary" id="admin-quick-logout-btn" hidden>Logout</button>
+        </div>
+        <div class="form-grid" id="admin-login-form">
           <div class="field"><label for="admin-email">E-Mail</label><input id="admin-email" type="email" placeholder="deine-mail@example.com"></div>
           <div class="field"><label for="admin-password">Passwort</label><input id="admin-password" type="password" placeholder="Passwort"></div>
         </div>
-        <div class="card-actions">
+        <div class="card-actions" id="admin-login-actions">
           <button type="button" class="button-primary" id="admin-login-btn">Einloggen</button>
-          <button type="button" class="button-secondary" id="admin-logout-btn">Ausloggen</button>
         </div>
         <div class="notice" id="admin-session-status">Session wird geprüft...</div>
         <div id="admin-auth-feedback" class="notice" hidden></div>
