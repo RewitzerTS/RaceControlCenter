@@ -257,22 +257,15 @@
       text-transform: uppercase;
       letter-spacing: .12em;
     }
-    .showcase-meta {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 14px 0;
+    .next-race-item {
+      position: relative;
+      padding-right: 80px;
+      min-height: 70px;
     }
-    .ghost-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      font-weight: 700;
-      font-size: .8rem;
+    .showcase-meta {
+      position: absolute;
+      top: 0;
+      right: 0;
     }
     .hero-actions {
       display: flex;
@@ -314,7 +307,7 @@
     }
     .side-kpi-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
     .side-kpi {
@@ -764,7 +757,9 @@
       .hero-main { min-height: unset; }
     }
     @media (max-width: 760px) {
-      .side-kpi-grid,
+      .side-kpi-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
       .split-facts,
       .duel-row {
         grid-template-columns: 1fr;
