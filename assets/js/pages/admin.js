@@ -88,6 +88,7 @@ const state = {
   seasonFinalizePreview: null,
   driversCache: [],
   selectedSwapSourceDriverId: null,
+  activeAdminTabTarget: 'admin-section-results',
   eventsBound: false,
   authListenerBound: false,
   initialized: false
@@ -1284,6 +1285,9 @@ async function refreshSessionStatus() {
   protectedPanels.forEach((panel) => {
     panel.hidden = !adminActive;
   });
+  if (adminActive) {
+    syncAdminTabVisibility();
+  }
   if (banner) banner.hidden = !adminActive;
   if (bannerLabel) {
     bannerLabel.textContent = `Eingeloggt als Admin${userEmail ? ` (${userEmail})` : ''}`;
@@ -2693,6 +2697,7 @@ function initAdminMobileTabs() {
   if (!buttons.length || !sections.length) return;
 
   const setActiveTab = (targetId) => {
+    state.activeAdminTabTarget = targetId;
     buttons.forEach((button) => {
       const active = button.dataset.adminTabTarget === targetId;
       button.classList.toggle('is-active', active);
@@ -2708,7 +2713,9 @@ function initAdminMobileTabs() {
   };
 
   const syncVisibility = () => {
-    const activeBtn = buttons.find((button) => button.classList.contains('is-active')) || buttons[0];
+    const activeBtn = buttons.find((button) => button.dataset.adminTabTarget === state.activeAdminTabTarget)
+      || buttons.find((button) => button.classList.contains('is-active'))
+      || buttons[0];
     if (activeBtn) setActiveTab(activeBtn.dataset.adminTabTarget);
   };
 
@@ -2718,6 +2725,18 @@ function initAdminMobileTabs() {
   syncVisibility();
 
   tabsRoot.dataset.bound = 'true';
+}
+
+function syncAdminTabVisibility() {
+  const tabsRoot = document.getElementById('admin-mobile-tabs');
+  if (!tabsRoot) return;
+  const buttons = [...tabsRoot.querySelectorAll('[data-admin-tab-target]')];
+  if (!buttons.length) return;
+  const preferred = buttons.find((button) => button.dataset.adminTabTarget === state.activeAdminTabTarget)
+    || buttons[0];
+  if (!preferred) return;
+
+  preferred.click();
 }
 
 function bindUiEvents() {
