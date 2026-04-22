@@ -2642,6 +2642,20 @@ body.hof-page {
   margin-bottom: 12px;
 }
 
+.admin-session-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--text-muted);
+}
+
+.admin-session-banner-logout {
+  min-height: 30px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
 .admin-session-inline {
   display: flex;
   align-items: center;
@@ -2853,6 +2867,11 @@ body.hof-page {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .admin-session-banner {
+    flex-wrap: wrap;
     margin-bottom: 10px;
   }
 
