@@ -98,22 +98,45 @@ function initStandaloneSplashScreen() {
 function initNavigation() {
   const navToggle = document.querySelector('[data-nav-toggle]');
   const mainNav = document.querySelector('[data-main-nav]');
+  const navBackdrop = document.querySelector('[data-nav-backdrop]');
   const moreWrap = document.querySelector('[data-nav-more]');
   const moreToggle = document.querySelector('[data-nav-more-toggle]');
-  const moreMenu = document.querySelector('[data-nav-more-menu]');
 
   if (!navToggle || !mainNav || navToggle.dataset.bound === 'true') {
     return;
   }
 
+  const closeMoreMenu = () => {
+    if (!moreWrap) return;
+    moreWrap.classList.remove('open');
+    moreToggle?.setAttribute('aria-expanded', 'false');
+  };
+
+  const closeNavigation = () => {
+    mainNav.classList.remove('open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navBackdrop?.classList.remove('open');
+    closeMoreMenu();
+    document.body.classList.remove('nav-open');
+  };
+
+  const openNavigation = () => {
+    mainNav.classList.add('open');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navBackdrop?.classList.add('open');
+    document.body.classList.add('nav-open');
+  };
+
   navToggle.addEventListener('click', () => {
-    const isOpen = mainNav.classList.toggle('open');
-    navToggle.setAttribute('aria-expanded', String(isOpen));
-    if (!isOpen && moreWrap) {
-      moreWrap.classList.remove('open');
-      moreToggle?.setAttribute('aria-expanded', 'false');
+    const isOpen = mainNav.classList.contains('open');
+    if (isOpen) {
+      closeNavigation();
+    } else {
+      openNavigation();
     }
   });
+
+  navBackdrop?.addEventListener('click', closeNavigation);
 
   moreToggle?.addEventListener('click', () => {
     const isOpen = moreWrap.classList.toggle('open');
@@ -123,28 +146,34 @@ function initNavigation() {
   mainNav.addEventListener('click', (event) => {
     const link = event.target.closest('a[href]');
     if (!link) return;
-    mainNav.classList.remove('open');
-    navToggle.setAttribute('aria-expanded', 'false');
-    if (moreWrap) {
-      moreWrap.classList.remove('open');
-      moreToggle?.setAttribute('aria-expanded', 'false');
-    }
+    closeNavigation();
   });
 
   document.addEventListener('click', (event) => {
+    if (mainNav.classList.contains('open') && !mainNav.contains(event.target) && !navToggle.contains(event.target) && !navBackdrop?.contains(event.target)) {
+      closeNavigation();
+      return;
+    }
+
     if (!moreWrap || !moreWrap.classList.contains('open')) return;
     if (moreWrap.contains(event.target)) return;
-    moreWrap.classList.remove('open');
-    moreToggle?.setAttribute('aria-expanded', 'false');
+    closeMoreMenu();
   });
 
-  const closeMoreIfDesktop = () => {
-    if (!window.matchMedia('(max-width: 860px)').matches && moreWrap) {
-      moreWrap.classList.remove('open');
-      moreToggle?.setAttribute('aria-expanded', 'false');
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && mainNav.classList.contains('open')) {
+      closeNavigation();
+      navToggle.focus();
+    }
+  });
+
+  const closeIfDesktop = () => {
+    if (!window.matchMedia('(max-width: 860px)').matches) {
+      closeNavigation();
     }
   };
-  window.addEventListener('resize', closeMoreIfDesktop);
+
+  window.addEventListener('resize', closeIfDesktop);
 
   navToggle.dataset.bound = 'true';
 }
