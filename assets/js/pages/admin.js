@@ -1241,6 +1241,9 @@ async function refreshSessionStatus() {
   const loginForm = document.getElementById('admin-login-form');
   const loginActions = document.getElementById('admin-login-actions');
   const authSection = document.getElementById('admin-section-auth');
+  const sectionHeader = document.querySelector('.section-header');
+  const mobileTabs = document.getElementById('admin-mobile-tabs');
+  const protectedPanels = [...document.querySelectorAll('.admin-layout > .panel:not(#admin-section-auth)')];
   if (!statusEl) return;
 
   const { data, error } = await window.supabaseClient.auth.getSession();
@@ -1268,7 +1271,15 @@ async function refreshSessionStatus() {
   if (quickLogoutBtn) quickLogoutBtn.hidden = !session;
   if (loginForm) loginForm.hidden = Boolean(adminActive);
   if (loginActions) loginActions.hidden = Boolean(adminActive);
-  if (authSection) authSection.hidden = Boolean(adminActive);
+  if (authSection) {
+    authSection.hidden = adminActive;
+    authSection.open = !adminActive;
+  }
+  if (sectionHeader) sectionHeader.hidden = !adminActive;
+  if (mobileTabs) mobileTabs.hidden = !adminActive;
+  protectedPanels.forEach((panel) => {
+    panel.hidden = !adminActive;
+  });
   if (banner) banner.hidden = !adminActive;
   if (bannerLabel) {
     bannerLabel.textContent = `Eingeloggt als Admin${userEmail ? ` (${userEmail})` : ''}`;
@@ -2691,7 +2702,6 @@ function initAdminMobileTabs() {
   };
 
   const syncVisibility = () => {
-    tabsRoot.hidden = false;
     const activeBtn = buttons.find((button) => button.classList.contains('is-active')) || buttons[0];
     if (activeBtn) setActiveTab(activeBtn.dataset.adminTabTarget);
   };
@@ -2857,6 +2867,12 @@ function bindAuthListener() {
 async function initAdminPage() {
   if (state.initialized) return;
   state.initialized = true;
+
+  document.querySelector('.section-header')?.setAttribute('hidden', 'hidden');
+  document.getElementById('admin-mobile-tabs')?.setAttribute('hidden', 'hidden');
+  document.querySelectorAll('.admin-layout > .panel:not(#admin-section-auth)').forEach((panel) => {
+    panel.setAttribute('hidden', 'hidden');
+  });
 
   populateDriverDropdowns();
   enableAdminCollapsibles();
