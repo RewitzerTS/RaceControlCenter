@@ -2697,7 +2697,11 @@ function initAdminMobileTabs() {
       button.setAttribute('aria-selected', String(active));
     });
     sections.forEach((section) => {
-      section.hidden = section.id !== targetId;
+      const isTarget = section.id === targetId;
+      section.hidden = !isTarget;
+      if (isTarget && section.tagName === 'DETAILS') {
+        section.open = true;
+      }
     });
   };
 
