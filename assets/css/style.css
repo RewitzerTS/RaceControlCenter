@@ -25,7 +25,7 @@
 
 .site-scroll-progress {
   position: fixed;
-  inset: var(--site-header-offset, 0px) auto auto 0;
+  inset: calc(var(--site-header-offset, 0px) + var(--visual-viewport-offset-top, 0px)) auto auto 0;
   height: 3px;
   width: var(--site-scroll-progress, 0%);
   z-index: 240;
