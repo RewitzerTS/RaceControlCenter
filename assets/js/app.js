@@ -35,6 +35,11 @@ function initGlobalScrollProgress() {
       ? Math.max(siteHeader.getBoundingClientRect().height, siteHeader.offsetHeight, 0)
       : 0;
     root.style.setProperty('--site-header-offset', `${Math.round(headerHeight)}px`);
+
+    const viewportOffsetTop = window.visualViewport
+      ? Math.max(0, Math.round(window.visualViewport.offsetTop || 0))
+      : 0;
+    root.style.setProperty('--visual-viewport-offset-top', `${viewportOffsetTop}px`);
   };
 
   const updateProgressBar = () => {
