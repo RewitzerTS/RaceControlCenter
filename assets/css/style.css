@@ -143,6 +143,10 @@ button, input, textarea, select {
   background: currentColor;
 }
 
+.nav-backdrop {
+  display: none;
+}
+
 .main-nav {
   position: relative;
   z-index: 1000;
@@ -795,11 +799,44 @@ textarea { min-height: 120px; resize: vertical; }
     flex-wrap: wrap;
   }
 
+  .nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background: rgba(2, 9, 20, 0.45);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 1010;
+  }
+
+  .nav-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .main-nav {
-    width: 100%;
-    display: none;
-    padding-top: 6px;
-    order: 3;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(88vw, 360px);
+    padding: calc(88px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom));
+    background: rgba(3, 20, 39, 0.98);
+    border-left: 1px solid var(--line);
+    box-shadow: -18px 0 38px rgba(0, 0, 0, 0.45);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 8px;
+    transform: translateX(104%);
+    transition: transform 0.24s ease;
+    z-index: 1020;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .main-nav .nav-extra-link {
@@ -832,12 +869,16 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .main-nav.open {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    transform: translateX(0);
   }
 
   .main-nav a {
     text-align: center;
+  }
+
+  body.nav-open {
+    overflow: hidden;
+    touch-action: none;
   }
 
   .hero-grid,
