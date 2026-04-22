@@ -538,8 +538,6 @@
                   </div>
                   <div class="showcase-meta">
                     <span class="ghost-chip">${window.createFlagBadge ? window.createFlagBadge(meta.track?.countryCode, race.grand_prix_name) : '🏁'}</span>
-                    <span class="ghost-chip">${escapeHtml(window.formatStatusLabel(race.status))}</span>
-                    <span class="ghost-chip">${escapeHtml(window.formatWeatherLabel(race.weather || 'offen'))}</span>
                   </div>
                 </article>
               `;

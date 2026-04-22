@@ -765,7 +765,6 @@
     }
     @media (max-width: 760px) {
       .side-kpi-grid,
-      .countdown-grid,
       .split-facts,
       .duel-row {
         grid-template-columns: 1fr;
@@ -787,6 +786,7 @@
         font-size: .84rem;
       }
       .countdown-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
         margin-top: 12px;
       }

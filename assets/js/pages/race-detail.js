@@ -55,7 +55,7 @@ async function loadRaceDetailPage() {
   const titleEl = document.getElementById('race-title');
   const subtitleEl = document.getElementById('race-subtitle');
   const infoEl = document.getElementById('race-info');
-  const chipsEl = document.getElementById('race-chips');
+  const flagChipEl = document.getElementById('race-flag-chip');
   const stewardsEl = document.getElementById('stewards-info');
   const resultsBody = document.getElementById('results-body');
 
@@ -102,8 +102,12 @@ async function loadRaceDetailPage() {
     const { track } = window.getRaceTrackMeta(race);
     const flagBadge = window.createFlagBadge(track?.countryCode, `${track?.grandPrixName || race.grand_prix_name} Flagge`);
 
-    titleEl.innerHTML = `${flagBadge} <span>${window.escapeHtml(race.grand_prix_name)}</span>`;
-    subtitleEl.textContent = `${race.circuit_name || track?.circuitName || 'Strecke offen'} · ${window.formatRaceDateTime(race)}`;
+    titleEl.textContent = race.grand_prix_name || 'Grand Prix';
+    subtitleEl.textContent = '';
+    if (flagChipEl) {
+      flagChipEl.innerHTML = flagBadge;
+      flagChipEl.hidden = false;
+    }
 
     infoEl.innerHTML = `
       <strong>Runde:</strong> ${race.round_number ?? '—'}<br>
@@ -112,12 +116,6 @@ async function loadRaceDetailPage() {
       <strong>Wetter:</strong> ${window.escapeHtml(window.formatWeatherLabel(race.weather))}<br>
       <strong>Status:</strong> ${window.escapeHtml(window.formatStatusLabel(race.status))}<br>
       <div class="detail-track-map">${window.createTrackMapSvg(track)}</div>
-    `;
-
-    chipsEl.innerHTML = `
-      <span class="chip ${race.status === 'completed' ? 'success' : ''}">${race.status === 'completed' ? 'Ergebnis offiziell' : 'Anstehend'}</span>
-      <span class="chip">${results.length || 0} Fahrer</span>
-      ${race.season_id ? `<span class="chip">Saison ${window.escapeHtml(race.season_id)}</span>` : ''}
     `;
 
     renderStewardSection(stewardsEl, stewardResponse.data, stewardResponse.error);
