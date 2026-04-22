@@ -770,6 +770,7 @@ textarea { min-height: 120px; resize: vertical; }
 }
 
 .hidden { display: none !important; }
+[hidden] { display: none !important; }
 
 @media (max-width: 1180px) {
   .hero-grid,
