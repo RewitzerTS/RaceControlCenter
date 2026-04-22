@@ -199,7 +199,10 @@ function renderImportPreviewTable(rows, summary = {}) {
     return;
   }
 
-  const stats = `Gesamt: ${summary.total || 0} · Gemappt: ${summary.matched || 0} · Konflikte: ${summary.conflicts || 0}`;
+  const fastestLapText = summary.fastestLapWinnerLabel
+    ? ` · Schnellste Runde: ${summary.fastestLapWinnerLabel}`
+    : '';
+  const stats = `Gesamt: ${summary.total || 0} · Gemappt: ${summary.matched || 0} · Konflikte: ${summary.conflicts || 0}${fastestLapText}`;
   preview.innerHTML = `
     <div class="notice">${window.escapeHtml(stats)}</div>
     <table class="admin-preview-table">
@@ -209,6 +212,8 @@ function renderImportPreviewTable(rows, summary = {}) {
           <th>Grand Prix</th>
           <th>Match</th>
           <th>Quelle</th>
+          <th>Punkte</th>
+          <th>Schnellste Runde</th>
           <th>Status</th>
         </tr>
       </thead>
@@ -219,6 +224,8 @@ function renderImportPreviewTable(rows, summary = {}) {
             <td>${window.escapeHtml(row.grandPrixName || '—')}</td>
             <td>${window.escapeHtml(row.matchedLabel || '—')}</td>
             <td>${window.escapeHtml(row.matchSource || '—')}</td>
+            <td>${window.escapeHtml(String(row.awardedPoints ?? 0))}</td>
+            <td>${window.escapeHtml(row.fastestLapLabel || '—')}</td>
             <td><span class="preview-badge ${row.statusClass || ''}">${window.escapeHtml(row.statusLabel || 'Unbekannt')}</span></td>
           </tr>
         `).join('')}
@@ -295,6 +302,8 @@ async function analyzeCsvImport(csvText) {
         grandPrixName,
         matchedLabel: '',
         matchSource: '',
+        awardedPoints: Number(row['punkte'] || 0) || 0,
+        fastestLapLabel: '—',
         statusLabel: 'Kein Match',
         statusClass: 'preview-badge--error'
       });
@@ -309,6 +318,8 @@ async function analyzeCsvImport(csvText) {
         grandPrixName,
         matchedLabel: candidateLabels.join(' / ') || 'Mehrdeutig',
         matchSource: 'Mehrere Treffer',
+        awardedPoints: Number(row['punkte'] || 0) || 0,
+        fastestLapLabel: '—',
         statusLabel: 'Mehrdeutig',
         statusClass: 'preview-badge--error'
       });
@@ -327,16 +338,34 @@ async function analyzeCsvImport(csvText) {
       participation_status: mapped.participation_status
     });
     previewRows.push({
+      driver_id: mapped.driver_id,
       rawDriverName,
       grandPrixName,
       matchedLabel: mapped.label,
       matchSource: mapped.source,
+      awardedPoints: Number(row['punkte'] || 0) || 0,
+      fastestLapLabel: '—',
       statusLabel: 'Gemappt',
       statusClass: mapped.participation_status === 'BOT' ? 'preview-badge--warning' : 'preview-badge--success'
     });
   }
 
-  const summary = { total: parsedRows.length, matched: preparedRows.length, conflicts: missingDrivers.length + duplicates.size + ambiguousDrivers.length };
+  const fastestLapWinnerId = getFastestLapWinnerId(preparedRows);
+  let fastestLapWinnerLabel = '';
+  if (fastestLapWinnerId) {
+    previewRows.forEach((row) => {
+      if (!row.driver_id) return;
+      row.fastestLapLabel = row.driver_id === fastestLapWinnerId ? 'Zugeteilt' : '—';
+      if (row.driver_id === fastestLapWinnerId) fastestLapWinnerLabel = row.matchedLabel || row.rawDriverName || '';
+    });
+  }
+
+  const summary = {
+    total: parsedRows.length,
+    matched: preparedRows.length,
+    conflicts: missingDrivers.length + duplicates.size + ambiguousDrivers.length,
+    fastestLapWinnerLabel
+  };
   renderImportPreviewTable(previewRows, summary);
   if (missingDrivers.length || duplicates.size || ambiguousDrivers.length) {
     const parts = [];
