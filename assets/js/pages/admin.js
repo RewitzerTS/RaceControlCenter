@@ -2246,7 +2246,7 @@ async function importRaceResults(options = {}) {
     }
 
     if ((existingPublishedResultsCount || 0) > 0 && !overwritePublished) {
-      return showFeedback('csv-feedback', `Für "${grandPrixName}" sind bereits veröffentlichte Ergebnisse vorhanden. Aktiviere „Bereits veröffentlichte Rennergebnisse überschreiben (Korrekturimport)“, um den Stand zu ersetzen.`, true);
+      return showFeedback('csv-feedback', `Für "${grandPrixName}" sind bereits veröffentlichte Ergebnisse vorhanden. Aktiviere „Korrektur Upload“, um den Stand zu ersetzen.`, true);
     }
 
     const { data: existingImport } = await window.supabaseClient
