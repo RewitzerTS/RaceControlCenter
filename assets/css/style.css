@@ -2636,7 +2636,34 @@ body.hof-page {
 }
 
 .admin-mobile-tabs {
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-session-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+  margin-bottom: 12px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.admin-session-inline strong {
+  color: #fff;
+}
+
+.admin-session-inline .button-secondary {
+  min-height: 36px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
 }
 
 .admin-mobile-tab {
@@ -2824,7 +2851,7 @@ body.hof-page {
 
   .admin-mobile-tabs {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 10px;
   }

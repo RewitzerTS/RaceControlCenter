@@ -1234,6 +1234,10 @@ async function swapDriverVehicle() {
 
 async function refreshSessionStatus() {
   const statusEl = document.getElementById('admin-session-status');
+  const inlineLabel = document.getElementById('admin-session-inline-label');
+  const quickLogoutBtn = document.getElementById('admin-quick-logout-btn');
+  const loginForm = document.getElementById('admin-login-form');
+  const loginActions = document.getElementById('admin-login-actions');
   if (!statusEl) return;
 
   const { data, error } = await window.supabaseClient.auth.getSession();
@@ -1242,11 +1246,26 @@ async function refreshSessionStatus() {
     return;
   }
 
-  statusEl.textContent = data.session
-    ? (isAdminSession(data.session)
-      ? `Admin aktiv: ${data.session.user.email}`
-      : `Eingeloggt ohne Admin-Rechte: ${data.session.user.email}`)
+  const session = data?.session || null;
+  const adminActive = isAdminSession(session);
+  const userEmail = session?.user?.email || '';
+  statusEl.textContent = session
+    ? (adminActive
+      ? `Eingeloggt als Admin (${userEmail})`
+      : `Eingeloggt ohne Admin-Rechte: ${userEmail}`)
     : 'Keine aktive Session';
+
+  if (inlineLabel) {
+    inlineLabel.innerHTML = session
+      ? (adminActive
+        ? `Eingeloggt als <strong>Admin</strong>${userEmail ? ` (${window.escapeHtml(userEmail)})` : ''}`
+        : `Eingeloggt als <strong>Benutzer</strong>${userEmail ? ` (${window.escapeHtml(userEmail)})` : ''}`)
+      : 'Nicht eingeloggt';
+  }
+  if (quickLogoutBtn) quickLogoutBtn.hidden = !session;
+  if (loginForm) loginForm.hidden = Boolean(adminActive);
+  if (loginActions) loginActions.hidden = Boolean(adminActive);
+
   updateAdminOverview();
 }
 
@@ -2652,7 +2671,6 @@ function initAdminMobileTabs() {
     .filter(Boolean);
   if (!buttons.length || !sections.length) return;
 
-  const mediaQuery = window.matchMedia('(max-width: 860px)');
   const setActiveTab = (targetId) => {
     buttons.forEach((button) => {
       const active = button.dataset.adminTabTarget === targetId;
@@ -2665,11 +2683,6 @@ function initAdminMobileTabs() {
   };
 
   const syncVisibility = () => {
-    if (!mediaQuery.matches) {
-      sections.forEach((section) => { section.hidden = false; });
-      tabsRoot.hidden = true;
-      return;
-    }
     tabsRoot.hidden = false;
     const activeBtn = buttons.find((button) => button.classList.contains('is-active')) || buttons[0];
     if (activeBtn) setActiveTab(activeBtn.dataset.adminTabTarget);
@@ -2678,7 +2691,6 @@ function initAdminMobileTabs() {
   buttons.forEach((button) => {
     button.addEventListener('click', () => setActiveTab(button.dataset.adminTabTarget));
   });
-  mediaQuery.addEventListener('change', syncVisibility);
   syncVisibility();
 
   tabsRoot.dataset.bound = 'true';
@@ -2689,7 +2701,7 @@ function bindUiEvents() {
   state.eventsBound = true;
 
   document.getElementById('admin-login-btn')?.addEventListener('click', signInAdmin);
-  document.getElementById('admin-logout-btn')?.addEventListener('click', signOutAdmin);
+  document.getElementById('admin-quick-logout-btn')?.addEventListener('click', signOutAdmin);
   document.getElementById('save-race-btn')?.addEventListener('click', saveRace);
   document.getElementById('delete-race-btn')?.addEventListener('click', deleteRaceFromCalendar);
   document.getElementById('shift-race-btn')?.addEventListener('click', shiftRaceDates);
