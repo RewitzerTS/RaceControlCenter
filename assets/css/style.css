@@ -2167,7 +2167,7 @@ body[data-page="grid"] .driver-team-member-flip {
 
 .driver-card-modal-dialog {
   max-width: 640px;
-  margin-top: max(148px, calc(env(safe-area-inset-top, 0px) + 110px));
+  margin-top: max(186px, calc(env(safe-area-inset-top, 0px) + 148px));
   margin-bottom: 24px;
   padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 26px));
 }
@@ -2345,7 +2345,7 @@ body[data-page="grid"] .driver-team-member-flip {
 
   .driver-card-modal-dialog {
     width: calc(100% - 12px);
-    margin: max(126px, calc(env(safe-area-inset-top, 0px) + 96px)) auto 14px;
+    margin: max(168px, calc(env(safe-area-inset-top, 0px) + 136px)) auto 14px;
     padding: 14px;
     padding-top: max(30px, calc(env(safe-area-inset-top, 0px) + 24px));
   }
