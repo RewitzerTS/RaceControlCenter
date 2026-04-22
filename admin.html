@@ -66,7 +66,7 @@
       <details class="panel" id="admin-section-calendar">
         <summary><strong>2) Saison & Rennkalender</strong></summary>
       <section class="panel season-panel">
-        <details class="panel admin-panel-accent" open>
+        <details class="panel admin-panel-accent">
           <summary><strong>Saisonverwaltung</strong></summary>
           <div class="detail-list" id="season-summary">Saison wird geladen...</div>
           <div class="card-actions">
@@ -78,7 +78,7 @@
           <div id="season-feedback" class="notice" hidden></div>
         </details>
 
-        <details class="panel admin-panel-accent section-spacer-top" open>
+        <details class="panel admin-panel-accent section-spacer-top">
           <summary><strong>Rennen anlegen</strong></summary>
           <div class="form-grid">
             <div class="field">
@@ -102,7 +102,7 @@
           <div id="race-feedback" class="notice" hidden></div>
         </details>
 
-        <details class="panel admin-panel-accent section-spacer-top" open>
+        <details class="panel admin-panel-accent section-spacer-top">
           <summary><strong>Renntag verschieben</strong></summary>
           <div class="form-grid">
             <div class="field">
@@ -120,7 +120,7 @@
           <div id="race-shift-feedback" class="notice" hidden></div>
         </details>
 
-        <details class="panel admin-panel-accent section-spacer-top" open>
+        <details class="panel admin-panel-accent section-spacer-top">
           <summary><strong>Rennen entfernen</strong></summary>
           <div class="form-grid">
             <div class="field">
@@ -138,8 +138,8 @@
 
       <details class="panel" id="admin-section-results">
         <summary><strong>3) Ergebnisse & Freigabe</strong></summary>
-      <section class="panel">
-        <h3>Ergebnisse per Excel/CSV importieren</h3>
+      <details class="panel admin-panel-accent">
+        <summary><strong>Ergebnisse per Excel/CSV importieren</strong></summary>
         <label class="checkbox-inline section-spacer-top">
           <input type="checkbox" id="csv-overwrite-published">
           Bereits veröffentlichte Rennergebnisse überschreiben (Korrekturimport)
@@ -155,16 +155,16 @@
           <div class="table-wrap" id="csv-import-preview"><div class="notice">Lade eine CSV-Datei, um Mapping und Konflikte vor dem Import zu prüfen.</div></div>
         </div>
         <div id="csv-feedback" class="notice" hidden></div>
-      </section>
-      <section class="panel admin-panel-wide">
-        <h3>Freigabe-Workflow für Rennergebnisse</h3>
+      </details>
+      <details class="panel admin-panel-wide admin-panel-accent section-spacer-top">
+        <summary><strong>Freigabe-Workflow für Rennergebnisse</strong></summary>
         <div class="notice">CSV-Importe werden zunächst als Entwurf gespeichert. Erst nach Steward-Prüfung und Freigabe werden die finalen Ergebnisse öffentlich.</div>
         <div id="publish-workflow-list" class="stack-list section-spacer-top"></div>
         <div id="publish-feedback" class="notice" hidden></div>
-      </section>
+      </details>
 
-      <section class="panel admin-panel-wide">
-        <h3>Ergebnisse manuell bearbeiten</h3>
+      <details class="panel admin-panel-wide admin-panel-accent section-spacer-top">
+        <summary><strong>Ergebnisse manuell bearbeiten</strong></summary>
         <div class="notice" id="manual-results-status">Nur nach erfolgreichem Login sichtbar und nutzbar.</div>
         <div id="manual-results-panel" class="hidden">
           <div class="form-grid">
@@ -181,13 +181,13 @@
           </div>
           <div id="manual-results-feedback" class="notice" hidden></div>
         </div>
-      </section>
+      </details>
       </details>
 
       <details class="panel" id="admin-section-stewarding">
         <summary><strong>4) Stewarding</strong></summary>
-        <section class="panel">
-          <h3>Steward-Eintrag anlegen</h3>
+        <details class="panel admin-panel-accent">
+          <summary><strong>Steward-Eintrag anlegen</strong></summary>
           <input type="hidden" id="incident-edit-id">
           <div class="form-grid">
             <div class="field"><label for="incident-race">Rennen</label><select id="incident-race"><option value="">Rennen werden geladen...</option></select></div>
@@ -225,12 +225,12 @@
             <button type="button" class="button-secondary" id="reset-incident-btn">Formular leeren</button>
           </div>
           <div id="incident-feedback" class="notice" hidden></div>
-        </section>
-        <section class="panel section-spacer-top">
-          <h3>Steward-Fälle verwalten</h3>
+        </details>
+        <details class="panel admin-panel-accent section-spacer-top">
+          <summary><strong>Steward-Fälle verwalten</strong></summary>
           <div class="notice">Bestehende Fälle können hier bearbeitet oder gelöscht werden. Änderungen aktualisieren das Rennergebnis automatisch.</div>
           <div id="admin-incident-list" class="incident-list section-spacer-top">Lade Stewards...</div>
-        </section>
+        </details>
       </details>
 
       <details class="panel admin-panel-wide" id="admin-section-drivers">
