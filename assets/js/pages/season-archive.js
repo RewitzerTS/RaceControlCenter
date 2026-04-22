@@ -15,7 +15,8 @@ function buildResultRows(results, resolver, fastestDriverId, raceId) {
 
   return results.map((row) => {
     const snapshot = resolver.resolveDriverSnapshot(row.driver_id, raceId) || {};
-    const hasFastestLap = row.driver_id === fastestDriverId && window.RCCData.isTopTen(row.finish_position);
+    const hasFastestLap = row.driver_id === fastestDriverId;
+    const hasFastestLapBonus = hasFastestLap && window.RCCData.isTopTen(row.finish_position);
     const points = window.RCCData.getAwardedRacePoints(row, fastestDriverId);
     const statusText = String(row.participation_status || '').trim().toUpperCase();
     const statusChipClass = statusText === 'BOT' ? 'bot' : 'player';
@@ -29,7 +30,7 @@ function buildResultRows(results, resolver, fastestDriverId, raceId) {
         <td>${row.finish_position ?? '—'}</td>
         <td>${hasFastestLap ? `<span class="fastest-lap-value">${window.escapeHtml(row.fastest_lap_time || '—')}</span>` : window.escapeHtml(row.fastest_lap_time || '—')}</td>
         <td>${window.escapeHtml(row.race_time || '—')}</td>
-        <td><strong>${points}</strong>${hasFastestLap ? '<span class="fastest-lap-bonus">+FL</span>' : ''}</td>
+        <td><strong class="${hasFastestLap ? 'fastest-lap-points' : ''}">${points}</strong>${hasFastestLapBonus ? '<span class="fastest-lap-bonus">+FL</span>' : ''}</td>
         <td><span class="status-chip ${statusChipClass}">${window.escapeHtml(statusText || 'PLAYER')}</span></td>
       </tr>
     `;

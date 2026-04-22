@@ -137,7 +137,7 @@ function buildMatrixData(drivers, races, raceResults, resolver) {
       return {
         points,
         isBot: String(row?.participation_status || '').toUpperCase() === 'BOT',
-        hasFastestLapBonus: row?.driver_id === fastestDriverId && window.RCCData.isTopTen(row?.finish_position),
+        hasFastestLap: row?.driver_id === fastestDriverId,
         carName: snapshot?.car_name || driver.car_name || '—'
       };
     });
@@ -164,7 +164,7 @@ function renderMatrix(container, labelEl, matrixData) {
       const classes = ['results-points-cell'];
       const valueClasses = ['results-points-value'];
       if (cell.isBot) valueClasses.push('results-points-value--bot');
-      if (cell.hasFastestLapBonus) valueClasses.push('results-points-value--fl-chip');
+      if (cell.hasFastestLap) valueClasses.push('results-points-value--fl-chip');
       const cellValue = `<span class="${valueClasses.join(' ')}">${cell.points}</span>`;
       return `<td class="${classes.join(' ')}" title="Auto: ${window.escapeHtml(cell.carName)}"><div class="results-cell-stack">${cellValue}</div></td>`;
     }).join('');
