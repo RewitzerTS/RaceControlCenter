@@ -151,6 +151,19 @@ function normalizeDriverNameForFacts(name) {
   return window.RCCData?.normalizeDriverName?.(name) || String(name || '').trim().toLowerCase();
 }
 
+function extractNormalizedNameAliases(name) {
+  const normalized = normalizeDriverNameForFacts(name);
+  if (!normalized) return [];
+
+  const aliases = new Set([normalized]);
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+
+  if (tokens.length > 1) aliases.add(tokens[0]);
+  if (tokens.length > 1) aliases.add(tokens[tokens.length - 1]);
+
+  return [...aliases];
+}
+
 function stripTrailingAlias(value) {
   return String(value || '')
     .replace(/\([^)]*\)/g, ' ')
@@ -238,17 +251,30 @@ function computeDriverFacts({
   const driversByNormalizedName = new Map();
   const addDriverAlias = (name, driverId) => {
     const fullName = stripTrailingAlias(name);
-    const normalized = normalizeDriverNameForFacts(fullName);
-    const aliases = new Set([normalized]);
-    const tokens = normalized.split(/\s+/).filter(Boolean);
-    if (tokens.length > 1) aliases.add(tokens[0]);
-
-    aliases.forEach((alias) => {
+    extractNormalizedNameAliases(fullName).forEach((alias) => {
       if (!alias) return;
       if (!driversByNormalizedName.has(alias)) driversByNormalizedName.set(alias, []);
       const ids = driversByNormalizedName.get(alias);
       if (!ids.includes(driverId)) ids.push(driverId);
     });
+  };
+
+  const resolveDriverIdsByChampionName = (name) => {
+    const aliases = extractNormalizedNameAliases(stripTrailingAlias(name));
+    for (const alias of aliases) {
+      const ids = driversByNormalizedName.get(alias);
+      if (ids?.length) return ids;
+    }
+
+    const longestAlias = aliases.sort((a, b) => b.length - a.length)[0] || '';
+    if (!longestAlias) return [];
+
+    for (const [indexedAlias, ids] of driversByNormalizedName.entries()) {
+      if (!indexedAlias || !ids?.length) continue;
+      if (indexedAlias.startsWith(longestAlias) || longestAlias.startsWith(indexedAlias)) return ids;
+    }
+
+    return [];
   };
 
   (drivers || []).forEach((driver) => {
@@ -258,7 +284,7 @@ function computeDriverFacts({
   (championshipHistory || []).forEach((record) => {
     const driverChampion = stripTrailingAlias(record?.driver_champion);
     if (driverChampion) {
-      const ids = driversByNormalizedName.get(normalizeDriverNameForFacts(driverChampion)) || [];
+      const ids = resolveDriverIdsByChampionName(driverChampion);
       ids.forEach((id) => {
         const facts = byDriverId.get(id);
         if (facts) facts.championships.driver += 1;
@@ -267,7 +293,7 @@ function computeDriverFacts({
 
     parseChampionLineupNames(record?.constructor_champion_lineup)
       .forEach((name) => {
-        const ids = driversByNormalizedName.get(normalizeDriverNameForFacts(name)) || [];
+        const ids = resolveDriverIdsByChampionName(name);
         ids.forEach((id) => {
           const facts = byDriverId.get(id);
           if (facts) facts.championships.constructor += 1;
