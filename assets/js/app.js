@@ -106,8 +106,19 @@ function initNavigation() {
     return;
   }
 
+  const closeNav = () => {
+    mainNav.classList.remove('open');
+    document.body.classList.remove('nav-drawer-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    if (moreWrap) {
+      moreWrap.classList.remove('open');
+      moreToggle?.setAttribute('aria-expanded', 'false');
+    }
+  };
+
   navToggle.addEventListener('click', () => {
     const isOpen = mainNav.classList.toggle('open');
+    document.body.classList.toggle('nav-drawer-open', isOpen);
     navToggle.setAttribute('aria-expanded', String(isOpen));
     if (!isOpen && moreWrap) {
       moreWrap.classList.remove('open');
@@ -123,12 +134,13 @@ function initNavigation() {
   mainNav.addEventListener('click', (event) => {
     const link = event.target.closest('a[href]');
     if (!link) return;
-    mainNav.classList.remove('open');
-    navToggle.setAttribute('aria-expanded', 'false');
-    if (moreWrap) {
-      moreWrap.classList.remove('open');
-      moreToggle?.setAttribute('aria-expanded', 'false');
-    }
+    closeNav();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!mainNav.classList.contains('open')) return;
+    if (mainNav.contains(event.target) || navToggle.contains(event.target)) return;
+    closeNav();
   });
 
   document.addEventListener('click', (event) => {
@@ -143,8 +155,18 @@ function initNavigation() {
       moreWrap.classList.remove('open');
       moreToggle?.setAttribute('aria-expanded', 'false');
     }
+    if (!window.matchMedia('(max-width: 860px)').matches) {
+      closeNav();
+      document.body.classList.remove('nav-drawer-open');
+    }
   };
   window.addEventListener('resize', closeMoreIfDesktop);
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && mainNav.classList.contains('open')) {
+      closeNav();
+    }
+  });
 
   navToggle.dataset.bound = 'true';
 }
