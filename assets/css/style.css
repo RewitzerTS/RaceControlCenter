@@ -19,7 +19,9 @@
   --max: 1280px;
   --site-scroll-progress: 0%;
   --site-header-offset: 0px;
+  --visual-viewport-offset-top: 0px;
 }
+
 
 .site-scroll-progress {
   position: fixed;
@@ -2148,7 +2150,7 @@ body[data-page="grid"] .driver-team-member-flip {
 
 .trackmap-lightbox-close {
   position: absolute;
-  top: max(12px, calc(env(safe-area-inset-top, 0px) + 4px));
+  top: max(12px, calc(var(--driver-modal-safe-top, env(safe-area-inset-top, 0px)) + 4px));
   right: 12px;
   z-index: 4;
   width: 42px;
@@ -2166,10 +2168,11 @@ body[data-page="grid"] .driver-team-member-flip {
 }
 
 .driver-card-modal-dialog {
+  --driver-modal-safe-top: max(env(safe-area-inset-top, 0px), var(--visual-viewport-offset-top, 0px));
   max-width: 640px;
-  margin-top: max(186px, calc(env(safe-area-inset-top, 0px) + 148px));
+  margin-top: max(186px, calc(var(--driver-modal-safe-top) + 148px));
   margin-bottom: 24px;
-  padding-top: max(38px, calc(env(safe-area-inset-top, 0px) + 26px));
+  padding-top: max(38px, calc(var(--driver-modal-safe-top) + 26px));
 }
 
 .driver-card-modal-content {
@@ -2345,9 +2348,9 @@ body[data-page="grid"] .driver-team-member-flip {
 
   .driver-card-modal-dialog {
     width: calc(100% - 12px);
-    margin: max(168px, calc(env(safe-area-inset-top, 0px) + 136px)) auto 14px;
+    margin: max(168px, calc(var(--driver-modal-safe-top) + 136px)) auto 14px;
     padding: 14px;
-    padding-top: max(30px, calc(env(safe-area-inset-top, 0px) + 24px));
+    padding-top: max(30px, calc(var(--driver-modal-safe-top) + 24px));
   }
 
   .driver-card-modal-content {
