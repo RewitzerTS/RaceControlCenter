@@ -633,6 +633,42 @@ function resolveDriversForCurrentAssignments({ drivers = [], races = [], assignm
   });
 }
 
+function isCompleteChampionRecord(record = {}) {
+  return Boolean(String(record?.driver_champion || '').trim() && String(record?.constructor_champion || '').trim());
+}
+
+function mergeChampionshipHistory(primary = [], fallback = []) {
+  const bySeasonKey = new Map();
+  const appendRecord = (record) => {
+    if (!isCompleteChampionRecord(record)) return;
+    const key = String(record?.season_name || record?.season_id || '').trim().toLowerCase();
+    if (!key) return;
+    if (!bySeasonKey.has(key)) bySeasonKey.set(key, record);
+  };
+
+  (primary || []).forEach((record) => appendRecord(record));
+  (fallback || []).forEach((record) => appendRecord(record));
+  return [...bySeasonKey.values()];
+}
+
+async function loadChampionshipHistoryForFacts() {
+  const [dbHistory, fallbackHistory] = await Promise.all([
+    window.RCCData.fetchSeasonHistory(200).catch((error) => {
+      console.warn('Season History konnte nicht aus der Datenbank geladen werden:', error);
+      return [];
+    }),
+    fetch('data/hall-of-fame-fallback.json', { cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : { history: [] }))
+      .then((payload) => payload?.history || [])
+      .catch((error) => {
+        console.warn('Hall-of-Fame Fallback konnte nicht geladen werden:', error);
+        return [];
+      })
+  ]);
+
+  return mergeChampionshipHistory(dbHistory, fallbackHistory);
+}
+
 async function initRulesFaqPage() {
   renderRulesConfig({});
   renderFaqItems([]);
@@ -640,12 +676,12 @@ async function initRulesFaqPage() {
 
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
-    const [content, drivers, races, raceResults, seasons, assignments] = await Promise.all([
+    const [content, drivers, races, raceResults, championshipHistory, assignments] = await Promise.all([
       window.RCCData.fetchLeagueContent(),
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces(),
       window.RCCData.fetchRaceResults(),
-      window.RCCData.fetchSeasonHistory(100),
+      loadChampionshipHistoryForFacts(),
       window.RCCDriverContext?.fetchDriverSeasonAssignments?.({ seasonId: currentSeason?.id }) || Promise.resolve([])
     ]);
     const racesForCurrentAssignments = currentSeason?.id
@@ -661,7 +697,7 @@ async function initRulesFaqPage() {
       races,
       raceResults,
       currentSeasonId: currentSeason?.id ?? null,
-      championshipHistory: seasons
+      championshipHistory
     });
 
     renderRulesConfig(content.rules_config || {});
