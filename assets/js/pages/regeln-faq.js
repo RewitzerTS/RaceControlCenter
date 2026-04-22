@@ -609,7 +609,14 @@ async function initRulesFaqPage() {
       window.RCCData.fetchSeasonHistory(100),
       window.RCCDriverContext?.fetchDriverSeasonAssignments?.({ seasonId: currentSeason?.id }) || Promise.resolve([])
     ]);
-    const currentAssignmentDrivers = resolveDriversForCurrentAssignments({ drivers, races, assignments });
+    const racesForCurrentAssignments = currentSeason?.id
+      ? races.filter((race) => race?.season_id === currentSeason.id)
+      : races;
+    const currentAssignmentDrivers = resolveDriversForCurrentAssignments({
+      drivers,
+      races: racesForCurrentAssignments,
+      assignments
+    });
     const driverFactsById = computeDriverFacts({
       drivers: currentAssignmentDrivers,
       races,
