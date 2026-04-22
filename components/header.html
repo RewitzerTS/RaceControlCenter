@@ -24,14 +24,25 @@
     </button>
 
     <nav class="main-nav" data-main-nav>
-      <a href="index.html" data-nav-link="index">Übersicht</a>
-      <a href="kalender.html" data-nav-link="kalender">Kalender</a>
-      <a href="ergebnisse.html" data-nav-link="ergebnisse">Ergebnisse</a>
-      <a href="fahrer-wm.html" data-nav-link="fahrer-wm">Fahrer-WM</a>
-      <a href="team-wm.html" data-nav-link="team-wm">Team-WM</a>
-      <a href="regeln-faq.html" data-nav-link="regeln-faq">Regeln &amp; FAQs</a>
-      <a href="grid.html" data-nav-link="grid">Grid</a>
-      <a href="hall-of-fame.html" data-nav-link="hall-of-fame">Hall of Fame</a>
+      <a href="index.html" data-nav-link="index" class="nav-primary-link">Übersicht</a>
+      <a href="kalender.html" data-nav-link="kalender" class="nav-primary-link">Kalender</a>
+      <a href="ergebnisse.html" data-nav-link="ergebnisse" class="nav-primary-link">Ergebnisse</a>
+      <a href="fahrer-wm.html" data-nav-link="fahrer-wm" class="nav-primary-link">WM</a>
+
+      <a href="team-wm.html" data-nav-link="team-wm" class="nav-extra-link">Team-WM</a>
+      <a href="regeln-faq.html" data-nav-link="regeln-faq" class="nav-extra-link">Regeln &amp; FAQs</a>
+      <a href="grid.html" data-nav-link="grid" class="nav-extra-link">Grid</a>
+      <a href="hall-of-fame.html" data-nav-link="hall-of-fame" class="nav-extra-link">Hall of Fame</a>
+
+      <div class="nav-more" data-nav-more>
+        <button type="button" class="nav-more-toggle" data-nav-more-toggle aria-expanded="false">Mehr</button>
+        <div class="nav-more-menu" data-nav-more-menu>
+          <a href="team-wm.html" data-nav-link="team-wm">Team-WM</a>
+          <a href="regeln-faq.html" data-nav-link="regeln-faq">Regeln &amp; FAQs</a>
+          <a href="grid.html" data-nav-link="grid">Grid</a>
+          <a href="hall-of-fame.html" data-nav-link="hall-of-fame">Hall of Fame</a>
+        </div>
+      </div>
     </nav>
   </div>
 </header>
