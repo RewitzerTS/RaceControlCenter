@@ -1036,6 +1036,11 @@ textarea { min-height: 120px; resize: vertical; }
   font-size: 2.8rem;
 }
 
+body[data-page="ergebnisse"] .page-title {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .notice-inline {
   padding: 16px;
 }
@@ -2876,6 +2881,11 @@ body.hof-page {
 }
 
 @media (max-width: 760px) {
+  body[data-page="ergebnisse"] .page-title {
+    font-size: clamp(1.9rem, 12vw, 2.7rem);
+    line-height: 1.02;
+  }
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
