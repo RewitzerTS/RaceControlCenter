@@ -221,7 +221,7 @@ function resolveSeasonGameLabel(gameKey) {
 }
 
 function getSelectedSeasonGameKey() {
-  const selected = String(document.getElementById('season-game-select')?.value || '').trim();
+  const selected = String(document.getElementById('season-game-select-new')?.value || document.getElementById('season-game-select')?.value || '').trim();
   if (selected && SEASON_GAME_CONFIGS[selected]) return selected;
   return DEFAULT_SEASON_GAME_KEY;
 }
@@ -229,7 +229,7 @@ function getSelectedSeasonGameKey() {
 function getActiveSeasonGameKey() {
   const summaryGameKey = String(document.getElementById('season-summary')?.dataset.gameKey || '').trim();
   if (summaryGameKey && SEASON_GAME_CONFIGS[summaryGameKey]) return summaryGameKey;
-  return getSelectedSeasonGameKey();
+  return DEFAULT_SEASON_GAME_KEY;
 }
 
 
@@ -499,7 +499,7 @@ function renderSeasonFinalizePreview(preview) {
     Saison: ${window.escapeHtml(preview.currentSeason.name || 'Aktive Saison')} · Rennen: ${preview.racesCount}<br>
     Fahrer-Weltmeister: ${window.escapeHtml(preview.driverChampion?.driverName || '—')} (${window.escapeHtml(preview.driverChampion?.points ?? 0)} Punkte)<br>
     Konstrukteurs-Weltmeister: ${window.escapeHtml(preview.constructorChampion?.teamName || '—')} (${window.escapeHtml(preview.constructorChampion?.points ?? 0)} Punkte)<br>
-    <span class="muted">Mit „Saison final abschließen“ wird diese Saison archiviert und eine neue leere Saison erzeugt.</span>`;
+    <span class="muted">Mit „Saison final abschließen“ wird diese Saison archiviert. Die nächste Saison muss danach manuell gestartet werden.</span>`;
 }
 
 function parseGermanWeekdays(input) {
@@ -1563,12 +1563,17 @@ async function getCurrentSeasonSafe() {
 async function loadSeasonSummary() {
   const el = document.getElementById('season-summary');
   if (!el) return;
+  const activeControls = document.getElementById('season-active-controls');
+  const startControls = document.getElementById('season-start-controls');
 
   try {
     const season = await getCurrentSeasonSafe();
     if (!season) {
-      el.innerHTML = 'Keine aktive Saison gefunden. Bitte SQL-Migration ausführen.';
+      el.innerHTML = 'Keine aktive Saison vorhanden. Bitte über „Neue Saison starten“ eine Saison anlegen.';
       delete el.dataset.gameKey;
+      if (activeControls) activeControls.hidden = true;
+      if (startControls) startControls.hidden = false;
+      renderSeasonFinalizePreview(null);
       return;
     }
 
@@ -1576,6 +1581,9 @@ async function loadSeasonSummary() {
     const seasonGameKey = String(season.game_key || '').trim() || DEFAULT_SEASON_GAME_KEY;
     el.dataset.gameKey = seasonGameKey;
     setValue('season-game-select', seasonGameKey);
+    setValue('season-game-select-new', seasonGameKey);
+    if (activeControls) activeControls.hidden = false;
+    if (startControls) startControls.hidden = true;
     el.innerHTML = `<strong>Aktive Saison:</strong> ${window.escapeHtml(season.name || `Saison ${season.id}`)}<br><strong>Spiel:</strong> ${window.escapeHtml(resolveSeasonGameLabel(seasonGameKey))}<br><strong>Rennen:</strong> ${races.length}<br><strong>Status:</strong> ${window.escapeHtml(season.status || 'active')}`;
     populateDriverDropdowns();
     updateAdminOverview();
@@ -2377,7 +2385,7 @@ async function prepareSeasonFinalize() {
   }
 }
 
-async function startNewSeason() {
+async function finalizeSeason() {
   if (state.isStartingSeason) return;
   state.isStartingSeason = true;
   clearFeedback('season-feedback');
@@ -2390,7 +2398,7 @@ async function startNewSeason() {
 
     const confirmed = await confirmDangerousAction({
       title: `Saison ${currentSeason.name || ''} final abschließen?`,
-      details: `Fahrer-Weltmeister: ${preview.driverChampion?.driverName || '—'}\nKonstrukteurs-Weltmeister: ${preview.constructorChampion?.teamName || '—'}\nDanach wird automatisch eine neue Saison angelegt.`,
+      details: `Fahrer-Weltmeister: ${preview.driverChampion?.driverName || '—'}\nKonstrukteurs-Weltmeister: ${preview.constructorChampion?.teamName || '—'}\nDanach muss die nächste Saison manuell gestartet werden.`,
       keyword: 'SAISON'
     });
     if (!confirmed) {
@@ -2412,9 +2420,61 @@ async function startNewSeason() {
     const updateResponse = await window.supabaseClient.from('seasons').update({ is_active: false }).eq('id', currentSeason.id);
     if (updateResponse.error) throw updateResponse.error;
 
-    const nextSeasonNumber = Number(String(currentSeason.name || '').match(/(\d+)/)?.[1] || currentSeason.id || 0) + 1;
+    
+    setValue('csv-preview', '');
+    setValue('csv-file', '');
+    ['race-grand-prix-name', 'race-circuit-name', 'race-date', 'race-notes'].forEach((id) => setValue(id, ''));
+    setValue('race-time', DEFAULT_RACE_TIME);
+    setValue('race-status', DEFAULT_RACE_STATUS);
+    setValue('race-weather', DEFAULT_RACE_WEATHER);
+
+    clearFeedback('race-feedback');
+    clearFeedback('csv-feedback');
+    clearFeedback('incident-feedback');
+
+    state.seasonFinalizePreview = null;
+    renderSeasonFinalizePreview(null);
+    showFeedback('season-feedback', `${currentSeason.name} wurde abgeschlossen und archiviert (${driverChampion || 'kein Fahrer'} / ${constructorChampion || 'kein Team'}). Starte die nächste Saison über "Neue Saison starten".`);
+    await Promise.all([
+      loadSeasonSummary(),
+      loadRaceOptions(),
+      populateManualRaceSelect(),
+      renderPublishWorkflow()
+    ]);
+  } catch (error) {
+    console.error(error);
+    showFeedback('season-feedback', error.message || 'Saison konnte nicht abgeschlossen werden.', true);
+  } finally {
+    state.isStartingSeason = false;
+  }
+}
+
+async function startNewSeason() {
+  if (state.isStartingSeason) return;
+  state.isStartingSeason = true;
+  clearFeedback('season-feedback');
+
+  try {
+    await requireAdminSession();
+    const currentSeason = await getCurrentSeasonSafe();
+    if (currentSeason) throw new Error('Es gibt bereits eine aktive Saison. Bitte diese zuerst abschließen.');
+
     const nextSeasonGameKey = getSelectedSeasonGameKey();
     const nextSeasonGameLabel = resolveSeasonGameLabel(nextSeasonGameKey);
+    const latestSeasonRow = await window.supabaseClient
+      .from('seasons')
+      .select('id, name')
+      .order('id', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (latestSeasonRow.error) throw latestSeasonRow.error;
+
+    const latestSeason = latestSeasonRow.data || null;
+    const nextSeasonNumber = Number(String(latestSeason?.name || '').match(/(\d+)/)?.[1] || latestSeason?.id || 0) + 1;
+
+    const confirmed = window.confirm(`Neue Saison ${nextSeasonNumber} für ${nextSeasonGameLabel} starten?`);
+    if (!confirmed) return;
+
     let createResponse = await window.supabaseClient
       .from('seasons')
       .insert([{
@@ -2433,23 +2493,9 @@ async function startNewSeason() {
         .select()
         .single();
     }
-
     if (createResponse.error) throw createResponse.error;
 
-    setValue('csv-preview', '');
-    setValue('csv-file', '');
-    ['race-grand-prix-name', 'race-circuit-name', 'race-date', 'race-notes'].forEach((id) => setValue(id, ''));
-    setValue('race-time', DEFAULT_RACE_TIME);
-    setValue('race-status', DEFAULT_RACE_STATUS);
-    setValue('race-weather', DEFAULT_RACE_WEATHER);
-
-    clearFeedback('race-feedback');
-    clearFeedback('csv-feedback');
-    clearFeedback('incident-feedback');
-
-    state.seasonFinalizePreview = null;
-    renderSeasonFinalizePreview(null);
-    showFeedback('season-feedback', `Neue Saison gestartet (${nextSeasonGameLabel}). ${currentSeason.name} archiviert (${driverChampion || 'kein Fahrer'} / ${constructorChampion || 'kein Team'}). Der Rennkalender der neuen Saison ist jetzt leer.`);
+    showFeedback('season-feedback', `Erfolg: Saison ${nextSeasonNumber} wurde für ${nextSeasonGameLabel} gestartet.`);
     await Promise.all([
       loadSeasonSummary(),
       loadRaceOptions(),
@@ -2776,12 +2822,13 @@ function bindUiEvents() {
     overwritePublished: document.getElementById('csv-overwrite-published')?.checked
   }));
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
+  document.getElementById('finalize-season-btn')?.addEventListener('click', finalizeSeason);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
-  document.getElementById('season-game-select')?.addEventListener('change', () => {
+  ['season-game-select', 'season-game-select-new'].forEach((id) => document.getElementById(id)?.addEventListener('change', () => {
     populateDriverDropdowns();
     setValue('driver-ai-reference', '');
     setValue('driver-car-name', '');
-  });
+  }));
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
   document.getElementById('save-rules-btn')?.addEventListener('click', saveRulesContent);
   document.getElementById('add-faq-btn')?.addEventListener('click', addFaqEditorItem);
