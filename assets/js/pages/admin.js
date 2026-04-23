@@ -1,27 +1,61 @@
-const AI_DRIVER_OPTIONS = [
-  { team: 'Alpine', driver: 'Pierre Gasly' },
-  { team: 'Alpine', driver: 'Franco Colapinto' },
-  { team: 'Aston Martin', driver: 'Fernando Alonso' },
-  { team: 'Aston Martin', driver: 'Lance Stroll' },
-  { team: 'Ferrari', driver: 'Charles Leclerc' },
-  { team: 'Ferrari', driver: 'Lewis Hamilton' },
-  { team: 'Haas', driver: 'Esteban Ocon' },
-  { team: 'Haas', driver: 'Oliver Bearman' },
-  { team: 'McLaren', driver: 'Lando Norris' },
-  { team: 'McLaren', driver: 'Oscar Piastri' },
-  { team: 'Mercedes', driver: 'George Russell' },
-  { team: 'Mercedes', driver: 'Andrea Kimi Antonelli' },
-  { team: 'Red Bull', driver: 'Max Verstappen' },
-  { team: 'Red Bull', driver: 'Yuki Tsunoda' },
-  { team: 'Sauber', driver: 'Nico Hulkenberg' },
-  { team: 'Sauber', driver: 'Gabriel Bortoleto' },
-  { team: 'VCARB', driver: 'Isack Hadjar' },
-  { team: 'VCARB', driver: 'Liam Lawson' },
-  { team: 'Williams', driver: 'Alexander Albon' },
-  { team: 'Williams', driver: 'Carlos Sainz' }
-];
+const SEASON_GAME_CONFIGS = {
+  f1_25: {
+    label: 'F1 25',
+    aiDrivers: [
+      { team: 'Alpine', driver: 'Pierre Gasly' },
+      { team: 'Alpine', driver: 'Franco Colapinto' },
+      { team: 'Aston Martin', driver: 'Fernando Alonso' },
+      { team: 'Aston Martin', driver: 'Lance Stroll' },
+      { team: 'Ferrari', driver: 'Charles Leclerc' },
+      { team: 'Ferrari', driver: 'Lewis Hamilton' },
+      { team: 'Haas', driver: 'Esteban Ocon' },
+      { team: 'Haas', driver: 'Oliver Bearman' },
+      { team: 'McLaren', driver: 'Lando Norris' },
+      { team: 'McLaren', driver: 'Oscar Piastri' },
+      { team: 'Mercedes', driver: 'George Russell' },
+      { team: 'Mercedes', driver: 'Andrea Kimi Antonelli' },
+      { team: 'Red Bull', driver: 'Max Verstappen' },
+      { team: 'Red Bull', driver: 'Yuki Tsunoda' },
+      { team: 'Sauber', driver: 'Nico Hulkenberg' },
+      { team: 'Sauber', driver: 'Gabriel Bortoleto' },
+      { team: 'VCARB', driver: 'Isack Hadjar' },
+      { team: 'VCARB', driver: 'Liam Lawson' },
+      { team: 'Williams', driver: 'Alexander Albon' },
+      { team: 'Williams', driver: 'Carlos Sainz' }
+    ],
+    teams: ['Alpine', 'Aston Martin', 'Ferrari', 'Haas', 'McLaren', 'Mercedes', 'Red Bull', 'Sauber', 'VCARB', 'Williams']
+  },
+  f1_26: {
+    label: 'F1 26',
+    aiDrivers: [
+      { team: 'Red Bull Racing', driver: 'Max Verstappen' },
+      { team: 'Red Bull Racing', driver: 'Isack Hadjar' },
+      { team: 'Mercedes', driver: 'George Russell' },
+      { team: 'Mercedes', driver: 'Andrea Kimi Antonelli' },
+      { team: 'Ferrari', driver: 'Lewis Hamilton' },
+      { team: 'Ferrari', driver: 'Charles Leclerc' },
+      { team: 'McLaren', driver: 'Lando Norris' },
+      { team: 'McLaren', driver: 'Oscar Piastri' },
+      { team: 'Aston Martin', driver: 'Fernando Alonso' },
+      { team: 'Aston Martin', driver: 'Lance Stroll' },
+      { team: 'Alpine', driver: 'Pierre Gasly' },
+      { team: 'Alpine', driver: 'Franco Colapinto' },
+      { team: 'Williams', driver: 'Alexander Albon' },
+      { team: 'Williams', driver: 'Carlos Sainz' },
+      { team: 'Racing Bulls', driver: 'Liam Lawson' },
+      { team: 'Racing Bulls', driver: 'Arvid Lindblad' },
+      { team: 'Audi', driver: 'Nico Hülkenberg' },
+      { team: 'Audi', driver: 'Gabriel Bortoleto' },
+      { team: 'Haas', driver: 'Esteban Ocon' },
+      { team: 'Haas', driver: 'Oliver Bearman' },
+      { team: 'Cadillac', driver: 'Sergio Pérez' },
+      { team: 'Cadillac', driver: 'Valtteri Bottas' }
+    ],
+    teams: ['Red Bull Racing', 'Mercedes', 'Ferrari', 'McLaren', 'Aston Martin', 'Alpine', 'Williams', 'Racing Bulls', 'Audi', 'Haas', 'Cadillac']
+  }
+};
 
-const CAR_OPTIONS = ['Alpine', 'Aston Martin', 'Ferrari', 'Haas', 'McLaren', 'Mercedes', 'Red Bull', 'Sauber', 'VCARB', 'Williams'];
+const DEFAULT_SEASON_GAME_KEY = 'f1_25';
 const RACE_TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
   const hours = String(Math.floor(index / 2)).padStart(2, '0');
   const minutes = index % 2 === 0 ? '00' : '30';
@@ -180,6 +214,22 @@ function resolveDriverLogoSourceForAdmin(driver = {}) {
   return window.resolveDriverLogoSource?.(driver)
     || window.findMatchingTeamLogoName?.([driver.car_name, driver.league_team])
     || String(driver.car_name || driver.league_team || '').trim();
+}
+
+function resolveSeasonGameLabel(gameKey) {
+  return SEASON_GAME_CONFIGS[gameKey]?.label || SEASON_GAME_CONFIGS[DEFAULT_SEASON_GAME_KEY].label;
+}
+
+function getSelectedSeasonGameKey() {
+  const selected = String(document.getElementById('season-game-select')?.value || '').trim();
+  if (selected && SEASON_GAME_CONFIGS[selected]) return selected;
+  return DEFAULT_SEASON_GAME_KEY;
+}
+
+function getActiveSeasonGameKey() {
+  const summaryGameKey = String(document.getElementById('season-summary')?.dataset.gameKey || '').trim();
+  if (summaryGameKey && SEASON_GAME_CONFIGS[summaryGameKey]) return summaryGameKey;
+  return getSelectedSeasonGameKey();
 }
 
 
@@ -971,16 +1021,17 @@ function populateDriverDropdowns() {
   const gpSelect = document.getElementById('race-grand-prix-name');
   const weatherSelect = document.getElementById('race-weather');
   const timeSelect = document.getElementById('race-time');
+  const seasonGameConfig = SEASON_GAME_CONFIGS[getActiveSeasonGameKey()] || SEASON_GAME_CONFIGS[DEFAULT_SEASON_GAME_KEY];
 
   renderOptions(
     aiSelect,
-    sortByLabel(AI_DRIVER_OPTIONS, (item) => item.driver),
+    sortByLabel(seasonGameConfig.aiDrivers, (item) => item.driver),
     (item) => `<option value="${item.driver}" data-team="${item.team}">${item.driver} (${item.team})</option>`
   );
 
   renderOptions(
     carSelect,
-    sortByLabel(CAR_OPTIONS, (car) => car),
+    sortByLabel(seasonGameConfig.teams, (car) => car),
     (car) => `<option value="${car}">${car}</option>`
   );
 
@@ -1517,15 +1568,21 @@ async function loadSeasonSummary() {
     const season = await getCurrentSeasonSafe();
     if (!season) {
       el.innerHTML = 'Keine aktive Saison gefunden. Bitte SQL-Migration ausführen.';
+      delete el.dataset.gameKey;
       return;
     }
 
     const races = await window.RCCData.fetchRaces({ seasonId: season.id });
-    el.innerHTML = `<strong>Aktive Saison:</strong> ${window.escapeHtml(season.name || `Saison ${season.id}`)}<br><strong>Rennen:</strong> ${races.length}<br><strong>Status:</strong> ${window.escapeHtml(season.status || 'active')}`;
+    const seasonGameKey = String(season.game_key || '').trim() || DEFAULT_SEASON_GAME_KEY;
+    el.dataset.gameKey = seasonGameKey;
+    setValue('season-game-select', seasonGameKey);
+    el.innerHTML = `<strong>Aktive Saison:</strong> ${window.escapeHtml(season.name || `Saison ${season.id}`)}<br><strong>Spiel:</strong> ${window.escapeHtml(resolveSeasonGameLabel(seasonGameKey))}<br><strong>Rennen:</strong> ${races.length}<br><strong>Status:</strong> ${window.escapeHtml(season.status || 'active')}`;
+    populateDriverDropdowns();
     updateAdminOverview();
   } catch (error) {
     console.error(error);
     el.textContent = 'Saisonübersicht konnte nicht geladen werden.';
+    delete el.dataset.gameKey;
   }
 }
 
@@ -2356,11 +2413,26 @@ async function startNewSeason() {
     if (updateResponse.error) throw updateResponse.error;
 
     const nextSeasonNumber = Number(String(currentSeason.name || '').match(/(\d+)/)?.[1] || currentSeason.id || 0) + 1;
-    const createResponse = await window.supabaseClient
+    const nextSeasonGameKey = getSelectedSeasonGameKey();
+    const nextSeasonGameLabel = resolveSeasonGameLabel(nextSeasonGameKey);
+    let createResponse = await window.supabaseClient
       .from('seasons')
-      .insert([{ name: `Saison ${nextSeasonNumber}`, is_active: true }])
+      .insert([{
+        name: `Saison ${nextSeasonNumber}`,
+        is_active: true,
+        game_key: nextSeasonGameKey,
+        game_label: nextSeasonGameLabel
+      }])
       .select()
       .single();
+
+    if (createResponse.error && createResponse.error.code === 'PGRST204') {
+      createResponse = await window.supabaseClient
+        .from('seasons')
+        .insert([{ name: `Saison ${nextSeasonNumber}`, is_active: true }])
+        .select()
+        .single();
+    }
 
     if (createResponse.error) throw createResponse.error;
 
@@ -2377,7 +2449,7 @@ async function startNewSeason() {
 
     state.seasonFinalizePreview = null;
     renderSeasonFinalizePreview(null);
-    showFeedback('season-feedback', `Neue Saison gestartet. ${currentSeason.name} archiviert (${driverChampion || 'kein Fahrer'} / ${constructorChampion || 'kein Team'}). Der Rennkalender der neuen Saison ist jetzt leer.`);
+    showFeedback('season-feedback', `Neue Saison gestartet (${nextSeasonGameLabel}). ${currentSeason.name} archiviert (${driverChampion || 'kein Fahrer'} / ${constructorChampion || 'kein Team'}). Der Rennkalender der neuen Saison ist jetzt leer.`);
     await Promise.all([
       loadSeasonSummary(),
       loadRaceOptions(),
@@ -2705,6 +2777,11 @@ function bindUiEvents() {
   }));
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
+  document.getElementById('season-game-select')?.addEventListener('change', () => {
+    populateDriverDropdowns();
+    setValue('driver-ai-reference', '');
+    setValue('driver-car-name', '');
+  });
   document.getElementById('generate-season-btn')?.addEventListener('click', createRandomSeason);
   document.getElementById('save-rules-btn')?.addEventListener('click', saveRulesContent);
   document.getElementById('add-faq-btn')?.addEventListener('click', addFaqEditorItem);
