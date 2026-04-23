@@ -849,16 +849,16 @@
         overflow: hidden;
       }
       .podium-column.p1 {
-        min-height: 168px;
-        max-height: 168px;
+        min-height: 182px;
+        max-height: 182px;
       }
       .podium-column.p2 {
-        min-height: 156px;
-        max-height: 156px;
+        min-height: 170px;
+        max-height: 170px;
       }
       .podium-column.p3 {
-        min-height: 144px;
-        max-height: 144px;
+        min-height: 158px;
+        max-height: 158px;
       }
       .podium-column h3 {
         font-size: .9rem;
@@ -867,8 +867,18 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.2;
+        min-height: calc(1.2em * 2);
       }
-      .podium-column p,
+      .podium-column p {
+        font-size: .78rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.25;
+      }
       .podium-card-lite span { font-size: .78rem; }
       .podium-points {
         margin-top: 8px;
