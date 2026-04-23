@@ -69,20 +69,37 @@
         <details class="panel admin-panel-accent">
           <summary><strong>Saisonverwaltung</strong></summary>
           <div class="detail-list" id="season-summary">Saison wird geladen...</div>
-          <div class="form-grid section-spacer-top">
-            <div class="field">
-              <label for="season-game-select">Spiel für neue Saison</label>
-              <select id="season-game-select">
-                <option value="f1_25" selected>F1 25</option>
-                <option value="f1_26">F1 26</option>
-              </select>
+          <div id="season-active-controls">
+            <div class="form-grid section-spacer-top">
+              <div class="field">
+                <label for="season-game-select">Spiel für nächste Saison (Vorschau)</label>
+                <select id="season-game-select">
+                  <option value="f1_25" selected>F1 25</option>
+                  <option value="f1_26">F1 26</option>
+                </select>
+              </div>
             </div>
+            <div class="card-actions">
+              <button type="button" class="button-secondary" id="prepare-season-finalize-btn">Saisonabschluss prüfen</button>
+              <button type="button" class="button-primary button-danger" id="finalize-season-btn">Saison final abschließen</button>
+            </div>
+            <div class="notice">Beim Saisonabschluss bleiben alte Daten erhalten. Danach wird keine neue Saison automatisch gestartet.</div>
           </div>
-          <div class="card-actions">
-            <button type="button" class="button-secondary" id="prepare-season-finalize-btn">Saisonabschluss prüfen</button>
-            <button type="button" class="button-primary button-danger" id="start-new-season-btn">Saison final abschließen</button>
+          <div id="season-start-controls" hidden>
+            <div class="form-grid section-spacer-top">
+              <div class="field">
+                <label for="season-game-select-new">Spiel für neue Saison</label>
+                <select id="season-game-select-new">
+                  <option value="f1_25" selected>F1 25</option>
+                  <option value="f1_26">F1 26</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-actions">
+              <button type="button" class="button-primary" id="start-new-season-btn">Neue Saison starten</button>
+            </div>
+            <div class="notice">Bitte zuerst das Spiel auswählen und dann die neue Saison bestätigen.</div>
           </div>
-          <div class="notice">Beim Saisonwechsel bleiben alte Daten erhalten. Die neue Saison startet mit leerem Rennkalender.</div>
           <div id="season-finalize-preview" class="notice" hidden></div>
           <div id="season-feedback" class="notice" hidden></div>
         </details>
