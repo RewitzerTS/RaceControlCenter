@@ -67,7 +67,7 @@ button, input, textarea, select {
   top: 0;
   z-index: 1000;
   isolation: isolate;
-  background: rgba(2, 27, 52, 0.84);
+  background: rgb(2, 27, 52);
   border-bottom: 1px solid var(--line);
   backdrop-filter: blur(14px);
 }
