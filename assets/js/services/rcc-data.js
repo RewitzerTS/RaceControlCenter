@@ -3,6 +3,66 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
+const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v1';
+const QUERY_CACHE_TTL = {
+  season: 1000 * 60 * 60 * 12,
+  seasons: 1000 * 60 * 60 * 12,
+  seasonHistory: 1000 * 60 * 60 * 24,
+  drivers: 1000 * 60 * 60 * 24,
+  races: 1000 * 60 * 60 * 6,
+  raceResults: 1000 * 60 * 60 * 2,
+  leagueContent: 1000 * 60 * 30
+};
+
+function buildCacheKey(scope, params = null) {
+  const serializedParams = params ? JSON.stringify(params) : '';
+  return `${RCC_QUERY_CACHE_PREFIX}:${scope}:${serializedParams}`;
+}
+
+function readCachedValue(cacheKey, maxAgeMs) {
+  if (!window.localStorage) return null;
+  if (!cacheKey || !Number.isFinite(maxAgeMs) || maxAgeMs <= 0) return null;
+
+  try {
+    const raw = window.localStorage.getItem(cacheKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const cachedAt = Number(parsed?.cachedAt);
+    if (!Number.isFinite(cachedAt)) return null;
+    if (Date.now() - cachedAt > maxAgeMs) return null;
+    return parsed.value;
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedValue(cacheKey, value) {
+  if (!window.localStorage) return;
+  if (!cacheKey) return;
+
+  try {
+    window.localStorage.setItem(cacheKey, JSON.stringify({
+      cachedAt: Date.now(),
+      value
+    }));
+  } catch {
+    // Lokaler Storage kann z.B. im Private-Mode oder bei Quota-Limits scheitern.
+  }
+}
+
+async function fetchWithLocalCache({ scope, params = null, ttlMs = 0, forceRefresh = false, fetcher }) {
+  const cacheKey = buildCacheKey(scope, params);
+
+  if (!forceRefresh) {
+    const cachedValue = readCachedValue(cacheKey, ttlMs);
+    if (cachedValue !== null && cachedValue !== undefined) return cachedValue;
+  }
+
+  const freshValue = await fetcher();
+  writeCachedValue(cacheKey, freshValue);
+  return freshValue;
+}
+
 function normalizeDriverName(value) {
   return String(value ?? '')
     .trim()
@@ -100,84 +160,154 @@ function getAwardedRacePoints(row, fastestLapDriverId = null) {
   return basePoints + (hasFastestLapBonus ? 1 : 0);
 }
 
-async function fetchCurrentSeason() {
+async function fetchCurrentSeason(options = {}) {
   const client = window.supabaseClient;
   if (!client) return null;
 
-  const { data, error } = await client
-    .from('seasons')
-    .select('*')
-    .eq('is_active', true)
-    .order('id', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  return fetchWithLocalCache({
+    scope: 'currentSeason',
+    ttlMs: QUERY_CACHE_TTL.season,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      const { data, error } = await client
+        .from('seasons')
+        .select('*')
+        .eq('is_active', true)
+        .order('id', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') throw error;
-  return data || null;
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
+    }
+  });
 }
 
 async function fetchSeasons(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
 
-  let query = client
-    .from('seasons')
-    .select('id, name, is_active, created_at')
-    .order('id', { ascending: false });
+  const queryScope = {
+    archivedOnly: options.archivedOnly === true,
+    activeOnly: options.activeOnly === true
+  };
 
-  if (options.archivedOnly) query = query.eq('is_active', false);
-  if (options.activeOnly) query = query.eq('is_active', true);
+  return fetchWithLocalCache({
+    scope: 'seasons',
+    params: queryScope,
+    ttlMs: QUERY_CACHE_TTL.seasons,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      let query = client
+        .from('seasons')
+        .select('id, name, is_active, created_at')
+        .order('id', { ascending: false });
 
-  const { data, error } = await query;
-  if (error) throw error;
-  return data || [];
+      if (options.archivedOnly) query = query.eq('is_active', false);
+      if (options.activeOnly) query = query.eq('is_active', true);
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
 }
 
-async function fetchSeasonHistory(limit = 6) {
+async function fetchSeasonHistory(limit = 6, options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
 
-  const { data, error } = await client
-    .from('championship_history')
-    .select('season_id, season_name, driver_champion, constructor_champion, constructor_champion_lineup, created_at, seasons:season_id(name)')
-    .order('created_at', { ascending: false })
-    .limit(limit);
+  return fetchWithLocalCache({
+    scope: 'seasonHistory',
+    params: { limit },
+    ttlMs: QUERY_CACHE_TTL.seasonHistory,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      const { data, error } = await client
+        .from('championship_history')
+        .select('season_id, season_name, driver_champion, constructor_champion, constructor_champion_lineup, created_at, seasons:season_id(name)')
+        .order('created_at', { ascending: false })
+        .limit(limit);
 
-  if (error) throw error;
-  return data || [];
+      if (error) throw error;
+      return data || [];
+    }
+  });
 }
 
-async function fetchDrivers() {
-  const { data, error } = await window.supabaseClient
-    .from('drivers')
-    .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name')
-    .order('display_name', { ascending: true });
+async function fetchDrivers(options = {}) {
+  const client = window.supabaseClient;
+  if (!client) return [];
 
-  if (error) throw error;
+  return fetchWithLocalCache({
+    scope: 'drivers',
+    ttlMs: QUERY_CACHE_TTL.drivers,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      const { data, error } = await client
+        .from('drivers')
+        .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name')
+        .order('display_name', { ascending: true });
 
-  return (data || []).map((driver) => ({
-    ...driver,
-    normalized_display_name: normalizeDriverName(driver.display_name),
-    normalized_gamertag: normalizeDriverName(driver.gamertag),
-    normalized_ai_driver_reference: normalizeDriverName(driver.ai_driver_reference)
-  }));
+      if (error) throw error;
+
+      return (data || []).map((driver) => ({
+        ...driver,
+        normalized_display_name: normalizeDriverName(driver.display_name),
+        normalized_gamertag: normalizeDriverName(driver.gamertag),
+        normalized_ai_driver_reference: normalizeDriverName(driver.ai_driver_reference)
+      }));
+    }
+  });
 }
 
 async function fetchRaces(options = {}) {
-  let query = window.supabaseClient.from('races').select('*').order('round_number', { ascending: true });
-  if (options.seasonId !== undefined && options.seasonId !== null) query = query.eq('season_id', options.seasonId);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data || [];
+  const client = window.supabaseClient;
+  if (!client) return [];
+
+  const queryScope = {
+    seasonId: options.seasonId ?? null
+  };
+
+  return fetchWithLocalCache({
+    scope: 'races',
+    params: queryScope,
+    ttlMs: QUERY_CACHE_TTL.races,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      let query = client.from('races').select('*').order('round_number', { ascending: true });
+      if (options.seasonId !== undefined && options.seasonId !== null) query = query.eq('season_id', options.seasonId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
 }
 
 async function fetchRaceResults(options = {}) {
-  let query = window.supabaseClient.from('race_results').select('*');
-  if (options.raceId) query = query.eq('race_id', options.raceId);
-  if (options.raceIds?.length) query = query.in('race_id', options.raceIds);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data || [];
+  const client = window.supabaseClient;
+  if (!client) return [];
+
+  const raceIds = Array.isArray(options.raceIds) ? [...options.raceIds].sort() : [];
+  const queryScope = {
+    raceId: options.raceId ?? null,
+    raceIds
+  };
+
+  return fetchWithLocalCache({
+    scope: 'raceResults',
+    params: queryScope,
+    ttlMs: QUERY_CACHE_TTL.raceResults,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      let query = client.from('race_results').select('*');
+      if (options.raceId) query = query.eq('race_id', options.raceId);
+      if (options.raceIds?.length) query = query.in('race_id', options.raceIds);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data || [];
+    }
+  });
 }
 
 const DEFAULT_LEAGUE_CONTENT = {
@@ -188,24 +318,31 @@ const DEFAULT_LEAGUE_CONTENT = {
   faq_items: []
 };
 
-async function fetchLeagueContent() {
+async function fetchLeagueContent(options = {}) {
   const client = window.supabaseClient;
   if (!client) return { ...DEFAULT_LEAGUE_CONTENT };
 
-  const { data, error } = await client
-    .from('league_content')
-    .select('id, rules_text, faq_text, rules_config, faq_items, updated_at')
-    .eq('id', 'default')
-    .maybeSingle();
+  return fetchWithLocalCache({
+    scope: 'leagueContent',
+    ttlMs: QUERY_CACHE_TTL.leagueContent,
+    forceRefresh: options.forceRefresh === true,
+    fetcher: async () => {
+      const { data, error } = await client
+        .from('league_content')
+        .select('id, rules_text, faq_text, rules_config, faq_items, updated_at')
+        .eq('id', 'default')
+        .maybeSingle();
 
-  if (error && error.code !== 'PGRST116') throw error;
-  if (!data) return { ...DEFAULT_LEAGUE_CONTENT };
-  return {
-    ...DEFAULT_LEAGUE_CONTENT,
-    ...data,
-    rules_config: data.rules_config && typeof data.rules_config === 'object' ? data.rules_config : {},
-    faq_items: Array.isArray(data.faq_items) ? data.faq_items : []
-  };
+      if (error && error.code !== 'PGRST116') throw error;
+      if (!data) return { ...DEFAULT_LEAGUE_CONTENT };
+      return {
+        ...DEFAULT_LEAGUE_CONTENT,
+        ...data,
+        rules_config: data.rules_config && typeof data.rules_config === 'object' ? data.rules_config : {},
+        faq_items: Array.isArray(data.faq_items) ? data.faq_items : []
+      };
+    }
+  });
 }
 
 function buildStandings({ drivers, races, raceResults, resolver } = {}) {
