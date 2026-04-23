@@ -474,13 +474,26 @@
       }
 
       async function loadAdminSession() {
+        const adminStatusEl = document.getElementById('status-admin');
+        const adminStatusDotEl = document.getElementById('status-admin-dot');
         try {
           const { data, error } = await window.supabaseClient.auth.getSession();
           if (error) throw error;
-          document.getElementById('status-admin').textContent = data.session?.user?.email ? `Verbunden als ${data.session.user.email}` : 'Nicht eingeloggt';
+          const isAdminSessionActive = Boolean(data.session?.user?.email);
+          if (adminStatusEl) {
+            adminStatusEl.textContent = isAdminSessionActive ? 'Admin Session aktiv' : 'Admin Session inaktiv';
+          }
+          if (adminStatusDotEl) {
+            adminStatusDotEl.classList.toggle('inactive', !isAdminSessionActive);
+          }
         } catch (error) {
           console.error(error);
-          document.getElementById('status-admin').textContent = 'Session unbekannt';
+          if (adminStatusEl) {
+            adminStatusEl.textContent = 'Admin Session inaktiv';
+          }
+          if (adminStatusDotEl) {
+            adminStatusDotEl.classList.add('inactive');
+          }
         }
       }
 

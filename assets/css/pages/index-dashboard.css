@@ -93,6 +93,10 @@
       background: #f5c451;
       box-shadow: 0 0 12px rgba(245,196,81,0.7);
     }
+    .status-dot.inactive {
+      background: #ff4d4f;
+      box-shadow: 0 0 12px rgba(255,77,79,0.75);
+    }
     .status-copy strong,
     .status-copy span {
       display: block;
