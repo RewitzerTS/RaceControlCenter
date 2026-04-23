@@ -481,7 +481,7 @@
           if (error) throw error;
           const isAdminSessionActive = Boolean(data.session?.user?.email);
           if (adminStatusEl) {
-            adminStatusEl.textContent = isAdminSessionActive ? 'Admin Session aktiv' : 'Admin Session inaktiv';
+            adminStatusEl.textContent = isAdminSessionActive ? 'aktiv' : 'inaktiv';
           }
           if (adminStatusDotEl) {
             adminStatusDotEl.classList.toggle('inactive', !isAdminSessionActive);
@@ -489,7 +489,7 @@
         } catch (error) {
           console.error(error);
           if (adminStatusEl) {
-            adminStatusEl.textContent = 'Admin Session inaktiv';
+            adminStatusEl.textContent = 'inaktiv';
           }
           if (adminStatusDotEl) {
             adminStatusDotEl.classList.add('inactive');
