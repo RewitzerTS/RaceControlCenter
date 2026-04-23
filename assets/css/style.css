@@ -457,6 +457,26 @@ button, input, textarea, select {
   letter-spacing: 0.14em;
 }
 
+.results-trend-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.results-trend-heading h3 {
+  margin-bottom: 0;
+}
+
+.results-trend-hint {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .leader-list, .stack-list, .race-list, .incident-list {
   display: grid;
   gap: 12px;
