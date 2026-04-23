@@ -2632,60 +2632,6 @@ async function updateAdminOverview() {
   }
 }
 
-function getPanelTone(titleText = '') {
-  const title = String(titleText || '').toLowerCase();
-  if (title.includes('saison')) return 'Workflow';
-  if (title.includes('csv') || title.includes('import')) return 'Import';
-  if (title.includes('steward')) return 'Stewarding';
-  if (title.includes('manuell')) return 'Editor';
-  if (title.includes('fahrer')) return 'Roster';
-  if (title.includes('rennen')) return 'Kalender';
-  return 'Admin';
-}
-
-function toggleAdminPanel(panel, shouldCollapse = null) {
-  if (!panel) return;
-  const collapsed = shouldCollapse === null ? !panel.classList.contains('collapsed') : shouldCollapse;
-  panel.classList.toggle('collapsed', collapsed);
-  const button = panel.querySelector('.panel-collapse-toggle');
-  if (button) {
-    button.setAttribute('aria-expanded', String(!collapsed));
-    button.textContent = collapsed ? '+ Öffnen' : '− Offen';
-  }
-}
-
-function enableAdminCollapsibles() {
-  const sections = [...document.querySelectorAll('.admin-layout > .panel')];
-  sections.forEach((panel) => {
-    if (panel.tagName === 'DETAILS') return;
-    if (panel.dataset.collapsibleReady === 'true') return;
-    const title = panel.querySelector('h3');
-    if (!title) return;
-
-    const headerRow = document.createElement('div');
-    headerRow.className = 'panel-header-row';
-    title.parentNode.insertBefore(headerRow, title);
-
-    const titleWrap = document.createElement('div');
-    const eyebrow = document.createElement('div');
-    eyebrow.className = 'eyebrow';
-    eyebrow.textContent = getPanelTone(title.textContent || '');
-    titleWrap.appendChild(eyebrow);
-    titleWrap.appendChild(title);
-    headerRow.appendChild(titleWrap);
-
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'button-secondary panel-collapse-toggle';
-    toggle.textContent = '− Offen';
-    toggle.setAttribute('aria-expanded', 'true');
-    toggle.addEventListener('click', () => toggleAdminPanel(panel));
-    headerRow.appendChild(toggle);
-
-    panel.dataset.collapsibleReady = 'true';
-  });
-}
-
 function initAdminMobileTabs() {
   const tabsRoot = document.getElementById('admin-mobile-tabs');
   if (!tabsRoot || tabsRoot.dataset.bound === 'true') return;
@@ -2889,7 +2835,6 @@ async function initAdminPage() {
   });
 
   populateDriverDropdowns();
-  enableAdminCollapsibles();
   bindUiEvents();
   bindAuthListener();
   initAdminMobileTabs();
