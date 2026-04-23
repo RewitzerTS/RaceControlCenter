@@ -221,7 +221,7 @@ function resolveSeasonGameLabel(gameKey) {
 }
 
 function getSelectedSeasonGameKey() {
-  const selected = String(document.getElementById('season-game-select-new')?.value || document.getElementById('season-game-select')?.value || '').trim();
+  const selected = String(document.getElementById('season-game-select-new')?.value || '').trim();
   if (selected && SEASON_GAME_CONFIGS[selected]) return selected;
   return DEFAULT_SEASON_GAME_KEY;
 }
@@ -1580,7 +1580,6 @@ async function loadSeasonSummary() {
     const races = await window.RCCData.fetchRaces({ seasonId: season.id });
     const seasonGameKey = String(season.game_key || '').trim() || DEFAULT_SEASON_GAME_KEY;
     el.dataset.gameKey = seasonGameKey;
-    setValue('season-game-select', seasonGameKey);
     setValue('season-game-select-new', seasonGameKey);
     if (activeControls) activeControls.hidden = false;
     if (startControls) startControls.hidden = true;
@@ -2824,7 +2823,7 @@ function bindUiEvents() {
   document.getElementById('prepare-season-finalize-btn')?.addEventListener('click', prepareSeasonFinalize);
   document.getElementById('finalize-season-btn')?.addEventListener('click', finalizeSeason);
   document.getElementById('start-new-season-btn')?.addEventListener('click', startNewSeason);
-  ['season-game-select', 'season-game-select-new'].forEach((id) => document.getElementById(id)?.addEventListener('change', () => {
+  ['season-game-select-new'].forEach((id) => document.getElementById(id)?.addEventListener('change', () => {
     populateDriverDropdowns();
     setValue('driver-ai-reference', '');
     setValue('driver-car-name', '');
