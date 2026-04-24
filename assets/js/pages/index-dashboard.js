@@ -111,30 +111,74 @@
           .map((entry) => `Heute vor ${now.getUTCFullYear() - entry.year} Jahren: ${entry.text}`);
       }
 
-      async function fetchRealWorldF1News(limit = 5) {
-        const items = [];
-        for (const feedUrl of REAL_WORLD_F1_NEWS_FEEDS) {
+      async function fetchRssViaJsonGateway(feedUrl) {
+        const gateways = [
+          `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=8`,
+          `https://api.rss2json.io/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=8`
+        ];
+
+        for (const url of gateways) {
           try {
-            const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=8`);
+            const response = await fetch(url);
             if (!response.ok) continue;
             const payload = await response.json();
             const feedItems = Array.isArray(payload?.items) ? payload.items : [];
-            feedItems.forEach((entry) => {
-              if (!entry?.title) return;
-              items.push({
-                headline: normalizeStorylineText(entry.title),
-                source: normalizeStorylineText(payload?.feed?.title || 'F1 News'),
-                timestamp: entry.pubDate ? new Date(entry.pubDate).getTime() : 0
-              });
-            });
+            if (!feedItems.length) continue;
+            return feedItems.map((entry) => ({
+              headline: normalizeStorylineText(entry?.title),
+              source: normalizeStorylineText(payload?.feed?.title || 'F1 News'),
+              timestamp: entry?.pubDate ? new Date(entry.pubDate).getTime() : 0
+            }));
           } catch (error) {
-            console.debug('F1-News Feed nicht erreichbar', feedUrl, error);
+            console.debug('JSON-RSS Gateway nicht erreichbar', url, error);
           }
+        }
+
+        return [];
+      }
+
+      async function fetchRssViaXmlProxy(feedUrl) {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`;
+        try {
+          const response = await fetch(proxyUrl);
+          if (!response.ok) return [];
+          const xmlText = await response.text();
+          const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
+          if (xml.querySelector('parsererror')) return [];
+          const feedTitle = normalizeStorylineText(xml.querySelector('channel > title')?.textContent || 'F1 News');
+          return Array.from(xml.querySelectorAll('item')).slice(0, 8).map((entry) => ({
+            headline: normalizeStorylineText(entry.querySelector('title')?.textContent),
+            source: feedTitle,
+            timestamp: entry.querySelector('pubDate')?.textContent ? new Date(entry.querySelector('pubDate').textContent).getTime() : 0
+          }));
+        } catch (error) {
+          console.debug('XML-Proxy für F1-News nicht erreichbar', feedUrl, error);
+          return [];
+        }
+      }
+
+      async function fetchRealWorldF1News(limit = 5) {
+        const items = [];
+        for (const feedUrl of REAL_WORLD_F1_NEWS_FEEDS) {
+          const feedItems = await fetchRssViaJsonGateway(feedUrl);
+          const fallbackItems = feedItems.length ? [] : await fetchRssViaXmlProxy(feedUrl);
+          [...feedItems, ...fallbackItems].forEach((entry) => {
+            if (!entry?.headline) return;
+            items.push(entry);
+          });
           if (items.length >= limit * 2) break;
         }
+
+        const seenHeadlines = new Set();
         return items
           .filter((entry) => entry.headline)
           .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+          .filter((entry) => {
+            const normalizedHeadline = entry.headline.toLowerCase();
+            if (seenHeadlines.has(normalizedHeadline)) return false;
+            seenHeadlines.add(normalizedHeadline);
+            return true;
+          })
           .slice(0, limit)
           .map((entry) => `F1 Live · ${entry.headline} (${entry.source})`);
       }
