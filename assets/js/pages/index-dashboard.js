@@ -24,6 +24,7 @@
       let countdownTimer = null;
       let countdownRefreshTriggered = false;
       let storylineRefreshTimer = null;
+      let storylineUserPaused = false;
       const WEEKLY_STORYLINE_TEMPLATES = [
         ({ lead, chase }) => `${lead.driverName} verteidigt die Spitze mit ${lead.points} Punkten, aber ${chase.driverName} bleibt direkt in Schlagdistanz.`,
         ({ lead, latestRace }) => `${latestRace?.grand_prix_name || 'Das letzte Rennen'} hat das Momentum verschoben – ${lead.driverName} reist als Gejagter weiter.`,
@@ -283,6 +284,7 @@
 
       function renderStorylineTicker(messages) {
         const container = document.getElementById('hero-storyline');
+        const a11yAnnouncer = document.getElementById('hero-storyline-a11y');
         if (!container) return;
         const unique = [];
         messages.forEach((entry) => {
@@ -293,7 +295,40 @@
         const loopMessages = [...visibleMessages, ...visibleMessages];
         const itemHtml = loopMessages.map((text) => `<span class="storyline-item">${escapeHtml(text)}</span>`).join('');
         const duration = Math.max(50, visibleMessages.length * 8);
-        container.innerHTML = `<div class="storyline-ticker" role="status" aria-live="polite" tabindex="0"><div class="storyline-ticker-track" style="--ticker-duration:${duration}s;">${itemHtml}</div></div>`;
+        const pauseClass = storylineUserPaused ? ' is-paused' : '';
+        container.innerHTML = `<div class="storyline-ticker${pauseClass}" tabindex="0"><div class="storyline-ticker-track" style="--ticker-duration:${duration}s;">${itemHtml}</div></div>`;
+        if (a11yAnnouncer && visibleMessages[0]) {
+          a11yAnnouncer.textContent = `Aktuelle Storyline: ${visibleMessages[0]}`;
+        }
+      }
+
+      function setStorylineTickerPaused(paused) {
+        storylineUserPaused = Boolean(paused);
+        const toggleButton = document.getElementById('storyline-toggle');
+        const ticker = document.querySelector('#hero-storyline .storyline-ticker');
+        if (toggleButton) {
+          toggleButton.setAttribute('aria-pressed', storylineUserPaused ? 'true' : 'false');
+          toggleButton.setAttribute('aria-label', storylineUserPaused ? 'Storyline-Ticker fortsetzen' : 'Storyline-Ticker pausieren');
+          toggleButton.textContent = storylineUserPaused ? 'Fortsetzen' : 'Pausieren';
+        }
+        if (ticker) {
+          ticker.classList.toggle('is-paused', storylineUserPaused);
+        }
+      }
+
+      function initStorylineControls() {
+        const toggleButton = document.getElementById('storyline-toggle');
+        if (!toggleButton || toggleButton.dataset.bound === '1') return;
+        toggleButton.dataset.bound = '1';
+        toggleButton.addEventListener('click', () => {
+          setStorylineTickerPaused(!storylineUserPaused);
+        });
+        document.addEventListener('visibilitychange', () => {
+          const isHidden = document.hidden;
+          const ticker = document.querySelector('#hero-storyline .storyline-ticker');
+          if (!ticker) return;
+          ticker.classList.toggle('is-paused', isHidden || storylineUserPaused);
+        });
       }
 
       function initScrollAnimations() {
@@ -789,6 +824,7 @@
 
       document.addEventListener('DOMContentLoaded', () => {
         initScrollAnimations();
+        initStorylineControls();
         loadDashboard();
         loadStewardCount();
         loadAdminSession();
