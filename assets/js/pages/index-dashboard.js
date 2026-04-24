@@ -240,14 +240,44 @@
         return messages.map(normalizeStorylineText).filter(Boolean);
       }
 
+      function buildLeagueNewsMessages(context) {
+        const messages = [];
+        const completedRaces = Array.isArray(context?.completedRaces) ? context.completedRaces : [];
+        const latestRace = context?.latestRace || null;
+        const nextRace = context?.nextRace || null;
+
+        if (latestRace) {
+          messages.push(`Liga News · Letztes gewertetes Rennen: ${latestRace.grand_prix_name || `Runde ${latestRace.round_number}`}.`);
+        } else if (completedRaces.length) {
+          const mostRecent = completedRaces.slice().sort((a, b) => Number(b.round_number) - Number(a.round_number))[0];
+          messages.push(`Liga News · Zuletzt abgeschlossen: ${mostRecent?.grand_prix_name || `Runde ${mostRecent?.round_number || '—'}`}.`);
+        }
+
+        if (nextRace) {
+          messages.push(`Liga News · Nächster Lauf: ${nextRace.grand_prix_name || `Runde ${nextRace.round_number}`} (${formatCountdownDateTime(nextRace)}).`);
+        }
+
+        if (context?.lead && context?.chase) {
+          const gap = Number(context.lead.points || 0) - Number(context.chase.points || 0);
+          messages.push(`Liga News · Titelduell: ${context.lead.driverName} vs. ${context.chase.driverName} – Abstand ${gap} Punkte.`);
+        }
+
+        if (context?.topTeam) {
+          messages.push(`Liga News · Konstrukteurswertung: ${context.topTeam.teamName} führt mit ${context.topTeam.points} Punkten.`);
+        }
+
+        return messages.map(normalizeStorylineText).filter(Boolean);
+      }
+
       async function buildStorylineTickerMessages(context, options = {}) {
         const seasonMessages = buildSeasonMessages(context);
+        const leagueNewsMessages = buildLeagueNewsMessages(context);
         const historicMessages = getTodayHistoricMessages();
         const useCachedOnly = options.cachedOnly === true;
         const liveNews = useCachedOnly ? readCachedLiveNews().slice(0, 6) : await fetchRealWorldF1News(6);
         const mixed = liveNews.length
-          ? [...liveNews, ...shuffle([...seasonMessages.slice(0, 2), ...historicMessages.slice(0, 1)])]
-          : shuffle([...seasonMessages, ...historicMessages]);
+          ? [...liveNews, ...shuffle([...leagueNewsMessages.slice(0, 3), ...seasonMessages.slice(0, 2), ...historicMessages.slice(0, 1)])]
+          : shuffle([...leagueNewsMessages, ...seasonMessages, ...historicMessages]);
         return mixed.length ? mixed : ['Storyline wird vorbereitet – sobald neue Ergebnisse und News verfügbar sind, startet die Laufschrift automatisch.'];
       }
 
@@ -665,6 +695,7 @@
             chase: driverStandings[1],
             currentSeason,
             latestRace,
+            nextRace,
             topTeam: teamStandings[0],
             completedRaces
           };
