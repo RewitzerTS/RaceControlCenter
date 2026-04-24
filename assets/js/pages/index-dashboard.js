@@ -2,10 +2,14 @@
       const escapeHtml = window.escapeHtml || ((value) => String(value ?? ''));
       const ACCENT_COLORS = ['#36d4c7', '#b78cff', '#f5c451', '#ff7a7a', '#7dc5ff'];
       const REAL_WORLD_F1_NEWS_FEEDS = [
-        'https://news.google.com/rss/search?q=Formel+1&hl=de&gl=DE&ceid=DE:de',
-        'https://news.google.com/rss/search?q=site:motorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
-        'https://news.google.com/rss/search?q=site:motorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de'
+        'https://www.motorsport-total.com/formel-1/rss',
+        'https://www.motorsport-magazin.com/formel1/news.xml',
+        'https://news.google.com/rss/search?q=site:motorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
+        'https://news.google.com/rss/search?q=site:motorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de'
       ];
+      const LIVE_NEWS_CACHE_KEY = 'rcc.liveF1News.v1';
+      const LIVE_NEWS_CACHE_TTL_MS = 1000 * 60 * 5;
+      const LIVE_NEWS_REQUEST_TIMEOUT_MS = 1800;
       const F1_ON_THIS_DAY_MOMENTS = [
         { monthDay: '05-25', year: 2008, text: 'Lewis Hamilton gewann in Monaco seinen ersten Grand Prix.' },
         { monthDay: '05-14', year: 2006, text: 'Fernando Alonso gewann den Europa Grand Prix am Nürburgring.' },
@@ -112,6 +116,41 @@
           .map((entry) => `Heute vor ${now.getUTCFullYear() - entry.year} Jahren: ${entry.text}`);
       }
 
+
+      function readCachedLiveNews() {
+        try {
+          const raw = window.localStorage?.getItem(LIVE_NEWS_CACHE_KEY);
+          if (!raw) return [];
+          const payload = JSON.parse(raw);
+          if (!payload?.updatedAt || !Array.isArray(payload?.items)) return [];
+          if ((Date.now() - payload.updatedAt) > LIVE_NEWS_CACHE_TTL_MS) return [];
+          return payload.items.filter(Boolean);
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function writeCachedLiveNews(items) {
+        if (!Array.isArray(items) || !items.length) return;
+        try {
+          window.localStorage?.setItem(LIVE_NEWS_CACHE_KEY, JSON.stringify({
+            updatedAt: Date.now(),
+            items
+          }));
+        } catch (error) {
+          // Ignore storage errors silently to keep dashboard resilient.
+        }
+      }
+
+      async function fetchWithTimeout(url, options = {}, timeoutMs = LIVE_NEWS_REQUEST_TIMEOUT_MS) {
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          return await fetch(url, { ...options, signal: controller.signal });
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      }
       async function fetchRssViaJsonGateway(feedUrl) {
         const gateways = [
           `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=8`,
@@ -120,7 +159,7 @@
 
         for (const url of gateways) {
           try {
-            const response = await fetch(url);
+            const response = await fetchWithTimeout(url);
             if (!response.ok) continue;
             const payload = await response.json();
             const feedItems = Array.isArray(payload?.items) ? payload.items : [];
@@ -141,7 +180,7 @@
       async function fetchRssViaXmlProxy(feedUrl) {
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}`;
         try {
-          const response = await fetch(proxyUrl);
+          const response = await fetchWithTimeout(proxyUrl);
           if (!response.ok) return [];
           const xmlText = await response.text();
           const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
@@ -159,20 +198,20 @@
       }
 
       async function fetchRealWorldF1News(limit = 5) {
-        const items = [];
-        for (const feedUrl of REAL_WORLD_F1_NEWS_FEEDS) {
-          const feedItems = await fetchRssViaJsonGateway(feedUrl);
-          const fallbackItems = feedItems.length ? [] : await fetchRssViaXmlProxy(feedUrl);
-          [...feedItems, ...fallbackItems].forEach((entry) => {
-            if (!entry?.headline) return;
-            items.push(entry);
-          });
-          if (items.length >= limit * 2) break;
-        }
+        const cachedItems = readCachedLiveNews();
+        if (cachedItems.length >= limit) return cachedItems.slice(0, limit);
 
+        const feedResults = await Promise.all(
+          REAL_WORLD_F1_NEWS_FEEDS.map(async (feedUrl) => {
+            const feedItems = await fetchRssViaJsonGateway(feedUrl);
+            if (feedItems.length) return feedItems;
+            return fetchRssViaXmlProxy(feedUrl);
+          })
+        );
+
+        const items = feedResults.flat().filter((entry) => entry?.headline);
         const seenHeadlines = new Set();
-        return items
-          .filter((entry) => entry.headline)
+        const messages = items
           .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
           .filter((entry) => {
             const normalizedHeadline = entry.headline.toLowerCase();
@@ -182,6 +221,9 @@
           })
           .slice(0, limit)
           .map((entry) => `F1 Live · ${entry.headline} (${entry.source})`);
+
+        if (messages.length) writeCachedLiveNews(messages);
+        return messages.length ? messages : cachedItems.slice(0, limit);
       }
 
       function buildSeasonMessages(context) {
@@ -196,10 +238,11 @@
         return messages.map(normalizeStorylineText).filter(Boolean);
       }
 
-      async function buildStorylineTickerMessages(context) {
+      async function buildStorylineTickerMessages(context, options = {}) {
         const seasonMessages = buildSeasonMessages(context);
         const historicMessages = getTodayHistoricMessages();
-        const liveNews = await fetchRealWorldF1News(6);
+        const useCachedOnly = options.cachedOnly === true;
+        const liveNews = useCachedOnly ? readCachedLiveNews().slice(0, 6) : await fetchRealWorldF1News(6);
         const mixed = shuffle([...seasonMessages, ...historicMessages, ...liveNews]);
         return mixed.length ? mixed : ['Storyline wird vorbereitet – sobald neue Ergebnisse und News verfügbar sind, startet die Laufschrift automatisch.'];
       }
@@ -621,6 +664,7 @@
             topTeam: teamStandings[0],
             completedRaces
           };
+          renderStorylineTicker(await buildStorylineTickerMessages(storylineContext, { cachedOnly: true }));
           renderStorylineTicker(await buildStorylineTickerMessages(storylineContext));
           if (storylineRefreshTimer) window.clearInterval(storylineRefreshTimer);
           storylineRefreshTimer = window.setInterval(async () => {
