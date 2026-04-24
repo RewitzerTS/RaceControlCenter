@@ -151,8 +151,11 @@ button, input, textarea, select {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .main-nav a {
@@ -196,6 +199,23 @@ button, input, textarea, select {
 
 .nav-more-menu {
   display: none;
+}
+
+@media (max-width: 1280px) and (min-width: 861px) {
+  .brand-logo {
+    width: 116px;
+    height: 116px;
+  }
+
+  .main-nav {
+    gap: 6px;
+  }
+
+  .main-nav a,
+  .nav-more-toggle {
+    padding: 9px 11px;
+    font-size: 0.9rem;
+  }
 }
 
 .page-hero {
