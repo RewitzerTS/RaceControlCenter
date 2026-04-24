@@ -5,11 +5,13 @@
         'https://www.motorsport-total.com/formel-1/rss',
         'https://www.motorsport-magazin.com/formel1/news.xml',
         'https://news.google.com/rss/search?q=site:motorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
-        'https://news.google.com/rss/search?q=site:motorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de'
+        'https://news.google.com/rss/search?q=site:motorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
+        'https://news.google.com/rss/search?q=Formel+1+News&hl=de&gl=DE&ceid=DE:de',
+        'https://news.google.com/rss/search?q=Formula+1+latest+news&hl=en-US&gl=US&ceid=US:en'
       ];
       const LIVE_NEWS_CACHE_KEY = 'rcc.liveF1News.v1';
       const LIVE_NEWS_CACHE_TTL_MS = 1000 * 60 * 5;
-      const LIVE_NEWS_REQUEST_TIMEOUT_MS = 1800;
+      const LIVE_NEWS_REQUEST_TIMEOUT_MS = 6500;
       const F1_ON_THIS_DAY_MOMENTS = [
         { monthDay: '05-25', year: 2008, text: 'Lewis Hamilton gewann in Monaco seinen ersten Grand Prix.' },
         { monthDay: '05-14', year: 2006, text: 'Fernando Alonso gewann den Europa Grand Prix am Nürburgring.' },
@@ -243,7 +245,9 @@
         const historicMessages = getTodayHistoricMessages();
         const useCachedOnly = options.cachedOnly === true;
         const liveNews = useCachedOnly ? readCachedLiveNews().slice(0, 6) : await fetchRealWorldF1News(6);
-        const mixed = shuffle([...seasonMessages, ...historicMessages, ...liveNews]);
+        const mixed = liveNews.length
+          ? [...liveNews, ...shuffle([...seasonMessages.slice(0, 2), ...historicMessages.slice(0, 1)])]
+          : shuffle([...seasonMessages, ...historicMessages]);
         return mixed.length ? mixed : ['Storyline wird vorbereitet – sobald neue Ergebnisse und News verfügbar sind, startet die Laufschrift automatisch.'];
       }
 
