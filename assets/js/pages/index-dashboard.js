@@ -2,8 +2,9 @@
       const escapeHtml = window.escapeHtml || ((value) => String(value ?? ''));
       const ACCENT_COLORS = ['#36d4c7', '#b78cff', '#f5c451', '#ff7a7a', '#7dc5ff'];
       const REAL_WORLD_F1_NEWS_FEEDS = [
-        'https://www.motorsport.com/rss/f1/news/',
-        'https://www.autosport.com/rss/feed/f1'
+        'https://news.google.com/rss/search?q=Formel+1&hl=de&gl=DE&ceid=DE:de',
+        'https://news.google.com/rss/search?q=site:motorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
+        'https://news.google.com/rss/search?q=site:motorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de'
       ];
       const F1_ON_THIS_DAY_MOMENTS = [
         { monthDay: '05-25', year: 2008, text: 'Lewis Hamilton gewann in Monaco seinen ersten Grand Prix.' },
