@@ -298,7 +298,7 @@
         if (toggleButton) {
           toggleButton.setAttribute('aria-pressed', storylineUserPaused ? 'true' : 'false');
           toggleButton.setAttribute('aria-label', storylineUserPaused ? 'Storyline-Ticker fortsetzen' : 'Storyline-Ticker pausieren');
-          toggleButton.textContent = storylineUserPaused ? 'Fortsetzen' : 'Pausieren';
+          toggleButton.textContent = storylineUserPaused ? '▶' : '⏸';
         }
         if (ticker) {
           ticker.classList.toggle('is-paused', storylineUserPaused);
