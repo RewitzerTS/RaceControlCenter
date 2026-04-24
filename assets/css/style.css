@@ -2239,14 +2239,14 @@ body[data-page="grid"] .driver-team-member-flip {
 
 .driver-card-modal-dialog {
   --driver-modal-safe-top: max(env(safe-area-inset-top, 0px), var(--visual-viewport-offset-top, 0px));
-  max-width: 640px;
+  max-width: 900px;
   margin-top: max(186px, calc(var(--driver-modal-safe-top) + 148px));
   margin-bottom: 24px;
   padding-top: max(38px, calc(var(--driver-modal-safe-top) + 26px));
 }
 
 .driver-card-modal-content {
-  max-width: 480px;
+  max-width: 760px;
   margin: 0 auto;
 }
 
@@ -2378,6 +2378,12 @@ body[data-page="grid"] .driver-team-member-flip {
 .driver-compare-table .is-better {
   color: #75f2b9;
   font-weight: 700;
+}
+
+@media (min-width: 681px) {
+  .driver-compare-table-wrap {
+    overflow-x: visible;
+  }
 }
 
 @media (max-width: 680px) {
