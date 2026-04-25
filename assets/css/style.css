@@ -1721,28 +1721,11 @@ body[data-page="admin"] .button-danger:focus-visible {
   gap: 12px;
 }
 .storyline-banner .card-label { margin-bottom: 6px; }
-.storyline-toggle {
-  border: 1px solid rgba(255,255,255,0.16);
-  background: rgba(8, 14, 29, 0.45);
-  color: var(--text);
-  border-radius: 999px;
-  font-size: .8rem;
-  font-weight: 700;
-  padding: 6px 12px;
-  min-height: 32px;
-}
-.storyline-toggle[aria-pressed="true"] {
-  background: rgba(183,140,255,0.24);
-  border-color: rgba(183,140,255,0.6);
-}
 .storyline-banner-content { color: var(--text); line-height: 1.6; }
 .storyline-ticker {
   overflow: hidden;
   white-space: nowrap;
   mask-image: linear-gradient(to right, transparent 0, black 6%, black 94%, transparent 100%);
-}
-.storyline-ticker.is-paused .storyline-ticker-track {
-  animation-play-state: paused;
 }
 .storyline-ticker-track {
   display: inline-flex;
@@ -1751,10 +1734,6 @@ body[data-page="admin"] .button-danger:focus-visible {
   min-width: 100%;
   animation: storyline-marquee var(--ticker-duration, 70s) linear infinite;
   will-change: transform;
-}
-.storyline-ticker:hover .storyline-ticker-track,
-.storyline-ticker:focus-within .storyline-ticker-track {
-  animation-play-state: paused;
 }
 .storyline-item {
   display: inline-flex;
