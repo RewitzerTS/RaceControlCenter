@@ -271,6 +271,5 @@ async function loadResultsPage() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (renderStaticResultsOverride()) return;
   loadResultsPage();
 });
