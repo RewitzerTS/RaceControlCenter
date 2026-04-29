@@ -122,7 +122,10 @@ function getDriverDisplayLabel(driver) {
 }
 
 function buildMatrixData(drivers, races, raceResults, resolver) {
-  const completedRaces = races.filter((race) => race.status === 'completed').sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
+  const raceIdsWithResults = new Set((raceResults || []).map((row) => row.race_id).filter(Boolean));
+  const completedRaces = races
+    .filter((race) => race.status === 'completed' || raceIdsWithResults.has(race.id))
+    .sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
   const raceIds = new Set(completedRaces.map((race) => race.id));
   const resultsByRace = window.RCCData.groupBy(raceResults.filter((row) => raceIds.has(row.race_id)), (row) => row.race_id);
   const fastestByRace = new Map();
