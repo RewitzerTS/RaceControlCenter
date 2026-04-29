@@ -2284,10 +2284,27 @@ async function importRaceResults(options = {}) {
     if (!grandPrixName) return showFeedback('csv-feedback', 'Spalte "Grand Prix" fehlt oder ist leer.', true);
 
     const currentSeason = await getCurrentSeasonSafe();
+    let raceData = null;
+    let raceError = null;
+
     let raceQuery = window.supabaseClient.from('races').select('id, grand_prix_name, season_id, weather').eq('grand_prix_name', grandPrixName);
     if (currentSeason?.id) raceQuery = raceQuery.eq('season_id', currentSeason.id);
+    ({ data: raceData, error: raceError } = await raceQuery.maybeSingle());
 
-    const { data: raceData, error: raceError } = await raceQuery.maybeSingle();
+    if (!raceData) {
+      const matchedTrack = window.findTrackByGrandPrixName?.(grandPrixName);
+      if (matchedTrack?.grandPrixName) {
+        let canonicalRaceQuery = window.supabaseClient
+          .from('races')
+          .select('id, grand_prix_name, season_id, weather')
+          .eq('grand_prix_name', matchedTrack.grandPrixName);
+        if (currentSeason?.id) canonicalRaceQuery = canonicalRaceQuery.eq('season_id', currentSeason.id);
+        const { data: canonicalRaceData, error: canonicalRaceError } = await canonicalRaceQuery.maybeSingle();
+        raceData = canonicalRaceData;
+        raceError = canonicalRaceError || raceError;
+      }
+    }
+
     if (raceError || !raceData) return showFeedback('csv-feedback', `Rennen "${grandPrixName}" wurde in der aktiven Saison nicht gefunden.`, true);
 
     const [{ count: existingPublishedResultsCount, error: existingPublishedResultsError }, { count: existingPenaltiesCount, error: existingPenaltiesError }] = await Promise.all([
