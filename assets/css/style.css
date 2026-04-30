@@ -1752,6 +1752,15 @@ body[data-page="admin"] .button-danger:focus-visible {
   font-weight: 700;
 }
 
+.storyline-item-link {
+  color: var(--text);
+  text-decoration: none;
+}
+.storyline-item-link:hover,
+.storyline-item-link:focus-visible {
+  text-decoration: underline;
+}
+
 @keyframes storyline-marquee {
   0% { transform: translate3d(0, 0, 0); }
   100% { transform: translate3d(-50%, 0, 0); }

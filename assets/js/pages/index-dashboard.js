@@ -168,7 +168,7 @@
             if (!feedItems.length) continue;
             return feedItems.map((entry) => ({
               headline: normalizeStorylineText(entry?.title),
-              source: normalizeStorylineText(payload?.feed?.title || 'F1 News'),
+              link: normalizeStorylineText(entry?.link),
               timestamp: entry?.pubDate ? new Date(entry.pubDate).getTime() : 0
             }));
           } catch (error) {
@@ -187,16 +187,21 @@
           const xmlText = await response.text();
           const xml = new DOMParser().parseFromString(xmlText, 'text/xml');
           if (xml.querySelector('parsererror')) return [];
-          const feedTitle = normalizeStorylineText(xml.querySelector('channel > title')?.textContent || 'F1 News');
           return Array.from(xml.querySelectorAll('item')).slice(0, 8).map((entry) => ({
             headline: normalizeStorylineText(entry.querySelector('title')?.textContent),
-            source: feedTitle,
+            link: normalizeStorylineText(entry.querySelector('link')?.textContent),
             timestamp: entry.querySelector('pubDate')?.textContent ? new Date(entry.querySelector('pubDate').textContent).getTime() : 0
           }));
         } catch (error) {
           console.debug('XML-Proxy für F1-News nicht erreichbar', feedUrl, error);
           return [];
         }
+      }
+
+      function toStorylineExternalMessage(entry = {}) {
+        const headline = normalizeStorylineText(entry.headline);
+        const link = String(entry.link || '').trim();
+        return headline ? { text: headline, href: /^https?:\/\//i.test(link) ? link : '' } : null;
       }
 
       async function fetchRealWorldF1News(limit = 5) {
@@ -222,7 +227,8 @@
             return true;
           })
           .slice(0, limit)
-          .map((entry) => `F1 Live · ${entry.headline} (${entry.source})`);
+          .map(toStorylineExternalMessage)
+          .filter(Boolean);
 
         if (messages.length) writeCachedLiveNews(messages);
         return messages.length ? messages : cachedItems.slice(0, limit);
@@ -275,17 +281,27 @@
         const a11yAnnouncer = document.getElementById('hero-storyline-a11y');
         if (!container) return;
         const unique = [];
+        const seenText = new Set();
         messages.forEach((entry) => {
-          if (!entry || unique.includes(entry)) return;
-          unique.push(entry);
+          if (!entry) return;
+          const normalized = typeof entry === 'string'
+            ? { text: normalizeStorylineText(entry), href: '' }
+            : { text: normalizeStorylineText(entry.text), href: String(entry.href || '').trim() };
+          if (!normalized.text || seenText.has(normalized.text)) return;
+          seenText.add(normalized.text);
+          unique.push(normalized);
         });
         const visibleMessages = unique.slice(0, 16);
         const loopMessages = [...visibleMessages, ...visibleMessages];
-        const itemHtml = loopMessages.map((text) => `<span class="storyline-item">${escapeHtml(text)}</span>`).join('');
+        const itemHtml = loopMessages.map((entry) => {
+          const safeText = escapeHtml(entry.text);
+          if (!entry.href) return `<span class="storyline-item">${safeText}</span>`;
+          return `<a class="storyline-item storyline-item-link" href="${escapeHtml(entry.href)}" target="_blank" rel="noopener noreferrer">${safeText}</a>`;
+        }).join('');
         const duration = Math.max(50, visibleMessages.length * 8);
         container.innerHTML = `<div class="storyline-ticker"><div class="storyline-ticker-track" style="--ticker-duration:${duration}s;">${itemHtml}</div></div>`;
         if (a11yAnnouncer && visibleMessages[0]) {
-          a11yAnnouncer.textContent = `Aktuelle Storyline: ${visibleMessages[0]}`;
+          a11yAnnouncer.textContent = `Aktuelle Storyline: ${visibleMessages[0].text}`;
         }
       }
 
