@@ -1695,15 +1695,20 @@ body[data-page="admin"] .button-danger:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 34px;
-  padding: 4px 8px;
+  width: 38px;
+  height: 38px;
   border-radius: 999px;
-  font-weight: 800;
-  font-size: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
 }
-.trend-pill.up { background: rgba(45, 192, 141, 0.16); color: #55e2ad; }
-.trend-pill.flat { background: rgba(255,255,255,0.09); color: #b9c5d1; }
-.trend-pill.down { background: rgba(255, 92, 92, 0.16); color: #ff8383; }
+.trend-pill svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+}
+.trend-pill.up { background: linear-gradient(180deg, rgba(45, 192, 141, 0.2), rgba(45, 192, 141, 0.12)); color: #55e2ad; }
+.trend-pill.flat { background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.08)); color: #b9c5d1; }
+.trend-pill.down { background: linear-gradient(180deg, rgba(255, 92, 92, 0.2), rgba(255, 92, 92, 0.12)); color: #ff8383; }
 
 .storyline-banner {
   width: min(var(--max), calc(100% - 28px));

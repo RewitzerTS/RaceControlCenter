@@ -1,9 +1,15 @@
 function getTrendIcon(currentPos, previousPos, hasPreviousRace = false) {
-  if (!hasPreviousRace) return '<span class="trend-pill flat">↔</span>';
-  if (!Number.isFinite(previousPos)) return '<span class="trend-pill up">↑</span>';
-  if (currentPos < previousPos) return '<span class="trend-pill up">↑</span>';
-  if (currentPos > previousPos) return '<span class="trend-pill down">↓</span>';
-  return '<span class="trend-pill flat">↔</span>';
+  const iconMarkup = {
+    up: '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.4l4.8 4.8-1.2 1.2L8.9 5.8V13H7.1V5.8L4.4 8.4 3.2 7.2 8 2.4z"/></svg>',
+    flat: '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M2.4 8l2.8-2.8 1.2 1.2L5.6 7.1H10.4L9.6 6.4l1.2-1.2L13.6 8l-2.8 2.8-1.2-1.2.8-.7H5.6l.8.7-1.2 1.2L2.4 8z"/></svg>',
+    down: '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 13.6l-4.8-4.8 1.2-1.2 2.7 2.6V3h1.8v7.2l2.7-2.6 1.2 1.2L8 13.6z"/></svg>'
+  };
+
+  if (!hasPreviousRace) return `<span class="trend-pill flat" title="Keine Veränderung">${iconMarkup.flat}</span>`;
+  if (!Number.isFinite(previousPos)) return `<span class="trend-pill up" title="Neu in der Wertung">${iconMarkup.up}</span>`;
+  if (currentPos < previousPos) return `<span class="trend-pill up" title="Platz verbessert">${iconMarkup.up}</span>`;
+  if (currentPos > previousPos) return `<span class="trend-pill down" title="Platz verloren">${iconMarkup.down}</span>`;
+  return `<span class="trend-pill flat" title="Keine Veränderung">${iconMarkup.flat}</span>`;
 }
 
 function withDriverTrends(current, previous, hasPreviousRace = false) {
