@@ -1035,9 +1035,10 @@ function populateDriverDropdowns() {
     (car) => `<option value="${car}">${car}</option>`
   );
 
+  const tracksForSeasonGame = (window.getTracksForSeasonGame?.(getActiveSeasonGameKey()) || window.RCC_TRACKS || []);
   renderOptions(
     gpSelect,
-    sortByLabel(window.RCC_TRACKS || [], (track) => track.grandPrixName),
+    sortByLabel(tracksForSeasonGame, (track) => track.grandPrixName),
     (track) => `<option value="${track.grandPrixName}" data-circuit="${track.circuitName}">${track.grandPrixName}</option>`
   );
 
@@ -2220,7 +2221,7 @@ async function createRandomSeason() {
     if (raceTimeInput === null) return;
     const normalizedRaceTime = /^\d{2}:\d{2}$/.test(raceTimeInput.trim()) ? raceTimeInput.trim() : DEFAULT_RACE_TIME;
 
-    const seasonTracks = [...(window.RCC_TRACKS || [])].sort(() => Math.random() - 0.5);
+    const seasonTracks = [...(window.getTracksForSeasonGame?.(getActiveSeasonGameKey()) || window.RCC_TRACKS || [])].sort(() => Math.random() - 0.5);
     const selectedTracks = seasonTracks.slice(0, 24);
     if (!selectedTracks.length) return showFeedback('race-feedback', 'Keine Strecken verfügbar.', true);
 
