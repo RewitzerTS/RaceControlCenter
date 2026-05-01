@@ -3,7 +3,9 @@ const RCC_LAYOUT_TARGETS = [
   { selector: '#site-footer', file: 'components/footer.html' }
 ];
 const RCC_LANGUAGE_STORAGE_KEY = 'rcc-language';
+const RCC_THEME_STORAGE_KEY = 'rcc-theme';
 const RCC_SUPPORTED_LANGUAGES = ['de', 'en', 'fr', 'es'];
+const RCC_SUPPORTED_THEMES = ['dark', 'light', 'system'];
 const RCC_TRANSLATE_COOKIE_NAME = 'googtrans';
 const RCC_SOURCE_LANGUAGE = 'de';
 
@@ -14,6 +16,19 @@ function getPreferredLanguage() {
 
 function applyPreferredLanguage() {
   document.documentElement.lang = getPreferredLanguage();
+}
+
+function getPreferredTheme() {
+  const storedTheme = localStorage.getItem(RCC_THEME_STORAGE_KEY);
+  return RCC_SUPPORTED_THEMES.includes(storedTheme) ? storedTheme : 'dark';
+}
+
+function applyThemePreference() {
+  const preferredTheme = getPreferredTheme();
+  const isLightMode = preferredTheme === 'light'
+    || (preferredTheme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches);
+
+  document.documentElement.setAttribute('data-theme', isLightMode ? 'light' : 'dark');
 }
 
 function resolveCurrentPage() {
@@ -215,6 +230,7 @@ window.loadSiteLayout = loadSiteLayout;
 
 document.addEventListener('DOMContentLoaded', loadSiteLayout);
 document.addEventListener('DOMContentLoaded', applyPreferredLanguage);
+document.addEventListener('DOMContentLoaded', applyThemePreference);
 
 document.addEventListener('DOMContentLoaded', () => {
   const preferredLanguage = getPreferredLanguage();
@@ -256,6 +272,38 @@ function setupAdminShortcut() {
 }
 
 document.addEventListener('layout:loaded', setupAdminShortcut);
+
+function setupThemeSelector() {
+  const themeSelect = document.querySelector('#footer-theme-select');
+  if (!themeSelect || themeSelect.dataset.initialized === 'true') return;
+
+  themeSelect.value = getPreferredTheme();
+
+  themeSelect.addEventListener('change', (event) => {
+    const selectedTheme = event.target.value;
+    if (!RCC_SUPPORTED_THEMES.includes(selectedTheme)) return;
+
+    localStorage.setItem(RCC_THEME_STORAGE_KEY, selectedTheme);
+    applyThemePreference();
+  });
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+  const onThemeChange = () => {
+    if (getPreferredTheme() === 'system') {
+      applyThemePreference();
+    }
+  };
+
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', onThemeChange);
+  } else if (typeof mediaQuery.addListener === 'function') {
+    mediaQuery.addListener(onThemeChange);
+  }
+
+  themeSelect.dataset.initialized = 'true';
+}
+
+document.addEventListener('layout:loaded', setupThemeSelector);
 
 function setupLanguageSelector() {
   const languageSelect = document.querySelector('#footer-language-select');

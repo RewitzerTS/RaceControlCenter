@@ -22,6 +22,17 @@
   --visual-viewport-offset-top: 0px;
 }
 
+[data-theme='light'] {
+  --bg-main: #eef3f8;
+  --bg-deep: #dbe5f0;
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-2: rgba(244, 248, 252, 0.95);
+  --text: #142235;
+  --text-muted: #4e5f73;
+  --line: rgba(18, 34, 53, 0.14);
+  --shadow: 0 14px 36px rgba(18, 34, 53, 0.14);
+}
+
 
 .site-scroll-progress {
   position: fixed;
@@ -794,6 +805,7 @@ textarea { min-height: 120px; resize: vertical; }
   text-align: center;
 }
 
+.footer__theme,
 .footer__language {
   display: inline-flex;
   align-items: center;
@@ -801,11 +813,12 @@ textarea { min-height: 120px; resize: vertical; }
   font-size: 14px;
 }
 
+.footer__theme select,
 .footer__language select {
   min-width: 150px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--panel);
+  background: var(--surface);
   color: var(--text);
   padding: 6px 10px;
   font: inherit;
