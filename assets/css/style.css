@@ -23,14 +23,18 @@
 }
 
 [data-theme='light'] {
-  --bg-main: #eef3f8;
-  --bg-deep: #dbe5f0;
-  --surface: rgba(255, 255, 255, 0.94);
-  --surface-2: rgba(244, 248, 252, 0.95);
-  --text: #142235;
-  --text-muted: #4e5f73;
-  --line: rgba(18, 34, 53, 0.14);
-  --shadow: 0 14px 36px rgba(18, 34, 53, 0.14);
+  --bg-main: #f1effb;
+  --bg-deep: #dce7f6;
+  --surface: rgba(252, 251, 255, 0.95);
+  --surface-2: rgba(244, 248, 255, 0.96);
+  --primary: #4d2c9a;
+  --secondary: #6f42c8;
+  --accent: #1f9fb6;
+  --accent-dark: #197f94;
+  --text: #17253b;
+  --text-muted: #4d5f79;
+  --line: rgba(37, 52, 84, 0.16);
+  --shadow: 0 14px 36px rgba(43, 39, 88, 0.14);
 }
 
 
@@ -61,6 +65,13 @@ body {
     radial-gradient(circle at top right, rgba(44,143,166,0.16), transparent 22%),
     linear-gradient(180deg, var(--bg-main), var(--bg-deep));
   min-height: 100vh;
+}
+
+[data-theme='light'] body {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(111, 66, 200, 0.2), transparent 30%),
+    radial-gradient(circle at 88% 2%, rgba(31, 159, 182, 0.17), transparent 26%),
+    linear-gradient(180deg, var(--bg-main), var(--bg-deep));
 }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
@@ -154,6 +165,27 @@ button, input, textarea, select {
   height: 2px;
   border-radius: 999px;
   background: currentColor;
+}
+
+[data-theme='light'] .site-header {
+  background: linear-gradient(100deg, rgba(109, 74, 199, 0.92), rgba(28, 140, 165, 0.9));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+[data-theme='light'] .brand-title,
+[data-theme='light'] .brand-subtitle {
+  color: #f7fbff;
+  text-shadow: 0 1px 6px rgba(17, 28, 45, 0.28);
+}
+
+[data-theme='light'] .mobile-toggle {
+  border-color: rgba(255, 255, 255, 0.48);
+  background: rgba(255, 255, 255, 0.2);
+  color: #f7fbff;
+}
+
+[data-theme='light'] .mobile-toggle:hover {
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .main-nav {
@@ -899,6 +931,12 @@ textarea { min-height: 120px; resize: vertical; }
     z-index: 990;
     transform: translateX(104%);
     transition: transform 0.26s ease;
+  }
+
+  [data-theme='light'] .main-nav {
+    background: linear-gradient(180deg, rgba(97, 65, 179, 0.96), rgba(33, 136, 160, 0.94));
+    border-left: 1px solid rgba(255, 255, 255, 0.34);
+    box-shadow: -20px 0 44px rgba(52, 43, 106, 0.32);
   }
 
   .main-nav .nav-extra-link {
