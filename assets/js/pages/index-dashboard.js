@@ -673,7 +673,7 @@
             heroNextRaceEl.innerHTML = nextTwoRaces.length ? nextTwoRaces.map((race, index) => {
               const meta = window.getRaceTrackMeta ? window.getRaceTrackMeta(race) : { track: null };
               return `
-                <article class="next-race-item" style="${index > 0 ? 'margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.08);' : ''}">
+                <article class="next-race-item ${index > 0 ? 'next-race-item-stacked' : ''}">
                   <div class="showcase-meta">
                     ${window.createFlagBadge ? window.createFlagBadge(meta.track?.countryCode, race.grand_prix_name) : '<span class="flag-badge flag-badge-fallback">🏁</span>'}
                   </div>

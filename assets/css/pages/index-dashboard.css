@@ -263,8 +263,16 @@
     }
     .next-race-item {
       position: relative;
+      padding: 16px 80px 16px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(44,143,166,0.3);
+      background: linear-gradient(180deg, rgba(44,143,166,0.14), rgba(255,255,255,0.03));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
       padding-right: 80px;
       min-height: 70px;
+    }
+    .next-race-item-stacked {
+      margin-top: 14px;
     }
     .showcase-meta {
       position: absolute;
