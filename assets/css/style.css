@@ -3366,7 +3366,7 @@ body.hof-page {
   border-radius: 999px;
   background: rgba(216, 164, 255, 0.18);
   border: 1px solid rgba(216, 164, 255, 0.28);
-  color: #ffffff;
+  color: #111111;
   font-weight: 900;
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
 }
