@@ -2972,20 +2972,22 @@ body.hof-page {
 }
 
 .results-legend-pill--player {
-  background: rgba(216, 164, 255, 0.18);
-  color: #f1d9ff;
+  background: rgba(216, 164, 255, 0.22);
+  color: #1b2235;
+  border-color: rgba(140, 102, 194, 0.34);
 }
 
 .results-legend-pill--bot {
-  background: rgba(110, 231, 242, 0.16);
-  color: #c9fbff;
+  background: rgba(110, 231, 242, 0.22);
+  color: #1b2235;
+  border-color: rgba(69, 165, 174, 0.34);
 }
 
 .results-points-cell.is-bot,
 .results-points-cell.is-fastest,
 .fastest-lap-points,
 .fastest-lap-value {
-  text-shadow: 0 1px 0 rgba(0,0,0,0.65), 0 0 16px rgba(255,255,255,0.08);
+  text-shadow: none;
 }
 
 .results-points-cell.is-bot {
@@ -3223,14 +3225,16 @@ body.hof-page {
 }
 
 .results-cell-chip--bot {
-  background: rgba(110, 231, 242, 0.14);
-  color: #d0fbff;
+  background: rgba(110, 231, 242, 0.24);
+  color: #18263a;
+  border-color: rgba(69, 165, 174, 0.36);
 }
 
 .results-cell-chip--player,
 .results-cell-chip--fl {
-  background: rgba(216, 164, 255, 0.16);
-  color: #f3deff;
+  background: rgba(216, 164, 255, 0.24);
+  color: #18263a;
+  border-color: rgba(140, 102, 194, 0.36);
 }
 
 .results-points-value {
