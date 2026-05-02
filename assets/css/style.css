@@ -55,6 +55,11 @@ html {
   scroll-behavior: smooth;
   background-color: var(--bg-main);
 }
+
+html[data-theme='light'] {
+  background: linear-gradient(100deg, rgba(109, 74, 199, 0.92), rgba(28, 140, 165, 0.9));
+}
+
 body {
   margin: 0;
   font-family: "Segoe UI", Inter, Arial, sans-serif;
