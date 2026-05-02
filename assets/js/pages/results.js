@@ -97,6 +97,9 @@ function renderStaticTrendChart(data, rows) {
     };
   });
 
+  const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+  const legendLabelColor = isLightTheme ? '#111111' : '#ffffff';
+
   trendChartInstance = new Chart(canvas, {
     type: 'line',
     data: { labels, datasets },
@@ -104,7 +107,7 @@ function renderStaticTrendChart(data, rows) {
       responsive: true,
       maintainAspectRatio: true,
       interaction: { mode: 'nearest', intersect: false },
-      plugins: { legend: { position: 'bottom', labels: { color: '#ffffff', boxWidth: 10, usePointStyle: true, padding: 14 } } },
+      plugins: { legend: { position: 'bottom', labels: { color: legendLabelColor, boxWidth: 10, usePointStyle: true, padding: 14 } } },
       scales: {
         x: { ticks: { color: '#b9c5d1' }, grid: { color: 'rgba(255,255,255,0.08)' } },
         y: { ticks: { color: '#b9c5d1' }, grid: { color: 'rgba(255,255,255,0.08)' } }
@@ -221,6 +224,9 @@ function renderTrendChart(matrixData) {
     };
   });
 
+  const isLightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+  const legendLabelColor = isLightTheme ? '#111111' : '#ffffff';
+
   trendChartInstance = new Chart(canvas, {
     type: 'line',
     data: { labels, datasets },
@@ -235,7 +241,7 @@ function renderTrendChart(matrixData) {
         legend: {
           position: 'bottom',
           labels: {
-            color: '#ffffff',
+            color: legendLabelColor,
             boxWidth: 10,
             usePointStyle: true,
             padding: 14
