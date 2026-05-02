@@ -123,6 +123,17 @@ button, input, textarea, select {
   margin: 0 auto;
 }
 
+.site-safe-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: max(env(safe-area-inset-top), var(--visual-viewport-offset-top, 0px));
+  background: rgb(2, 27, 52);
+  z-index: 999;
+  pointer-events: none;
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -209,6 +220,10 @@ button, input, textarea, select {
 [data-theme='light'] .site-header {
   background: linear-gradient(100deg, rgba(109, 74, 199, 0.92), rgba(28, 140, 165, 0.9));
   border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+[data-theme='light'] .site-safe-top {
+  background: linear-gradient(100deg, rgba(109, 74, 199, 0.92), rgba(28, 140, 165, 0.9));
 }
 
 [data-theme='light'] .brand-title,
