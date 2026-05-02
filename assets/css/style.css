@@ -3527,6 +3527,53 @@ body.hof-page {
   }
 }
 
+@media (max-width: 640px) {
+  .rules-faq-page-layout,
+  .rules-faq-dual {
+    gap: 12px;
+  }
+
+  .rules-config-grid {
+    gap: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .rules-config-item {
+    padding: 8px 10px;
+    gap: 4px;
+    border-radius: 10px;
+  }
+
+  .rules-config-item .muted {
+    font-size: 0.82rem;
+    line-height: 1.2;
+  }
+
+  .rules-config-item strong {
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .faq-list {
+    gap: 8px;
+  }
+
+  .faq-item {
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .faq-item summary {
+    font-size: 0.92rem;
+  }
+
+  .faq-item p {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
