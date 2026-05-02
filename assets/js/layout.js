@@ -8,6 +8,10 @@ const RCC_SUPPORTED_LANGUAGES = ['de', 'en', 'fr', 'es'];
 const RCC_SUPPORTED_THEMES = ['dark', 'light', 'system'];
 const RCC_TRANSLATE_COOKIE_NAME = 'googtrans';
 const RCC_SOURCE_LANGUAGE = 'de';
+const RCC_THEME_META_COLORS = {
+  dark: '#021b34',
+  light: '#4f63b8'
+};
 
 function getPreferredLanguage() {
   const storedLanguage = localStorage.getItem(RCC_LANGUAGE_STORAGE_KEY);
@@ -28,7 +32,23 @@ function applyThemePreference() {
   const isLightMode = preferredTheme === 'light'
     || (preferredTheme === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches);
 
-  document.documentElement.setAttribute('data-theme', isLightMode ? 'light' : 'dark');
+  const activeTheme = isLightMode ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', activeTheme);
+  updateThemeMetaColor(activeTheme);
+}
+
+function updateThemeMetaColor(activeTheme) {
+  const fallbackColor = RCC_THEME_META_COLORS.dark;
+  const themeColor = RCC_THEME_META_COLORS[activeTheme] || fallbackColor;
+  let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+
+  if (!metaThemeColor) {
+    metaThemeColor = document.createElement('meta');
+    metaThemeColor.setAttribute('name', 'theme-color');
+    document.head.appendChild(metaThemeColor);
+  }
+
+  metaThemeColor.setAttribute('content', themeColor);
 }
 
 function resolveCurrentPage() {
