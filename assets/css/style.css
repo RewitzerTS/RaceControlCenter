@@ -31,8 +31,8 @@
   --secondary: #6f42c8;
   --accent: #1f9fb6;
   --accent-dark: #197f94;
-  --text: #17253b;
-  --text-muted: #4d5f79;
+  --text: #0f1d33;
+  --text-muted: #334a68;
   --line: rgba(37, 52, 84, 0.16);
   --shadow: 0 14px 36px rgba(43, 39, 88, 0.14);
 }
@@ -174,8 +174,8 @@ button, input, textarea, select {
 
 [data-theme='light'] .brand-title,
 [data-theme='light'] .brand-subtitle {
-  color: #f7fbff;
-  text-shadow: 0 1px 6px rgba(17, 28, 45, 0.28);
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(9, 20, 36, 0.4);
 }
 
 [data-theme='light'] .mobile-toggle {
@@ -940,7 +940,7 @@ textarea { min-height: 120px; resize: vertical; }
 }
 
   [data-theme='light'] .main-nav a {
-    color: rgba(245, 250, 255, 0.92);
+    color: rgba(255, 255, 255, 0.96);
     border-color: transparent;
   }
 
