@@ -220,11 +220,15 @@
       align-items: stretch;
     }
     .next-race-showcase {
-      padding: 20px;
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.05);
+      padding: 0;
+      border: 0;
+      background: transparent;
       min-height: 236px;
+    }
+    #hero-next-race {
+      display: grid;
+      gap: 14px;
+      margin-top: 10px;
     }
     .countdown-box {
       padding: 20px;
@@ -272,7 +276,7 @@
       min-height: 70px;
     }
     .next-race-item-stacked {
-      margin-top: 14px;
+      margin-top: 0;
     }
     .showcase-meta {
       position: absolute;
@@ -787,6 +791,8 @@
       .next-race-showcase,
       .countdown-box {
         min-height: unset;
+      }
+      .countdown-box {
         padding: 14px;
         border-radius: 16px;
       }
