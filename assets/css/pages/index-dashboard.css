@@ -290,6 +290,7 @@
       transition: .18s ease;
     }
     .btn-primary-glow {
+      border: none;
       background: linear-gradient(90deg, rgba(44,143,166,0.9), rgba(90,50,163,0.92));
       color: #fff;
       box-shadow: 0 12px 28px rgba(44,143,166,0.18);
