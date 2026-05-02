@@ -2836,10 +2836,19 @@ body.hof-page {
 [data-theme='light'] .hof-season-title,
 [data-theme='light'] .page-title,
 [data-theme='light'] .hof-subheading,
-[data-theme='light'] .hof-total-name,
-[data-theme='light'] .hof-champion-name,
 [data-theme='light'] .hof-archive-summary {
   color: #2a3652;
+}
+
+[data-theme='light'] .hof-champion-name,
+[data-theme='light'] .hof-total-name {
+  color: #f6f9ff;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px rgba(0,0,0,0.42);
+}
+
+[data-theme='light'] .hof-support-text,
+[data-theme='light'] .hof-total-stats {
+  color: rgba(233, 241, 255, 0.94);
 }
 
 [data-theme='light'] body.hof-page .hof-season-eyebrow,
