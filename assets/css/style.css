@@ -2803,6 +2803,50 @@ body.hof-page {
   12% { opacity: 1; }
   100% { transform: translate3d(var(--hof-confetti-drift), calc(100vh + 42px), 0) rotate(640deg); opacity: 0; }
 }
+
+[data-theme='light'] body.hof-page {
+  background: radial-gradient(circle at 50% -14%, rgba(255, 214, 120, 0.35) 0%, rgba(255, 214, 120, 0.06) 28%, rgba(241, 245, 255, 0.94) 76%), linear-gradient(180deg, rgba(245, 249, 255, 0.98) 0%, rgba(226, 238, 252, 0.98) 100%), #eaf1fc;
+}
+
+[data-theme='light'] .hof-page-main::before {
+  opacity: 0.62;
+  background: radial-gradient(circle at 50% 6%, rgba(255, 208, 98, 0.32), rgba(255, 208, 98, 0) 50%), repeating-linear-gradient(90deg, rgba(182, 157, 76, 0.09) 0px, rgba(182, 157, 76, 0.09) 1px, transparent 1px, transparent 96px);
+}
+
+[data-theme='light'] .hof-page-main::after {
+  opacity: 0.42;
+}
+
+[data-theme='light'] .hof-hero-copy h1 {
+  background: linear-gradient(118deg, #7a5517 0%, #d7ab42 24%, #fff4b7 42%, #c8952f 62%, #fff6c2 74%, #9e6f1f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45), 0 9px 20px rgba(110, 78, 19, 0.22);
+}
+
+[data-theme='light'] .hof-hero-copy p,
+[data-theme='light'] .hof-support-text,
+[data-theme='light'] .hof-total-stats,
+[data-theme='light'] .hof-empty,
+[data-theme='light'] .page-subtitle {
+  color: rgba(31, 45, 69, 0.9);
+}
+
+[data-theme='light'] .hof-season-title,
+[data-theme='light'] .page-title,
+[data-theme='light'] .hof-subheading,
+[data-theme='light'] .hof-total-name,
+[data-theme='light'] .hof-champion-name,
+[data-theme='light'] .hof-archive-summary {
+  color: #2a3652;
+}
+
+[data-theme='light'] body.hof-page .hof-season-eyebrow,
+[data-theme='light'] body.hof-page .eyebrow {
+  color: #1f90b3;
+}
+
 @media (max-width: 960px) { .hof-season-grid, .hof-totals-split { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { body.hof-page { background: radial-gradient(circle at 50% -8%, rgba(241, 199, 100, 0.14) 0%, rgba(241, 199, 100, 0.03) 20%, rgba(3, 7, 18, 0.95) 72%), linear-gradient(180deg, rgba(3, 7, 18, 0.95) 0%, rgba(4, 9, 22, 0.99) 100%), #030712; } .hof-page-main::before { opacity: 0.52; background: radial-gradient(circle at 50% 5%, rgba(255, 217, 135, 0.14), rgba(255, 217, 135, 0) 48%), repeating-linear-gradient(90deg, rgba(255, 222, 154, 0.03) 0px, rgba(255, 222, 154, 0.03) 1px, transparent 1px, transparent 96px); } .hof-page-main::after { opacity: 0.82; } .hof-hero { padding: 28px 0 4px; } .hof-season-card { padding: 18px; border-radius: 22px; } .hof-season-header { align-items: flex-start; } .hof-star { width: 30px; height: 30px; } .hof-champion-card { min-height: 240px; padding: 18px 14px 18px; } .hof-champion-image { width: min(210px, 76%); } }
 
