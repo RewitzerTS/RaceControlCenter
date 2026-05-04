@@ -131,6 +131,10 @@ function updateStandingsMeta(currentSeason, driverCount, teamCount) {
 }
 
 async function loadStandingsPage() {
+  const notifyReady = () => document.dispatchEvent(new CustomEvent('rcc:page-content-ready', {
+    detail: { page: document.body?.dataset.page || '' }
+  }));
+
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
 
@@ -207,6 +211,8 @@ async function loadStandingsPage() {
     if (teamBody) {
       teamBody.innerHTML = '<tr><td colspan="8">Fehler beim Laden der Team-WM.</td></tr>';
     }
+  } finally {
+    notifyReady();
   }
 }
 
