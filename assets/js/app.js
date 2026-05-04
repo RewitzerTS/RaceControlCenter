@@ -121,9 +121,55 @@ function initFormulaOneLoader() {
 
   document.body.appendChild(loader);
   document.body.classList.add('f1-loading');
+  const lights = Array.from(loader.querySelectorAll('.f1-loader-lights span'));
+  const lightColumns = [
+    [0, 5],
+    [1, 6],
+    [2, 7],
+    [3, 8],
+    [4, 9]
+  ];
+  let activeColumn = -1;
+  let startLightTimer = null;
+  let resetLightTimer = null;
+
+  const setColumnState = (columnIndex, state) => {
+    const indexes = lightColumns[columnIndex] || [];
+    indexes.forEach((lightIndex) => lights[lightIndex]?.classList.toggle(state, true));
+  };
+
+  const clearLightStates = () => {
+    lights.forEach((light) => light.classList.remove('is-red', 'is-green'));
+    activeColumn = -1;
+  };
+
+  const runLightSequence = () => {
+    clearLightStates();
+
+    startLightTimer = window.setInterval(() => {
+      if (activeColumn < lightColumns.length - 1) {
+        activeColumn += 1;
+        setColumnState(activeColumn, 'is-red');
+        return;
+      }
+
+      window.clearInterval(startLightTimer);
+      startLightTimer = null;
+      lights.forEach((light) => {
+        light.classList.remove('is-red');
+        light.classList.add('is-green');
+      });
+
+      resetLightTimer = window.setTimeout(runLightSequence, 560);
+    }, 260);
+  };
+
+  runLightSequence();
 
   const hideLoader = () => {
     document.body.classList.remove('f1-loading');
+    if (startLightTimer) window.clearInterval(startLightTimer);
+    if (resetLightTimer) window.clearTimeout(resetLightTimer);
     loader.classList.add('is-hidden');
     window.setTimeout(() => loader.remove(), 500);
   };
