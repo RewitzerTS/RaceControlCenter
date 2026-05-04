@@ -221,10 +221,36 @@ function initFormulaOneLoader() {
     });
   };
 
+
+  const waitForAsyncPageContent = () => {
+    const page = document.body?.dataset.page || '';
+    const pagesWithAsyncContent = new Set(['fahrer-wm', 'team-wm']);
+
+    if (!pagesWithAsyncContent.has(page)) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('rcc:page-content-ready', onReady);
+        window.clearTimeout(timeoutId);
+        resolve();
+      };
+      const onReady = (event) => {
+        if (event?.detail?.page && event.detail.page !== page) return;
+        finish();
+      };
+      const timeoutId = window.setTimeout(finish, 12000);
+      document.addEventListener('rcc:page-content-ready', onReady);
+    });
+  };
+
   const finalizeLoader = () => {
     Promise.allSettled([
       waitForPageContent(),
-      waitForDashboardContent()
+      waitForDashboardContent(),
+      waitForAsyncPageContent()
     ])
       .finally(() => window.requestAnimationFrame(hideLoader));
   };
