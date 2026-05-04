@@ -281,6 +281,7 @@ function createTrackMapSvg(track, options = {}) {
   const mapFile = track?.trackMapFile;
   const mapUrl = mapFile ? `assets/trackmaps/${mapFile}` : '';
   const label = escapeHtml(track?.circuitName || track?.grandPrixName || 'Track Map');
+  const rawTrackName = track?.circuitName || track?.grandPrixName || '';
   const cardClass = options.cardClass ? ` ${escapeHtml(options.cardClass)}` : '';
 
   if (!mapUrl) {
@@ -291,11 +292,12 @@ function createTrackMapSvg(track, options = {}) {
     <button
       type="button"
       class="track-map-button${cardClass}"
-      data-trackmap-open="${escapeHtml(mapUrl)}"
-      data-trackmap-title="${label}"
-      aria-label="Track Map von ${label} vergrößern"
+      data-trackinfo-open="${escapeHtml(rawTrackName)}"
+      aria-label="Streckeninfos zu ${label} öffnen"
+      tabIndex="0"
     >
       <img class="track-map-image" src="${escapeHtml(mapUrl)}" alt="${label} Track Map" loading="lazy">
+      <span class="track-map-info-hint" aria-hidden="true">ℹ Streckeninfos öffnen</span>
     </button>
   `;
 }
