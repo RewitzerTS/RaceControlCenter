@@ -147,9 +147,29 @@ function initFormulaOneLoader() {
     }
   };
 
+  const waitForDashboardContent = () => {
+    if (document.body?.dataset.page !== 'index') return Promise.resolve();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('dashboard:content-ready', onReady);
+        window.clearTimeout(timeoutId);
+        resolve();
+      };
+      const onReady = () => finish();
+      const timeoutId = window.setTimeout(finish, 12000);
+      document.addEventListener('dashboard:content-ready', onReady, { once: true });
+    });
+  };
+
   const finalizeLoader = () => {
-    waitForPageContent()
-      .catch(() => undefined)
+    Promise.allSettled([
+      waitForPageContent(),
+      waitForDashboardContent()
+    ])
       .finally(() => window.requestAnimationFrame(hideLoader));
   };
 
