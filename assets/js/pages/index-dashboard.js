@@ -797,6 +797,8 @@
           document.getElementById('hero-next-race').innerHTML = '<div class="empty-state">Fehler beim Laden der Startseite.</div>';
           renderStorylineTicker(['Dashboard konnte nicht geladen werden. Bitte Seite aktualisieren.']);
           initScrollAnimations();
+        } finally {
+          document.dispatchEvent(new CustomEvent('dashboard:content-ready'));
         }
       }
 
