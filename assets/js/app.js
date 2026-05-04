@@ -110,7 +110,7 @@ function initFormulaOneLoader() {
   loader.innerHTML = `
     <div class="f1-loader" role="status" aria-live="polite" aria-label="Inhalt wird geladen">
       <div class="f1-loader-lights" aria-hidden="true">
-        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
       <div class="f1-loader-wheel" aria-hidden="true">
         <div class="f1-loader-wheel-rim"></div>
