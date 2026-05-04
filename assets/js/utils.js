@@ -289,16 +289,24 @@ function createTrackMapSvg(track, options = {}) {
   }
 
   return `
-    <button
-      type="button"
-      class="track-map-button${cardClass}"
-      data-trackinfo-open="${escapeHtml(rawTrackName)}"
-      aria-label="Streckeninfos zu ${label} öffnen"
-      tabIndex="0"
-    >
-      <img class="track-map-image" src="${escapeHtml(mapUrl)}" alt="${label} Track Map" loading="lazy">
-      <span class="track-map-info-hint" aria-hidden="true">ℹ Streckeninfos öffnen</span>
-    </button>
+    <div class="track-map-wrap${cardClass}">
+      <button
+        type="button"
+        class="track-map-button"
+        data-trackmap-open="${escapeHtml(mapUrl)}"
+        data-trackmap-title="${label}"
+        aria-label="Track Map von ${label} vergrößert öffnen"
+        tabIndex="0"
+      >
+        <img class="track-map-image" src="${escapeHtml(mapUrl)}" alt="${label} Track Map" loading="lazy">
+      </button>
+      <button
+        type="button"
+        class="track-map-info-hint"
+        data-trackinfo-open="${escapeHtml(rawTrackName)}"
+        aria-label="Streckeninfos zu ${label} öffnen"
+      >ℹ</button>
+    </div>
   `;
 }
 
