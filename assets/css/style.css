@@ -257,6 +257,25 @@ button, input, textarea, select {
   text-shadow: 0 2px 8px rgba(9, 20, 36, 0.4);
 }
 
+[data-theme='light'] .chip.success,
+[data-theme='light'] .badge.player,
+[data-theme='light'] .badge.done,
+[data-theme='light'] .chip.warning,
+[data-theme='light'] .badge.upcoming,
+[data-theme='light'] .badge.bot,
+[data-theme='light'] .admin-overview-card strong,
+[data-theme='light'] .admin-session-inline strong,
+[data-theme='light'] .button-danger,
+[data-theme='light'] .trackmap-lightbox-close,
+[data-theme='light'] .hof-season-eyebrow,
+[data-theme='light'] .hof-champion-name,
+[data-theme='light'] .hof-support-pill,
+[data-theme='light'] .hof-subheading,
+[data-theme='light'] .hof-total-name,
+[data-theme='light'] .hof-archive-summary {
+  color: #0f1d33;
+}
+
 [data-theme='light'] .mobile-toggle {
   border-color: rgba(255, 255, 255, 0.48);
   background: rgba(255, 255, 255, 0.2);
