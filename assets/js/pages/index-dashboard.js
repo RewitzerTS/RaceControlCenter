@@ -672,8 +672,10 @@
           if (heroNextRaceEl) {
             heroNextRaceEl.innerHTML = nextTwoRaces.length ? nextTwoRaces.map((race, index) => {
               const meta = window.getRaceTrackMeta ? window.getRaceTrackMeta(race) : { track: null };
+              const calendarHref = `kalender.html?season=${encodeURIComponent(race.season_id || currentSeason?.id || '')}&round=${encodeURIComponent(race.round_number || '')}`;
               return `
-                <article class="next-race-item ${index > 0 ? 'next-race-item-stacked' : ''}">
+                <a class="next-race-link" href="${calendarHref}">
+                  <article class="next-race-item ${index > 0 ? 'next-race-item-stacked' : ''}">
                   <div class="showcase-meta">
                     ${window.createFlagBadge ? window.createFlagBadge(meta.track?.countryCode, race.grand_prix_name) : '<span class="flag-badge flag-badge-fallback">🏁</span>'}
                   </div>
@@ -684,7 +686,9 @@
                     ${formatDateLong(race.race_date)}
                   </div>
                 </article>
+                </a>
               `;
+
             }).join('') : '<div class="empty-state">Aktuell sind keine kommenden Rennen im Kalender eingetragen.</div>';
           }
 

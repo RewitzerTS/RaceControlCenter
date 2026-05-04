@@ -307,7 +307,7 @@ function createRaceCard(race) {
   const href = `rennen-detail.html?round=${encodeURIComponent(race.round_number)}${race.season_id ? `&season=${encodeURIComponent(race.season_id)}` : ''}`;
 
   return `
-    <a class="race-card-link" href="${href}">
+    <a class="race-card-link" href="${href}" data-race-round="${escapeHtml(String(race.round_number || ''))}" data-race-season="${escapeHtml(String(race.season_id || ''))}">
       <article class="race-card">
         <div class="race-top">
           <div>

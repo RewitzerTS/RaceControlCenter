@@ -68,6 +68,25 @@ async function loadSeasonArchiveSelector() {
   }
 }
 
+
+function highlightRaceFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const targetRound = params.get('round');
+  const targetSeason = params.get('season');
+  if (!targetRound) return;
+
+  const cardLink = document.querySelector(`.race-card-link[data-race-round="${CSS.escape(targetRound)}"]${targetSeason ? `[data-race-season="${CSS.escape(targetSeason)}"]` : ''}`)
+    || document.querySelector(`.race-card-link[data-race-round="${CSS.escape(targetRound)}"]`);
+  if (!cardLink) return;
+
+  const upcomingBtn = document.querySelector('.calendar-toggle[data-target="upcoming-section"]');
+  if (upcomingBtn) upcomingBtn.click();
+
+  cardLink.classList.add('race-card-link-highlight');
+  cardLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  window.setTimeout(() => cardLink.classList.remove('race-card-link-highlight'), 2400);
+}
+
 async function loadCalendar() {
   const upcomingContainer = document.getElementById('upcoming-races');
   const completedContainer = document.getElementById('completed-races');
@@ -109,6 +128,7 @@ async function loadCalendar() {
 
     if (upcomingContainer) upcomingContainer.innerHTML = upcoming.length ? upcoming.map(window.createRaceCard).join('') : '<div class="notice">Keine kommenden Rennen vorhanden.</div>';
     if (completedContainer) completedContainer.innerHTML = completed.length ? completed.map(window.createRaceCard).join('') : '<div class="notice">Noch keine Rennen gefahren.</div>';
+    highlightRaceFromQuery();
   } catch (error) {
     console.error(error);
     if (upcomingContainer) upcomingContainer.innerHTML = '<div class="notice">Fehler beim Laden der Rennen.</div>';

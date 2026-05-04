@@ -497,6 +497,17 @@ button, input, textarea, select {
   display: block;
 }
 
+
+.next-race-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.race-card-link-highlight .race-card {
+  border-color: rgba(44,143,166,0.9);
+  box-shadow: 0 0 0 3px rgba(44,143,166,0.28), var(--shadow);
+}
 .chip-row {
   display: flex;
   gap: 8px;
