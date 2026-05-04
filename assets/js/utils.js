@@ -305,7 +305,7 @@ function createTrackMapSvg(track, options = {}) {
         class="track-map-info-hint"
         data-trackinfo-open="${escapeHtml(rawTrackName)}"
         aria-label="Streckeninfos zu ${label} öffnen"
-      >ℹ</button>
+      >ℹ️</button>
     </div>
   `;
 }
