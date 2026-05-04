@@ -340,10 +340,108 @@ function initTrackMapModal() {
   });
 }
 
+
+
+function ensureTrackInfoModal() {
+  if (document.getElementById('trackinfo-modal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'trackinfo-modal';
+  modal.className = 'trackmap-lightbox hidden';
+  modal.innerHTML = `
+    <div class="trackmap-lightbox-backdrop" data-trackinfo-close></div>
+    <div class="trackmap-lightbox-dialog trackinfo-dialog" role="dialog" aria-modal="true" aria-labelledby="trackinfo-title">
+      <button type="button" class="trackmap-lightbox-close" data-trackinfo-close aria-label="Streckeninfos schließen">×</button>
+      <h3 class="trackmap-lightbox-title" id="trackinfo-title"></h3>
+      <div id="trackinfo-content" class="trackinfo-grid"></div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+let trackInfoLastFocusedElement = null;
+
+function renderTrackInfoContent(info) {
+  if (!info) {
+    return '<p class="trackinfo-fallback">Für diese Strecke sind noch keine Detailinformationen hinterlegt.</p>';
+  }
+  const contract = window.formatF1Contract ? window.formatF1Contract(info.f1ContractUntil) : 'unbekannt';
+  const rows = [
+    ['Kurzname / Ort', info.shortName],
+    ['Land', info.country],
+    ['Streckenlänge', info.lengthKm],
+    ['F1-Renndistanz', info.raceDistanceKm],
+    ['F1-Runden', info.laps],
+    ['Erster Formel-1-Grand-Prix', info.firstGrandPrix],
+    ['Offizieller F1-Rundenrekord', info.lapRecord],
+    ['Zuschauerkapazität', info.capacity],
+    ['F1 Vertrag', contract],
+    ['Anzahl Kurven', info.corners],
+    ['DRS-Zonen', info.drsZones],
+    ['Streckentyp', info.trackType],
+    ['Fahrtrichtung', info.direction],
+    ['Bekannte Kurven', (info.famousCorners || []).join(', ') || '—']
+  ];
+  return rows.map(([label, value]) => `<div class="trackinfo-item"><span>${label}</span><strong>${window.escapeHtml(String(value ?? '—'))}</strong></div>`).join('');
+}
+
+function openTrackInfoModal(trackName, triggerElement) {
+  ensureTrackInfoModal();
+  const modal = document.getElementById('trackinfo-modal');
+  const titleEl = document.getElementById('trackinfo-title');
+  const contentEl = document.getElementById('trackinfo-content');
+  const info = window.getTrackInfo?.(trackName);
+  if (!modal || !titleEl || !contentEl) return;
+  trackInfoLastFocusedElement = triggerElement || document.activeElement;
+  const heading = info ? `${info.officialName} – ${info.shortName}` : (trackName || 'Streckeninfos');
+  titleEl.textContent = heading;
+  contentEl.innerHTML = renderTrackInfoContent(info);
+  modal.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+  modal.querySelector('.trackmap-lightbox-close')?.focus();
+}
+
+function closeTrackInfoModal() {
+  const modal = document.getElementById('trackinfo-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  if (trackInfoLastFocusedElement && typeof trackInfoLastFocusedElement.focus === 'function') {
+    trackInfoLastFocusedElement.focus();
+  }
+  trackInfoLastFocusedElement = null;
+}
+
+function initTrackInfoModal() {
+  if (document.body.dataset.trackinfoBound === 'true') return;
+  document.body.dataset.trackinfoBound = 'true';
+  ensureTrackInfoModal();
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-trackinfo-open]');
+    if (trigger) {
+      event.preventDefault();
+      event.stopPropagation();
+      openTrackInfoModal(trigger.dataset.trackinfoOpen || '', trigger);
+      return;
+    }
+    if (event.target.closest('[data-trackinfo-close]')) closeTrackInfoModal();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target?.closest?.('[data-trackinfo-open]')) {
+      event.preventDefault();
+      openTrackInfoModal(event.target.closest('[data-trackinfo-open]').dataset.trackinfoOpen || '', event.target.closest('[data-trackinfo-open]'));
+      return;
+    }
+    if (event.key === 'Escape') closeTrackInfoModal();
+  });
+}
 document.addEventListener('DOMContentLoaded', initNavigation);
 document.addEventListener('DOMContentLoaded', initTrackMapModal);
+document.addEventListener('DOMContentLoaded', initTrackInfoModal);
 document.addEventListener('DOMContentLoaded', initStandaloneSplashScreen);
 document.addEventListener('DOMContentLoaded', initGlobalScrollProgress);
 document.addEventListener('DOMContentLoaded', initFormulaOneLoader);
 document.addEventListener('layout:loaded', initNavigation);
 document.addEventListener('layout:loaded', initTrackMapModal);
+document.addEventListener('layout:loaded', initTrackInfoModal);

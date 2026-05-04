@@ -3676,3 +3676,46 @@ body.hof-page {
 .f1-loader-wheel-rim { width: 100%; height: 100%; border-radius: 50%; background: repeating-conic-gradient(from 0deg, rgba(210,210,210,0.92) 0 9deg, rgba(52,52,52,0.94) 9deg 18deg), radial-gradient(circle at center, rgba(255,255,255,0.92) 0 12%, rgba(0,0,0,0.85) 12% 100%); }
 @keyframes f1-light-sequence { 0%, 62%, 100% { background: rgba(255, 70, 70, 0.2); box-shadow: inset 0 0 8px rgba(255, 0, 0, 0.25);} 28%, 46% { background: #ff2b2b; box-shadow: 0 0 12px rgba(255, 60, 60, 0.85);} }
 @keyframes f1-wheel-spin { to { transform: rotate(360deg); } }
+
+.track-map-button {
+  cursor: pointer;
+}
+
+.track-map-info-hint {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(10, 208, 221, 0.18);
+  border: 1px solid rgba(10, 208, 221, 0.45);
+  color: #b7f5ff;
+  font-size: 0.68rem;
+}
+
+.trackinfo-dialog {
+  width: min(920px, calc(100% - 28px));
+}
+
+.trackinfo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trackinfo-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 10px;
+  display: grid;
+  gap: 4px;
+}
+.trackinfo-item span { color: #89eaff; font-size: 0.78rem; }
+.trackinfo-item strong { font-size: 0.9rem; }
+.trackinfo-fallback { margin: 8px 0 0; color: #d4e8f7; }
+
+@media (max-width: 768px) {
+  .trackinfo-grid { grid-template-columns: 1fr; }
+}
