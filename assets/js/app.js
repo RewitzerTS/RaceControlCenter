@@ -100,6 +100,42 @@ function initStandaloneSplashScreen() {
   }, 1650);
 }
 
+function initFormulaOneLoader() {
+  if (document.body?.dataset.f1LoaderBound === 'true') return;
+  document.body.dataset.f1LoaderBound = 'true';
+
+  const loader = document.createElement('div');
+  loader.className = 'f1-loader-overlay';
+  loader.setAttribute('aria-hidden', 'true');
+  loader.innerHTML = `
+    <div class="f1-loader" role="status" aria-live="polite" aria-label="Inhalt wird geladen">
+      <div class="f1-loader-lights" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="f1-loader-wheel" aria-hidden="true">
+        <div class="f1-loader-wheel-rim"></div>
+      </div>
+      <p>Race Control lädt…</p>
+    </div>
+  `;
+
+  document.body.appendChild(loader);
+  document.body.classList.add('f1-loading');
+
+  const hideLoader = () => {
+    document.body.classList.remove('f1-loading');
+    loader.classList.add('is-hidden');
+    window.setTimeout(() => loader.remove(), 500);
+  };
+
+  if (document.readyState === 'complete') {
+    window.requestAnimationFrame(hideLoader);
+    return;
+  }
+
+  window.addEventListener('load', hideLoader, { once: true });
+}
+
 function initNavigation() {
   const navToggle = document.querySelector('[data-nav-toggle]');
   const mainNav = document.querySelector('[data-main-nav]');
@@ -308,5 +344,6 @@ document.addEventListener('DOMContentLoaded', initNavigation);
 document.addEventListener('DOMContentLoaded', initTrackMapModal);
 document.addEventListener('DOMContentLoaded', initStandaloneSplashScreen);
 document.addEventListener('DOMContentLoaded', initGlobalScrollProgress);
+document.addEventListener('DOMContentLoaded', initFormulaOneLoader);
 document.addEventListener('layout:loaded', initNavigation);
 document.addEventListener('layout:loaded', initTrackMapModal);
