@@ -3677,21 +3677,39 @@ body.hof-page {
 @keyframes f1-light-sequence { 0%, 62%, 100% { background: rgba(255, 70, 70, 0.2); box-shadow: inset 0 0 8px rgba(255, 0, 0, 0.25);} 28%, 46% { background: #ff2b2b; box-shadow: 0 0 12px rgba(255, 60, 60, 0.85);} }
 @keyframes f1-wheel-spin { to { transform: rotate(360deg); } }
 
+.track-map-wrap {
+  position: relative;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
 .track-map-button {
-  cursor: pointer;
+  cursor: zoom-in;
 }
 
 .track-map-info-hint {
   position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 8px;
+  left: 8px;
+  bottom: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
   border-radius: 999px;
-  background: rgba(10, 208, 221, 0.18);
-  border: 1px solid rgba(10, 208, 221, 0.45);
+  background: rgba(10, 208, 221, 0.22);
+  border: 1px solid rgba(10, 208, 221, 0.55);
   color: #b7f5ff;
-  font-size: 0.68rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(2px);
+}
+
+.track-map-info-hint:hover,
+.track-map-info-hint:focus-visible {
+  background: rgba(10, 208, 221, 0.32);
+  transform: scale(1.05);
 }
 
 .trackinfo-dialog {
