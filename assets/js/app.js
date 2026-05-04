@@ -128,12 +128,37 @@ function initFormulaOneLoader() {
     window.setTimeout(() => loader.remove(), 500);
   };
 
+  const waitForPageContent = async () => {
+    const images = Array.from(document.images || []);
+    const pendingImages = images.filter((img) => !img.complete);
+
+    await Promise.allSettled(
+      pendingImages.map((img) => new Promise((resolve) => {
+        img.addEventListener('load', resolve, { once: true });
+        img.addEventListener('error', resolve, { once: true });
+      }))
+    );
+
+    if (document.fonts?.ready) {
+      await Promise.race([
+        document.fonts.ready.catch(() => undefined),
+        new Promise((resolve) => window.setTimeout(resolve, 1800))
+      ]);
+    }
+  };
+
+  const finalizeLoader = () => {
+    waitForPageContent()
+      .catch(() => undefined)
+      .finally(() => window.requestAnimationFrame(hideLoader));
+  };
+
   if (document.readyState === 'complete') {
-    window.requestAnimationFrame(hideLoader);
+    finalizeLoader();
     return;
   }
 
-  window.addEventListener('load', hideLoader, { once: true });
+  window.addEventListener('load', finalizeLoader, { once: true });
 }
 
 function initNavigation() {
