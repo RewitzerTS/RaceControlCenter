@@ -345,6 +345,26 @@ async function fetchLeagueContent(options = {}) {
   });
 }
 
+
+function hasFreshDashboardCache() {
+  const currentSeason = readCachedValue(buildCacheKey('currentSeason'), QUERY_CACHE_TTL.season);
+  if (!currentSeason?.id) return false;
+
+  const races = readCachedValue(buildCacheKey('races', { seasonId: currentSeason.id }), QUERY_CACHE_TTL.races);
+  const drivers = readCachedValue(buildCacheKey('drivers'), QUERY_CACHE_TTL.drivers);
+  const raceResults = readCachedValue(buildCacheKey('raceResults', { raceId: null, raceIds: [] }), QUERY_CACHE_TTL.raceResults);
+
+  return Array.isArray(races) && Array.isArray(drivers) && Array.isArray(raceResults);
+}
+
+async function warmDashboardCache() {
+  const currentSeason = await fetchCurrentSeason();
+  await Promise.all([
+    fetchDrivers(),
+    fetchRaces({ seasonId: currentSeason?.id }),
+    fetchRaceResults()
+  ]);
+}
 function buildStandings({ drivers, races, raceResults, resolver } = {}) {
   const raceIds = new Set((races || []).map((race) => race.id));
   const scopedResults = (raceResults || []).filter((row) => raceIds.has(row.race_id));
@@ -471,5 +491,7 @@ window.RCCData = {
   fetchRaces,
   fetchRaceResults,
   fetchLeagueContent,
+  hasFreshDashboardCache,
+  warmDashboardCache,
   buildStandings
 };

@@ -193,8 +193,18 @@ function initFormulaOneLoader() {
     }
   };
 
+  const hasWarmDashboardCache = () => {
+    if (document.body?.dataset.page !== 'index') return false;
+    return window.RCCData?.hasFreshDashboardCache?.() === true;
+  };
+
   const waitForDashboardContent = () => {
     if (document.body?.dataset.page !== 'index') return Promise.resolve();
+
+    if (hasWarmDashboardCache()) {
+      window.RCCData?.warmDashboardCache?.().catch(() => undefined);
+      return Promise.resolve();
+    }
 
     return new Promise((resolve) => {
       let settled = false;
