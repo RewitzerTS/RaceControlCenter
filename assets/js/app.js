@@ -486,6 +486,7 @@ document.addEventListener('DOMContentLoaded', initTrackMapModal);
 document.addEventListener('DOMContentLoaded', initTrackInfoModal);
 document.addEventListener('DOMContentLoaded', initStandaloneSplashScreen);
 document.addEventListener('DOMContentLoaded', initGlobalScrollProgress);
+document.addEventListener('DOMContentLoaded', initFormulaOneLoader);
 document.addEventListener('layout:loaded', initNavigation);
 document.addEventListener('layout:loaded', initTrackMapModal);
 document.addEventListener('layout:loaded', initTrackInfoModal);
