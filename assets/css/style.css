@@ -3692,24 +3692,23 @@ body.hof-page {
   position: absolute;
   left: 8px;
   bottom: 8px;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(10, 208, 221, 0.22);
-  border: 1px solid rgba(10, 208, 221, 0.55);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
   color: #b7f5ff;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(2px);
+  line-height: 1;
 }
 
 .track-map-info-hint:hover,
 .track-map-info-hint:focus-visible {
-  background: rgba(10, 208, 221, 0.32);
-  transform: scale(1.05);
+  color: #d6fbff;
+  transform: scale(1.08);
 }
 
 .trackinfo-dialog {
