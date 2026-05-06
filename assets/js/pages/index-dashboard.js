@@ -24,6 +24,71 @@
       let countdownRefreshTriggered = false;
       let storylineRefreshTimer = null;
       let dashboardLoadRequestId = 0;
+
+      const DASHBOARD_VIEW_CACHE_KEY = 'rcc.dashboard.view.v1';
+
+      function readDashboardViewCache() {
+        try {
+          const raw = window.sessionStorage?.getItem(DASHBOARD_VIEW_CACHE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (!parsed || typeof parsed !== 'object') return null;
+          return parsed;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function writeDashboardViewCache(payload) {
+        try {
+          window.sessionStorage?.setItem(DASHBOARD_VIEW_CACHE_KEY, JSON.stringify({
+            cachedAt: Date.now(),
+            ...payload
+          }));
+        } catch (error) {
+          // Ignore cache write failures.
+        }
+      }
+
+      function restoreDashboardViewFromCache() {
+        const cached = readDashboardViewCache();
+        if (!cached) return false;
+
+        const sections = [
+          ['driver-podium', cached.driverPodiumHtml],
+          ['driver-podium-list', cached.driverPodiumListHtml],
+          ['team-podium', cached.teamPodiumHtml],
+          ['team-podium-list', cached.teamPodiumListHtml],
+          ['side-kpis', cached.sideKpisHtml],
+          ['hero-next-race', cached.heroNextRaceHtml]
+        ];
+
+        let restoredAny = false;
+        sections.forEach(([id, html]) => {
+          const el = document.getElementById(id);
+          if (!el || !html) return;
+          el.innerHTML = html;
+          restoredAny = true;
+        });
+
+
+        if (cached.storylineHtml) {
+          const storylineEl = document.getElementById('hero-storyline');
+          if (storylineEl) storylineEl.innerHTML = cached.storylineHtml;
+        }
+
+        if (cached.statusSeasonText) {
+          const statusSeasonEl = document.getElementById('status-season');
+          if (statusSeasonEl) statusSeasonEl.textContent = cached.statusSeasonText;
+        }
+
+        if (cached.statusNextEventText) {
+          const statusNextEventEl = document.getElementById('status-next-event');
+          if (statusNextEventEl) statusNextEventEl.textContent = cached.statusNextEventText;
+        }
+
+        return restoredAny;
+      }
       const WEEKLY_STORYLINE_TEMPLATES = [
         ({ lead, chase }) => `${lead.driverName} verteidigt die Spitze mit ${lead.points} Punkten, aber ${chase.driverName} bleibt direkt in Schlagdistanz.`,
         ({ lead, latestRace }) => `${latestRace?.grand_prix_name || 'Das letzte Rennen'} hat das Momentum verschoben – ${lead.driverName} reist als Gejagter weiter.`,
@@ -801,6 +866,18 @@
           document.getElementById('team-podium').innerHTML = createPodiumMarkup(teamStandings.slice(0, 3), 'team');
           document.getElementById('team-podium-list').innerHTML = createRankRows(teamStandings.slice(3, 8), 'team');
 
+          writeDashboardViewCache({
+            driverPodiumHtml: document.getElementById('driver-podium')?.innerHTML || '',
+            driverPodiumListHtml: document.getElementById('driver-podium-list')?.innerHTML || '',
+            teamPodiumHtml: document.getElementById('team-podium')?.innerHTML || '',
+            teamPodiumListHtml: document.getElementById('team-podium-list')?.innerHTML || '',
+            sideKpisHtml: document.getElementById('side-kpis')?.innerHTML || '',
+            heroNextRaceHtml: document.getElementById('hero-next-race')?.innerHTML || '',
+            statusSeasonText: document.getElementById('status-season')?.textContent || '',
+            statusNextEventText: document.getElementById('status-next-event')?.textContent || '',
+            storylineHtml: document.getElementById('hero-storyline')?.innerHTML || ''
+          });
+
           renderTimeline(racesWithLifecycle);
           renderChart(driverStandings.slice(0, 5), completedRaces, resultsByRace, driversById);
           initScrollAnimations();
@@ -813,6 +890,7 @@
       }
 
       document.addEventListener('DOMContentLoaded', () => {
+        restoreDashboardViewFromCache();
         initScrollAnimations();
         Promise.allSettled([
           loadDashboard(),
