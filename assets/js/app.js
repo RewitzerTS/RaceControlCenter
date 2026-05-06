@@ -218,7 +218,7 @@ function initFormulaOneLoader() {
       window.RCCData.QUERY_CACHE_TTL?.drivers || 0
     );
 
-    return Array.isArray(races) && races.length >= 0 && Array.isArray(drivers) && drivers.length >= 0;
+    return Array.isArray(races) && races.length > 0 && Array.isArray(drivers) && drivers.length > 0;
   };
 
   const waitForDashboardContent = () => {
@@ -275,12 +275,13 @@ function initFormulaOneLoader() {
       window.requestAnimationFrame(hideLoader);
       return;
     }
-    Promise.allSettled([
-      waitForPageContent(),
-      waitForDashboardContent(),
-      waitForAsyncPageContent()
-    ])
-      .finally(() => window.requestAnimationFrame(hideLoader));
+    Promise.race([
+      Promise.allSettled([
+        waitForDashboardContent(),
+        waitForAsyncPageContent()
+      ]),
+      waitForPageContent()
+    ]).finally(() => window.requestAnimationFrame(hideLoader));
   };
 
   if (document.readyState === 'complete') {

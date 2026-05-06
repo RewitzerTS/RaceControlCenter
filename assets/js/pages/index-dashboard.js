@@ -24,6 +24,7 @@
       let countdownTimer = null;
       let countdownRefreshTriggered = false;
       let storylineRefreshTimer = null;
+      let dashboardLoadRequestId = 0;
       const WEEKLY_STORYLINE_TEMPLATES = [
         ({ lead, chase }) => `${lead.driverName} verteidigt die Spitze mit ${lead.points} Punkten, aber ${chase.driverName} bleibt direkt in Schlagdistanz.`,
         ({ lead, latestRace }) => `${latestRace?.grand_prix_name || 'Das letzte Rennen'} hat das Momentum verschoben – ${lead.driverName} reist als Gejagter weiter.`,
@@ -318,7 +319,7 @@
             entry.target.classList.add('is-visible');
             currentObserver.unobserve(entry.target);
           });
-        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+        }, { threshold: 0.01, rootMargin: '0px 0px 22% 0px' });
         animateTargets.forEach((element) => observer.observe(element));
       }
 
@@ -629,7 +630,12 @@
       }
 
       async function loadDashboard() {
+        const requestId = ++dashboardLoadRequestId;
         countdownRefreshTriggered = false;
+        if (storylineRefreshTimer) {
+          window.clearInterval(storylineRefreshTimer);
+          storylineRefreshTimer = null;
+        }
         try {
           const currentSeason = await window.RCCData.fetchCurrentSeason();
           const [drivers, races, raceResults, assignments] = await Promise.all([
@@ -638,6 +644,8 @@
             window.RCCData.fetchRaceResults(),
             window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
           ]);
+          if (requestId !== dashboardLoadRequestId) return;
+
           const racesWithLifecycle = races.map((race) => ({
             ...race,
             status: window.getRaceLifecycleStatus ? window.getRaceLifecycleStatus(race) : race.status
@@ -713,9 +721,11 @@
             completedRaces
           };
           renderStorylineTicker(await buildStorylineTickerMessages(storylineContext, { cachedOnly: true }));
+          if (requestId !== dashboardLoadRequestId) return;
           renderStorylineTicker(await buildStorylineTickerMessages(storylineContext));
-          if (storylineRefreshTimer) window.clearInterval(storylineRefreshTimer);
+          if (requestId !== dashboardLoadRequestId) return;
           storylineRefreshTimer = window.setInterval(async () => {
+            if (requestId !== dashboardLoadRequestId) return;
             renderStorylineTicker(await buildStorylineTickerMessages(storylineContext));
           }, 120000);
 
