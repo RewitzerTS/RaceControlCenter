@@ -112,9 +112,6 @@ function initFormulaOneLoader() {
       <div class="f1-loader-lights" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
-      <div class="f1-loader-wheel" aria-hidden="true">
-        <img src="assets/images/pirelli-loader.svg" alt="" class="f1-loader-wheel-image">
-      </div>
       <p>Race Control lädt…</p>
     </div>
   `;
