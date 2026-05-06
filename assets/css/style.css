@@ -315,11 +315,60 @@ button, input, textarea, select {
   display: none;
 }
 
+.main-nav a .nav-label {
+  display: inline;
+}
+
 .main-nav a:hover,
 .main-nav a.active {
   color: var(--text);
   border-color: rgba(44,143,166,0.5);
   background: rgba(44,143,166,0.14);
+}
+
+@media (min-width: 861px) {
+  .main-nav a {
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border-radius: 12px;
+  }
+
+  .main-nav a .nav-icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+  }
+
+  .main-nav a .nav-label {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    opacity: 0;
+    pointer-events: none;
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: rgba(2, 27, 52, 0.96);
+    color: var(--text);
+    font-size: 0.82rem;
+    white-space: nowrap;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.35);
+    transition: opacity 0.16s ease, transform 0.16s ease;
+    z-index: 20;
+  }
+
+  .main-nav a:hover .nav-label,
+  .main-nav a:focus-visible .nav-label {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .nav-more {
@@ -1113,6 +1162,18 @@ textarea { min-height: 120px; resize: vertical; }
     height: 32px;
     object-fit: contain;
     flex-shrink: 0;
+  }
+
+  .main-nav a .nav-label {
+    position: static;
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+    font-size: inherit;
   }
 
   .hero-grid,
