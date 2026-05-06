@@ -7,7 +7,6 @@
         'https://news.google.com/rss/search?q=site:motorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
         'https://news.google.com/rss/search?q=site:motorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de',
         'https://news.google.com/rss/search?q=Formel+1+News&hl=de&gl=DE&ceid=DE:de',
-        'https://news.google.com/rss/search?q=Formula+1+latest+news&hl=en-US&gl=US&ceid=US:en'
       ];
       const LIVE_NEWS_CACHE_KEY = 'rcc.liveF1News.v1';
       const LIVE_NEWS_CACHE_TTL_MS = 1000 * 60 * 5;
