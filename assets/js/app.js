@@ -118,6 +118,8 @@ function initFormulaOneLoader() {
 
   document.body.appendChild(loader);
   document.body.classList.add('f1-loading');
+  const loaderMountedAt = performance.now();
+  const minimumLoaderVisibleMs = 420;
   const lights = Array.from(loader.querySelectorAll('.f1-loader-lights span'));
   const lightColumns = [
     [0, 5],
@@ -163,12 +165,22 @@ function initFormulaOneLoader() {
 
   runLightSequence();
 
-  const hideLoader = () => {
+  const hideLoaderNow = () => {
     document.body.classList.remove('f1-loading');
     if (startLightTimer) window.clearInterval(startLightTimer);
     if (resetLightTimer) window.clearTimeout(resetLightTimer);
     loader.classList.add('is-hidden');
     window.setTimeout(() => loader.remove(), 500);
+  };
+
+  const hideLoader = () => {
+    const elapsed = performance.now() - loaderMountedAt;
+    const remaining = Math.max(0, minimumLoaderVisibleMs - elapsed);
+    if (remaining <= 0) {
+      hideLoaderNow();
+      return;
+    }
+    window.setTimeout(hideLoaderNow, remaining);
   };
 
   const waitForPageContent = async () => {
