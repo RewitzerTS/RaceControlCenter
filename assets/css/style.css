@@ -311,6 +311,10 @@ button, input, textarea, select {
   white-space: nowrap;
 }
 
+.main-nav a .nav-icon {
+  display: none;
+}
+
 .main-nav a:hover,
 .main-nav a.active {
   color: var(--text);
@@ -1093,10 +1097,21 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .main-nav a {
+    display: flex;
+    align-items: center;
     text-align: left;
     width: 100%;
     padding: 12px 14px;
     border-radius: 12px;
+  }
+
+  .main-nav a .nav-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+    margin-right: 8px;
   }
 
   .hero-grid,
