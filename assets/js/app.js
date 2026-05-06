@@ -157,8 +157,8 @@ function initFormulaOneLoader() {
         light.classList.add('is-green');
       });
 
-      resetLightTimer = window.setTimeout(runLightSequence, 560);
-    }, 260);
+      resetLightTimer = window.setTimeout(runLightSequence, 1000);
+    }, 320);
   };
 
   runLightSequence();
