@@ -1079,7 +1079,7 @@ textarea { min-height: 120px; resize: vertical; }
     position: fixed;
     top: 0;
     right: 0;
-    width: min(160px, 43vw);
+    width: min(260px, 82vw);
     height: 100vh;
     padding: calc(24px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
     background: rgba(2, 27, 52, 0.96);
