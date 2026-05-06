@@ -3682,16 +3682,13 @@ body.hof-page {
 .f1-loading {
   overflow: hidden;
 }
-.f1-loader-overlay { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center; background: radial-gradient(circle at 50% -12%, rgba(255, 80, 80, 0.18), transparent 38%), linear-gradient(180deg, rgba(6, 10, 19, 0.96), rgba(3, 7, 16, 0.98)); backdrop-filter: blur(6px); transition: opacity 0.45s ease, visibility 0.45s ease; }
+.f1-loader-overlay { position: fixed; inset: 0; z-index: 4000; display: grid; place-items: center; background: radial-gradient(circle at 50% -12%, rgba(52, 211, 198, 0.22), transparent 38%), linear-gradient(180deg, rgba(6, 10, 19, 0.96), rgba(3, 7, 16, 0.98)); backdrop-filter: blur(6px); transition: opacity 0.45s ease, visibility 0.45s ease; }
 .f1-loader-overlay.is-hidden { opacity: 0; visibility: hidden; }
 .f1-loader { display: grid; justify-items: center; gap: 16px; color: #f4f7ff; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .f1-loader-lights { display: grid; grid-template-columns: repeat(5, 18px); gap: 10px 12px; }
 .f1-loader-lights span { width: 18px; height: 18px; border-radius: 50%; background: rgba(255, 70, 70, 0.15); border: 1px solid rgba(255, 110, 110, 0.4); box-shadow: inset 0 0 10px rgba(255, 0, 0, 0.22); transition: background 0.09s linear, border-color 0.09s linear, box-shadow 0.09s linear; }
 .f1-loader-lights span.is-red { background: #ff2b2b; border-color: rgba(255, 214, 214, 0.88); box-shadow: 0 0 16px rgba(255, 50, 50, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.24); }
 .f1-loader-lights span.is-green { background: #1fef75; border-color: rgba(218, 255, 232, 0.9); box-shadow: 0 0 16px rgba(46, 255, 131, 0.92), inset 0 0 10px rgba(255, 255, 255, 0.24); }
-.f1-loader-wheel { width: 148px; height: 148px; display: grid; place-items: center; animation: f1-wheel-spin 1s linear infinite; }
-.f1-loader-wheel-image { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.45)); }
-@keyframes f1-wheel-spin { to { transform: rotate(360deg); } }
 
 .track-map-wrap {
   position: relative;
