@@ -637,12 +637,15 @@
         }
         try {
           const currentSeason = await window.RCCData.fetchCurrentSeason();
-          const [drivers, races, raceResults, assignments] = await Promise.all([
+          const [drivers, races, assignments] = await Promise.all([
             window.RCCData.fetchDrivers(),
             window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
-            window.RCCData.fetchRaceResults(),
             window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
           ]);
+          const raceIds = (races || []).map((race) => race.id).filter(Boolean);
+          const raceResults = raceIds.length
+            ? await window.RCCData.fetchRaceResults({ raceIds })
+            : [];
           if (requestId !== dashboardLoadRequestId) return;
 
           const racesWithLifecycle = races.map((race) => ({
