@@ -68,36 +68,28 @@ async function loadRaceDetailPage() {
 
   try {
     const currentSeason = seasonParam ? { id: seasonParam } : await window.RCCData.fetchCurrentSeason();
-    let raceQuery = window.supabaseClient.from('races').select('*').eq('round_number', round);
-    if (currentSeason?.id) raceQuery = raceQuery.eq('season_id', currentSeason.id);
-
-    const { data: race, error: raceError } = await raceQuery.maybeSingle();
-    if (raceError || !race) throw raceError || new Error('Race not found');
+    const race = await window.RCCData.fetchRaceByRound({
+      round,
+      seasonId: currentSeason?.id || null
+    });
+    if (!race) throw new Error('Race not found');
 
     const [drivers, seasonRaces, assignments, resultsResponse, stewardResponse] = await Promise.all([
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces({ seasonId: race.season_id }),
       window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: race.season_id }),
-      window.supabaseClient
-        .from('race_results')
-        .select('id, driver_id, finish_position, grid_position, fastest_lap_time, race_time, participation_status, awarded_points')
-        .eq('race_id', race.id)
-        .order('finish_position', { ascending: true }),
-      window.supabaseClient
-        .from('steward_cases')
-        .select('title, description, decision_text, consequence, driver1:driver_1_id(display_name), driver2:driver_2_id(display_name), created_at')
-        .eq('race_id', race.id)
-        .order('created_at', { ascending: false })
+      window.RCCData.fetchRaceResults({ raceId: race.id }),
+      window.RCCData.fetchStewardCasesByRaceId(race.id)
     ]);
-
-    if (resultsResponse.error) throw resultsResponse.error;
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({
       drivers,
       races: seasonRaces,
       assignments
     });
-    const results = resultsResponse.data || [];
+    const results = (resultsResponse || [])
+      .slice()
+      .sort((a, b) => (a?.finish_position ?? 999) - (b?.finish_position ?? 999));
     const fastestDriverId = window.RCCData.getFastestLapDriverId(results);
     const { track } = window.getRaceTrackMeta(race);
     const flagBadge = window.createFlagBadge(track?.countryCode, `${track?.grandPrixName || race.grand_prix_name} Flagge`);
@@ -118,7 +110,7 @@ async function loadRaceDetailPage() {
       <div class="detail-track-map">${window.createTrackMapSvg(track)}</div>
     `;
 
-    renderStewardSection(stewardsEl, stewardResponse.data, stewardResponse.error);
+    renderStewardSection(stewardsEl, stewardResponse, null);
 
     resultsBody.innerHTML = results.length
       ? results.map((row) => {
