@@ -259,6 +259,10 @@ function renderTrendChart(matrixData) {
 async function loadResultsPage() {
   const wrap = document.getElementById('results-matrix-wrap');
   const labelEl = document.getElementById('results-matrix-label');
+  const notifyReady = () => document.dispatchEvent(new CustomEvent('rcc:page-content-ready', {
+    detail: { page: document.body?.dataset.page || '' }
+  }));
+
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
     const [drivers, races, assignments] = await Promise.all([
@@ -276,6 +280,8 @@ async function loadResultsPage() {
   } catch (error) {
     console.error(error);
     wrap.innerHTML = '<div class="notice">Fehler beim Laden der Saisonergebnisse.</div>';
+  } finally {
+    notifyReady();
   }
 }
 
