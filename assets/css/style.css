@@ -1113,12 +1113,13 @@ textarea { min-height: 120px; resize: vertical; }
     background: rgba(255, 255, 255, 0.2);
   }
 
-  .main-nav .nav-extra-link {
-    display: flex;
-    align-items: center;
-  }
-
+  .main-nav .nav-extra-link,
   .main-nav .nav-primary-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
     min-width: 0;
   }
 
@@ -1178,6 +1179,8 @@ textarea { min-height: 120px; resize: vertical; }
     padding: 0;
     box-shadow: none;
     font-size: inherit;
+    white-space: nowrap;
+    line-height: 1.2;
   }
 
   .hero-grid,
