@@ -3835,6 +3835,31 @@ body.hof-page {
 .trackinfo-item strong { font-size: 0.9rem; }
 .trackinfo-fallback { margin: 8px 0 0; color: #d4e8f7; }
 
+[data-theme='light'] .track-map-info-hint {
+  color: #325d88;
+}
+
+[data-theme='light'] .track-map-info-hint:hover,
+[data-theme='light'] .track-map-info-hint:focus-visible {
+  color: #173d64;
+}
+
+[data-theme='light'] .trackinfo-item {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(121, 89, 229, 0.15), transparent 42%),
+    linear-gradient(162deg, rgba(248, 245, 255, 0.96), rgba(232, 244, 255, 0.92));
+  border-color: rgba(59, 76, 112, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 8px 18px rgba(50, 64, 96, 0.12);
+}
+
+[data-theme='light'] .trackinfo-item span {
+  color: #366091;
+}
+
+[data-theme='light'] .trackinfo-fallback {
+  color: #355174;
+}
+
 @media (max-width: 768px) {
   .trackinfo-grid { grid-template-columns: 1fr; }
 }
