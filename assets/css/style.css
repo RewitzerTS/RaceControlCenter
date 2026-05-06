@@ -2027,6 +2027,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 .storyline-item-link {
   color: var(--text);
   text-decoration: none;
+  font: inherit;
 }
 .storyline-item-link:hover,
 .storyline-item-link:focus-visible {
