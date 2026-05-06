@@ -1,9 +1,32 @@
+const CALENDAR_SESSION_KEYS = {
+  activeSection: 'rcc.calendar.activeSection',
+  archiveSeason: 'rcc.calendar.archiveSeason'
+};
+
+function readCalendarSession(key) {
+  try {
+    return window.sessionStorage?.getItem(key) || '';
+  } catch (_error) {
+    return '';
+  }
+}
+
+function writeCalendarSession(key, value) {
+  try {
+    window.sessionStorage?.setItem(key, value);
+  } catch (_error) {
+    // Session storage kann in manchen Browser-Konfigurationen blockiert sein.
+  }
+}
+
 function bindCalendarToggles() {
   const buttons = [...document.querySelectorAll('.calendar-toggle')];
   const sections = [...document.querySelectorAll('.calendar-section')];
   if (!buttons.length || !sections.length) return;
 
   const activate = (targetId) => {
+    writeCalendarSession(CALENDAR_SESSION_KEYS.activeSection, targetId);
+
     buttons.forEach((button) => {
       const active = button.dataset.target === targetId;
       button.classList.toggle('primary', active);
@@ -15,7 +38,12 @@ function bindCalendarToggles() {
   };
 
   buttons.forEach((button) => button.addEventListener('click', () => activate(button.dataset.target)));
-  activate(document.querySelector('.calendar-toggle.active')?.dataset.target || 'upcoming-section');
+  const storedSection = readCalendarSession(CALENDAR_SESSION_KEYS.activeSection);
+  const defaultSection = document.querySelector('.calendar-toggle.active')?.dataset.target || 'upcoming-section';
+  const initialSection = buttons.some((button) => button.dataset.target === storedSection)
+    ? storedSection
+    : defaultSection;
+  activate(initialSection);
 }
 
 function bindArchiveActions() {
@@ -26,6 +54,9 @@ function bindArchiveActions() {
 
   const updateState = () => {
     const hasSeason = Boolean(selectEl.value);
+    if (hasSeason) {
+      writeCalendarSession(CALENDAR_SESSION_KEYS.archiveSeason, selectEl.value);
+    }
     openBtn.disabled = !hasSeason;
     if (hintEl) {
       hintEl.textContent = hasSeason
@@ -41,6 +72,12 @@ function bindArchiveActions() {
 
   selectEl.addEventListener('change', updateState);
   openBtn.addEventListener('click', openArchive);
+
+  const storedSeason = readCalendarSession(CALENDAR_SESSION_KEYS.archiveSeason);
+  if (storedSeason && [...selectEl.options].some((option) => option.value === storedSeason)) {
+    selectEl.value = storedSeason;
+  }
+
   updateState();
 }
 
