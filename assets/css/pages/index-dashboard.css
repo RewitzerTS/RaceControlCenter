@@ -278,6 +278,10 @@
     .next-race-item-stacked {
       margin-top: 0;
     }
+
+    .next-race-item .flag-badge {
+      margin-left: 4px;
+    }
     .showcase-meta {
       position: absolute;
       top: 0;
