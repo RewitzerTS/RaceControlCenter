@@ -1114,7 +1114,8 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .main-nav .nav-extra-link {
-    display: block;
+    display: flex;
+    align-items: center;
   }
 
   .main-nav .nav-primary-link {
