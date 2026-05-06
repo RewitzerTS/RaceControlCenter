@@ -1147,6 +1147,7 @@ textarea { min-height: 120px; resize: vertical; }
 
   .main-nav a {
     display: flex;
+    flex-direction: row;
     align-items: center;
     gap: 10px;
     text-align: left;
@@ -1165,6 +1166,8 @@ textarea { min-height: 120px; resize: vertical; }
   }
 
   .main-nav a .nav-label {
+    display: inline-flex;
+    align-items: center;
     position: static;
     transform: none;
     opacity: 1;
