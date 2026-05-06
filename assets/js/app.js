@@ -224,7 +224,7 @@ function initFormulaOneLoader() {
 
   const waitForAsyncPageContent = () => {
     const page = document.body?.dataset.page || '';
-    const pagesWithAsyncContent = new Set(['fahrer-wm', 'team-wm']);
+    const pagesWithAsyncContent = new Set(['ergebnisse', 'fahrer-wm', 'team-wm']);
 
     if (!pagesWithAsyncContent.has(page)) return Promise.resolve();
 
