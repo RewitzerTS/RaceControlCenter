@@ -1,0 +1,114 @@
+[
+  {
+    "file": "uebersicht_home.png",
+    "source_bbox_inclusive": [
+      50,
+      39,
+      100,
+      88
+    ],
+    "canvas_size": [
+      67,
+      66
+    ],
+    "padding": 8
+  },
+  {
+    "file": "kalender.png",
+    "source_bbox_inclusive": [
+      51,
+      158,
+      99,
+      209
+    ],
+    "canvas_size": [
+      65,
+      68
+    ],
+    "padding": 8
+  },
+  {
+    "file": "ergebnisse_flag.png",
+    "source_bbox_inclusive": [
+      47,
+      275,
+      103,
+      328
+    ],
+    "canvas_size": [
+      73,
+      70
+    ],
+    "padding": 8
+  },
+  {
+    "file": "fahrer_wm_helmet.png",
+    "source_bbox_inclusive": [
+      47,
+      393,
+      101,
+      446
+    ],
+    "canvas_size": [
+      71,
+      70
+    ],
+    "padding": 8
+  },
+  {
+    "file": "team_wm_group.png",
+    "source_bbox_inclusive": [
+      47,
+      513,
+      103,
+      562
+    ],
+    "canvas_size": [
+      73,
+      66
+    ],
+    "padding": 8
+  },
+  {
+    "file": "regeln_faqs_document.png",
+    "source_bbox_inclusive": [
+      52,
+      624,
+      99,
+      682
+    ],
+    "canvas_size": [
+      64,
+      75
+    ],
+    "padding": 8
+  },
+  {
+    "file": "grid.png",
+    "source_bbox_inclusive": [
+      52,
+      743,
+      98,
+      798
+    ],
+    "canvas_size": [
+      63,
+      72
+    ],
+    "padding": 8
+  },
+  {
+    "file": "hall_of_fame_trophy.png",
+    "source_bbox_inclusive": [
+      44,
+      859,
+      106,
+      915
+    ],
+    "canvas_size": [
+      79,
+      73
+    ],
+    "padding": 8
+  }
+]
