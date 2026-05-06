@@ -14,6 +14,8 @@ const QUERY_CACHE_TTL = {
   leagueContent: 1000 * 60 * 30
 };
 
+const inflightRequests = new Map();
+
 function buildCacheKey(scope, params = null) {
   const serializedParams = params ? JSON.stringify(params) : '';
   return `${RCC_QUERY_CACHE_PREFIX}:${scope}:${serializedParams}`;
@@ -50,17 +52,47 @@ function writeCachedValue(cacheKey, value) {
   }
 }
 
-async function fetchWithLocalCache({ scope, params = null, ttlMs = 0, forceRefresh = false, fetcher }) {
+async function fetchWithLocalCache({
+  scope,
+  params = null,
+  ttlMs = 0,
+  forceRefresh = false,
+  backgroundRefresh = false,
+  fetcher
+}) {
   const cacheKey = buildCacheKey(scope, params);
+
+  const fetchAndCache = async () => {
+    const freshValue = await fetcher();
+    writeCachedValue(cacheKey, freshValue);
+    return freshValue;
+  };
 
   if (!forceRefresh) {
     const cachedValue = readCachedValue(cacheKey, ttlMs);
-    if (cachedValue !== null && cachedValue !== undefined) return cachedValue;
+    if (cachedValue !== null && cachedValue !== undefined) {
+      if (backgroundRefresh) {
+        if (!inflightRequests.has(cacheKey)) {
+          const request = fetchAndCache().catch(() => cachedValue).finally(() => {
+            if (inflightRequests.get(cacheKey) === request) inflightRequests.delete(cacheKey);
+          });
+          inflightRequests.set(cacheKey, request);
+        }
+      }
+      return cachedValue;
+    }
   }
 
-  const freshValue = await fetcher();
-  writeCachedValue(cacheKey, freshValue);
-  return freshValue;
+  if (inflightRequests.has(cacheKey)) {
+    return inflightRequests.get(cacheKey);
+  }
+
+  const request = fetchAndCache().finally(() => {
+    if (inflightRequests.get(cacheKey) === request) inflightRequests.delete(cacheKey);
+  });
+
+  inflightRequests.set(cacheKey, request);
+  return request;
 }
 
 function normalizeDriverName(value) {
@@ -168,6 +200,7 @@ async function fetchCurrentSeason(options = {}) {
     scope: 'currentSeason',
     ttlMs: QUERY_CACHE_TTL.season,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       const { data, error } = await client
         .from('seasons')
@@ -197,6 +230,7 @@ async function fetchSeasons(options = {}) {
     params: queryScope,
     ttlMs: QUERY_CACHE_TTL.seasons,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       let query = client
         .from('seasons')
@@ -222,6 +256,7 @@ async function fetchSeasonHistory(limit = 6, options = {}) {
     params: { limit },
     ttlMs: QUERY_CACHE_TTL.seasonHistory,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       const { data, error } = await client
         .from('championship_history')
@@ -243,6 +278,7 @@ async function fetchDrivers(options = {}) {
     scope: 'drivers',
     ttlMs: QUERY_CACHE_TTL.drivers,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       const { data, error } = await client
         .from('drivers')
@@ -274,6 +310,7 @@ async function fetchRaces(options = {}) {
     params: queryScope,
     ttlMs: QUERY_CACHE_TTL.races,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       let query = client.from('races').select('*').order('round_number', { ascending: true });
       if (options.seasonId !== undefined && options.seasonId !== null) query = query.eq('season_id', options.seasonId);
@@ -299,6 +336,7 @@ async function fetchRaceResults(options = {}) {
     params: queryScope,
     ttlMs: QUERY_CACHE_TTL.raceResults,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       let query = client.from('race_results').select('*');
       if (options.raceId) query = query.eq('race_id', options.raceId);
@@ -326,6 +364,7 @@ async function fetchLeagueContent(options = {}) {
     scope: 'leagueContent',
     ttlMs: QUERY_CACHE_TTL.leagueContent,
     forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
       const { data, error } = await client
         .from('league_content')
@@ -493,5 +532,8 @@ window.RCCData = {
   fetchLeagueContent,
   hasFreshDashboardCache,
   warmDashboardCache,
-  buildStandings
+  buildStandings,
+  buildCacheKey,
+  readCachedValue,
+  QUERY_CACHE_TTL
 };

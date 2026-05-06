@@ -195,6 +195,32 @@ function initFormulaOneLoader() {
     return window.RCCData?.hasFreshDashboardCache?.() === true;
   };
 
+  const hasWarmPageCache = () => {
+    const page = document.body?.dataset.page || '';
+    if (!window.RCCData?.readCachedValue || !window.RCCData?.buildCacheKey) return false;
+
+    const currentSeason = window.RCCData.readCachedValue(
+      window.RCCData.buildCacheKey('currentSeason'),
+      window.RCCData.QUERY_CACHE_TTL?.season || 0
+    );
+
+    if (!currentSeason?.id) return false;
+
+    if (page === 'index') return hasWarmDashboardCache();
+    if (!['ergebnisse', 'fahrer-wm', 'team-wm'].includes(page)) return false;
+
+    const races = window.RCCData.readCachedValue(
+      window.RCCData.buildCacheKey('races', { seasonId: currentSeason.id }),
+      window.RCCData.QUERY_CACHE_TTL?.races || 0
+    );
+    const drivers = window.RCCData.readCachedValue(
+      window.RCCData.buildCacheKey('drivers'),
+      window.RCCData.QUERY_CACHE_TTL?.drivers || 0
+    );
+
+    return Array.isArray(races) && races.length >= 0 && Array.isArray(drivers) && drivers.length >= 0;
+  };
+
   const waitForDashboardContent = () => {
     if (document.body?.dataset.page !== 'index') return Promise.resolve();
 
@@ -244,6 +270,11 @@ function initFormulaOneLoader() {
   };
 
   const finalizeLoader = () => {
+    if (hasWarmPageCache()) {
+      window.RCCData?.warmDashboardCache?.().catch(() => undefined);
+      window.requestAnimationFrame(hideLoader);
+      return;
+    }
     Promise.allSettled([
       waitForPageContent(),
       waitForDashboardContent(),
