@@ -1,3 +1,43 @@
+
+const STANDINGS_VIEW_CACHE_KEY = 'rcc.standings.view.v1';
+
+function readStandingsCache(pageKey) {
+  try {
+    const raw = window.sessionStorage?.getItem(`${STANDINGS_VIEW_CACHE_KEY}:${pageKey}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStandingsCache(pageKey, payload) {
+  try {
+    window.sessionStorage?.setItem(`${STANDINGS_VIEW_CACHE_KEY}:${pageKey}`, JSON.stringify({
+      cachedAt: Date.now(),
+      ...payload
+    }));
+  } catch {
+    // ignore cache write failures
+  }
+}
+
+function restoreStandingsCache() {
+  const pageKey = document.body?.dataset.page || 'standings';
+  const cached = readStandingsCache(pageKey);
+  if (!cached) return;
+
+  const driverBody = document.getElementById('drivers-standings-body');
+  const teamBody = document.getElementById('teams-standings-body');
+  if (driverBody && cached.driversTableHtml) driverBody.innerHTML = cached.driversTableHtml;
+  if (teamBody && cached.teamsTableHtml) teamBody.innerHTML = cached.teamsTableHtml;
+
+  const subtitles = document.querySelectorAll('.page-subtitle');
+  if (subtitles[0] && cached.subtitleOne) subtitles[0].textContent = cached.subtitleOne;
+  if (subtitles[1] && cached.subtitleTwo) subtitles[1].textContent = cached.subtitleTwo;
+}
+
 function getTrendIcon(currentPos, previousPos, hasPreviousRace = false) {
   const iconMarkup = {
     up: '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M8 2.4l4.8 4.8-1.2 1.2L8.9 5.8V13H7.1V5.8L4.4 8.4 3.2 7.2 8 2.4z"/></svg>',
@@ -198,6 +238,14 @@ async function loadStandingsPage() {
     renderDriverStandings(driverStandings, latestDriverSnapshots);
     renderTeamStandings(teamStandings, latestDriverSnapshots);
     updateStandingsMeta(currentSeason, driverStandings.length, teamStandings.length);
+
+    const subtitles = document.querySelectorAll('.page-subtitle');
+    writeStandingsCache(document.body?.dataset.page || 'standings', {
+      driversTableHtml: document.getElementById('drivers-standings-body')?.innerHTML || '',
+      teamsTableHtml: document.getElementById('teams-standings-body')?.innerHTML || '',
+      subtitleOne: subtitles[0]?.textContent || '',
+      subtitleTwo: subtitles[1]?.textContent || ''
+    });
   } catch (error) {
     console.error(error);
 
@@ -216,4 +264,7 @@ async function loadStandingsPage() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadStandingsPage);
+document.addEventListener('DOMContentLoaded', () => {
+  restoreStandingsCache();
+  loadStandingsPage();
+});
