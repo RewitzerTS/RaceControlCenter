@@ -10,7 +10,9 @@ const QUERY_CACHE_TTL = {
   seasonHistory: 1000 * 60 * 60 * 24,
   drivers: 1000 * 60 * 60 * 24,
   races: 1000 * 60 * 60 * 6,
+  raceByRound: 1000 * 60 * 60 * 6,
   raceResults: 1000 * 60 * 60 * 2,
+  stewardCases: 1000 * 60 * 30,
   leagueContent: 1000 * 60 * 30
 };
 
@@ -348,6 +350,53 @@ async function fetchRaceResults(options = {}) {
   });
 }
 
+async function fetchRaceByRound(options = {}) {
+  const client = window.supabaseClient;
+  if (!client) return null;
+
+  const queryScope = {
+    round: Number(options.round) || null,
+    seasonId: options.seasonId ?? null
+  };
+
+  return fetchWithLocalCache({
+    scope: 'raceByRound',
+    params: queryScope,
+    ttlMs: QUERY_CACHE_TTL.raceByRound,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
+    fetcher: async () => {
+      let query = client.from('races').select('*').eq('round_number', queryScope.round);
+      if (queryScope.seasonId) query = query.eq('season_id', queryScope.seasonId);
+      const { data, error } = await query.maybeSingle();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
+    }
+  });
+}
+
+async function fetchStewardCasesByRaceId(raceId, options = {}) {
+  const client = window.supabaseClient;
+  if (!client || !raceId) return [];
+
+  return fetchWithLocalCache({
+    scope: 'stewardCases',
+    params: { raceId },
+    ttlMs: QUERY_CACHE_TTL.stewardCases,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh !== false,
+    fetcher: async () => {
+      const { data, error } = await client
+        .from('steward_cases')
+        .select('title, description, decision_text, consequence, driver1:driver_1_id(display_name), driver2:driver_2_id(display_name), created_at')
+        .eq('race_id', raceId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    }
+  });
+}
+
 const DEFAULT_LEAGUE_CONTENT = {
   id: 'default',
   rules_text: '',
@@ -528,7 +577,9 @@ window.RCCData = {
   fetchSeasonHistory,
   fetchDrivers,
   fetchRaces,
+  fetchRaceByRound,
   fetchRaceResults,
+  fetchStewardCasesByRaceId,
   fetchLeagueContent,
   hasFreshDashboardCache,
   warmDashboardCache,
