@@ -275,11 +275,9 @@ function initFormulaOneLoader() {
       window.requestAnimationFrame(hideLoader);
       return;
     }
-    Promise.race([
-      Promise.allSettled([
-        waitForDashboardContent(),
-        waitForAsyncPageContent()
-      ]),
+    Promise.allSettled([
+      waitForDashboardContent(),
+      waitForAsyncPageContent(),
       waitForPageContent()
     ]).finally(() => window.requestAnimationFrame(hideLoader));
   };
