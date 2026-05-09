@@ -3863,9 +3863,9 @@ body.hof-page {
 
 @media (max-width: 768px) {
   .trackinfo-dialog {
-    margin-top: max(16px, calc(var(--trackinfo-safe-top) + 12px));
+    margin-top: max(12px, calc(var(--trackinfo-safe-top) + 6px));
     margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    padding-top: max(44px, calc(var(--trackinfo-safe-top) + 28px));
+    padding-top: 24px;
   }
 
   .trackinfo-grid { grid-template-columns: 1fr; }
