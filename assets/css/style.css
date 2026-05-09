@@ -3814,6 +3814,7 @@ body.hof-page {
 }
 
 .trackinfo-dialog {
+  --trackinfo-safe-top: max(env(safe-area-inset-top, 0px), var(--visual-viewport-offset-top, 0px));
   width: min(920px, calc(100% - 28px));
 }
 
@@ -3861,5 +3862,11 @@ body.hof-page {
 }
 
 @media (max-width: 768px) {
+  .trackinfo-dialog {
+    margin-top: max(16px, calc(var(--trackinfo-safe-top) + 12px));
+    margin-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    padding-top: max(44px, calc(var(--trackinfo-safe-top) + 28px));
+  }
+
   .trackinfo-grid { grid-template-columns: 1fr; }
 }
