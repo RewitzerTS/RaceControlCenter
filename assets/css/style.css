@@ -1793,6 +1793,7 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .season-champion-overlay__card {
   position: relative;
+  z-index: 2;
   width: min(760px, calc(100% - 24px));
   border-radius: 24px;
   border: 1px solid rgba(255, 212, 92, 0.45);
@@ -1804,6 +1805,22 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 .season-champion-overlay__eyebrow { color: #ffd56a; letter-spacing: 0.18em; text-transform: uppercase; font-size: 0.72rem; }
 .season-champion-overlay__copy { color: #f8ebcb; max-width: 58ch; }
+.season-champion-overlay h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 2vw, 18px);
+  margin-right: 30px;
+  font-size: clamp(1.5rem, 5.3vw, 3rem);
+  text-align: center;
+  line-height: 1.15;
+}
+.season-champion-overlay__title-text { white-space: nowrap; }
+.season-champion-overlay__trophy {
+  flex: 0 0 auto;
+  font-size: clamp(1.15rem, 4.4vw, 2.4rem);
+  line-height: 1;
+}
 .season-champion-overlay__winners { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-top: 18px; }
 .season-champion-overlay__winner { border: 1px solid rgba(255, 215, 120, 0.34); border-radius: 14px; padding: 14px; background: rgba(9, 14, 30, 0.4); }
 .season-champion-overlay__label { color: #e7c980; font-size: 0.82rem; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.07em; }
@@ -1822,7 +1839,13 @@ body[data-page="admin"] .button-danger:focus-visible {
   cursor: pointer;
 }
 
-.season-champion-overlay__confetti { position: absolute; inset: 0; pointer-events: none; }
+.season-champion-overlay__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+}
 .season-champion-overlay__confetti-piece {
   position: absolute;
   top: -20px;
@@ -1840,6 +1863,10 @@ body[data-page="admin"] .button-danger:focus-visible {
 
 @media (max-width: 720px) {
   .season-champion-overlay__winners { grid-template-columns: 1fr; }
+  .season-champion-overlay h2 {
+    margin-right: 24px;
+  }
+  .season-champion-overlay__title-text { white-space: normal; }
 }
 
 .compact-home-grid {

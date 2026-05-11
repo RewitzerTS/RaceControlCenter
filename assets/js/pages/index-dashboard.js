@@ -25,7 +25,6 @@
       let storylineRefreshTimer = null;
       let dashboardLoadRequestId = 0;
       let championConfettiTimer = null;
-      let championConfettiCleanupTimer = null;
       let championConfettiHost = null;
 
       const DASHBOARD_VIEW_CACHE_KEY = 'rcc.dashboard.view.v1';
@@ -899,15 +898,16 @@
         }
       }
 
-      function startScreenConfetti(durationMs = 5000) {
-        if (!document.body) return;
+      function startScreenConfetti() {
+        const overlayConfettiLayer = document.querySelector('#season-champion-overlay .season-champion-overlay__confetti');
+        if (!document.body || !overlayConfettiLayer) return;
         if (!championConfettiHost) {
           championConfettiHost = document.createElement('div');
           championConfettiHost.className = 'hof-confetti-layer';
-          document.body.appendChild(championConfettiHost);
+          championConfettiHost.style.zIndex = '1';
+          overlayConfettiLayer.appendChild(championConfettiHost);
         }
         window.clearInterval(championConfettiTimer);
-        window.clearTimeout(championConfettiCleanupTimer);
         championConfettiHost.classList.add('is-visible');
         championConfettiTimer = window.setInterval(() => {
           for (let i = 0; i < 9; i += 1) {
@@ -925,12 +925,14 @@
             window.setTimeout(() => piece.remove(), 3600);
           }
         }, 140);
-        championConfettiCleanupTimer = window.setTimeout(() => {
-          window.clearInterval(championConfettiTimer);
-          championConfettiTimer = null;
-          championConfettiHost.classList.remove('is-visible');
-          window.setTimeout(() => championConfettiHost && (championConfettiHost.innerHTML = ''), 900);
-        }, durationMs);
+      }
+
+      function stopScreenConfetti() {
+        window.clearInterval(championConfettiTimer);
+        championConfettiTimer = null;
+        if (!championConfettiHost) return;
+        championConfettiHost.classList.remove('is-visible');
+        window.setTimeout(() => championConfettiHost && (championConfettiHost.innerHTML = ''), 900);
       }
 
       function maybeShowSeasonChampionOverlay({ seasonId, show, driverChampion, constructorChampion }) {
@@ -945,8 +947,9 @@
         if (constructorEl) constructorEl.textContent = constructorChampion;
         overlay.classList.add('is-visible');
         overlay.setAttribute('aria-hidden', 'false');
-        startScreenConfetti(5600);
+        startScreenConfetti();
         const close = () => {
+          stopScreenConfetti();
           overlay.classList.remove('is-visible');
           overlay.setAttribute('aria-hidden', 'true');
         };
