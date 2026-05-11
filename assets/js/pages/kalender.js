@@ -166,84 +166,11 @@ async function loadCalendar() {
     if (upcomingContainer) upcomingContainer.innerHTML = upcoming.length ? upcoming.map(window.createRaceCard).join('') : '<div class="notice">Keine kommenden Rennen vorhanden.</div>';
     if (completedContainer) completedContainer.innerHTML = completed.length ? completed.map(window.createRaceCard).join('') : '<div class="notice">Noch keine Rennen gefahren.</div>';
 
-    const overlayShownKey = `rcc.championOverlayShown.${season?.id || 'current'}`;
-    const alreadyShown = readCalendarSession(overlayShownKey) === '1';
-    if (!upcoming.length && completed.length && !alreadyShown) {
-      showSeasonChampionOverlay({ races: racesWithLifecycle, seasonId: season?.id });
-    }
-
     highlightRaceFromQuery();
   } catch (error) {
     console.error(error);
     if (upcomingContainer) upcomingContainer.innerHTML = '<div class="notice">Fehler beim Laden der Rennen.</div>';
     if (completedContainer) completedContainer.innerHTML = '<div class="notice">Fehler beim Laden der Rennen.</div>';
-  }
-}
-
-function getChampionNamesFromStandings({ races, drivers, raceResults }) {
-  const standings = window.RCCData.buildStandings({ drivers, races, raceResults });
-  return {
-    driverChampion: standings?.driverStandings?.[0]?.driverName || null,
-    constructorChampion: standings?.teamStandings?.[0]?.teamName || null
-  };
-}
-
-function createGoldConfetti(container, pieces = 110) {
-  if (!container) return;
-  container.innerHTML = '';
-  for (let i = 0; i < pieces; i += 1) {
-    const piece = document.createElement('span');
-    piece.className = 'season-champion-overlay__confetti-piece';
-    piece.style.left = `${Math.random() * 100}%`;
-    piece.style.animationDelay = `${Math.random() * 1.2}s`;
-    piece.style.animationDuration = `${4 + Math.random() * 2.8}s`;
-    piece.style.opacity = `${0.55 + Math.random() * 0.45}`;
-    piece.style.transform = `translateY(-16px) rotate(${Math.random() * 360}deg)`;
-    container.appendChild(piece);
-  }
-}
-
-async function showSeasonChampionOverlay({ races, seasonId }) {
-  const overlay = document.getElementById('season-champion-overlay');
-  const closeBtn = document.getElementById('season-champion-close');
-  const driverEl = document.getElementById('season-driver-champion');
-  const constructorEl = document.getElementById('season-constructor-champion');
-  const confetti = document.getElementById('season-confetti');
-  if (!overlay || !driverEl || !constructorEl) return;
-
-  const raceIds = (races || []).map((race) => race.id).filter(Boolean);
-  const [drivers, raceResults] = await Promise.all([
-    window.RCCData.fetchDrivers(),
-    raceIds.length ? window.RCCData.fetchRaceResults({ raceIds }) : Promise.resolve([])
-  ]);
-
-  const champions = getChampionNamesFromStandings({ races, drivers, raceResults });
-  if (!champions.driverChampion || !champions.constructorChampion) return;
-
-  driverEl.textContent = champions.driverChampion;
-  constructorEl.textContent = champions.constructorChampion;
-  overlay.classList.add('is-visible');
-  overlay.setAttribute('aria-hidden', 'false');
-
-  const closeOverlay = () => {
-    overlay.classList.remove('is-visible');
-    overlay.setAttribute('aria-hidden', 'true');
-  };
-
-  overlay.addEventListener('click', (event) => {
-    if (event.target === overlay || event.target.classList.contains('season-champion-overlay__backdrop')) closeOverlay();
-  }, { once: true });
-
-  if (closeBtn) closeBtn.addEventListener('click', closeOverlay, { once: true });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeOverlay();
-  }, { once: true });
-
-  createGoldConfetti(confetti);
-  try {
-    window.sessionStorage?.setItem(`rcc.championOverlayShown.${seasonId || 'current'}`, '1');
-  } catch (_error) {
-    // Ignorieren falls sessionStorage gesperrt ist.
   }
 }
 
