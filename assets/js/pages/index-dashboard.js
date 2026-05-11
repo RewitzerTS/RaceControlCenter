@@ -24,6 +24,9 @@
       let countdownRefreshTriggered = false;
       let storylineRefreshTimer = null;
       let dashboardLoadRequestId = 0;
+      let championConfettiTimer = null;
+      let championConfettiCleanupTimer = null;
+      let championConfettiHost = null;
 
       const DASHBOARD_VIEW_CACHE_KEY = 'rcc.dashboard.view.v1';
 
@@ -733,6 +736,13 @@
           const standings = window.RCCData.buildStandings({ drivers, races: racesWithLifecycle, raceResults, resolver });
           const driverStandings = standings.driverStandings;
           const teamStandings = standings.teamStandings;
+          const seasonFinished = !upcomingRaces.length && completedRaces.length > 0;
+          maybeShowSeasonChampionOverlay({
+            seasonId: currentSeason?.id,
+            show: seasonFinished,
+            driverChampion: driverStandings[0]?.driverName,
+            constructorChampion: teamStandings[0]?.teamName
+          });
 
           document.getElementById('status-season').textContent = currentSeason?.name ? `${currentSeason.name} aktiv` : 'Saison aktiv';
           const nextTwoRaces = upcomingRaces.slice(0, 2);
@@ -887,6 +897,64 @@
           renderStorylineTicker(['Dashboard konnte nicht geladen werden. Bitte Seite aktualisieren.']);
           initScrollAnimations();
         }
+      }
+
+      function startScreenConfetti(durationMs = 5000) {
+        if (!document.body) return;
+        if (!championConfettiHost) {
+          championConfettiHost = document.createElement('div');
+          championConfettiHost.className = 'hof-confetti-layer';
+          document.body.appendChild(championConfettiHost);
+        }
+        window.clearInterval(championConfettiTimer);
+        window.clearTimeout(championConfettiCleanupTimer);
+        championConfettiHost.classList.add('is-visible');
+        championConfettiTimer = window.setInterval(() => {
+          for (let i = 0; i < 9; i += 1) {
+            const piece = document.createElement('span');
+            piece.className = 'hof-confetti-piece';
+            piece.style.width = `${6 + Math.random() * 8}px`;
+            piece.style.height = `${5 + Math.random() * 6}px`;
+            piece.style.left = `${Math.random() * 100}%`;
+            piece.style.opacity = `${0.62 + Math.random() * 0.38}`;
+            piece.style.background = `hsl(${41 + Math.floor(Math.random() * 12)} 98% 62%)`;
+            piece.style.setProperty('--hof-confetti-drift', `${(-90 + Math.random() * 180).toFixed(1)}px`);
+            piece.style.animationDuration = `${(2.2 + Math.random() * 1.6).toFixed(2)}s`;
+            piece.style.animationDelay = `${(Math.random() * 0.4).toFixed(2)}s`;
+            championConfettiHost.appendChild(piece);
+            window.setTimeout(() => piece.remove(), 3600);
+          }
+        }, 140);
+        championConfettiCleanupTimer = window.setTimeout(() => {
+          window.clearInterval(championConfettiTimer);
+          championConfettiTimer = null;
+          championConfettiHost.classList.remove('is-visible');
+          window.setTimeout(() => championConfettiHost && (championConfettiHost.innerHTML = ''), 900);
+        }, durationMs);
+      }
+
+      function maybeShowSeasonChampionOverlay({ seasonId, show, driverChampion, constructorChampion }) {
+        const overlay = document.getElementById('season-champion-overlay');
+        if (!overlay || !show || !driverChampion || !constructorChampion) return;
+        const shownKey = `rcc.championOverlayShown.${seasonId || 'current'}`;
+        if (window.sessionStorage?.getItem(shownKey) === '1') return;
+        const driverEl = document.getElementById('season-driver-champion');
+        const constructorEl = document.getElementById('season-constructor-champion');
+        const closeBtn = document.getElementById('season-champion-close');
+        if (driverEl) driverEl.textContent = driverChampion;
+        if (constructorEl) constructorEl.textContent = constructorChampion;
+        overlay.classList.add('is-visible');
+        overlay.setAttribute('aria-hidden', 'false');
+        startScreenConfetti(5600);
+        const close = () => {
+          overlay.classList.remove('is-visible');
+          overlay.setAttribute('aria-hidden', 'true');
+        };
+        closeBtn?.addEventListener('click', close, { once: true });
+        overlay.addEventListener('click', (event) => {
+          if (event.target === overlay || event.target.classList.contains('season-champion-overlay__backdrop')) close();
+        }, { once: true });
+        window.sessionStorage?.setItem(shownKey, '1');
       }
 
       document.addEventListener('DOMContentLoaded', () => {
