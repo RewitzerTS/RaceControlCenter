@@ -2293,7 +2293,7 @@ async function importRaceResults(options = {}) {
     ({ data: raceData, error: raceError } = await raceQuery.maybeSingle());
 
     if (!raceData) {
-      const matchedTrack = window.findTrackByGrandPrixName?.(grandPrixName);
+      const matchedTrack = window.findTrackByGrandPrixName?.(grandPrixName, getActiveSeasonGameKey());
       if (matchedTrack?.grandPrixName) {
         let canonicalRaceQuery = window.supabaseClient
           .from('races')

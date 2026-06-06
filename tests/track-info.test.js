@@ -16,6 +16,16 @@ assert(imola && imola.id === 'imola', 'Imola alias lookup failed');
 const official = context.window.getTrackInfo('Autodromo Internazionale Enzo e Dino Ferrari');
 assert(official && official.id === 'imola', 'Official name lookup failed');
 
+
+const catalonia = context.window.getTrackInfo('Katalonien GP');
+assert(catalonia && catalonia.id === 'catalonia', 'Katalonien GP lookup failed');
+
+const madrid = context.window.getTrackInfo('Grand Prix von Spanien');
+assert(madrid && madrid.id === 'madrid', 'Grand Prix von Spanien should resolve to Madrid');
+
+const madridShort = context.window.getTrackInfo('Spanien GP');
+assert(madridShort && madridShort.id === 'madrid', 'Spanien GP should resolve to Madrid track info');
+
 const unknown = context.window.getTrackInfo('Unbekannte Strecke');
 assert(unknown === null, 'Unknown track should return null');
 

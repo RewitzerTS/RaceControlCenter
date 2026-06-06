@@ -8,13 +8,14 @@ const RCC_TRACKS = [
   { key: 'imola', games: ['f1_25'], trackMapFile: 'imola.png', grandPrixName: 'Emilia-Romagna GP', circuitName: 'Autodromo Enzo e Dino Ferrari', countryCode: 'IT', aliases: ['emilia romagna gp', 'emilia-romagna gp', 'imola gp', 'imola'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M18 66 C34 26, 94 16, 122 42 C138 58, 130 82, 104 86 C78 90, 52 80, 36 82 C24 84, 16 76, 18 66 Z' },
   { key: 'monaco', trackMapFile: 'monaco.png', grandPrixName: 'Monaco GP', circuitName: 'Circuit de Monaco', countryCode: 'MC', aliases: ['monaco gp', 'monaco grand prix'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M28 28 C46 20, 74 22, 94 34 C108 42, 112 52, 102 60 C92 68, 72 66, 64 74 C58 80, 66 92, 58 98 C48 104, 30 92, 28 78 C26 58, 16 34, 28 28 Z' },
   { key: 'canada', trackMapFile: 'montreal.png', grandPrixName: 'Kanada GP', circuitName: 'Circuit Gilles Villeneuve', countryCode: 'CA', aliases: ['kanada gp', 'canada gp', 'montreal gp', 'circuit gilles villeneuve'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M22 52 C30 30, 60 18, 92 20 C116 22, 134 36, 136 54 C138 72, 126 82, 104 82 L70 82 C42 82, 24 72, 22 52 Z' },
-  { key: 'spain', trackMapFile: 'barcelona.png', grandPrixName: 'Spanien GP', circuitName: 'Circuit de Barcelona-Catalunya', countryCode: 'ES', aliases: ['spanien gp', 'spain gp', 'spanish gp', 'barcelona gp', 'barcelona-catalunya'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M20 46 C34 22, 82 18, 112 32 C126 40, 132 54, 124 66 C116 78, 96 82, 70 80 C46 78, 26 70, 20 46 Z' },
+  { key: 'spain', games: ['f1_25'], trackMapFile: 'barcelona.png', grandPrixName: 'Spanien GP', circuitName: 'Circuit de Barcelona-Catalunya', countryCode: 'ES', aliases: ['spanien gp', 'spain gp', 'spanish gp', 'barcelona gp', 'barcelona-catalunya'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M20 46 C34 22, 82 18, 112 32 C126 40, 132 54, 124 66 C116 78, 96 82, 70 80 C46 78, 26 70, 20 46 Z' },
+  { key: 'catalonia', games: ['f1_26'], trackMapFile: 'barcelona.png', grandPrixName: 'Katalonien GP', circuitName: 'Circuit de Barcelona-Catalunya', countryCode: 'ES', aliases: ['katalonien gp', 'catalonia gp', 'catalunya gp', 'barcelona gp', 'barcelona-catalunya', 'circuit de barcelona catalunya'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M20 46 C34 22, 82 18, 112 32 C126 40, 132 54, 124 66 C116 78, 96 82, 70 80 C46 78, 26 70, 20 46 Z' },
   { key: 'austria', trackMapFile: 'redbullring.png', grandPrixName: 'Österreich GP', circuitName: 'Red Bull Ring', countryCode: 'AT', aliases: ['österreich gp', 'osterreich gp', 'austria gp', 'austrian gp', 'österreich/austria gp', 'red bull ring'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M22 74 L42 28 L94 20 L132 44 L110 82 L54 90 Z' },
   { key: 'great-britain', trackMapFile: 'silverstone.png', grandPrixName: 'Großbritannien GP', circuitName: 'Silverstone Circuit', countryCode: 'GB', aliases: ['großbritannien gp', 'grossbritannien gp', 'great britain gp', 'british gp', 'silverstone gp', 'silverstone'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M20 64 C26 36, 56 18, 92 20 C122 22, 142 38, 142 58 C142 76, 124 88, 98 90 C70 92, 54 72, 34 72 C26 72, 20 68, 20 64 Z' },
   { key: 'belgium', trackMapFile: 'spa.png', grandPrixName: 'Belgien GP', circuitName: 'Circuit de Spa-Francorchamps', countryCode: 'BE', aliases: ['belgien gp', 'belgium gp', 'spa gp', 'spa-francorchamps'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M28 28 C48 18, 78 18, 104 30 C124 40, 132 58, 126 74 C120 88, 102 94, 78 90 C56 86, 44 72, 38 58 C32 46, 18 34, 28 28 Z' },
   { key: 'hungary', trackMapFile: 'hungaroring.png', grandPrixName: 'Ungarn GP', circuitName: 'Hungaroring', countryCode: 'HU', aliases: ['ungarn gp', 'hungary gp', 'hungarian gp', 'hungaroring'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M24 44 C38 22, 86 20, 112 38 C126 48, 126 64, 112 74 C96 86, 60 88, 36 76 C18 66, 14 54, 24 44 Z' },
   { key: 'netherlands', trackMapFile: 'zandvoort.png', grandPrixName: 'Niederlande GP', circuitName: 'Circuit Zandvoort', countryCode: 'NL', aliases: ['niederlande gp', 'netherlands gp', 'dutch gp', 'zandvoort gp', 'zandvoort'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M24 28 C42 18, 72 18, 94 28 C114 36, 128 54, 122 72 C114 92, 82 94, 56 84 C34 76, 18 40, 24 28 Z' },
-  { key: 'madrid', games: ['f1_26'], trackMapFile: 'barcelona.png', grandPrixName: 'Madrid GP', circuitName: 'Madring', countryCode: 'ES', aliases: ['madrid gp', 'spanish gp madrid', 'madring'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M24 30 C42 16, 76 18, 102 30 C122 40, 132 58, 124 76 C114 94, 84 98, 58 90 C34 82, 16 52, 24 30 Z' },
+  { key: 'madrid', games: ['f1_26'], trackMapFile: 'barcelona.png', grandPrixName: 'Spanien GP', circuitName: 'Madring', countryCode: 'ES', aliases: ['grand prix von spanien', 'spanien gp', 'spain gp', 'spanish gp', 'madrid gp', 'spanish gp madrid', 'madring'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M24 30 C42 16, 76 18, 102 30 C122 40, 132 58, 124 76 C114 94, 84 98, 58 90 C34 82, 16 52, 24 30 Z' },
   { key: 'italy', trackMapFile: 'monza.png', grandPrixName: 'Italien GP', circuitName: 'Autodromo Nazionale Monza', countryCode: 'IT', aliases: ['italien gp', 'italy gp', 'italian gp', 'monza gp', 'monza'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M26 20 L102 20 L136 48 L104 86 L36 86 L18 50 Z' },
   { key: 'azerbaijan', trackMapFile: 'baku.png', grandPrixName: 'Aserbaidschan GP', circuitName: 'Baku City Circuit', countryCode: 'AZ', aliases: ['aserbaidschan gp', 'azerbaijan gp', 'baku gp', 'baku city circuit'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M42 16 C36 36, 44 48, 60 56 C74 64, 78 74, 72 92 M86 16 C78 28, 82 42, 96 50 C116 62, 120 82, 104 96' },
   { key: 'singapore', trackMapFile: 'singapore.png', grandPrixName: 'Singapur GP', circuitName: 'Marina Bay Street Circuit', countryCode: 'SG', aliases: ['singapur gp', 'singapore gp', 'singapore grand prix', 'marina bay'], weatherPresets: ['klar', 'regen', 'dynamisch'], svgPath: 'M26 34 C44 18, 80 18, 106 30 C124 40, 132 56, 126 72 C118 90, 88 98, 58 90 C34 84, 18 62, 26 34 Z' },
@@ -37,34 +38,39 @@ function normalizeTrackKey(value) {
     .trim();
 }
 
-function findTrackByGrandPrixName(name) {
+function trackSupportsGame(track, gameKey) {
+  const activeGameKey = String(gameKey || '').trim();
+  return !activeGameKey || !Array.isArray(track.games) || track.games.includes(activeGameKey);
+}
+
+function findTrackByGrandPrixName(name, gameKey = '') {
   const needle = normalizeTrackKey(name);
   if (!needle) return null;
 
-  return RCC_TRACKS.find((track) => {
+  return RCC_TRACKS.filter((track) => trackSupportsGame(track, gameKey)).find((track) => {
     const names = [track.grandPrixName, ...(track.aliases || [])];
     return names.some((entry) => normalizeTrackKey(entry) === needle || normalizeTrackKey(entry).includes(needle) || needle.includes(normalizeTrackKey(entry)));
   }) || null;
 }
 
-function findTrackByCircuitName(name) {
+function findTrackByCircuitName(name, gameKey = '') {
   const needle = normalizeTrackKey(name);
   if (!needle) return null;
 
-  return RCC_TRACKS.find((track) => {
+  return RCC_TRACKS.filter((track) => trackSupportsGame(track, gameKey)).find((track) => {
     const circuit = normalizeTrackKey(track.circuitName);
     return circuit === needle || circuit.includes(needle) || needle.includes(circuit);
   }) || null;
 }
 
-function findTrackByRace(race) {
-  return findTrackByGrandPrixName(race?.grand_prix_name) || findTrackByCircuitName(race?.circuit_name) || null;
+function findTrackByRace(race, gameKey = '') {
+  return findTrackByGrandPrixName(race?.grand_prix_name, gameKey) || findTrackByCircuitName(race?.circuit_name, gameKey) || null;
 }
 
 
 function getTracksForSeasonGame(gameKey) {
   const activeGameKey = String(gameKey || '').trim() || 'f1_25';
-  return RCC_TRACKS.filter((track) => !Array.isArray(track.games) || track.games.includes(activeGameKey));
+  return RCC_TRACKS.filter((track) => trackSupportsGame(track, activeGameKey));
 }
 
 function getFlagEmoji(countryCode) {
