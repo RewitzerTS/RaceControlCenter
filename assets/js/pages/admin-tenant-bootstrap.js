@@ -1,8 +1,10 @@
 (() => {
   if (document.body?.dataset.page !== 'admin') return;
 
+  const FALLBACK_LEAGUE_SLUG = 'rcc';
   let prepared = false;
   let preparing = null;
+  let authReloadBound = false;
 
   function addLeagueId(payload, leagueId, table) {
     const enhanceRow = (row) => {
@@ -22,6 +24,99 @@
     };
 
     return Array.isArray(payload) ? payload.map(enhanceRow) : enhanceRow(payload);
+  }
+
+  async function getSession() {
+    const { data, error } = await window.supabaseClient.auth.getSession();
+    if (error) throw error;
+    return data?.session || null;
+  }
+
+  async function fetchAccessibleLeagues() {
+    const session = await getSession();
+    if (!session?.user?.id) return [];
+
+    const { data: memberships, error: membershipError } = await window.supabaseClient
+      .from('league_members')
+      .select('league_id, role')
+      .eq('user_id', session.user.id);
+    if (membershipError) throw membershipError;
+    if (!memberships?.length) return [];
+
+    const roleByLeagueId = new Map(memberships.map((row) => [row.league_id, row.role]));
+    const leagueIds = memberships.map((row) => row.league_id);
+    const { data: leagues, error: leagueError } = await window.supabaseClient
+      .from('leagues')
+      .select('id, name, slug, status, is_public')
+      .in('id', leagueIds)
+      .eq('status', 'active')
+      .order('name', { ascending: true });
+    if (leagueError) throw leagueError;
+
+    return (leagues || []).map((league) => ({
+      ...league,
+      role: roleByLeagueId.get(league.id) || 'member'
+    }));
+  }
+
+  function roleLabel(role) {
+    const labels = {
+      owner: 'Owner',
+      admin: 'Admin',
+      steward: 'Steward',
+      member: 'Mitglied'
+    };
+    return labels[role] || role || 'Mitglied';
+  }
+
+  function navigateToLeague(slug) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('league', slug);
+    window.location.assign(url.toString());
+  }
+
+  async function renderLeagueSwitcher() {
+    const session = await getSession();
+    let switcher = document.getElementById('admin-league-switcher');
+
+    if (!session) {
+      switcher?.remove();
+      return;
+    }
+
+    const leagues = await fetchAccessibleLeagues();
+    if (!switcher) {
+      switcher = document.createElement('div');
+      switcher.id = 'admin-league-switcher';
+      switcher.className = 'container admin-session-banner';
+      const banner = document.getElementById('admin-session-banner');
+      if (banner?.parentNode) banner.parentNode.insertBefore(switcher, banner.nextSibling);
+    }
+
+    const currentSlug = window.RCCLeagueContext?.getSlug?.() || FALLBACK_LEAGUE_SLUG;
+    if (!leagues.length) {
+      switcher.innerHTML = '<span>Deinem Account ist noch keine Liga zugeordnet.</span>';
+      switcher.hidden = false;
+      return;
+    }
+
+    switcher.innerHTML = `
+      <label for="admin-league-select"><strong>Aktive Liga:</strong></label>
+      <select id="admin-league-select" aria-label="Aktive Liga auswählen">
+        ${leagues.map((league) => `
+          <option value="${league.slug}" ${league.slug === currentSlug ? 'selected' : ''}>
+            ${league.name} · ${roleLabel(league.role)}
+          </option>
+        `).join('')}
+      </select>
+    `;
+    switcher.hidden = false;
+
+    const select = switcher.querySelector('#admin-league-select');
+    select?.addEventListener('change', () => {
+      const nextSlug = String(select.value || '').trim();
+      if (nextSlug && nextSlug !== currentSlug) navigateToLeague(nextSlug);
+    });
   }
 
   function installLeagueScopedSupabase(leagueId) {
@@ -77,7 +172,9 @@
     if (typeof originalRefreshSessionStatus === 'function') {
       window.refreshSessionStatus = async (...args) => {
         await window.RCCData.getLeagueContext({ forceRefresh: true }).catch(() => null);
-        return originalRefreshSessionStatus(...args);
+        const result = await originalRefreshSessionStatus(...args);
+        await renderLeagueSwitcher().catch((error) => console.warn('Liga-Auswahl konnte nicht geladen werden.', error));
+        return result;
       };
     }
 
@@ -201,12 +298,50 @@
     };
   }
 
+  function bindPrivateLeagueReload(requestedSlug, initializedSlug) {
+    if (authReloadBound || requestedSlug === initializedSlug) return;
+    authReloadBound = true;
+
+    window.supabaseClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        window.location.reload();
+      }
+    });
+  }
+
+  async function resolveAdminContext() {
+    const requestedSlug = window.RCCLeagueContext?.getRequestedLeagueSlug?.() || FALLBACK_LEAGUE_SLUG;
+    const session = await getSession();
+
+    try {
+      return await window.RCCData.getLeagueContext({ slug: requestedSlug, forceRefresh: true });
+    } catch (error) {
+      if (!session && requestedSlug !== FALLBACK_LEAGUE_SLUG) {
+        const fallback = await window.RCCData.getLeagueContext({ slug: FALLBACK_LEAGUE_SLUG, forceRefresh: true });
+        bindPrivateLeagueReload(requestedSlug, fallback.slug);
+        return fallback;
+      }
+
+      if (session) {
+        const leagues = await fetchAccessibleLeagues();
+        const preferred = leagues.find((league) => ['owner', 'admin'].includes(league.role)) || leagues[0];
+        if (preferred && preferred.slug !== requestedSlug) {
+          navigateToLeague(preferred.slug);
+          return null;
+        }
+      }
+
+      throw error;
+    }
+  }
+
   async function prepare() {
     if (prepared) return;
     if (preparing) return preparing;
 
     preparing = (async () => {
-      const context = await window.RCCData.getLeagueContext({ forceRefresh: true });
+      const context = await resolveAdminContext();
+      if (!context) return null;
       if (!context?.leagueId) throw new Error('Keine aktive Liga für das Admin Center gefunden.');
 
       installLeagueScopedSupabase(context.leagueId);
@@ -214,6 +349,7 @@
       installStewardCaseScope();
       installSeasonStartScope();
       prepared = true;
+      return context;
     })().finally(() => {
       preparing = null;
     });
@@ -221,15 +357,22 @@
     return preparing;
   }
 
-  window.RCCAdminTenant = { prepare };
+  window.RCCAdminTenant = {
+    prepare,
+    fetchAccessibleLeagues,
+    renderLeagueSwitcher,
+    navigateToLeague
+  };
 
   document.addEventListener('DOMContentLoaded', async (event) => {
     event.stopImmediatePropagation();
     try {
-      await prepare();
+      const context = await prepare();
+      if (!context) return;
       if (typeof window.initAdminPage === 'function') {
         await window.initAdminPage();
       }
+      await renderLeagueSwitcher();
     } catch (error) {
       console.error('RCC Admin tenant bootstrap failed.', error);
       const status = document.getElementById('admin-session-status');
