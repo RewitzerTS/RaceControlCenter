@@ -107,8 +107,10 @@
     return roles.includes(getRole());
   }
 
+  // Admin Center access includes stewards. Database RLS still limits what
+  // a steward may change to steward-specific data.
   function isAdmin() {
-    return hasRole('owner', 'admin');
+    return hasRole('owner', 'admin', 'steward');
   }
 
   function isStaff() {
