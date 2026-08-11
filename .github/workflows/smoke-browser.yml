@@ -51,7 +51,8 @@ jobs:
             const cases = [
               { name: 'public-rcc-home', url: 'http://127.0.0.1:8080/index.html?league=rcc', selector: 'body' },
               { name: 'rcc-admin-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#admin-login-form' },
-              { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' }
+              { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' },
+              { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' }
             ];
 
             for (const testCase of cases) {
