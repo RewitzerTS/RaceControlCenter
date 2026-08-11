@@ -6,6 +6,7 @@
   let preparing = null;
   let authReloadBound = false;
   let membersModulePromise = null;
+  let leagueCreateModulePromise = null;
 
   function addLeagueId(payload, leagueId, table) {
     const enhanceRow = (row) => {
@@ -96,7 +97,7 @@
 
     const currentSlug = window.RCCLeagueContext?.getSlug?.() || FALLBACK_LEAGUE_SLUG;
     if (!leagues.length) {
-      switcher.innerHTML = '<span>Deinem Account ist noch keine Liga zugeordnet.</span>';
+      switcher.innerHTML = '<span>Deinem Account ist noch keine Liga zugeordnet. Du kannst unten eine neue Liga erstellen.</span>';
       switcher.hidden = false;
       return;
     }
@@ -135,6 +136,23 @@
     });
 
     return membersModulePromise;
+  }
+
+  async function loadLeagueCreateModule() {
+    if (window.RCCLeagueCreate) return window.RCCLeagueCreate;
+    if (leagueCreateModulePromise) return leagueCreateModulePromise;
+
+    leagueCreateModulePromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'assets/js/pages/admin-league-create.js';
+      script.onload = () => resolve(window.RCCLeagueCreate);
+      script.onerror = () => reject(new Error('Liga-Erstellen-Modul konnte nicht geladen werden.'));
+      document.head.appendChild(script);
+    }).finally(() => {
+      leagueCreateModulePromise = null;
+    });
+
+    return leagueCreateModulePromise;
   }
 
   function installLeagueScopedSupabase(leagueId) {
@@ -192,6 +210,8 @@
         await window.RCCData.getLeagueContext({ forceRefresh: true }).catch(() => null);
         const result = await originalRefreshSessionStatus(...args);
         await renderLeagueSwitcher().catch((error) => console.warn('Liga-Auswahl konnte nicht geladen werden.', error));
+        const createModule = await loadLeagueCreateModule().catch((error) => console.warn(error));
+        await createModule?.init?.();
         return result;
       };
     }
@@ -391,6 +411,8 @@
         await window.initAdminPage();
       }
       await renderLeagueSwitcher();
+      const createModule = await loadLeagueCreateModule();
+      await createModule?.init?.();
       const membersModule = await loadLeagueMembersModule();
       await membersModule?.init?.();
     } catch (error) {
