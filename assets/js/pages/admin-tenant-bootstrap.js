@@ -5,6 +5,7 @@
   let prepared = false;
   let preparing = null;
   let authReloadBound = false;
+  let membersModulePromise = null;
 
   function addLeagueId(payload, leagueId, table) {
     const enhanceRow = (row) => {
@@ -117,6 +118,23 @@
       const nextSlug = String(select.value || '').trim();
       if (nextSlug && nextSlug !== currentSlug) navigateToLeague(nextSlug);
     });
+  }
+
+  async function loadLeagueMembersModule() {
+    if (window.RCCLeagueMembers) return window.RCCLeagueMembers;
+    if (membersModulePromise) return membersModulePromise;
+
+    membersModulePromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'assets/js/pages/admin-members.js';
+      script.onload = () => resolve(window.RCCLeagueMembers);
+      script.onerror = () => reject(new Error('Liga-Mitglieder-Modul konnte nicht geladen werden.'));
+      document.head.appendChild(script);
+    }).finally(() => {
+      membersModulePromise = null;
+    });
+
+    return membersModulePromise;
   }
 
   function installLeagueScopedSupabase(leagueId) {
@@ -373,6 +391,8 @@
         await window.initAdminPage();
       }
       await renderLeagueSwitcher();
+      const membersModule = await loadLeagueMembersModule();
+      await membersModule?.init?.();
     } catch (error) {
       console.error('RCC Admin tenant bootstrap failed.', error);
       const status = document.getElementById('admin-session-status');
