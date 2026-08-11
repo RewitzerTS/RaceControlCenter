@@ -112,7 +112,7 @@
         const raceIds = races.map((race) => race.id).filter(Boolean);
 
         if (!raceIds.length) {
-          window.stewardCaseCache = [];
+          stewardCaseCache = [];
           list.innerHTML = '<div class="notice">Noch kein Steward-Fall vorhanden.</div>';
           return;
         }
@@ -146,6 +146,61 @@
     };
   }
 
+  function installSeasonStartScope() {
+    if (typeof window.startNewSeason !== 'function') return;
+
+    window.startNewSeason = async () => {
+      if (state.isStartingSeason) return;
+      state.isStartingSeason = true;
+      clearFeedback('season-feedback');
+
+      try {
+        await requireAdminSession();
+        const currentSeason = await getCurrentSeasonSafe();
+        if (currentSeason) throw new Error('Es gibt bereits eine aktive Saison. Bitte diese zuerst abschließen.');
+
+        const nextSeasonGameKey = getSelectedSeasonGameKey();
+        const nextSeasonGameLabel = resolveSeasonGameLabel(nextSeasonGameKey);
+        const seasons = await window.RCCData.fetchSeasons({ forceRefresh: true, backgroundRefresh: false });
+        const maxSeasonNumber = (seasons || []).reduce((maxValue, season) => {
+          const number = Number(String(season?.name || '').match(/(\d+)/)?.[1] || 0);
+          return Math.max(maxValue, Number.isFinite(number) ? number : 0);
+        }, 0);
+        const nextSeasonNumber = maxSeasonNumber + 1;
+
+        const confirmed = window.confirm(`Neue Saison ${nextSeasonNumber} für ${nextSeasonGameLabel} starten?`);
+        if (!confirmed) return;
+
+        const createResponse = await window.supabaseClient
+          .from('seasons')
+          .insert([{
+            name: `Saison ${nextSeasonNumber}`,
+            slug: `saison-${nextSeasonNumber}`,
+            is_active: true,
+            game_key: nextSeasonGameKey,
+            game_label: nextSeasonGameLabel
+          }])
+          .select()
+          .single();
+
+        if (createResponse.error) throw createResponse.error;
+
+        showFeedback('season-feedback', `Erfolg: Saison ${nextSeasonNumber} wurde für ${nextSeasonGameLabel} gestartet.`);
+        await Promise.all([
+          loadSeasonSummary(),
+          loadRaceOptions(),
+          populateManualRaceSelect(),
+          renderPublishWorkflow()
+        ]);
+      } catch (error) {
+        console.error(error);
+        showFeedback('season-feedback', error.message || 'Neue Saison konnte nicht gestartet werden.', true);
+      } finally {
+        state.isStartingSeason = false;
+      }
+    };
+  }
+
   async function prepare() {
     if (prepared) return;
     if (preparing) return preparing;
@@ -157,6 +212,7 @@
       installLeagueScopedSupabase(context.leagueId);
       installLeagueRoleGuards();
       installStewardCaseScope();
+      installSeasonStartScope();
       prepared = true;
     })().finally(() => {
       preparing = null;
