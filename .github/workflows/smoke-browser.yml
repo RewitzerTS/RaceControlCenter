@@ -46,6 +46,17 @@ jobs:
           node <<'NODE'
           const { chromium } = require('playwright');
 
+          const isCriticalUrl = (url) => {
+            try {
+              const parsed = new URL(url);
+              return parsed.hostname === '127.0.0.1'
+                || parsed.hostname.endsWith('.supabase.co')
+                || parsed.hostname === 'cdn.jsdelivr.net';
+            } catch {
+              return true;
+            }
+          };
+
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const cases = [
@@ -58,12 +69,22 @@ jobs:
             for (const testCase of cases) {
               const page = await browser.newPage();
               const fatalErrors = [];
+              const diagnostics = [];
+
               page.on('pageerror', (error) => fatalErrors.push(`pageerror: ${error.message}`));
+              page.on('requestfailed', (request) => {
+                const detail = `requestfailed: ${request.failure()?.errorText || 'unknown'} ${request.url()}`;
+                diagnostics.push(detail);
+                if (isCriticalUrl(request.url())) fatalErrors.push(detail);
+              });
+              page.on('response', (response) => {
+                if (response.status() < 400) return;
+                const detail = `response: HTTP ${response.status()} ${response.url()}`;
+                diagnostics.push(detail);
+                if (isCriticalUrl(response.url())) fatalErrors.push(detail);
+              });
               page.on('console', (message) => {
-                if (message.type() === 'error') {
-                  const text = message.text();
-                  if (!/favicon|manifest/i.test(text)) fatalErrors.push(`console: ${text}`);
-                }
+                if (message.type() === 'error') diagnostics.push(`console: ${message.text()}`);
               });
 
               const response = await page.goto(testCase.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -73,6 +94,7 @@ jobs:
               await page.waitForSelector(testCase.selector, { timeout: 15000 });
               await page.waitForTimeout(2500);
 
+              diagnostics.forEach((line) => console.log(`[${testCase.name}] ${line}`));
               if (fatalErrors.length) {
                 throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
               }
