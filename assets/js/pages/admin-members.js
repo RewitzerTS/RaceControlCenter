@@ -88,7 +88,6 @@
   }
 
   function renderMember(member) {
-    const currentUserId = window.supabaseClient?.auth?.getUser ? '' : '';
     const ownerProtected = member.role === 'owner' && !isOwner();
     const ownerOptions = isOwner() ? '<option value="owner">Owner</option>' : '';
     return `
@@ -155,7 +154,7 @@
     showFeedback('Einladung wird verarbeitet...');
 
     try {
-      const redirectUrl = new URL('admin.html', window.location.href);
+      const redirectUrl = new URL('set-password.html', window.location.href);
       redirectUrl.searchParams.set('league', window.RCCLeagueContext?.getSlug?.() || 'rcc');
       const { data, error } = await window.supabaseClient.functions.invoke('manage-league-member', {
         body: { leagueId, email, role, redirectTo: redirectUrl.toString() }
