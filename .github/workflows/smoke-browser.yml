@@ -46,14 +46,15 @@ jobs:
           node <<'NODE'
           const { chromium } = require('playwright');
 
-          const isCriticalUrl = (url) => {
+          const classifyUrl = (url) => {
             try {
               const parsed = new URL(url);
-              return parsed.hostname === '127.0.0.1'
-                || parsed.hostname.endsWith('.supabase.co')
-                || parsed.hostname === 'cdn.jsdelivr.net';
+              if (parsed.hostname === '127.0.0.1') return 'local';
+              if (parsed.hostname.endsWith('.supabase.co')) return 'supabase';
+              if (parsed.hostname === 'cdn.jsdelivr.net') return 'critical-external';
+              return 'optional-external';
             } catch {
-              return true;
+              return 'unknown';
             }
           };
 
@@ -73,15 +74,26 @@ jobs:
 
               page.on('pageerror', (error) => fatalErrors.push(`pageerror: ${error.message}`));
               page.on('requestfailed', (request) => {
-                const detail = `requestfailed: ${request.failure()?.errorText || 'unknown'} ${request.url()}`;
+                const errorText = request.failure()?.errorText || 'unknown';
+                const url = request.url();
+                const kind = classifyUrl(url);
+                const detail = `requestfailed: ${errorText} ${url}`;
                 diagnostics.push(detail);
-                if (isCriticalUrl(request.url())) fatalErrors.push(detail);
+
+                // Browser navigation and query refreshes may intentionally abort an in-flight
+                // Supabase request. Only non-abort failures are considered fatal.
+                if (kind === 'supabase' && errorText !== 'net::ERR_ABORTED') fatalErrors.push(detail);
+                if (kind === 'local' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
               page.on('response', (response) => {
                 if (response.status() < 400) return;
-                const detail = `response: HTTP ${response.status()} ${response.url()}`;
+                const url = response.url();
+                const kind = classifyUrl(url);
+                const detail = `response: HTTP ${response.status()} ${url}`;
                 diagnostics.push(detail);
-                if (isCriticalUrl(response.url())) fatalErrors.push(detail);
+                if (kind === 'local' || kind === 'supabase' || kind === 'critical-external' || kind === 'unknown') {
+                  fatalErrors.push(detail);
+                }
               });
               page.on('console', (message) => {
                 if (message.type() === 'error') diagnostics.push(`console: ${message.text()}`);
