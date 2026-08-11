@@ -1,6 +1,7 @@
 (() => {
   let initialized = false;
   let onboardingModulePromise = null;
+  let scoringModulePromise = null;
 
   function slugify(value) {
     return String(value || '')
@@ -22,21 +23,37 @@
     el.classList.toggle('notice-error', Boolean(isError));
   }
 
+  function loadScriptModule(globalName, src, errorMessage) {
+    if (window[globalName]) return Promise.resolve(window[globalName]);
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => resolve(window[globalName]);
+      script.onerror = () => reject(new Error(errorMessage));
+      document.head.appendChild(script);
+    });
+  }
+
   async function loadOnboardingModule() {
     if (window.RCCLeagueOnboarding) return window.RCCLeagueOnboarding;
     if (onboardingModulePromise) return onboardingModulePromise;
-
-    onboardingModulePromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'assets/js/pages/admin-league-onboarding.js';
-      script.onload = () => resolve(window.RCCLeagueOnboarding);
-      script.onerror = () => reject(new Error('Liga-Onboarding konnte nicht geladen werden.'));
-      document.head.appendChild(script);
-    }).finally(() => {
-      onboardingModulePromise = null;
-    });
-
+    onboardingModulePromise = loadScriptModule(
+      'RCCLeagueOnboarding',
+      'assets/js/pages/admin-league-onboarding.js',
+      'Liga-Onboarding konnte nicht geladen werden.'
+    ).finally(() => { onboardingModulePromise = null; });
     return onboardingModulePromise;
+  }
+
+  async function loadScoringModule() {
+    if (window.RCCLeagueScoring) return window.RCCLeagueScoring;
+    if (scoringModulePromise) return scoringModulePromise;
+    scoringModulePromise = loadScriptModule(
+      'RCCLeagueScoring',
+      'assets/js/pages/admin-league-scoring.js',
+      'Liga-Punktesystem konnte nicht geladen werden.'
+    ).finally(() => { scoringModulePromise = null; });
+    return scoringModulePromise;
   }
 
   function ensurePanel() {
@@ -137,6 +154,10 @@
     const { data } = await window.supabaseClient.auth.getSession();
     if (!data?.session?.user) return;
     ensurePanel();
+
+    const scoringModule = await loadScoringModule().catch((error) => console.warn(error));
+    await scoringModule?.init?.();
+
     const onboardingModule = await loadOnboardingModule().catch((error) => console.warn(error));
     await onboardingModule?.init?.();
     initialized = true;
