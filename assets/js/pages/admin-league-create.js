@@ -1,0 +1,125 @@
+(() => {
+  let initialized = false;
+
+  function slugify(value) {
+    return String(value || '')
+      .trim()
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-+/g, '-')
+      .slice(0, 50);
+  }
+
+  function showFeedback(message, isError = false) {
+    const el = document.getElementById('league-create-feedback');
+    if (!el) return;
+    el.hidden = !message;
+    el.textContent = message || '';
+    el.classList.toggle('notice-error', Boolean(isError));
+  }
+
+  function ensurePanel() {
+    if (document.getElementById('admin-section-create-league')) return;
+    const layout = document.querySelector('.admin-layout');
+    if (!layout) return;
+
+    const panel = document.createElement('details');
+    panel.className = 'panel admin-panel-wide';
+    panel.id = 'admin-section-create-league';
+    panel.innerHTML = `
+      <summary><strong>Neue Liga erstellen</strong></summary>
+      <section class="panel admin-panel-wide admin-panel-accent">
+        <h3>Eigene Rennliga anlegen</h3>
+        <div class="notice">Du wirst automatisch Owner der neuen Liga. Danach wechselst du direkt in ihr Admin Center.</div>
+        <div class="form-grid section-spacer-top">
+          <div class="field">
+            <label for="league-create-name">Liganame</label>
+            <input id="league-create-name" maxlength="80" placeholder="z. B. German Racing League">
+          </div>
+          <div class="field">
+            <label for="league-create-slug">Kurzname / URL</label>
+            <input id="league-create-slug" maxlength="50" placeholder="german-racing-league">
+          </div>
+          <div class="field">
+            <label for="league-create-visibility">Sichtbarkeit</label>
+            <select id="league-create-visibility">
+              <option value="public" selected>Öffentlich</option>
+              <option value="private">Privat</option>
+            </select>
+          </div>
+        </div>
+        <div class="notice">Die Liga-Adresse verwendet später den Kurzname, z. B. <strong>?league=german-racing-league</strong>.</div>
+        <div class="card-actions">
+          <button type="button" class="button-primary" id="league-create-btn">Liga erstellen</button>
+        </div>
+        <div id="league-create-feedback" class="notice" hidden></div>
+      </section>`;
+    layout.appendChild(panel);
+
+    const nameInput = panel.querySelector('#league-create-name');
+    const slugInput = panel.querySelector('#league-create-slug');
+    let slugWasEdited = false;
+
+    slugInput?.addEventListener('input', () => {
+      slugWasEdited = true;
+      slugInput.value = slugify(slugInput.value);
+    });
+    nameInput?.addEventListener('input', () => {
+      if (!slugWasEdited && slugInput) slugInput.value = slugify(nameInput.value);
+    });
+    panel.querySelector('#league-create-btn')?.addEventListener('click', createLeague);
+  }
+
+  async function createLeague() {
+    const name = String(document.getElementById('league-create-name')?.value || '').trim();
+    const slug = slugify(document.getElementById('league-create-slug')?.value || '');
+    const isPublic = document.getElementById('league-create-visibility')?.value !== 'private';
+    const button = document.getElementById('league-create-btn');
+
+    if (name.length < 3) {
+      showFeedback('Bitte einen Liganamen mit mindestens 3 Zeichen eingeben.', true);
+      return;
+    }
+    if (slug.length < 3) {
+      showFeedback('Bitte einen gültigen Kurzname mit mindestens 3 Zeichen eingeben.', true);
+      return;
+    }
+
+    if (button) button.disabled = true;
+    showFeedback('Liga wird erstellt...');
+
+    try {
+      const { data, error } = await window.supabaseClient.rpc('create_league', {
+        p_name: name,
+        p_slug: slug,
+        p_is_public: isPublic
+      });
+      if (error) throw error;
+
+      const league = Array.isArray(data) ? data[0] : data;
+      if (!league?.slug) throw new Error('Die neue Liga konnte nicht geladen werden.');
+
+      showFeedback(`${league.name} wurde erstellt. Wechsel zur neuen Liga...`);
+      const url = new URL(window.location.href);
+      url.searchParams.set('league', league.slug);
+      window.location.assign(url.toString());
+    } catch (error) {
+      console.error(error);
+      showFeedback(`Liga konnte nicht erstellt werden: ${error.message || 'Unbekannter Fehler'}`, true);
+      if (button) button.disabled = false;
+    }
+  }
+
+  async function init() {
+    if (initialized) return;
+    const { data } = await window.supabaseClient.auth.getSession();
+    if (!data?.session?.user) return;
+    ensurePanel();
+    initialized = true;
+  }
+
+  window.RCCLeagueCreate = { init, slugify };
+})();
