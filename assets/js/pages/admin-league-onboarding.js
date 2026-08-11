@@ -33,42 +33,6 @@
       .map((item) => Math.round(item));
   }
 
-  function parseTeams(value) {
-    return String(value || '')
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [name, shortName] = line.split('|').map((part) => part.trim());
-        return { name, short_name: shortName || '' };
-      })
-      .filter((team) => team.name);
-  }
-
-  function parseDrivers(value) {
-    return String(value || '')
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [name, gamertag, team, number] = line.split('|').map((part) => part.trim());
-        return { name, gamertag: gamertag || '', team: team || '', number: number || '' };
-      })
-      .filter((driver) => driver.name);
-  }
-
-  function parseRaces(value) {
-    return String(value || '')
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [name, circuit, date, time] = line.split('|').map((part) => part.trim());
-        return { name, circuit: circuit || '', date: date || '', time: time || '' };
-      })
-      .filter((race) => race.name);
-  }
-
   function getValue(id) {
     return String(document.getElementById(id)?.value || '').trim();
   }
@@ -79,6 +43,130 @@
     el.hidden = !message;
     el.textContent = message || '';
     el.classList.toggle('notice-error', Boolean(isError));
+  }
+
+  function createRemoveButton(label) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'button-secondary';
+    button.textContent = label;
+    button.addEventListener('click', () => button.closest('[data-onboarding-row]')?.remove());
+    return button;
+  }
+
+  function createTeamRow(values = {}) {
+    const row = document.createElement('div');
+    row.dataset.onboardingRow = 'team';
+    row.className = 'panel section-spacer-top';
+    row.innerHTML = `
+      <div class="form-grid">
+        <div class="field"><label>Teamname</label><input data-team-name maxlength="80" placeholder="z. B. McLaren" value="${escapeHtml(values.name || '')}"></div>
+        <div class="field"><label>Kürzel</label><input data-team-short maxlength="12" placeholder="z. B. MCL" value="${escapeHtml(values.short_name || '')}"></div>
+      </div>
+      <div class="card-actions"></div>`;
+    row.querySelector('.card-actions')?.appendChild(createRemoveButton('Team entfernen'));
+    return row;
+  }
+
+  function createDriverRow(values = {}) {
+    const row = document.createElement('div');
+    row.dataset.onboardingRow = 'driver';
+    row.className = 'panel section-spacer-top';
+    row.innerHTML = `
+      <div class="form-grid">
+        <div class="field"><label>Anzeigename</label><input data-driver-name maxlength="80" placeholder="Max Mustermann" value="${escapeHtml(values.name || '')}"></div>
+        <div class="field"><label>Gamertag</label><input data-driver-gamertag maxlength="80" placeholder="MaxRacing" value="${escapeHtml(values.gamertag || '')}"></div>
+        <div class="field"><label>Team</label><select data-driver-team><option value="">Kein Team / später zuordnen</option></select></div>
+        <div class="field"><label>Startnummer</label><input data-driver-number type="number" min="0" max="999" placeholder="7" value="${escapeHtml(values.number || '')}"></div>
+      </div>
+      <div class="card-actions"></div>`;
+    row.querySelector('.card-actions')?.appendChild(createRemoveButton('Fahrer entfernen'));
+    refreshDriverTeamOptions(row.querySelector('[data-driver-team]'), values.team || '');
+    return row;
+  }
+
+  function createRaceRow(values = {}) {
+    const row = document.createElement('div');
+    row.dataset.onboardingRow = 'race';
+    row.className = 'panel section-spacer-top';
+    row.innerHTML = `
+      <div class="form-grid">
+        <div class="field"><label>Rennname</label><input data-race-name maxlength="120" placeholder="Großer Preis von Bahrain" value="${escapeHtml(values.name || '')}"></div>
+        <div class="field"><label>Strecke</label><input data-race-circuit maxlength="120" placeholder="Bahrain International Circuit" value="${escapeHtml(values.circuit || '')}"></div>
+        <div class="field"><label>Datum</label><input data-race-date type="date" value="${escapeHtml(values.date || '')}"></div>
+        <div class="field"><label>Uhrzeit</label><input data-race-time type="time" value="${escapeHtml(values.time || '')}"></div>
+      </div>
+      <div class="card-actions"></div>`;
+    row.querySelector('.card-actions')?.appendChild(createRemoveButton('Rennen entfernen'));
+    return row;
+  }
+
+  function getTeamRows() {
+    return [...document.querySelectorAll('[data-onboarding-row="team"]')]
+      .map((row) => ({
+        name: String(row.querySelector('[data-team-name]')?.value || '').trim(),
+        short_name: String(row.querySelector('[data-team-short]')?.value || '').trim()
+      }))
+      .filter((team) => team.name);
+  }
+
+  function getDriverRows() {
+    return [...document.querySelectorAll('[data-onboarding-row="driver"]')]
+      .map((row) => ({
+        name: String(row.querySelector('[data-driver-name]')?.value || '').trim(),
+        gamertag: String(row.querySelector('[data-driver-gamertag]')?.value || '').trim(),
+        team: String(row.querySelector('[data-driver-team]')?.value || '').trim(),
+        number: String(row.querySelector('[data-driver-number]')?.value || '').trim()
+      }))
+      .filter((driver) => driver.name);
+  }
+
+  function getRaceRows() {
+    return [...document.querySelectorAll('[data-onboarding-row="race"]')]
+      .map((row) => ({
+        name: String(row.querySelector('[data-race-name]')?.value || '').trim(),
+        circuit: String(row.querySelector('[data-race-circuit]')?.value || '').trim(),
+        date: String(row.querySelector('[data-race-date]')?.value || '').trim(),
+        time: String(row.querySelector('[data-race-time]')?.value || '').trim()
+      }))
+      .filter((race) => race.name);
+  }
+
+  function refreshDriverTeamOptions(select = null, preferred = '') {
+    const teams = getTeamRows();
+    const selects = select ? [select] : [...document.querySelectorAll('[data-driver-team]')];
+    selects.forEach((teamSelect) => {
+      const current = preferred || teamSelect.value || '';
+      teamSelect.innerHTML = '<option value="">Kein Team / später zuordnen</option>' + teams
+        .map((team) => `<option value="${escapeHtml(team.name)}">${escapeHtml(team.name)}</option>`)
+        .join('');
+      if (teams.some((team) => team.name === current)) teamSelect.value = current;
+    });
+  }
+
+  function bindTeamOptionRefresh(row) {
+    row.querySelector('[data-team-name]')?.addEventListener('input', () => refreshDriverTeamOptions());
+  }
+
+  function addTeam(values = {}) {
+    const list = document.getElementById('onboarding-team-list');
+    if (!list) return;
+    const row = createTeamRow(values);
+    bindTeamOptionRefresh(row);
+    list.appendChild(row);
+    refreshDriverTeamOptions();
+  }
+
+  function addDriver(values = {}) {
+    const list = document.getElementById('onboarding-driver-list');
+    if (!list) return;
+    list.appendChild(createDriverRow(values));
+  }
+
+  function addRace(values = {}) {
+    const list = document.getElementById('onboarding-race-list');
+    if (!list) return;
+    list.appendChild(createRaceRow(values));
   }
 
   function payloadFromForm() {
@@ -99,9 +187,9 @@
         fastest_lap_bonus: Number(getValue('onboarding-fastest-lap-bonus') || 0),
         fastest_lap_top_n: Number(getValue('onboarding-fastest-lap-top-n') || 0)
       },
-      teams: parseTeams(getValue('onboarding-teams')),
-      drivers: parseDrivers(getValue('onboarding-drivers')),
-      races: parseRaces(getValue('onboarding-races')),
+      teams: getTeamRows(),
+      drivers: getDriverRows(),
+      races: getRaceRows(),
       publish: document.getElementById('onboarding-publish')?.checked === true
     };
   }
@@ -113,6 +201,21 @@
     if (step === 3 && !payload.scoring.points.length) return 'Bitte mindestens einen Punktewert eintragen.';
     if (step === 4 && !payload.drivers.length) return 'Bitte mindestens einen Fahrer eintragen.';
     if (step === 5 && !payload.races.length) return 'Bitte mindestens ein Rennen eintragen.';
+
+    if (step === 4) {
+      const teamNames = payload.teams.map((team) => team.name.toLowerCase());
+      if (new Set(teamNames).size !== teamNames.length) return 'Teamnamen dürfen nicht doppelt vorkommen.';
+      const driverNames = payload.drivers.map((driver) => driver.name.toLowerCase());
+      if (new Set(driverNames).size !== driverNames.length) return 'Fahrernamen dürfen nicht doppelt vorkommen.';
+    }
+
+    if (step === 5) {
+      const datedRaces = payload.races.filter((race) => race.date).map((race) => race.date);
+      if (datedRaces.length > 1) {
+        const sorted = [...datedRaces].sort();
+        if (datedRaces.some((date, index) => date !== sorted[index])) return 'Bitte Rennen chronologisch nach Datum sortieren.';
+      }
+    }
     return '';
   }
 
@@ -236,13 +339,20 @@
 
       <div data-onboarding-step="4" hidden>
         <h3>4. Fahrer und Teams anlegen</h3>
-        <div class="field"><label for="onboarding-teams">Teams · eine Zeile je Team</label><textarea id="onboarding-teams" rows="6" placeholder="McLaren | MCL\nFerrari | FER"></textarea><small>Format: Teamname | Kürzel. Teams sind optional.</small></div>
-        <div class="field"><label for="onboarding-drivers">Fahrer · eine Zeile je Fahrer</label><textarea id="onboarding-drivers" rows="10" placeholder="Max Mustermann | MaxRacing | McLaren | 7\nErika Beispiel | SpeedErika | Ferrari | 23"></textarea><small>Format: Anzeigename | Gamertag | Team | Startnummer</small></div>
+        <div class="notice">Teams sind optional. Fahrer können auch ohne Team angelegt und später zugeordnet werden.</div>
+        <h4 class="section-spacer-top">Teams</h4>
+        <div id="onboarding-team-list"></div>
+        <div class="card-actions section-spacer-top"><button type="button" class="button-secondary" id="onboarding-add-team">+ Team hinzufügen</button></div>
+        <h4 class="section-spacer-top">Fahrer</h4>
+        <div id="onboarding-driver-list"></div>
+        <div class="card-actions section-spacer-top"><button type="button" class="button-secondary" id="onboarding-add-driver">+ Fahrer hinzufügen</button></div>
       </div>
 
       <div data-onboarding-step="5" hidden>
         <h3>5. Rennkalender erstellen</h3>
-        <div class="field"><label for="onboarding-races">Rennen · eine Zeile je Lauf</label><textarea id="onboarding-races" rows="12" placeholder="Großer Preis von Bahrain | Bahrain International Circuit | 2026-09-06 | 20:00\nGroßer Preis von Saudi-Arabien | Jeddah Corniche Circuit | 2026-09-13 | 20:00"></textarea><small>Format: Rennname | Strecke | YYYY-MM-DD | HH:MM. Die Reihenfolge der Zeilen wird zur Rundennummer.</small></div>
+        <div class="notice">Die Reihenfolge der Einträge wird zur Rundennummer. Bei eingetragenen Daten muss die Liste chronologisch sein.</div>
+        <div id="onboarding-race-list"></div>
+        <div class="card-actions section-spacer-top"><button type="button" class="button-secondary" id="onboarding-add-race">+ Rennen hinzufügen</button></div>
       </div>
 
       <div data-onboarding-step="6" hidden>
@@ -265,6 +375,9 @@
       const customField = panel.querySelector('#onboarding-custom-game-field');
       if (customField) customField.hidden = event.target.value !== 'other';
     });
+    panel.querySelector('#onboarding-add-team')?.addEventListener('click', () => addTeam());
+    panel.querySelector('#onboarding-add-driver')?.addEventListener('click', () => addDriver());
+    panel.querySelector('#onboarding-add-race')?.addEventListener('click', () => addRace());
     panel.querySelector('#onboarding-next')?.addEventListener('click', () => {
       const error = validateStep(currentStep);
       if (error) return showFeedback(error, true);
@@ -273,6 +386,10 @@
     panel.querySelector('#onboarding-back')?.addEventListener('click', () => showStep(currentStep - 1));
     panel.querySelector('#onboarding-finish')?.addEventListener('click', finishOnboarding);
     panel.querySelector('#onboarding-publish')?.addEventListener('change', renderReview);
+
+    addTeam();
+    addDriver();
+    addRace();
     showStep(1);
     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -292,5 +409,14 @@
     initialized = true;
   }
 
-  window.RCCLeagueOnboarding = { init, payloadFromForm, parseTeams, parseDrivers, parseRaces };
+  window.RCCLeagueOnboarding = {
+    init,
+    payloadFromForm,
+    getTeamRows,
+    getDriverRows,
+    getRaceRows,
+    addTeam,
+    addDriver,
+    addRace
+  };
 })();
