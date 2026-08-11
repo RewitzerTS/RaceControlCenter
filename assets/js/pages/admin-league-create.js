@@ -1,5 +1,6 @@
 (() => {
   let initialized = false;
+  let onboardingModulePromise = null;
 
   function slugify(value) {
     return String(value || '')
@@ -21,6 +22,23 @@
     el.classList.toggle('notice-error', Boolean(isError));
   }
 
+  async function loadOnboardingModule() {
+    if (window.RCCLeagueOnboarding) return window.RCCLeagueOnboarding;
+    if (onboardingModulePromise) return onboardingModulePromise;
+
+    onboardingModulePromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'assets/js/pages/admin-league-onboarding.js';
+      script.onload = () => resolve(window.RCCLeagueOnboarding);
+      script.onerror = () => reject(new Error('Liga-Onboarding konnte nicht geladen werden.'));
+      document.head.appendChild(script);
+    }).finally(() => {
+      onboardingModulePromise = null;
+    });
+
+    return onboardingModulePromise;
+  }
+
   function ensurePanel() {
     if (document.getElementById('admin-section-create-league')) return;
     const layout = document.querySelector('.admin-layout');
@@ -33,7 +51,7 @@
       <summary><strong>Neue Liga erstellen</strong></summary>
       <section class="panel admin-panel-wide admin-panel-accent">
         <h3>Eigene Rennliga anlegen</h3>
-        <div class="notice">Du wirst automatisch Owner der neuen Liga. Danach wechselst du direkt in ihr Admin Center.</div>
+        <div class="notice">Du wirst automatisch Owner der neuen Liga. Danach startet direkt der Einrichtungsassistent.</div>
         <div class="form-grid section-spacer-top">
           <div class="field">
             <label for="league-create-name">Liganame</label>
@@ -44,16 +62,16 @@
             <input id="league-create-slug" maxlength="50" placeholder="german-racing-league">
           </div>
           <div class="field">
-            <label for="league-create-visibility">Sichtbarkeit</label>
+            <label for="league-create-visibility">Sichtbarkeit nach Veröffentlichung</label>
             <select id="league-create-visibility">
               <option value="public" selected>Öffentlich</option>
               <option value="private">Privat</option>
             </select>
           </div>
         </div>
-        <div class="notice">Die Liga-Adresse verwendet später den Kurzname, z. B. <strong>?league=german-racing-league</strong>.</div>
+        <div class="notice">Die Liga bleibt während der Einrichtung unveröffentlicht. Die Liga-Adresse verwendet später den Kurzname, z. B. <strong>?league=german-racing-league</strong>.</div>
         <div class="card-actions">
-          <button type="button" class="button-primary" id="league-create-btn">Liga erstellen</button>
+          <button type="button" class="button-primary" id="league-create-btn">Liga erstellen & einrichten</button>
         </div>
         <div id="league-create-feedback" class="notice" hidden></div>
       </section>`;
@@ -102,9 +120,10 @@
       const league = Array.isArray(data) ? data[0] : data;
       if (!league?.slug) throw new Error('Die neue Liga konnte nicht geladen werden.');
 
-      showFeedback(`${league.name} wurde erstellt. Wechsel zur neuen Liga...`);
+      showFeedback(`${league.name} wurde erstellt. Einrichtungsassistent wird geöffnet...`);
       const url = new URL(window.location.href);
       url.searchParams.set('league', league.slug);
+      url.searchParams.set('onboarding', '1');
       window.location.assign(url.toString());
     } catch (error) {
       console.error(error);
@@ -118,6 +137,8 @@
     const { data } = await window.supabaseClient.auth.getSession();
     if (!data?.session?.user) return;
     ensurePanel();
+    const onboardingModule = await loadOnboardingModule().catch((error) => console.warn(error));
+    await onboardingModule?.init?.();
     initialized = true;
   }
 
