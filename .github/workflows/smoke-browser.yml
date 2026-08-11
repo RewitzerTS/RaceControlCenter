@@ -1,0 +1,87 @@
+name: Browser Smoke Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/rcc-http.log 2>&1 &
+          echo $! > /tmp/rcc-http.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/admin.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/rcc-http.log
+          exit 1
+
+      - name: Run smoke checks
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const cases = [
+              { name: 'public-rcc-home', url: 'http://127.0.0.1:8080/index.html?league=rcc', selector: 'body' },
+              { name: 'rcc-admin-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#admin-login-form' },
+              { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' }
+            ];
+
+            for (const testCase of cases) {
+              const page = await browser.newPage();
+              const fatalErrors = [];
+              page.on('pageerror', (error) => fatalErrors.push(`pageerror: ${error.message}`));
+              page.on('console', (message) => {
+                if (message.type() === 'error') {
+                  const text = message.text();
+                  if (!/favicon|manifest/i.test(text)) fatalErrors.push(`console: ${text}`);
+                }
+              });
+
+              const response = await page.goto(testCase.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+              if (!response || response.status() >= 400) {
+                throw new Error(`${testCase.name}: HTTP ${response?.status()}`);
+              }
+              await page.waitForSelector(testCase.selector, { timeout: 15000 });
+              await page.waitForTimeout(2500);
+
+              if (fatalErrors.length) {
+                throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
+              }
+              console.log(`PASS ${testCase.name}`);
+              await page.close();
+            }
+
+            await browser.close();
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
