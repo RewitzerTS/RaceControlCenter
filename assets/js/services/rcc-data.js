@@ -3,7 +3,9 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
-const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v1';
+const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v2';
+const RCC_DEFAULT_LEAGUE_SLUG = 'rcc';
+const RCC_LEAGUE_CONTEXT_SCRIPT = 'assets/js/services/rcc-league-context.js';
 const QUERY_CACHE_TTL = {
   season: 1000 * 60 * 60 * 12,
   seasons: 1000 * 60 * 60 * 12,
@@ -17,10 +19,74 @@ const QUERY_CACHE_TTL = {
 };
 
 const inflightRequests = new Map();
+let leagueContextLoadPromise = null;
+
+function normalizeLeagueSlug(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '') || RCC_DEFAULT_LEAGUE_SLUG;
+}
+
+function getRequestedLeagueSlug() {
+  if (window.RCCLeagueContext?.getRequestedLeagueSlug) {
+    return normalizeLeagueSlug(window.RCCLeagueContext.getRequestedLeagueSlug());
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const querySlug = params.get('league');
+  if (querySlug) return normalizeLeagueSlug(querySlug);
+
+  const pathMatch = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
+  if (pathMatch?.[1]) return normalizeLeagueSlug(pathMatch[1]);
+
+  return RCC_DEFAULT_LEAGUE_SLUG;
+}
+
+function ensureLeagueContextScript() {
+  if (window.RCCLeagueContext) return Promise.resolve(window.RCCLeagueContext);
+  if (leagueContextLoadPromise) return leagueContextLoadPromise;
+
+  leagueContextLoadPromise = new Promise((resolve, reject) => {
+    const existing = [...document.scripts].find((script) => String(script.src || '').includes('rcc-league-context.js'));
+    if (existing) {
+      if (window.RCCLeagueContext) return resolve(window.RCCLeagueContext);
+      existing.addEventListener('load', () => resolve(window.RCCLeagueContext), { once: true });
+      existing.addEventListener('error', () => reject(new Error('LeagueContext could not be loaded.')), { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = RCC_LEAGUE_CONTEXT_SCRIPT;
+    script.async = false;
+    script.onload = () => resolve(window.RCCLeagueContext);
+    script.onerror = () => reject(new Error('LeagueContext could not be loaded.'));
+    document.head.appendChild(script);
+  }).finally(() => {
+    leagueContextLoadPromise = null;
+  });
+
+  return leagueContextLoadPromise;
+}
+
+async function getLeagueContext(options = {}) {
+  await ensureLeagueContextScript();
+  if (!window.RCCLeagueContext?.initialize) {
+    throw new Error('RCC LeagueContext is unavailable.');
+  }
+  return window.RCCLeagueContext.initialize(options);
+}
+
+async function getActiveLeagueId(options = {}) {
+  const context = await getLeagueContext(options);
+  if (!context?.leagueId) throw new Error('No active league could be resolved.');
+  return context.leagueId;
+}
 
 function buildCacheKey(scope, params = null) {
   const serializedParams = params ? JSON.stringify(params) : '';
-  return `${RCC_QUERY_CACHE_PREFIX}:${scope}:${serializedParams}`;
+  const leagueSlug = getRequestedLeagueSlug();
+  return `${RCC_QUERY_CACHE_PREFIX}:league:${leagueSlug}:${scope}:${serializedParams}`;
 }
 
 function readCachedValue(cacheKey, maxAgeMs) {
@@ -197,6 +263,7 @@ function getAwardedRacePoints(row, fastestLapDriverId = null) {
 async function fetchCurrentSeason(options = {}) {
   const client = window.supabaseClient;
   if (!client) return null;
+  const leagueId = await getActiveLeagueId();
 
   return fetchWithLocalCache({
     scope: 'currentSeason',
@@ -207,8 +274,8 @@ async function fetchCurrentSeason(options = {}) {
       const { data, error } = await client
         .from('seasons')
         .select('*')
+        .eq('league_id', leagueId)
         .eq('is_active', true)
-        .order('id', { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -221,6 +288,7 @@ async function fetchCurrentSeason(options = {}) {
 async function fetchSeasons(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
+  const leagueId = await getActiveLeagueId();
 
   const queryScope = {
     archivedOnly: options.archivedOnly === true,
@@ -236,8 +304,9 @@ async function fetchSeasons(options = {}) {
     fetcher: async () => {
       let query = client
         .from('seasons')
-        .select('id, name, is_active, created_at')
-        .order('id', { ascending: false });
+        .select('id, name, slug, is_active, created_at, league_id')
+        .eq('league_id', leagueId)
+        .order('created_at', { ascending: false });
 
       if (options.archivedOnly) query = query.eq('is_active', false);
       if (options.activeOnly) query = query.eq('is_active', true);
@@ -252,6 +321,7 @@ async function fetchSeasons(options = {}) {
 async function fetchSeasonHistory(limit = 6, options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
+  const leagueId = await getActiveLeagueId();
 
   return fetchWithLocalCache({
     scope: 'seasonHistory',
@@ -262,7 +332,8 @@ async function fetchSeasonHistory(limit = 6, options = {}) {
     fetcher: async () => {
       const { data, error } = await client
         .from('championship_history')
-        .select('season_id, season_name, driver_champion, constructor_champion, constructor_champion_lineup, created_at, seasons:season_id(name)')
+        .select('season_id, season_name, driver_champion, constructor_champion, constructor_champion_lineup, created_at, seasons!inner(name, league_id)')
+        .eq('seasons.league_id', leagueId)
         .order('created_at', { ascending: false })
         .limit(limit);
 
@@ -275,6 +346,7 @@ async function fetchSeasonHistory(limit = 6, options = {}) {
 async function fetchDrivers(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
+  const leagueId = await getActiveLeagueId();
 
   return fetchWithLocalCache({
     scope: 'drivers',
@@ -284,7 +356,8 @@ async function fetchDrivers(options = {}) {
     fetcher: async () => {
       const { data, error } = await client
         .from('drivers')
-        .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name')
+        .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name, league_id')
+        .eq('league_id', leagueId)
         .order('display_name', { ascending: true });
 
       if (error) throw error;
@@ -302,6 +375,7 @@ async function fetchDrivers(options = {}) {
 async function fetchRaces(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
+  const leagueId = await getActiveLeagueId();
 
   const queryScope = {
     seasonId: options.seasonId ?? null
@@ -314,11 +388,15 @@ async function fetchRaces(options = {}) {
     forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      let query = client.from('races').select('*').order('round_number', { ascending: true });
+      let query = client
+        .from('races')
+        .select('*, seasons!inner(league_id)')
+        .eq('seasons.league_id', leagueId)
+        .order('round_number', { ascending: true });
       if (options.seasonId !== undefined && options.seasonId !== null) query = query.eq('season_id', options.seasonId);
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return (data || []).map(({ seasons, ...race }) => race);
     }
   });
 }
@@ -326,6 +404,7 @@ async function fetchRaces(options = {}) {
 async function fetchRaceResults(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
+  const leagueId = await getActiveLeagueId();
 
   const raceIds = Array.isArray(options.raceIds) ? [...options.raceIds].sort() : [];
   const queryScope = {
@@ -340,12 +419,15 @@ async function fetchRaceResults(options = {}) {
     forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      let query = client.from('race_results').select('*');
+      let query = client
+        .from('race_results')
+        .select('*, races!inner(season_id, seasons!inner(league_id))')
+        .eq('races.seasons.league_id', leagueId);
       if (options.raceId) query = query.eq('race_id', options.raceId);
       if (options.raceIds?.length) query = query.in('race_id', options.raceIds);
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return (data || []).map(({ races, ...result }) => result);
     }
   });
 }
@@ -353,6 +435,7 @@ async function fetchRaceResults(options = {}) {
 async function fetchRaceByRound(options = {}) {
   const client = window.supabaseClient;
   if (!client) return null;
+  const leagueId = await getActiveLeagueId();
 
   const queryScope = {
     round: Number(options.round) || null,
@@ -366,11 +449,17 @@ async function fetchRaceByRound(options = {}) {
     forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      let query = client.from('races').select('*').eq('round_number', queryScope.round);
+      let query = client
+        .from('races')
+        .select('*, seasons!inner(league_id)')
+        .eq('seasons.league_id', leagueId)
+        .eq('round_number', queryScope.round);
       if (queryScope.seasonId) query = query.eq('season_id', queryScope.seasonId);
       const { data, error } = await query.maybeSingle();
       if (error && error.code !== 'PGRST116') throw error;
-      return data || null;
+      if (!data) return null;
+      const { seasons, ...race } = data;
+      return race;
     }
   });
 }
@@ -378,6 +467,7 @@ async function fetchRaceByRound(options = {}) {
 async function fetchStewardCasesByRaceId(raceId, options = {}) {
   const client = window.supabaseClient;
   if (!client || !raceId) return [];
+  const leagueId = await getActiveLeagueId();
 
   return fetchWithLocalCache({
     scope: 'stewardCases',
@@ -388,11 +478,12 @@ async function fetchStewardCasesByRaceId(raceId, options = {}) {
     fetcher: async () => {
       const { data, error } = await client
         .from('steward_cases')
-        .select('title, description, decision_text, consequence, driver1:driver_1_id(display_name), driver2:driver_2_id(display_name), created_at')
+        .select('title, description, decision_text, consequence, driver1:driver_1_id(display_name), driver2:driver_2_id(display_name), created_at, races!inner(season_id, seasons!inner(league_id))')
+        .eq('races.seasons.league_id', leagueId)
         .eq('race_id', raceId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data || []).map(({ races, ...stewardCase }) => stewardCase);
     }
   });
 }
@@ -408,6 +499,7 @@ const DEFAULT_LEAGUE_CONTENT = {
 async function fetchLeagueContent(options = {}) {
   const client = window.supabaseClient;
   if (!client) return { ...DEFAULT_LEAGUE_CONTENT };
+  const leagueId = await getActiveLeagueId();
 
   return fetchWithLocalCache({
     scope: 'leagueContent',
@@ -417,7 +509,8 @@ async function fetchLeagueContent(options = {}) {
     fetcher: async () => {
       const { data, error } = await client
         .from('league_content')
-        .select('id, rules_text, faq_text, rules_config, faq_items, updated_at')
+        .select('id, league_id, rules_text, faq_text, rules_config, faq_items, updated_at')
+        .eq('league_id', leagueId)
         .eq('id', 'default')
         .maybeSingle();
 
@@ -433,7 +526,6 @@ async function fetchLeagueContent(options = {}) {
   });
 }
 
-
 function hasFreshDashboardCache() {
   const currentSeason = readCachedValue(buildCacheKey('currentSeason'), QUERY_CACHE_TTL.season);
   if (!currentSeason?.id) return false;
@@ -446,13 +538,15 @@ function hasFreshDashboardCache() {
 }
 
 async function warmDashboardCache() {
+  await getLeagueContext();
   const currentSeason = await fetchCurrentSeason();
+  const races = await fetchRaces({ seasonId: currentSeason?.id });
   await Promise.all([
     fetchDrivers(),
-    fetchRaces({ seasonId: currentSeason?.id }),
-    fetchRaceResults()
+    fetchRaceResults({ raceIds: races.map((race) => race.id) })
   ]);
 }
+
 function buildStandings({ drivers, races, raceResults, resolver } = {}) {
   const raceIds = new Set((races || []).map((race) => race.id));
   const scopedResults = (raceResults || []).filter((row) => raceIds.has(row.race_id));
@@ -572,6 +666,9 @@ window.RCCData = {
   getFastestLapDriverId,
   getAwardedRacePoints,
   groupBy,
+  getLeagueContext,
+  getActiveLeagueId,
+  getRequestedLeagueSlug,
   fetchCurrentSeason,
   fetchSeasons,
   fetchSeasonHistory,
