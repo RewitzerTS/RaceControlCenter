@@ -4,7 +4,7 @@ function safeNumber(value, fallback = 0) {
 }
 
 const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v2';
-const RCC_DEFAULT_LEAGUE_SLUG = 'rcc';
+const RCC_DATA_DEFAULT_LEAGUE_SLUG = 'rcc';
 const RCC_LEAGUE_CONTEXT_SCRIPT = 'assets/js/services/rcc-league-context.js';
 const QUERY_CACHE_TTL = {
   season: 1000 * 60 * 60 * 12,
@@ -25,7 +25,7 @@ function normalizeLeagueSlug(value) {
   return String(value || '')
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '') || RCC_DEFAULT_LEAGUE_SLUG;
+    .replace(/[^a-z0-9-]/g, '') || RCC_DATA_DEFAULT_LEAGUE_SLUG;
 }
 
 function getRequestedLeagueSlug() {
@@ -40,7 +40,7 @@ function getRequestedLeagueSlug() {
   const pathMatch = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
   if (pathMatch?.[1]) return normalizeLeagueSlug(pathMatch[1]);
 
-  return RCC_DEFAULT_LEAGUE_SLUG;
+  return RCC_DATA_DEFAULT_LEAGUE_SLUG;
 }
 
 function ensureLeagueContextScript() {
@@ -79,206 +79,138 @@ async function getLeagueContext(options = {}) {
 
 async function getActiveLeagueId(options = {}) {
   const context = await getLeagueContext(options);
-  if (!context?.leagueId) throw new Error('No active league could be resolved.');
+  if (!context?.leagueId) throw new Error('No active league context available.');
   return context.leagueId;
 }
 
-function buildCacheKey(scope, params = null) {
-  const serializedParams = params ? JSON.stringify(params) : '';
-  const leagueSlug = getRequestedLeagueSlug();
-  return `${RCC_QUERY_CACHE_PREFIX}:league:${leagueSlug}:${scope}:${serializedParams}`;
+function buildCacheKey(scope, params = {}) {
+  const leagueSlug = normalizeLeagueSlug(params.leagueSlug || getRequestedLeagueSlug());
+  const stableParams = Object.entries(params)
+    .filter(([key, value]) => key !== 'leagueSlug' && value !== undefined)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([key, value]) => `${key}:${Array.isArray(value) ? value.join(',') : String(value)}`)
+    .join('|');
+  return `${RCC_QUERY_CACHE_PREFIX}:${leagueSlug}:${scope}${stableParams ? `:${stableParams}` : ''}`;
 }
 
-function readCachedValue(cacheKey, maxAgeMs) {
-  if (!window.localStorage) return null;
-  if (!cacheKey || !Number.isFinite(maxAgeMs) || maxAgeMs <= 0) return null;
-
+function readCachedValue(key, ttlMs) {
   try {
-    const raw = window.localStorage.getItem(cacheKey);
+    const raw = window.localStorage?.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    const cachedAt = Number(parsed?.cachedAt);
-    if (!Number.isFinite(cachedAt)) return null;
-    if (Date.now() - cachedAt > maxAgeMs) return null;
-    return parsed.value;
-  } catch {
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (Date.now() - Number(parsed.timestamp || 0) > ttlMs) return null;
+    return parsed.value ?? null;
+  } catch (_error) {
     return null;
   }
 }
 
-function writeCachedValue(cacheKey, value) {
-  if (!window.localStorage) return;
-  if (!cacheKey) return;
-
+function writeCachedValue(key, value) {
   try {
-    window.localStorage.setItem(cacheKey, JSON.stringify({
-      cachedAt: Date.now(),
-      value
-    }));
-  } catch {
-    // Lokaler Storage kann z.B. im Private-Mode oder bei Quota-Limits scheitern.
+    window.localStorage?.setItem(key, JSON.stringify({ timestamp: Date.now(), value }));
+  } catch (_error) {
+    // Local cache is optional.
   }
 }
 
-async function fetchWithLocalCache({
-  scope,
-  params = null,
-  ttlMs = 0,
-  forceRefresh = false,
-  backgroundRefresh = false,
-  fetcher
-}) {
-  const cacheKey = buildCacheKey(scope, params);
+async function fetchWithLocalCache({ scope, params = {}, ttlMs, forceRefresh = false, backgroundRefresh = true, fetcher }) {
+  const key = buildCacheKey(scope, params);
+  const cached = forceRefresh ? null : readCachedValue(key, ttlMs);
 
-  const fetchAndCache = async () => {
-    const freshValue = await fetcher();
-    writeCachedValue(cacheKey, freshValue);
-    return freshValue;
+  const runFetch = async () => {
+    if (inflightRequests.has(key)) return inflightRequests.get(key);
+    const promise = Promise.resolve()
+      .then(fetcher)
+      .then((value) => {
+        writeCachedValue(key, value);
+        return value;
+      })
+      .finally(() => inflightRequests.delete(key));
+    inflightRequests.set(key, promise);
+    return promise;
   };
 
-  if (!forceRefresh) {
-    const cachedValue = readCachedValue(cacheKey, ttlMs);
-    if (cachedValue !== null && cachedValue !== undefined) {
-      if (backgroundRefresh) {
-        if (!inflightRequests.has(cacheKey)) {
-          const request = fetchAndCache().catch(() => cachedValue).finally(() => {
-            if (inflightRequests.get(cacheKey) === request) inflightRequests.delete(cacheKey);
-          });
-          inflightRequests.set(cacheKey, request);
-        }
-      }
-      return cachedValue;
-    }
+  if (cached !== null) {
+    if (backgroundRefresh) runFetch().catch((error) => console.warn(`RCCData background refresh failed for ${scope}`, error));
+    return cached;
   }
-
-  if (inflightRequests.has(cacheKey)) {
-    return inflightRequests.get(cacheKey);
-  }
-
-  const request = fetchAndCache().finally(() => {
-    if (inflightRequests.get(cacheKey) === request) inflightRequests.delete(cacheKey);
-  });
-
-  inflightRequests.set(cacheKey, request);
-  return request;
+  return runFetch();
 }
 
 function normalizeDriverName(value) {
-  return String(value ?? '')
+  return String(value || '')
     .trim()
-    .replace(/Ã¼/g, 'ü')
-    .replace(/Ã¶/g, 'ö')
-    .replace(/Ã¤/g, 'ä')
-    .replace(/ÃŸ/g, 'ß')
-    .replace(/Ã©/g, 'é')
+    .toLocaleLowerCase('de')
     .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/ß/g, 'ss')
-    .toLowerCase()
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 }
 
 function parseLapTimeToMs(value) {
-  const raw = String(value ?? '').trim();
-  if (!raw) return null;
-
-  const text = raw.replace(',', '.');
-  const parts = text.split(':').map((part) => part.trim()).filter(Boolean);
-  if (!parts.length) return null;
-
-  const numeric = parts.map((part) => Number(part));
-  if (numeric.some((part) => !Number.isFinite(part))) return null;
-
-  if (parts.length === 3) {
-    const [hours, minutes, seconds] = numeric;
-    return Math.round((hours * 3600 + minutes * 60 + seconds) * 1000);
-  }
-
-  if (parts.length === 2) {
-    const [minutes, seconds] = numeric;
-    return Math.round((minutes * 60 + seconds) * 1000);
-  }
-
-  return Math.round(numeric[0] * 1000);
+  if (value === null || value === undefined || value === '') return null;
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  const text = String(value).trim();
+  if (!text) return null;
+  if (/^\d+(?:\.\d+)?$/.test(text)) return Number(text);
+  const match = text.match(/^(?:(\d+):)?(\d{1,2})[.,:](\d{1,3})$/);
+  if (!match) return null;
+  const minutes = Number(match[1] || 0);
+  const seconds = Number(match[2] || 0);
+  const millis = Number(String(match[3]).padEnd(3, '0').slice(0, 3));
+  return (minutes * 60 + seconds) * 1000 + millis;
 }
 
 function isTopTen(position) {
-  const pos = Number(position);
-  return Number.isFinite(pos) && pos >= 1 && pos <= 10;
-}
-
-function groupBy(items, getKey) {
-  return items.reduce((map, item) => {
-    const key = getKey(item);
-    if (!map.has(key)) map.set(key, []);
-    map.get(key).push(item);
-    return map;
-  }, new Map());
+  const value = safeNumber(position, null);
+  return Number.isFinite(value) && value >= 1 && value <= 10;
 }
 
 function getFastestLapMs(row) {
-  const explicitMs = Number(row?.fastest_lap_time_ms);
-  if (Number.isFinite(explicitMs) && explicitMs > 0) return explicitMs;
-  return parseLapTimeToMs(row?.fastest_lap_time);
+  const explicit = safeNumber(row?.fastest_lap_ms, null);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return parseLapTimeToMs(row?.fastest_lap);
 }
 
-function getFastestLapDriverId(rows) {
+function getFastestLapDriverId(rows = []) {
   let winner = null;
-  let bestTime = null;
-
+  let best = Infinity;
   for (const row of rows) {
-    const lapTime = getFastestLapMs(row);
-    if (lapTime === null) continue;
-    if (bestTime === null || lapTime < bestTime) {
-      bestTime = lapTime;
-      winner = row.driver_id;
-    }
+    if (!isTopTen(row?.finish_position)) continue;
+    const lap = getFastestLapMs(row);
+    if (!Number.isFinite(lap) || lap <= 0 || lap >= best) continue;
+    best = lap;
+    winner = row?.driver_id || null;
   }
-
   return winner;
 }
 
-function getBasePointsForPosition(position) {
-  const table = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-  const pos = safeNumber(position, 0);
-  return table[pos - 1] || 0;
+function getAwardedRacePoints(row, fastestLapDriverId = null) {
+  const base = safeNumber(row?.points, 0);
+  const bonus = fastestLapDriverId && row?.driver_id === fastestLapDriverId && isTopTen(row?.finish_position) ? 1 : 0;
+  return base + bonus;
 }
 
-function getAwardedRacePoints(row, fastestLapDriverId = null) {
-  const storedPoints = Number(row?.awarded_points);
-  if (Number.isFinite(storedPoints)) return storedPoints;
-
-  const position = safeNumber(row?.finish_position, 0);
-  const basePoints = getBasePointsForPosition(position);
-  const hasFastestLapBonus = Boolean(
-    fastestLapDriverId
-    && row?.driver_id === fastestLapDriverId
-    && isTopTen(position)
-  );
-
-  return basePoints + (hasFastestLapBonus ? 1 : 0);
+function groupBy(items, keyFn) {
+  const map = new Map();
+  for (const item of items || []) {
+    const key = keyFn(item);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(item);
+  }
+  return map;
 }
 
 async function fetchCurrentSeason(options = {}) {
   const client = window.supabaseClient;
   if (!client) return null;
   const leagueId = await getActiveLeagueId();
-
   return fetchWithLocalCache({
-    scope: 'currentSeason',
-    ttlMs: QUERY_CACHE_TTL.season,
-    forceRefresh: options.forceRefresh === true,
+    scope: 'currentSeason', ttlMs: QUERY_CACHE_TTL.season, forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      const { data, error } = await client
-        .from('seasons')
-        .select('*')
-        .eq('league_id', leagueId)
-        .eq('is_active', true)
-        .limit(1)
-        .maybeSingle();
-
+      const { data, error } = await client.from('seasons').select('*').eq('league_id', leagueId).eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
       if (error && error.code !== 'PGRST116') throw error;
       return data || null;
     }
@@ -289,54 +221,26 @@ async function fetchSeasons(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
   const leagueId = await getActiveLeagueId();
-
-  const queryScope = {
-    archivedOnly: options.archivedOnly === true,
-    activeOnly: options.activeOnly === true
-  };
-
   return fetchWithLocalCache({
-    scope: 'seasons',
-    params: queryScope,
-    ttlMs: QUERY_CACHE_TTL.seasons,
-    forceRefresh: options.forceRefresh === true,
+    scope: 'seasons', ttlMs: QUERY_CACHE_TTL.seasons, forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      let query = client
-        .from('seasons')
-        .select('id, name, slug, is_active, created_at, league_id')
-        .eq('league_id', leagueId)
-        .order('created_at', { ascending: false });
-
-      if (options.archivedOnly) query = query.eq('is_active', false);
-      if (options.activeOnly) query = query.eq('is_active', true);
-
-      const { data, error } = await query;
+      const { data, error } = await client.from('seasons').select('*').eq('league_id', leagueId).order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
     }
   });
 }
 
-async function fetchSeasonHistory(limit = 6, options = {}) {
+async function fetchSeasonHistory(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
   const leagueId = await getActiveLeagueId();
-
   return fetchWithLocalCache({
-    scope: 'seasonHistory',
-    params: { limit },
-    ttlMs: QUERY_CACHE_TTL.seasonHistory,
-    forceRefresh: options.forceRefresh === true,
+    scope: 'seasonHistory', ttlMs: QUERY_CACHE_TTL.seasonHistory, forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      const { data, error } = await client
-        .from('championship_history')
-        .select('season_id, season_name, driver_champion, constructor_champion, constructor_champion_lineup, created_at, seasons!inner(name, league_id)')
-        .eq('seasons.league_id', leagueId)
-        .order('created_at', { ascending: false })
-        .limit(limit);
-
+      const { data, error } = await client.from('championship_history').select('*').eq('league_id', leagueId).order('season_number', { ascending: false });
       if (error) throw error;
       return data || [];
     }
@@ -347,27 +251,13 @@ async function fetchDrivers(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
   const leagueId = await getActiveLeagueId();
-
   return fetchWithLocalCache({
-    scope: 'drivers',
-    ttlMs: QUERY_CACHE_TTL.drivers,
-    forceRefresh: options.forceRefresh === true,
+    scope: 'drivers', ttlMs: QUERY_CACHE_TTL.drivers, forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      const { data, error } = await client
-        .from('drivers')
-        .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name, league_id')
-        .eq('league_id', leagueId)
-        .order('display_name', { ascending: true });
-
+      const { data, error } = await client.from('drivers').select('*').eq('league_id', leagueId).order('display_name');
       if (error) throw error;
-
-      return (data || []).map((driver) => ({
-        ...driver,
-        normalized_display_name: normalizeDriverName(driver.display_name),
-        normalized_gamertag: normalizeDriverName(driver.gamertag),
-        normalized_ai_driver_reference: normalizeDriverName(driver.ai_driver_reference)
-      }));
+      return data || [];
     }
   });
 }
@@ -375,91 +265,38 @@ async function fetchDrivers(options = {}) {
 async function fetchRaces(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
-  const leagueId = await getActiveLeagueId();
-
-  const queryScope = {
-    seasonId: options.seasonId ?? null
-  };
-
+  const seasonId = options.seasonId || null;
+  if (!seasonId) return [];
   return fetchWithLocalCache({
-    scope: 'races',
-    params: queryScope,
-    ttlMs: QUERY_CACHE_TTL.races,
-    forceRefresh: options.forceRefresh === true,
+    scope: 'races', params: { seasonId }, ttlMs: QUERY_CACHE_TTL.races, forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      let query = client
-        .from('races')
-        .select('*, seasons!inner(league_id)')
-        .eq('seasons.league_id', leagueId)
-        .order('round_number', { ascending: true });
-      if (options.seasonId !== undefined && options.seasonId !== null) query = query.eq('season_id', options.seasonId);
-      const { data, error } = await query;
+      const { data, error } = await client.from('races').select('*').eq('season_id', seasonId).order('round_number');
       if (error) throw error;
-      return (data || []).map(({ seasons, ...race }) => race);
+      return data || [];
     }
   });
+}
+
+async function fetchRaceByRound(roundNumber, options = {}) {
+  const seasonId = options.seasonId || (await fetchCurrentSeason())?.id;
+  if (!seasonId) return null;
+  const rows = await fetchRaces({ seasonId, forceRefresh: options.forceRefresh });
+  return rows.find((row) => Number(row.round_number) === Number(roundNumber)) || null;
 }
 
 async function fetchRaceResults(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
-  const leagueId = await getActiveLeagueId();
-
-  const raceIds = Array.isArray(options.raceIds) ? [...options.raceIds].sort() : [];
-  const queryScope = {
-    raceId: options.raceId ?? null,
-    raceIds
-  };
-
+  const raceIds = options.raceIds || (options.raceId ? [options.raceId] : []);
+  if (!raceIds.length) return [];
   return fetchWithLocalCache({
-    scope: 'raceResults',
-    params: queryScope,
-    ttlMs: QUERY_CACHE_TTL.raceResults,
-    forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'raceResults', params: { raceId: options.raceId || null, raceIds }, ttlMs: QUERY_CACHE_TTL.raceResults,
+    forceRefresh: options.forceRefresh === true, backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      let query = client
-        .from('race_results')
-        .select('*, races!inner(season_id, seasons!inner(league_id))')
-        .eq('races.seasons.league_id', leagueId);
-      if (options.raceId) query = query.eq('race_id', options.raceId);
-      if (options.raceIds?.length) query = query.in('race_id', options.raceIds);
-      const { data, error } = await query;
+      const { data, error } = await client.from('race_results').select('*').in('race_id', raceIds);
       if (error) throw error;
-      return (data || []).map(({ races, ...result }) => result);
-    }
-  });
-}
-
-async function fetchRaceByRound(options = {}) {
-  const client = window.supabaseClient;
-  if (!client) return null;
-  const leagueId = await getActiveLeagueId();
-
-  const queryScope = {
-    round: Number(options.round) || null,
-    seasonId: options.seasonId ?? null
-  };
-
-  return fetchWithLocalCache({
-    scope: 'raceByRound',
-    params: queryScope,
-    ttlMs: QUERY_CACHE_TTL.raceByRound,
-    forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
-    fetcher: async () => {
-      let query = client
-        .from('races')
-        .select('*, seasons!inner(league_id)')
-        .eq('seasons.league_id', leagueId)
-        .eq('round_number', queryScope.round);
-      if (queryScope.seasonId) query = query.eq('season_id', queryScope.seasonId);
-      const { data, error } = await query.maybeSingle();
-      if (error && error.code !== 'PGRST116') throw error;
-      if (!data) return null;
-      const { seasons, ...race } = data;
-      return race;
+      return data || [];
     }
   });
 }
@@ -467,33 +304,19 @@ async function fetchRaceByRound(options = {}) {
 async function fetchStewardCasesByRaceId(raceId, options = {}) {
   const client = window.supabaseClient;
   if (!client || !raceId) return [];
-  const leagueId = await getActiveLeagueId();
-
   return fetchWithLocalCache({
-    scope: 'stewardCases',
-    params: { raceId },
-    ttlMs: QUERY_CACHE_TTL.stewardCases,
-    forceRefresh: options.forceRefresh === true,
+    scope: 'stewardCases', params: { raceId }, ttlMs: QUERY_CACHE_TTL.stewardCases, forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh !== false,
     fetcher: async () => {
-      const { data, error } = await client
-        .from('steward_cases')
-        .select('title, description, decision_text, consequence, driver1:driver_1_id(display_name), driver2:driver_2_id(display_name), created_at, races!inner(season_id, seasons!inner(league_id))')
-        .eq('races.seasons.league_id', leagueId)
-        .eq('race_id', raceId)
-        .order('created_at', { ascending: false });
+      const { data, error } = await client.from('steward_cases').select('*').eq('race_id', raceId).order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []).map(({ races, ...stewardCase }) => stewardCase);
+      return data || [];
     }
   });
 }
 
 const DEFAULT_LEAGUE_CONTENT = {
-  id: 'default',
-  rules_text: '',
-  faq_text: '',
-  rules_config: {},
-  faq_items: []
+  rules_text: '', faq_text: '', rules_config: {}, faq_items: []
 };
 
 async function fetchLeagueContent(options = {}) {
