@@ -10,6 +10,16 @@ const RCC_TRANSLATE_COOKIE_NAME = 'googtrans';
 const RCC_SOURCE_LANGUAGE = 'de';
 const RCC_THEME_META_COLORS = { dark: '#021b34', light: '#4f63b8' };
 
+function ensureLeagueBrandingService(){
+  if(window.RCCBranding||document.querySelector('script[data-rcc-branding="true"]'))return;
+  const s=document.createElement('script');
+  s.src='assets/js/services/rcc-branding.js';
+  s.defer=true;
+  s.dataset.rccBranding='true';
+  s.onerror=()=>console.warn('RCC Branding: service could not be loaded.');
+  document.head.appendChild(s);
+}
+
 function getPreferredLanguage(){const v=localStorage.getItem(RCC_LANGUAGE_STORAGE_KEY);return RCC_SUPPORTED_LANGUAGES.includes(v)?v:'de';}
 function applyPreferredLanguage(){document.documentElement.lang=getPreferredLanguage();}
 function getPreferredTheme(){const v=localStorage.getItem(RCC_THEME_STORAGE_KEY);return RCC_SUPPORTED_THEMES.includes(v)?v:'dark';}
@@ -32,6 +42,7 @@ function loadGoogleTranslateScript(){if(googleTranslateLoadPromise)return google
 function applyGoogleTranslateLanguage(targetLanguage){const s=document.querySelector('.goog-te-combo');if(!s)return false;if(s.value===targetLanguage)return true;s.value=targetLanguage;s.dispatchEvent(new Event('change'));return true;}
 async function applyLanguageSelection(selectedLanguage,{forceReload=false}={}){document.documentElement.lang=selectedLanguage;if(selectedLanguage===RCC_SOURCE_LANGUAGE){clearTranslationCookie();if(forceReload)window.location.reload();return;}setTranslationCookie(selectedLanguage);try{await loadGoogleTranslateScript();let applied=applyGoogleTranslateLanguage(selectedLanguage);if(!applied){window.setTimeout(()=>applyGoogleTranslateLanguage(selectedLanguage),220);window.setTimeout(()=>applyGoogleTranslateLanguage(selectedLanguage),600);if(forceReload)window.setTimeout(()=>window.location.reload(),900);}}catch(error){console.warn(error);if(forceReload)window.location.reload();}}
 window.resolveCurrentPage=resolveCurrentPage;window.updateActiveNavigation=updateActiveNavigation;window.loadSiteLayout=loadSiteLayout;window.preserveLeagueContextInLinks=preserveLeagueContextInLinks;window.withLeagueContextHref=withLeagueContextHref;
+ensureLeagueBrandingService();
 document.addEventListener('DOMContentLoaded',loadSiteLayout);document.addEventListener('DOMContentLoaded',applyPreferredLanguage);document.addEventListener('DOMContentLoaded',applyThemePreference);document.addEventListener('DOMContentLoaded',()=>{const p=getPreferredLanguage();if(p!==RCC_SOURCE_LANGUAGE)applyLanguageSelection(p);});
 function setupAdminShortcut(){const b=document.querySelector('.brand');if(!b||b.dataset.adminShortcutBound==='true')return;const home=b.getAttribute('href')||'index.html';let timer=null;b.addEventListener('click',e=>{e.preventDefault();if(timer)clearTimeout(timer);timer=window.setTimeout(()=>{window.location.href=withLeagueContextHref(home);},220);});b.addEventListener('dblclick',e=>{e.preventDefault();if(timer){clearTimeout(timer);timer=null;}window.location.href=withLeagueContextHref('admin.html');});b.dataset.adminShortcutBound='true';}
 document.addEventListener('layout:loaded',setupAdminShortcut);
