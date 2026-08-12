@@ -361,12 +361,9 @@
       }
 
       if (session) {
-        const leagues = await fetchAccessibleLeagues();
-        const preferred = leagues.find((league) => ['owner', 'admin'].includes(league.role)) || leagues[0];
-        if (preferred && preferred.slug !== requestedSlug) {
-          navigateToLeague(preferred.slug);
-          return null;
-        }
+        const wrapped = new Error(`Die angeforderte Liga \"${requestedSlug}\" konnte nicht geladen werden. Es wird aus Sicherheitsgründen nicht auf eine andere Liga gewechselt. ${error.message || ''}`.trim());
+        wrapped.cause = error;
+        throw wrapped;
       }
 
       throw error;
