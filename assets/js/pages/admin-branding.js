@@ -1,11 +1,47 @@
 (() => {
-  function value(id) { return String(document.getElementById(id)?.value || '').trim(); }
+  const PANEL_ID = 'admin-section-branding';
+
+  function value(id) {
+    return String(document.getElementById(id)?.value || '').trim();
+  }
+
   function feedback(message, error = false) {
     const el = document.getElementById('league-branding-feedback');
     if (!el) return;
     el.hidden = false;
     el.textContent = message;
     el.classList.toggle('notice-error', error);
+  }
+
+  function mountPanel() {
+    if (document.getElementById(PANEL_ID)) return document.getElementById(PANEL_ID);
+    const layout = document.querySelector('.admin-layout');
+    if (!layout) return null;
+
+    const panel = document.createElement('details');
+    panel.className = 'panel admin-panel-wide';
+    panel.id = PANEL_ID;
+    panel.innerHTML = `
+      <summary><strong>Liga-Branding</strong></summary>
+      <section class="panel admin-panel-accent">
+        <h3>Öffentlicher Auftritt</h3>
+        <div class="notice">Diese Einstellungen gelten nur für die aktuell ausgewählte Liga.</div>
+        <div class="form-grid section-spacer-top">
+          <div class="field"><label for="league-brand-name">Anzeigename</label><input id="league-brand-name" placeholder="z. B. German Racing League"></div>
+          <div class="field"><label for="league-brand-subtitle">Untertitel</label><input id="league-brand-subtitle" placeholder="z. B. Sim Racing Championship"></div>
+          <div class="field full"><label for="league-brand-logo-url">Logo-URL</label><input id="league-brand-logo-url" type="url" placeholder="https://…/logo.png"></div>
+          <div class="field"><label for="league-brand-primary">Primärfarbe</label><input id="league-brand-primary" type="color" value="#35246A"></div>
+          <div class="field"><label for="league-brand-secondary">Sekundärfarbe</label><input id="league-brand-secondary" type="color" value="#5A32A3"></div>
+          <div class="field"><label for="league-brand-accent">Akzentfarbe</label><input id="league-brand-accent" type="color" value="#2C8FA6"></div>
+        </div>
+        <div class="card-actions"><button type="button" class="button-primary" id="save-league-branding-btn">Branding speichern</button></div>
+        <div id="league-branding-feedback" class="notice" hidden></div>
+      </section>`;
+
+    const auth = document.getElementById('admin-section-auth');
+    if (auth?.nextSibling) layout.insertBefore(panel, auth.nextSibling);
+    else layout.prepend(panel);
+    return panel;
   }
 
   async function load() {
@@ -54,12 +90,25 @@
   }
 
   async function init() {
-    const panel = document.getElementById('admin-section-branding');
+    const panel = mountPanel();
     if (!panel || panel.dataset.initialized === 'true') return;
     panel.dataset.initialized = 'true';
     document.getElementById('save-league-branding-btn')?.addEventListener('click', save);
-    await load();
+    try { await load(); } catch (error) { console.error('Liga-Branding konnte nicht geladen werden:', error); }
+  }
+
+  function boot() {
+    init();
+    const observer = new MutationObserver(() => {
+      if (document.querySelector('.admin-layout')) {
+        init();
+        observer.disconnect();
+      }
+    });
+    if (!document.querySelector('.admin-layout')) observer.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   window.RCCAdminBranding = { init, load, save };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
+  else boot();
 })();
