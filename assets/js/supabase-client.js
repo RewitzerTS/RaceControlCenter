@@ -1,23 +1,60 @@
 const SUPABASE_URL = 'https://kjccstcbqygxuqkvdaqw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImtqY2NzdGNicXlneHVxa3ZkYXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjU4NzYsImV4cCI6MjA5MDY0MTg3Nn0.7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqY2NzdGNicXlneHVxa3ZkYXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjU4NzYsImV4cCI6MjA5MDY0MTg3Nn0.7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8';
+const RCC_DEFAULT_LEAGUE_SLUG = 'rcc';
+const RCC_LEAGUE_SESSION_KEY = 'rcc.activeLeagueSlug.v1';
+const RCC_TENANT_CACHE_KEY = 'rcc.lastTenantSlug.v1';
 
-function resolveSupabaseLeagueSlug() {
-  const normalize = (value) => String(value || '')
+function normalizeSupabaseLeagueSlug(value) {
+  return String(value || '')
     .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '') || 'rcc';
+    .replace(/[^a-z0-9-]/g, '') || RCC_DEFAULT_LEAGUE_SLUG;
+}
 
+function readStoredLeagueSlug() {
+  try {
+    const stored = window.sessionStorage?.getItem(RCC_LEAGUE_SESSION_KEY);
+    return stored ? normalizeSupabaseLeagueSlug(stored) : RCC_DEFAULT_LEAGUE_SLUG;
+  } catch (_error) {
+    return RCC_DEFAULT_LEAGUE_SLUG;
+  }
+}
+
+function resolveSupabaseLeagueSlug() {
   const params = new URLSearchParams(window.location.search);
   const querySlug = params.get('league');
-  if (querySlug) return normalize(querySlug);
+  if (querySlug) return normalizeSupabaseLeagueSlug(querySlug);
 
   const pathMatch = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
-  if (pathMatch?.[1]) return normalize(pathMatch[1]);
+  if (pathMatch?.[1]) return normalizeSupabaseLeagueSlug(pathMatch[1]);
 
-  return 'rcc';
+  return readStoredLeagueSlug();
 }
 
 const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
+
+try {
+  window.sessionStorage?.setItem(RCC_LEAGUE_SESSION_KEY, RCC_REQUEST_LEAGUE_SLUG);
+  const previousTenant = window.sessionStorage?.getItem(RCC_TENANT_CACHE_KEY);
+  if (previousTenant && previousTenant !== RCC_REQUEST_LEAGUE_SLUG) {
+    window.sessionStorage?.removeItem('rcc.dashboard.view.v1');
+    window.sessionStorage?.removeItem('rcc.calendar.activeSection');
+    window.sessionStorage?.removeItem('rcc.calendar.archiveSeason');
+  }
+  window.sessionStorage?.setItem(RCC_TENANT_CACHE_KEY, RCC_REQUEST_LEAGUE_SLUG);
+} catch (_error) {
+  // Session storage can be blocked by browser privacy settings.
+}
+
+// JS redirects can accidentally drop ?league=. Restore the non-default tenant
+// immediately so every subsequent link and request sees the same context.
+if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG) {
+  const currentUrl = new URL(window.location.href);
+  if (!currentUrl.searchParams.get('league')) {
+    currentUrl.searchParams.set('league', RCC_REQUEST_LEAGUE_SLUG);
+    window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+  }
+}
 
 window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -28,14 +65,14 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
   global: {
     headers: {
-      'x-rcc-league': RCC_REQUEST_LEAGUE_SLUG
+      'x-rcc-league-slug': RCC_REQUEST_LEAGUE_SLUG
     }
   }
 });
 
 // The bundled Hall-of-Fame JSON is legacy data for the original RCC league.
 // Other tenants must show an empty history until they archive their own season.
-if (RCC_REQUEST_LEAGUE_SLUG !== 'rcc' && typeof window.fetch === 'function') {
+if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch === 'function') {
   const nativeFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
     try {
@@ -62,7 +99,7 @@ if (RCC_REQUEST_LEAGUE_SLUG !== 'rcc' && typeof window.fetch === 'function') {
 (() => {
   if (window.RCCLeagueContext?.initialize) return;
 
-  const DEFAULT_LEAGUE_SLUG = 'rcc';
+  const DEFAULT_LEAGUE_SLUG = RCC_DEFAULT_LEAGUE_SLUG;
   const state = {
     league: null,
     membership: null,
@@ -71,10 +108,7 @@ if (RCC_REQUEST_LEAGUE_SLUG !== 'rcc' && typeof window.fetch === 'function') {
   };
 
   function normalizeSlug(value) {
-    return String(value || '')
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9-]/g, '') || DEFAULT_LEAGUE_SLUG;
+    return normalizeSupabaseLeagueSlug(value);
   }
 
   function getRequestedLeagueSlug() {
