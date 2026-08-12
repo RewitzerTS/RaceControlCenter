@@ -67,7 +67,8 @@ function bindArchiveActions() {
 
   const openArchive = () => {
     if (!selectEl.value) return;
-    window.location.href = `saison-archiv.html?season=${encodeURIComponent(selectEl.value)}`;
+    const href = `saison-archiv.html?season=${encodeURIComponent(selectEl.value)}`;
+    window.location.href = window.withLeagueContextHref ? window.withLeagueContextHref(href) : href;
   };
 
   selectEl.addEventListener('change', updateState);
@@ -104,7 +105,6 @@ async function loadSeasonArchiveSelector() {
     if (hintEl) hintEl.textContent = 'Fehler beim Laden des Archivs.';
   }
 }
-
 
 function highlightRaceFromQuery() {
   const params = new URLSearchParams(window.location.search);
