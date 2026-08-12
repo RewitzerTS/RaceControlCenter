@@ -30,11 +30,52 @@
     document.head.appendChild(style);
   }
 
+  function ensureTenantThemeOverrides() {
+    if (document.getElementById('rcc-tenant-theme-overrides')) return;
+    const style = document.createElement('style');
+    style.id = 'rcc-tenant-theme-overrides';
+    style.textContent = `
+      html[data-league-branding-applied="true"] .button-primary,
+      html[data-league-branding-applied="true"] .btn.primary,
+      html[data-league-branding-applied="true"] .btn-primary-glow {
+        background: linear-gradient(135deg, var(--secondary), var(--accent)) !important;
+      }
+      html[data-league-branding-applied="true"] .btn-secondary-ghost:hover,
+      html[data-league-branding-applied="true"] .button-secondary:hover,
+      html[data-league-branding-applied="true"] .btn:hover,
+      html[data-league-branding-applied="true"] .main-nav a:hover,
+      html[data-league-branding-applied="true"] .main-nav a.active,
+      html[data-league-branding-applied="true"] .nav-more-toggle:hover,
+      html[data-league-branding-applied="true"] .nav-more.open .nav-more-toggle {
+        border-color: var(--accent) !important;
+      }
+      html[data-league-branding-applied="true"] .btn-secondary-ghost:hover,
+      html[data-league-branding-applied="true"] .main-nav a:hover,
+      html[data-league-branding-applied="true"] .main-nav a.active,
+      html[data-league-branding-applied="true"] .nav-more-toggle:hover,
+      html[data-league-branding-applied="true"] .nav-more.open .nav-more-toggle {
+        background: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+      }
+      html[data-league-branding-applied="true"] .next-race-item,
+      html[data-league-branding-applied="true"] .accent-outline {
+        border-color: color-mix(in srgb, var(--accent) 34%, transparent) !important;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, transparent), rgba(255,255,255,0.03)) !important;
+      }
+      html[data-league-branding-applied="true"] .violet-outline,
+      html[data-league-branding-applied="true"] .countdown-box {
+        border-color: color-mix(in srgb, var(--secondary) 32%, transparent) !important;
+        background: linear-gradient(180deg, color-mix(in srgb, var(--secondary) 22%, transparent), rgba(255,255,255,0.03)) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function releaseBrandingGate() {
     delete document.documentElement.dataset.leagueBrandingPending;
   }
 
   installBrandingGate();
+  ensureTenantThemeOverrides();
 
   function normalizeHexColor(value) {
     const color = String(value || '').trim();
