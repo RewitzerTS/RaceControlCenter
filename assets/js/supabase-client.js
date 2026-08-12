@@ -33,6 +33,29 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
+// The bundled Hall-of-Fame JSON is legacy data for the original RCC league.
+// Other tenants must show an empty history until they archive their own season.
+if (RCC_REQUEST_LEAGUE_SLUG !== 'rcc' && typeof window.fetch === 'function') {
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    try {
+      const rawUrl = typeof input === 'string' ? input : input?.url;
+      if (rawUrl) {
+        const url = new URL(rawUrl, window.location.href);
+        if (url.pathname.endsWith('/data/hall-of-fame-fallback.json')) {
+          return Promise.resolve(new Response(JSON.stringify({ history: [] }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+          }));
+        }
+      }
+    } catch (_error) {
+      // Fall through to the native request.
+    }
+    return nativeFetch(input, init);
+  };
+}
+
 // Make the tenant context available before admin-tenant-bootstrap.js executes.
 // Without this early context, the bootstrap can incorrectly fall back to the
 // default `rcc` league before rcc-league-context.js has been dynamically loaded.
