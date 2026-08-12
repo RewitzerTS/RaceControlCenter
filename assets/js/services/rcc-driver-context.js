@@ -21,6 +21,7 @@
         effective_from_race_id,
         effective_round_number,
         team_id,
+        league_team,
         car_name,
         ai_driver_reference,
         is_primary,
@@ -93,7 +94,7 @@
 
       return {
         ...baseDriver,
-        league_team: baseDriver.league_team,
+        league_team: assignment.league_team ?? baseDriver.league_team,
         car_name: assignment.car_name || baseDriver.car_name,
         ai_driver_reference: assignment.ai_driver_reference || baseDriver.ai_driver_reference,
         team_id: assignment.team_id || baseDriver.team_id,
