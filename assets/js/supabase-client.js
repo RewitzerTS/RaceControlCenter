@@ -1,5 +1,23 @@
 const SUPABASE_URL = 'https://kjccstcbqygxuqkvdaqw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqY2NzdGNicXlneHVxa3ZkYXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjU4NzYsImV4cCI6MjA5MDY0MTg3Nn0.7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJIUzI1NiIsInJlZiI6ImtqY2NzdGNicXlneHVxa3ZkYXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjU4NzYsImV4cCI6MjA5MDY0MTg3Nn0.7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8';
+
+function resolveSupabaseLeagueSlug() {
+  const normalize = (value) => String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '') || 'rcc';
+
+  const params = new URLSearchParams(window.location.search);
+  const querySlug = params.get('league');
+  if (querySlug) return normalize(querySlug);
+
+  const pathMatch = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
+  if (pathMatch?.[1]) return normalize(pathMatch[1]);
+
+  return 'rcc';
+}
+
+const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
 
 window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -7,6 +25,11 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     persistSession: true,
     detectSessionInUrl: true,
     storageKey: 'rcc_admin_session'
+  },
+  global: {
+    headers: {
+      'x-rcc-league': RCC_REQUEST_LEAGUE_SLUG
+    }
   }
 });
 
@@ -32,14 +55,7 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 
   function getRequestedLeagueSlug() {
-    const params = new URLSearchParams(window.location.search);
-    const querySlug = params.get('league');
-    if (querySlug) return normalizeSlug(querySlug);
-
-    const pathMatch = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
-    if (pathMatch?.[1]) return normalizeSlug(pathMatch[1]);
-
-    return DEFAULT_LEAGUE_SLUG;
+    return RCC_REQUEST_LEAGUE_SLUG || DEFAULT_LEAGUE_SLUG;
   }
 
   async function fetchMembership(client, leagueId) {
