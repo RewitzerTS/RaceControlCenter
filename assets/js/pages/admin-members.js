@@ -22,6 +22,35 @@
     document.head.appendChild(script);
   }
 
+  function bindReliableLogout() {
+    const buttons = [
+      document.getElementById('admin-banner-logout-btn'),
+      document.getElementById('admin-quick-logout-btn')
+    ].filter(Boolean);
+    buttons.forEach((button) => {
+      if (button.dataset.rccLogoutBound === 'true') return;
+      button.dataset.rccLogoutBound = 'true';
+      button.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        button.disabled = true;
+        try {
+          const { error } = await window.supabaseClient.auth.signOut({ scope: 'local' });
+          if (error) throw error;
+          try {
+            window.sessionStorage?.removeItem('rcc.activeLeagueSlug.v1');
+            window.sessionStorage?.removeItem('rcc.lastTenantSlug.v1');
+          } catch (_error) {}
+          window.location.reload();
+        } catch (error) {
+          console.error('Logout fehlgeschlagen.', error);
+          button.disabled = false;
+          window.alert(`Logout fehlgeschlagen: ${error.message || 'Unbekannter Fehler'}`);
+        }
+      }, true);
+    });
+  }
+
   async function ensurePanel(platformOwner) {
     if (document.getElementById('admin-section-members')) return;
     const layout=document.querySelector('.admin-layout'); if(!layout)return;
@@ -52,6 +81,6 @@
   async function onRoleChange(event){const select=event.target.closest('.league-member-role-select');if(!select)return;const leagueId=getLeagueId(),userId=select.dataset.userId,role=select.value;if(!leagueId||!userId)return;try{const {error}=await window.supabaseClient.rpc('set_league_member_role',{p_league_id:leagueId,p_user_id:userId,p_role:role});if(error)throw error;showFeedback(`Rolle wurde auf ${roleLabels[role]||role} geändert.`);await loadMembers();}catch(error){console.error(error);showFeedback(`Rolle konnte nicht geändert werden: ${error.message}`,true);await loadMembers();}}
   async function onMemberAction(event){const button=event.target.closest('.league-member-remove-btn');if(!button)return;const leagueId=getLeagueId(),userId=button.dataset.userId,email=button.dataset.email||'dieses Mitglied';if(!leagueId||!userId||!window.confirm(`${email} wirklich aus dieser Liga entfernen?`))return;button.disabled=true;try{const {error}=await window.supabaseClient.rpc('remove_league_member',{p_league_id:leagueId,p_user_id:userId});if(error)throw error;showFeedback(`${email} wurde aus der Liga entfernt.`);await loadMembers();}catch(error){console.error(error);showFeedback(`Entfernen fehlgeschlagen: ${error.message}`,true);button.disabled=false;}}
 
-  async function init(){if(initialized)return;const context=await window.RCCData?.getLeagueContext?.().catch(()=>null);const platformOwner=await isPlatformOwner();if(platformOwner)loadOwnerSwitcher();if(!context?.leagueId||(!platformOwner&&!['owner','admin'].includes(context.role)))return;await ensurePanel(platformOwner);initialized=true;await loadMembers();}
+  async function init(){if(initialized)return;bindReliableLogout();const context=await window.RCCData?.getLeagueContext?.().catch(()=>null);const platformOwner=await isPlatformOwner();if(platformOwner)loadOwnerSwitcher();if(!context?.leagueId||(!platformOwner&&!['owner','admin'].includes(context.role)))return;await ensurePanel(platformOwner);initialized=true;await loadMembers();}
   window.RCCLeagueMembers={init,loadMembers};
 })();
