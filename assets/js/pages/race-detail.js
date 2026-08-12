@@ -68,8 +68,7 @@ async function loadRaceDetailPage() {
 
   try {
     const currentSeason = seasonParam ? { id: seasonParam } : await window.RCCData.fetchCurrentSeason();
-    const race = await window.RCCData.fetchRaceByRound({
-      round,
+    const race = await window.RCCData.fetchRaceByRound(round, {
       seasonId: currentSeason?.id || null
     });
     if (!race) throw new Error('Race not found');
