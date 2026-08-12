@@ -3,6 +3,7 @@
   let onboardingModulePromise = null;
   let scoringModulePromise = null;
   let seasonStructureModulePromise = null;
+  let substitutionModulePromise = null;
 
   function slugify(value) {
     return String(value || '')
@@ -66,6 +67,17 @@
       'Saisonstruktur-Modul konnte nicht geladen werden.'
     ).finally(() => { seasonStructureModulePromise = null; });
     return seasonStructureModulePromise;
+  }
+
+  async function loadSubstitutionModule() {
+    if (window.RCCRaceSubstitutions) return window.RCCRaceSubstitutions;
+    if (substitutionModulePromise) return substitutionModulePromise;
+    substitutionModulePromise = loadScriptModule(
+      'RCCRaceSubstitutions',
+      'assets/js/pages/admin-race-substitutions.js',
+      'Ersatzfahrer-Modul konnte nicht geladen werden.'
+    ).finally(() => { substitutionModulePromise = null; });
+    return substitutionModulePromise;
   }
 
   function ensurePanel() {
@@ -175,6 +187,9 @@
 
     const seasonStructureModule = await loadSeasonStructureModule().catch((error) => console.warn(error));
     await seasonStructureModule?.init?.();
+
+    const substitutionModule = await loadSubstitutionModule().catch((error) => console.warn(error));
+    await substitutionModule?.init?.();
 
     initialized = true;
   }
