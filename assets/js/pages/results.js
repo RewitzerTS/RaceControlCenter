@@ -130,21 +130,39 @@ function buildMatrixData(drivers, races, raceResults, resolver) {
     .filter((race) => race.status === 'completed' || raceIdsWithResults.has(race.id))
     .sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
   const raceIds = new Set(completedRaces.map((race) => race.id));
-  const resultsByRace = window.RCCData.groupBy(raceResults.filter((row) => raceIds.has(row.race_id)), (row) => row.race_id);
+  const scopedResults = (raceResults || []).filter((row) => raceIds.has(row.race_id));
+  const resultsByRace = window.RCCData.groupBy(scopedResults, (row) => row.race_id);
   const fastestByRace = new Map();
   completedRaces.forEach((race) => fastestByRace.set(race.id, window.RCCData.getFastestLapDriverId(resultsByRace.get(race.id) || [])));
 
+  // Results can be driven by a BOT/substitute while the championship points
+  // belong to the real season driver. Group the matrix by points owner, just
+  // like the Fahrer-WM calculation does.
   const rows = drivers.map((driver) => {
     const raceCells = completedRaces.map((race) => {
-      const row = (resultsByRace.get(race.id) || []).find((entry) => entry.driver_id === driver.id);
-      const snapshot = resolver?.resolveDriverSnapshot(driver.id, race.id) || driver;
+      const sourceRows = resultsByRace.get(race.id) || [];
+      const ownedRows = sourceRows.filter((entry) => (entry.points_owner_driver_id || entry.driver_id) === driver.id);
       const fastestDriverId = fastestByRace.get(race.id);
-      const points = row ? window.RCCData.getAwardedRacePoints(row, fastestDriverId) : 0;
+
+      if (!ownedRows.length) {
+        const snapshot = resolver?.resolveDriverSnapshot(driver.id, race.id) || driver;
+        return {
+          points: 0,
+          isBot: false,
+          hasFastestLap: false,
+          carName: snapshot?.car_name || driver.car_name || '—'
+        };
+      }
+
+      const points = ownedRows.reduce((sum, row) => sum + window.RCCData.getAwardedRacePoints(row, fastestDriverId), 0);
+      const sourceRow = ownedRows[0];
+      const sourceSnapshot = resolver?.resolveDriverSnapshot(sourceRow.driver_id, race.id) || driver;
+
       return {
         points,
-        isBot: String(row?.participation_status || '').toUpperCase() === 'BOT',
-        hasFastestLap: row?.driver_id === fastestDriverId,
-        carName: snapshot?.car_name || driver.car_name || '—'
+        isBot: ownedRows.some((row) => String(row?.participation_status || '').toUpperCase() === 'BOT'),
+        hasFastestLap: ownedRows.some((row) => row?.driver_id === fastestDriverId),
+        carName: sourceRow.points_car_name || sourceSnapshot?.car_name || driver.car_name || '—'
       };
     });
 
