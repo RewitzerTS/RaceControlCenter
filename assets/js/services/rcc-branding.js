@@ -6,6 +6,36 @@
 
   let applyPromise = null;
 
+  function getRequestedSlugEarly() {
+    const params = new URLSearchParams(window.location.search);
+    const querySlug = params.get('league');
+    if (querySlug) return String(querySlug).trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const pathMatch = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
+    return pathMatch?.[1] ? String(pathMatch[1]).toLowerCase() : DEFAULT_LEAGUE_SLUG;
+  }
+
+  function installBrandingGate() {
+    if (getRequestedSlugEarly() === DEFAULT_LEAGUE_SLUG) return;
+    document.documentElement.dataset.leagueBrandingPending = 'true';
+    if (document.getElementById('rcc-branding-gate-style')) return;
+    const style = document.createElement('style');
+    style.id = 'rcc-branding-gate-style';
+    style.textContent = `
+      html[data-league-branding-pending="true"] .brand-logo,
+      html[data-league-branding-pending="true"] .brand-title,
+      html[data-league-branding-pending="true"] .brand-subtitle {
+        visibility: hidden !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function releaseBrandingGate() {
+    delete document.documentElement.dataset.leagueBrandingPending;
+  }
+
+  installBrandingGate();
+
   function normalizeHexColor(value) {
     const color = String(value || '').trim();
     return /^#[0-9a-f]{6}$/i.test(color) ? color : '';
@@ -77,6 +107,7 @@
     document.title = pageLabel ? `${leagueName} · ${pageLabel}` : leagueName;
 
     setThemeColor(settings);
+    releaseBrandingGate();
 
     window.dispatchEvent(new CustomEvent('rcc:league-branding-applied', {
       detail: {
@@ -107,6 +138,7 @@
     })()
       .catch((error) => {
         console.warn('RCC Branding: league branding could not be applied.', error);
+        releaseBrandingGate();
         return false;
       })
       .finally(() => {
