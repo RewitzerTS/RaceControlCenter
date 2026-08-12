@@ -2,6 +2,7 @@
   let initialized = false;
   let onboardingModulePromise = null;
   let scoringModulePromise = null;
+  let seasonStructureModulePromise = null;
 
   function slugify(value) {
     return String(value || '')
@@ -54,6 +55,17 @@
       'Liga-Punktesystem konnte nicht geladen werden.'
     ).finally(() => { scoringModulePromise = null; });
     return scoringModulePromise;
+  }
+
+  async function loadSeasonStructureModule() {
+    if (window.RCCOnboardingSeasonStructure) return window.RCCOnboardingSeasonStructure;
+    if (seasonStructureModulePromise) return seasonStructureModulePromise;
+    seasonStructureModulePromise = loadScriptModule(
+      'RCCOnboardingSeasonStructure',
+      'assets/js/pages/admin-onboarding-season-structure.js',
+      'Saisonstruktur-Modul konnte nicht geladen werden.'
+    ).finally(() => { seasonStructureModulePromise = null; });
+    return seasonStructureModulePromise;
   }
 
   function ensurePanel() {
@@ -160,6 +172,10 @@
 
     const onboardingModule = await loadOnboardingModule().catch((error) => console.warn(error));
     await onboardingModule?.init?.();
+
+    const seasonStructureModule = await loadSeasonStructureModule().catch((error) => console.warn(error));
+    await seasonStructureModule?.init?.();
+
     initialized = true;
   }
 
