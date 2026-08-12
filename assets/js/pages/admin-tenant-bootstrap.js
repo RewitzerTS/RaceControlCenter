@@ -33,6 +33,17 @@
     return switchers[0] || null;
   }
 
+  async function hasSwitcherAccess(session) {
+    if (!session?.user?.id) return false;
+    if (window.RCCLeagueContext?.isAdmin?.()) return true;
+    try {
+      const { data, error } = await window.supabaseClient.rpc('is_platform_owner');
+      return !error && data === true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function addLeagueId(payload, leagueId, table) {
     const enhanceRow = (row) => {
       if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
@@ -81,7 +92,7 @@
     switcherRenderPromise = (async () => {
       const session = await getSession();
       let switcher = dedupeLeagueSwitchers();
-      if (!session) {
+      if (!session || !(await hasSwitcherAccess(session))) {
         switcher?.remove();
         return;
       }
