@@ -148,6 +148,16 @@
     return applyPromise;
   }
 
+  function loadAdminBrandingEditor() {
+    if (document.body?.dataset.page !== 'admin' || window.RCCAdminBranding || document.querySelector('script[data-rcc-admin-branding="true"]')) return;
+    const script = document.createElement('script');
+    script.src = 'assets/js/pages/admin-branding.js';
+    script.dataset.rccAdminBranding = 'true';
+    script.onload = () => window.RCCAdminBranding?.init?.();
+    script.onerror = () => console.warn('RCC Branding: Admin-Branding-Editor konnte nicht geladen werden.');
+    document.head.appendChild(script);
+  }
+
   window.RCCBranding = {
     apply,
     applySnapshot
@@ -163,4 +173,7 @@
   } else {
     apply();
   }
+
+  if (document.readyState === 'complete') loadAdminBrandingEditor();
+  else window.addEventListener('load', loadAdminBrandingEditor, { once: true });
 })();
