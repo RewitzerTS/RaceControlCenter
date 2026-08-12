@@ -8,33 +8,35 @@ function renderChampions(currentSeason, latestHistory) {
   if (constructorChampionEl) constructorChampionEl.textContent = latestHistory?.constructor_champion || 'Noch offen';
 }
 
-async function loadDashboard() {
+function renderDashboard(currentSeason, races = [], history = []) {
   const totalRacesEl = document.getElementById('stat-total-races');
   const upcomingRacesEl = document.getElementById('stat-upcoming-races');
   const completedRacesEl = document.getElementById('stat-completed-races');
+  const upcoming = races.filter((race) => race.status === 'upcoming');
+  const completed = races.filter((race) => race.status === 'completed');
+  if (totalRacesEl) totalRacesEl.textContent = races.length;
+  if (upcomingRacesEl) upcomingRacesEl.textContent = upcoming.length;
+  if (completedRacesEl) completedRacesEl.textContent = completed.length;
+  renderChampions(currentSeason, history[0]);
+}
 
+async function loadDashboard() {
   try {
-    const currentSeason = await window.RCCData.fetchCurrentSeason();
-    const [races, history] = await Promise.all([
-      window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
-      window.RCCData.fetchSeasonHistory(1)
-    ]);
-
-    const upcoming = races.filter((race) => race.status === 'upcoming');
-    const completed = races.filter((race) => race.status === 'completed');
-
-    if (totalRacesEl) totalRacesEl.textContent = races.length;
-    if (upcomingRacesEl) upcomingRacesEl.textContent = upcoming.length;
-    if (completedRacesEl) completedRacesEl.textContent = completed.length;
-
-    renderChampions(currentSeason, history[0]);
+    // RCCData already uses tenant-scoped localStorage caches. These calls return
+    // cached values immediately when available and refresh them in the background.
+    // History does not depend on the current season, so start it immediately.
+    const seasonPromise = window.RCCData.fetchCurrentSeason();
+    const historyPromise = window.RCCData.fetchSeasonHistory(1);
+    const currentSeason = await seasonPromise;
+    const racesPromise = window.RCCData.fetchRaces({ seasonId: currentSeason?.id });
+    const [races, history] = await Promise.all([racesPromise, historyPromise]);
+    renderDashboard(currentSeason, races, history);
   } catch (error) {
     console.error(error);
   }
 }
 
 document.addEventListener('DOMContentLoaded', loadDashboard);
-
 
 const WEEKLY_F1_FACTS = [
   'Der engste bekannte Zieleinlauf der Formel-1-Geschichte lag 1971 in Monza bei nur 0,01 Sekunden zwischen Sieger Peter Gethin und Ronnie Peterson.',
