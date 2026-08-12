@@ -3,6 +3,9 @@
   const DEFAULT_LOGO_URL = 'assets/images/logo.png';
   const DEFAULT_SUBTITLE = 'TrackVision Studio';
   const FALLBACK_SUBTITLE = 'Race Control Center';
+  const DASHBOARD_VIEW_CACHE_KEY = 'rcc.dashboard.view.v1';
+  const DASHBOARD_VIEW_OWNER_KEY = 'rcc.dashboard.view.owner.v1';
+  const DASHBOARD_VIEW_MAX_AGE_MS = 1000 * 60 * 30;
 
   let applyPromise = null;
 
@@ -28,6 +31,27 @@
       }
     `;
     document.head.appendChild(style);
+  }
+
+  function installWarmDashboardLoaderGate() {
+    if (document.body?.dataset.page !== 'index') return;
+    try {
+      const raw = window.sessionStorage?.getItem(DASHBOARD_VIEW_CACHE_KEY);
+      const owner = window.sessionStorage?.getItem(DASHBOARD_VIEW_OWNER_KEY);
+      if (!raw || owner !== getRequestedSlugEarly()) return;
+      const cached = JSON.parse(raw);
+      if (!cached?.cachedAt || Date.now() - Number(cached.cachedAt) > DASHBOARD_VIEW_MAX_AGE_MS) return;
+      const style = document.createElement('style');
+      style.id = 'rcc-warm-dashboard-loader-gate';
+      style.textContent = `
+        .f1-loader-overlay { display: none !important; }
+        body.f1-loading { overflow: auto !important; }
+      `;
+      document.head.appendChild(style);
+      document.documentElement.dataset.warmDashboard = 'true';
+    } catch (_error) {
+      // Warm-cache optimization is optional.
+    }
   }
 
   function ensureTenantThemeOverrides() {
@@ -75,6 +99,7 @@
   }
 
   installBrandingGate();
+  installWarmDashboardLoaderGate();
   ensureTenantThemeOverrides();
 
   function normalizeHexColor(value) {
@@ -205,6 +230,11 @@
   };
 
   document.addEventListener('layout:loaded', () => apply());
+  document.addEventListener('dashboard:content-ready', () => {
+    if (document.body?.dataset.page === 'index') {
+      try { window.sessionStorage?.setItem(DASHBOARD_VIEW_OWNER_KEY, getRequestedSlugEarly()); } catch (_error) {}
+    }
+  });
   window.addEventListener('rcc:league-context-ready', (event) => {
     if (event?.detail?.league) applySnapshot(event.detail);
   });
