@@ -31,16 +31,42 @@ function resolveSupabaseLeagueSlug() {
   return readStoredLeagueSlug();
 }
 
-const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
+function removeSessionStorageByPrefix(prefix) {
+  try {
+    const storage = window.sessionStorage;
+    if (!storage) return;
+    const keys = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key && key.startsWith(prefix)) keys.push(key);
+    }
+    keys.forEach((key) => storage.removeItem(key));
+  } catch (_error) {
+    // Session storage is optional.
+  }
+}
 
-try {
-  window.sessionStorage?.setItem(RCC_LEAGUE_SESSION_KEY, RCC_REQUEST_LEAGUE_SLUG);
-  const previousTenant = window.sessionStorage?.getItem(RCC_TENANT_CACHE_KEY);
-  if (previousTenant && previousTenant !== RCC_REQUEST_LEAGUE_SLUG) {
+function clearTenantUiCaches() {
+  try {
     window.sessionStorage?.removeItem('rcc.dashboard.view.v1');
     window.sessionStorage?.removeItem('rcc.calendar.activeSection');
     window.sessionStorage?.removeItem('rcc.calendar.archiveSeason');
+    removeSessionStorageByPrefix('rcc.standings.view.v1:');
+  } catch (_error) {
+    // Session storage can be blocked by browser privacy settings.
   }
+}
+
+const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
+
+try {
+  const previousTenant = window.sessionStorage?.getItem(RCC_TENANT_CACHE_KEY);
+  if (previousTenant && previousTenant !== RCC_REQUEST_LEAGUE_SLUG) {
+    // Never render cached HTML or UI state from another tenant while the new
+    // tenant data is still loading. This avoids even a brief cross-league flash.
+    clearTenantUiCaches();
+  }
+  window.sessionStorage?.setItem(RCC_LEAGUE_SESSION_KEY, RCC_REQUEST_LEAGUE_SLUG);
   window.sessionStorage?.setItem(RCC_TENANT_CACHE_KEY, RCC_REQUEST_LEAGUE_SLUG);
 } catch (_error) {
   // Session storage can be blocked by browser privacy settings.
