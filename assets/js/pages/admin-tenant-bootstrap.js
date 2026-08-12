@@ -7,10 +7,30 @@
   let authReloadBound = false;
   let membersModulePromise = null;
   let leagueCreateModulePromise = null;
+  let switcherRenderPromise = null;
 
   function requestedLeagueSlug() {
     const querySlug = String(new URLSearchParams(window.location.search).get('league') || '').trim();
     return querySlug || window.RCCLeagueContext?.getRequestedLeagueSlug?.() || FALLBACK_LEAGUE_SLUG;
+  }
+
+  function setAdminSurfaceVisibility(session) {
+    const adminActive = Boolean(session?.user && window.RCCLeagueContext?.isAdmin?.());
+    document.querySelectorAll('.admin-layout > details').forEach((panel) => {
+      if (panel.id === 'admin-section-auth') {
+        panel.hidden = false;
+        return;
+      }
+      panel.hidden = !adminActive;
+    });
+    const tabs = document.getElementById('admin-mobile-tabs');
+    if (tabs) tabs.hidden = !adminActive;
+  }
+
+  function dedupeLeagueSwitchers() {
+    const switchers = [...document.querySelectorAll('#admin-league-switcher')];
+    switchers.slice(1).forEach((node) => node.remove());
+    return switchers[0] || null;
   }
 
   function addLeagueId(payload, leagueId, table) {
@@ -57,30 +77,40 @@
   }
 
   async function renderLeagueSwitcher() {
-    const session = await getSession();
-    let switcher = document.getElementById('admin-league-switcher');
-    if (!session) { switcher?.remove(); return; }
-    const leagues = await fetchAccessibleLeagues();
-    if (!switcher) {
-      switcher = document.createElement('div');
-      switcher.id = 'admin-league-switcher';
-      switcher.className = 'container admin-session-banner';
-      const banner = document.getElementById('admin-session-banner');
-      if (banner?.parentNode) banner.parentNode.insertBefore(switcher, banner.nextSibling);
-    }
-    const currentSlug = window.RCCLeagueContext?.getSlug?.() || requestedLeagueSlug();
-    if (!leagues.length) {
-      switcher.innerHTML = '<span>Deinem Account ist noch keine Liga zugeordnet.</span>';
+    if (switcherRenderPromise) return switcherRenderPromise;
+    switcherRenderPromise = (async () => {
+      const session = await getSession();
+      let switcher = dedupeLeagueSwitchers();
+      if (!session) {
+        switcher?.remove();
+        return;
+      }
+
+      if (!switcher) {
+        switcher = document.createElement('div');
+        switcher.id = 'admin-league-switcher';
+        switcher.className = 'container admin-session-banner';
+        const banner = document.getElementById('admin-session-banner');
+        if (banner?.parentNode) banner.parentNode.insertBefore(switcher, banner.nextSibling);
+      }
+
+      const leagues = await fetchAccessibleLeagues();
+      const currentSlug = window.RCCLeagueContext?.getSlug?.() || requestedLeagueSlug();
+      if (!leagues.length) {
+        switcher.innerHTML = '<span>Deinem Account ist noch keine Liga zugeordnet.</span>';
+        switcher.hidden = false;
+        return;
+      }
+      switcher.innerHTML = `<label for="admin-league-select"><strong>Aktive Liga:</strong></label><select id="admin-league-select" aria-label="Aktive Liga auswählen">${leagues.map((league) => `<option value="${league.slug}" ${league.slug === currentSlug ? 'selected' : ''}>${league.name} · ${roleLabel(league.role)}</option>`).join('')}</select>`;
       switcher.hidden = false;
-      return;
-    }
-    switcher.innerHTML = `<label for="admin-league-select"><strong>Aktive Liga:</strong></label><select id="admin-league-select" aria-label="Aktive Liga auswählen">${leagues.map((league) => `<option value="${league.slug}" ${league.slug === currentSlug ? 'selected' : ''}>${league.name} · ${roleLabel(league.role)}</option>`).join('')}</select>`;
-    switcher.hidden = false;
-    const select = switcher.querySelector('#admin-league-select');
-    select?.addEventListener('change', () => {
-      const nextSlug = String(select.value || '').trim();
-      if (nextSlug && nextSlug !== currentSlug) navigateToLeague(nextSlug);
-    });
+      const select = switcher.querySelector('#admin-league-select');
+      select?.addEventListener('change', () => {
+        const nextSlug = String(select.value || '').trim();
+        if (nextSlug && nextSlug !== currentSlug) navigateToLeague(nextSlug);
+      });
+      dedupeLeagueSwitchers();
+    })().finally(() => { switcherRenderPromise = null; });
+    return switcherRenderPromise;
   }
 
   async function loadLeagueMembersModule() {
@@ -147,6 +177,8 @@
       window.refreshSessionStatus = async (...args) => {
         await window.RCCData.getLeagueContext({ forceRefresh: true }).catch(() => null);
         const result = await originalRefreshSessionStatus(...args);
+        const session = await getSession().catch(() => null);
+        setAdminSurfaceVisibility(session);
         await renderLeagueSwitcher().catch((error) => console.warn('Liga-Auswahl konnte nicht geladen werden.', error));
         const createModule = await loadLeagueCreateModule().catch((error) => console.warn(error));
         await createModule?.init?.();
@@ -170,8 +202,6 @@
       return await window.RCCData.getLeagueContext({ slug: requestedSlug, forceRefresh: true });
     } catch (error) {
       if (!session) {
-        // The login UI must remain usable even if the requested private league cannot be read anonymously.
-        // Initialize against the public fallback only for rendering auth, then return to the requested tenant after sign-in.
         if (requestedSlug !== FALLBACK_LEAGUE_SLUG) {
           try {
             const fallback = await window.RCCData.getLeagueContext({ slug: FALLBACK_LEAGUE_SLUG, forceRefresh: true });
@@ -215,9 +245,12 @@
 
   document.addEventListener('DOMContentLoaded', async (event) => {
     event.stopImmediatePropagation();
+    setAdminSurfaceVisibility(null);
     try {
       const context = await prepare();
       if (typeof window.initAdminPage === 'function') await window.initAdminPage();
+      const session = await getSession().catch(() => null);
+      setAdminSurfaceVisibility(session);
       if (!context) return;
       await renderLeagueSwitcher();
       const createModule = await loadLeagueCreateModule();
@@ -226,6 +259,7 @@
       await membersModule?.init?.();
     } catch (error) {
       console.error('RCC Admin tenant bootstrap failed.', error);
+      setAdminSurfaceVisibility(null);
       const status = document.getElementById('admin-session-status');
       if (status) status.textContent = `Admin Center konnte nicht initialisiert werden: ${error.message}`;
     }
