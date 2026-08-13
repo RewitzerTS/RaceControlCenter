@@ -42,10 +42,22 @@
     };
   }
 
+  function loadResultConsistency() {
+    if (window.RCCResultsConsistency) return window.RCCResultsConsistency.init?.();
+    if (document.querySelector('script[data-rcc-results-consistency]')) return;
+    const script = document.createElement('script');
+    script.src = 'assets/js/pages/admin-results-consistency.js';
+    script.dataset.rccResultsConsistency = 'true';
+    script.onload = () => window.RCCResultsConsistency?.init?.();
+    script.onerror = () => console.warn('Ergebnis-Sicherheitsmodul konnte nicht geladen werden.');
+    document.head.appendChild(script);
+  }
+
   async function init() {
     if (initialized) return;
     await window.RCCData?.getLeagueContext?.({ forceRefresh: true }).catch(() => null);
     install();
+    loadResultConsistency();
     initialized = true;
   }
 
