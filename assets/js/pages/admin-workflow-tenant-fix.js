@@ -1,4 +1,9 @@
 (() => {
+  const compatScript = document.createElement('script');
+  compatScript.src = 'assets/js/pages/admin-race-results-insert-compat.js';
+  compatScript.defer = true;
+  document.head.appendChild(compatScript);
+
   document.addEventListener('DOMContentLoaded', () => {
     if (!window.supabaseClient || !window.RCCData) return;
 
