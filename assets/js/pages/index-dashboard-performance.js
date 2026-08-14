@@ -58,6 +58,40 @@
     return state.prefetchPromise;
   }
 
+  async function refreshScopedStewardCount() {
+    const statusEl = document.getElementById('status-stewards');
+    if (!statusEl || !window.supabaseClient || !window.RCCData) return;
+
+    try {
+      const season = await window.RCCData.fetchCurrentSeason();
+      if (!season?.id) {
+        statusEl.textContent = 'Keine aktive Saison';
+        return;
+      }
+
+      const races = await window.RCCData.fetchRaces({ seasonId: season.id });
+      const raceIds = (races || []).map((race) => race.id).filter(Boolean);
+      if (!raceIds.length) {
+        statusEl.textContent = 'Keine Fälle hinterlegt';
+        return;
+      }
+
+      const { count, error } = await window.supabaseClient
+        .from('steward_cases')
+        .select('id', { count: 'exact', head: true })
+        .in('race_id', raceIds);
+      if (error) throw error;
+
+      statusEl.textContent = count ? `${count} Fälle protokolliert` : 'Keine Fälle hinterlegt';
+    } catch (error) {
+      console.debug('Liga-spezifischer Steward-Status konnte nicht geladen werden:', error);
+    }
+  }
+
   keepExistingNewsWarm();
   startCriticalPrefetch();
+
+  document.addEventListener('dashboard:content-ready', () => {
+    refreshScopedStewardCount();
+  }, { once: true });
 })();
