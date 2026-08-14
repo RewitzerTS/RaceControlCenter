@@ -1,6 +1,51 @@
 (() => {
   const state = window.RCCDashboardPerformance = window.RCCDashboardPerformance || {};
 
+  function getLeagueScopedDashboardCacheKey() {
+    const legacyKey = 'rcc.dashboard.view.v1';
+    let slug = '';
+    try {
+      slug = window.RCCData?.getRequestedLeagueSlug?.() || new URLSearchParams(window.location.search).get('league') || '';
+    } catch (_error) {
+      slug = '';
+    }
+    slug = String(slug || 'rcc').trim().toLowerCase().replace(/[^a-z0-9-]/g, '') || 'rcc';
+    return `${legacyKey}:${slug}`;
+  }
+
+  function installScopedDashboardViewCache() {
+    if (state.scopedDashboardCacheInstalled || typeof Storage === 'undefined') return;
+    const legacyKey = 'rcc.dashboard.view.v1';
+    const scopedKey = getLeagueScopedDashboardCacheKey();
+    const originalGetItem = Storage.prototype.getItem;
+    const originalSetItem = Storage.prototype.setItem;
+    const originalRemoveItem = Storage.prototype.removeItem;
+
+    Storage.prototype.getItem = function patchedGetItem(key) {
+      if (this === window.sessionStorage && key === legacyKey) {
+        return originalGetItem.call(this, scopedKey);
+      }
+      return originalGetItem.call(this, key);
+    };
+
+    Storage.prototype.setItem = function patchedSetItem(key, value) {
+      if (this === window.sessionStorage && key === legacyKey) {
+        return originalSetItem.call(this, scopedKey, value);
+      }
+      return originalSetItem.call(this, key, value);
+    };
+
+    Storage.prototype.removeItem = function patchedRemoveItem(key) {
+      if (this === window.sessionStorage && key === legacyKey) {
+        return originalRemoveItem.call(this, scopedKey);
+      }
+      return originalRemoveItem.call(this, key);
+    };
+
+    state.scopedDashboardCacheInstalled = true;
+    state.dashboardCacheKey = scopedKey;
+  }
+
   function keepExistingNewsWarm() {
     try {
       const key = 'rcc.liveF1News.v1';
@@ -88,6 +133,7 @@
     }
   }
 
+  installScopedDashboardViewCache();
   keepExistingNewsWarm();
   startCriticalPrefetch();
 
