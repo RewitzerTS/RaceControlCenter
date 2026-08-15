@@ -16,6 +16,11 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RCC">
   <meta name="mobile-web-app-capable" content="yes">
+  <style id="rcc-admin-first-paint-guard">
+    body[data-page="admin"] .admin-layout > details:not(#admin-section-auth):not(:has(> .rcc-results-workflow)) {
+      display: none !important;
+    }
+  </style>
 
 </head>
 <body data-page="admin">
