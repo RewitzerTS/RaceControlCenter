@@ -28,40 +28,87 @@
         </div>
 
         <div class="rcc-admin-home__status-grid" aria-label="Aktueller Liga-Status">
-          <article class="rcc-admin-home__status-card"><span>Saison</span><strong id="admin-overview-season">Wird geladen…</strong><small>Aktueller Saisonstatus</small></article>
-          <article class="rcc-admin-home__status-card"><span>Rennkalender</span><strong id="admin-overview-races">Wird geladen…</strong><small>Rennen der aktiven Saison</small></article>
-          <article class="rcc-admin-home__status-card"><span>Ergebnis-Workflow</span><strong id="admin-overview-imports">Wird geladen…</strong><small id="admin-overview-imports-sub">Offene Entwürfe werden geprüft</small></article>
-          <article class="rcc-admin-home__status-card"><span>Zugang</span><strong id="admin-overview-session">Wird geladen…</strong><small id="admin-overview-session-sub">Session wird geprüft</small></article>
+          <article class="rcc-admin-home__status-card">
+            <span>Saison</span>
+            <strong id="admin-overview-season">Wird geladen…</strong>
+            <small>Aktueller Saisonstatus</small>
+          </article>
+          <article class="rcc-admin-home__status-card">
+            <span>Rennkalender</span>
+            <strong id="admin-overview-races">Wird geladen…</strong>
+            <small>Rennen der aktiven Saison</small>
+          </article>
+          <article class="rcc-admin-home__status-card">
+            <span>Ergebnis-Workflow</span>
+            <strong id="admin-overview-imports">Wird geladen…</strong>
+            <small id="admin-overview-imports-sub">Offene Entwürfe werden geprüft</small>
+          </article>
+          <article class="rcc-admin-home__status-card">
+            <span>Zugang</span>
+            <strong id="admin-overview-session">Wird geladen…</strong>
+            <small id="admin-overview-session-sub">Session wird geprüft</small>
+          </article>
         </div>
 
         <div class="rcc-admin-home__action-grid">
           <article class="rcc-results-workflow__card rcc-admin-home__action-card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">▣</div><div><h4>Ergebnis eintragen</h4><p>KI-Bildimport, manuelle Eingabe oder offene Ergebnisentwürfe aufrufen.</p></div>
+            <div class="rcc-results-workflow__icon" aria-hidden="true">▣</div>
+            <div>
+              <h4>Ergebnis eintragen</h4>
+              <p>KI-Bildimport, manuelle Eingabe oder offene Ergebnisentwürfe aufrufen.</p>
+            </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="results">Ergebnisse öffnen</button>
           </article>
+
           <article class="rcc-results-workflow__card rcc-admin-home__action-card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">🏁</div><div><h4>Rennen verwalten</h4><p>Rennen anlegen, verschieben, entfernen oder den Rennkalender bearbeiten.</p></div>
+            <div class="rcc-results-workflow__icon" aria-hidden="true">🏁</div>
+            <div>
+              <h4>Rennen verwalten</h4>
+              <p>Rennen anlegen, verschieben, entfernen oder den Rennkalender bearbeiten.</p>
+            </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="calendar">Rennen öffnen</button>
           </article>
+
           <article class="rcc-results-workflow__card rcc-admin-home__action-card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">F</div><div><h4>Fahrer & Teams</h4><p>Fahrer, Gamertags, KI-Zuordnungen und Teamdaten pflegen.</p></div>
+            <div class="rcc-results-workflow__icon" aria-hidden="true">F</div>
+            <div>
+              <h4>Fahrer & Teams</h4>
+              <p>Fahrer, Gamertags, KI-Zuordnungen und Teamdaten pflegen.</p>
+            </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="drivers">Fahrer öffnen</button>
           </article>
+
           <article class="rcc-results-workflow__card rcc-admin-home__action-card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">⚑</div><div><h4>Steward-Fall</h4><p>Einen neuen Vorfall erfassen und direkt zur Steward-Entscheidung gehen.</p></div>
+            <div class="rcc-results-workflow__icon" aria-hidden="true">⚑</div>
+            <div>
+              <h4>Steward-Fall</h4>
+              <p>Einen neuen Vorfall erfassen und direkt zur Steward-Entscheidung gehen.</p>
+            </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="steward">Fall anlegen</button>
           </article>
+
           <article class="rcc-results-workflow__card rcc-admin-home__action-card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">S</div><div><h4>Saison verwalten</h4><p>Season-Status prüfen, neue Season einrichten oder die laufende Season abschließen.</p></div>
+            <div class="rcc-results-workflow__icon" aria-hidden="true">S</div>
+            <div>
+              <h4>Saison verwalten</h4>
+              <p>Season-Status prüfen, neue Season einrichten oder die laufende Season abschließen.</p>
+            </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="season">Saison öffnen</button>
           </article>
+
           <article class="rcc-results-workflow__card rcc-admin-home__action-card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">◈</div><div><h4>Branding bearbeiten</h4><p>Logo, Liganame, Links und das geprüfte RCC-Farbschema jederzeit anpassen.</p></div>
+            <div class="rcc-results-workflow__icon" aria-hidden="true">◈</div>
+            <div>
+              <h4>Branding bearbeiten</h4>
+              <p>Logo, Liganame, Links und das geprüfte RCC-Farbschema jederzeit anpassen.</p>
+            </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="branding">Branding öffnen</button>
           </article>
         </div>
 
-        <div class="rcc-admin-home__secondary-actions"><button type="button" class="button-secondary" data-rcc-admin-home-action="rules">Regeln & Inhalte</button></div>
+        <div class="rcc-admin-home__secondary-actions">
+          <button type="button" class="button-secondary" data-rcc-admin-home-action="rules">Regeln & Inhalte</button>
+        </div>
       </section>`;
   }
 
@@ -79,6 +126,7 @@
     const tabs = document.getElementById('admin-mobile-tabs');
     const layout = document.querySelector('.admin-layout');
     if (!tabs || !layout) return false;
+
     let homeButton = tabs.querySelector(`[data-admin-tab-target="${HOME_SECTION_ID}"]`);
     if (!homeButton) {
       homeButton = document.createElement('button');
@@ -90,6 +138,7 @@
       homeButton.textContent = HOME_TAB_LABEL;
       tabs.prepend(homeButton);
     }
+
     let section = document.getElementById(HOME_SECTION_ID);
     if (!section) {
       section = createHomeSection();
@@ -104,14 +153,26 @@
     return true;
   }
 
-  function tabButton(targetId) { return document.querySelector(`#admin-mobile-tabs [data-admin-tab-target="${targetId}"]`); }
-  function selectTab(targetId) { const button = tabButton(targetId); if (!button) return false; button.click(); return true; }
-  function openHome() { return selectTab(HOME_SECTION_ID); }
+  function tabButton(targetId) {
+    return document.querySelector(`#admin-mobile-tabs [data-admin-tab-target="${targetId}"]`);
+  }
+
+  function selectTab(targetId) {
+    const button = tabButton(targetId);
+    if (!button) return false;
+    button.click();
+    return true;
+  }
+
+  function openHome() {
+    return selectTab(HOME_SECTION_ID);
+  }
 
   function openHubCard(sectionId, titlePattern) {
     selectTab(sectionId);
     const section = document.getElementById(sectionId);
     if (!section) return;
+
     const tryOpen = () => {
       const cards = [...section.querySelectorAll('.rcc-admin-section-hub .rcc-results-workflow__card')];
       const card = cards.find((item) => titlePattern.test(String(item.querySelector('h4')?.textContent || '')));
@@ -120,6 +181,7 @@
       button.click();
       return true;
     };
+
     if (tryOpen()) return;
     const observer = new MutationObserver(() => {
       if (!tryOpen()) return;
@@ -135,6 +197,7 @@
       window.RCCAdminBranding.open();
       return;
     }
+
     if (!document.querySelector('script[data-rcc-admin-branding="true"]')) {
       const script = document.createElement('script');
       script.src = 'assets/js/pages/admin-branding.js';
@@ -146,26 +209,44 @@
       document.head.appendChild(script);
       return;
     }
+
     let attempts = 0;
     const timer = window.setInterval(() => {
       attempts += 1;
       if (window.RCCAdminBranding?.open) {
         window.clearInterval(timer);
         window.RCCAdminBranding.open();
-      } else if (attempts >= 25) window.clearInterval(timer);
+      } else if (attempts >= 25) {
+        window.clearInterval(timer);
+      }
     }, 80);
   }
 
   function runAction(action) {
     switch (action) {
-      case 'results': selectTab('admin-section-results'); break;
-      case 'calendar': selectTab('admin-section-calendar'); break;
-      case 'drivers': selectTab('admin-section-drivers'); break;
-      case 'steward': openHubCard('admin-section-stewarding', /steward.*anlegen|steward-eintrag/i); break;
-      case 'season': openHubCard('admin-section-calendar', /saisonverwaltung/i); break;
-      case 'branding': openBranding(); break;
-      case 'rules': selectTab('admin-section-rules'); break;
-      default: break;
+      case 'results':
+        selectTab('admin-section-results');
+        break;
+      case 'calendar':
+        selectTab('admin-section-calendar');
+        break;
+      case 'drivers':
+        selectTab('admin-section-drivers');
+        break;
+      case 'steward':
+        openHubCard('admin-section-stewarding', /steward.*anlegen|steward-eintrag/i);
+        break;
+      case 'season':
+        openHubCard('admin-section-calendar', /saisonverwaltung/i);
+        break;
+      case 'branding':
+        openBranding();
+        break;
+      case 'rules':
+        selectTab('admin-section-rules');
+        break;
+      default:
+        break;
     }
   }
 
@@ -181,7 +262,8 @@
   }
 
   function wrapAdminInit() {
-    if (window.initAdminPage?.__rccAdminHomeWrapped || typeof window.initAdminPage !== 'function') return;
+    if (window.initAdminPage?.__rccAdminHomeWrapped) return;
+    if (typeof window.initAdminPage !== 'function') return;
     originalInitAdminPage = window.initAdminPage;
     const wrapped = function (...args) {
       const result = originalInitAdminPage.apply(this, args);
