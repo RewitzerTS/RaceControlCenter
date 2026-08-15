@@ -1,13 +1,76 @@
 /* Tenant theme coverage layer.
-   Loaded globally by rcc-branding.js after league settings are known.
-   The goal is to make reusable RCC surfaces consume the league theme tokens
-   instead of legacy hard-coded RCC navy/violet/teal values. */
+   Loaded globally by rcc-ux-pass1.css.
+   Reusable RCC surfaces consume league theme tokens instead of legacy
+   hard-coded RCC navy/violet/teal values. Semantic status colors are excluded. */
 
 html[data-league-branding-applied="true"] {
   color-scheme: dark;
 }
 
-/* Race Hub */
+/* Header/navigation details not fully covered by the base branding service. */
+html[data-league-branding-applied="true"] .mobile-toggle,
+html[data-league-branding-applied="true"] .nav-more-toggle {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 62%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .main-nav a .nav-label,
+html[data-league-branding-applied="true"] .nav-more-menu {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: color-mix(in srgb, var(--surface) 97%, var(--bg-main));
+}
+
+/* Dashboard / Race Hub */
+html[data-league-branding-applied="true"] #app-launch-splash {
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 38%),
+    var(--bg-main);
+}
+
+html[data-league-branding-applied="true"] #app-launch-splash img {
+  filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--accent) 38%, transparent));
+}
+
+html[data-league-branding-applied="true"] .dashboard-card,
+html[data-league-branding-applied="true"] .hero-side,
+html[data-league-branding-applied="true"] .side-kpi,
+html[data-league-branding-applied="true"] .countdown-item {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 66%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .hero-side {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--secondary) 14%, transparent), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, var(--secondary) 3%), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .countdown-box {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--secondary) 34%, var(--line));
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--secondary) 20%, var(--surface)),
+    color-mix(in srgb, var(--secondary) 7%, var(--surface)));
+}
+
+html[data-league-branding-applied="true"] .accent-outline {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 13%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .violet-outline {
+  border-color: color-mix(in srgb, var(--secondary) 36%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--secondary) 16%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .status-dot.violet {
+  background: var(--secondary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--secondary) 68%, transparent);
+}
+
 html[data-league-branding-applied="true"] .race-hub-progress {
   color: var(--text);
   border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
