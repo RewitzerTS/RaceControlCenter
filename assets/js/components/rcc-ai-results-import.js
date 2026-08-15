@@ -42,6 +42,10 @@
       .trim();
   }
 
+  function withoutAiPrefix(value) {
+    return normalize(value).replace(/^(?:ai|ki)\s+/, '').trim();
+  }
+
   function setFeedback(message = '', isError = false) {
     const feedback = state.panel?.querySelector('#rcc-ai-results-feedback');
     if (!feedback) return;
@@ -68,7 +72,8 @@
       raceQuery,
       window.supabaseClient
         .from('drivers')
-        .select('id, display_name, gamertag, ai_driver_reference')
+        .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name, is_active')
+        .eq('is_active', true)
         .order('display_name', { ascending: true })
     ]);
 
@@ -84,32 +89,48 @@
     return `${name}${gamertag}`;
   }
 
+  function driverTeam(driver) {
+    return String(driver?.league_team || driver?.car_name || '').trim() || '—';
+  }
+
   function driverOptions(selectedId = '') {
     return '<option value="">Fahrer zuordnen</option>' + state.drivers.map((driver) =>
       `<option value="${escape(driver.id)}" ${String(driver.id) === String(selectedId) ? 'selected' : ''}>${escape(driverLabel(driver))}</option>`
     ).join('');
   }
 
+  function defaultDisplayParticipation(driver) {
+    if (!String(driver?.gamertag || '').trim() && String(driver?.ai_driver_reference || '').trim()) return 'BOT';
+    return 'PLAYER';
+  }
+
   function exactDriverMatch(rawName) {
     const key = normalize(rawName);
+    const aiKey = withoutAiPrefix(rawName);
     if (!key) return null;
 
     for (const driver of state.drivers) {
-      if (normalize(driver.gamertag) === key) return { driverId: driver.id, participationStatus: 'PLAYER', source: 'Gamertag' };
-      if (normalize(driver.ai_driver_reference) === key) return { driverId: driver.id, participationStatus: 'BOT', source: 'KI-Fahrer' };
-      if (normalize(driver.display_name) === key) return { driverId: driver.id, participationStatus: 'PLAYER', source: 'Anzeigename' };
+      const gamertag = normalize(driver.gamertag);
+      const aiReference = normalize(driver.ai_driver_reference);
+      const displayName = normalize(driver.display_name);
+      if (gamertag && gamertag === key) return { driverId: driver.id, participationStatus: 'PLAYER', source: 'Gamertag' };
+      if (aiReference && (aiReference === key || aiReference === aiKey)) return { driverId: driver.id, participationStatus: 'BOT', source: 'KI-Fahrer' };
+      if (displayName && displayName === key) {
+        return { driverId: driver.id, participationStatus: defaultDisplayParticipation(driver), source: 'Anzeigename' };
+      }
     }
 
     const fuzzy = [];
     for (const driver of state.drivers) {
-      [
-        [driver.gamertag, 'PLAYER', 'Gamertag'],
-        [driver.ai_driver_reference, 'BOT', 'KI-Fahrer'],
-        [driver.display_name, 'PLAYER', 'Anzeigename']
-      ].forEach(([value, participationStatus, source]) => {
+      const candidates = [
+        [driver.gamertag, 'PLAYER', 'Gamertag', key],
+        [driver.ai_driver_reference, 'BOT', 'KI-Fahrer', aiKey || key],
+        [driver.display_name, defaultDisplayParticipation(driver), 'Anzeigename', key]
+      ];
+      candidates.forEach(([value, participationStatus, source, comparisonKey]) => {
         const candidate = normalize(value);
-        if (!candidate || candidate.length < 4) return;
-        if (candidate.includes(key) || key.includes(candidate)) {
+        if (!candidate || candidate.length < 4 || !comparisonKey) return;
+        if (candidate.includes(comparisonKey) || comparisonKey.includes(candidate)) {
           fuzzy.push({ driverId: driver.id, participationStatus, source });
         }
       });
@@ -132,6 +153,7 @@
     return {
       key: `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`,
       rawDriver: String(raw.driver || '').trim(),
+      rawTeam: String(raw.team || '').trim(),
       driverId: match?.driverId || '',
       participationStatus: match?.participationStatus || 'PLAYER',
       matchSource: match?.source || '',
@@ -150,6 +172,19 @@
     return `${percentage}%`;
   }
 
+  function selectedDriverForRow(row) {
+    const driverId = String(row?.querySelector('[data-field="driverId"]')?.value || '').trim();
+    return state.drivers.find((driver) => String(driver.id) === driverId) || null;
+  }
+
+  function renderTeamCell(rowElement, driver, source) {
+    const cell = rowElement?.querySelector('[data-field="team"]');
+    if (!cell) return;
+    const mappedTeam = driver ? driverTeam(driver) : '—';
+    const rawTeam = String(source?.rawTeam || '').trim();
+    cell.innerHTML = `<strong>${escape(mappedTeam)}</strong>${rawTeam && normalize(rawTeam) !== normalize(mappedTeam) ? `<div class="muted">KI: ${escape(rawTeam)}</div>` : ''}`;
+  }
+
   function renderAnalysisTable() {
     const wrap = state.panel?.querySelector('#rcc-ai-results-table-wrap');
     const saveButton = state.panel?.querySelector('#rcc-save-ai-draft');
@@ -166,38 +201,35 @@
         <thead>
           <tr>
             <th>Pos.</th>
-            <th>Ausgelesen</th>
             <th>Fahrer</th>
+            <th>Team</th>
             <th>Grid</th>
             <th>Stopps</th>
-            <th>Beste Runde</th>
-            <th>Rennzeit</th>
-            <th>Teilnahme</th>
-            <th>KI</th>
+            <th>Beste</th>
+            <th>Zeit</th>
           </tr>
         </thead>
         <tbody>
-          ${state.analysisRows.map((row) => `
+          ${state.analysisRows.map((row) => {
+            const driver = state.drivers.find((entry) => String(entry.id) === String(row.driverId));
+            const mappedTeam = driver ? driverTeam(driver) : '—';
+            const rawTeamNote = row.rawTeam && normalize(row.rawTeam) !== normalize(mappedTeam)
+              ? `<div class="muted">KI: ${escape(row.rawTeam)}</div>`
+              : '';
+            return `
             <tr data-ai-result-row="${escape(row.key)}" class="${row.driverId ? '' : 'rcc-ai-row-needs-mapping'}">
               <td><input class="manual-results-input" data-field="position" inputmode="numeric" min="1" value="${escape(row.position ?? '')}"></td>
               <td>
-                <strong>${escape(row.rawDriver || '—')}</strong>
-                <div class="muted rcc-ai-match-source">${escape(row.matchSource || 'nicht zugeordnet')}</div>
+                <select class="manual-results-select" data-field="driverId">${driverOptions(row.driverId)}</select>
+                <div class="muted rcc-ai-match-source">Erkannt: ${escape(row.rawDriver || '—')} · ${escape(row.matchSource || 'nicht zugeordnet')} · KI ${confidenceLabel(row.confidence)}</div>
               </td>
-              <td><select class="manual-results-select" data-field="driverId">${driverOptions(row.driverId)}</select></td>
+              <td data-field="team" class="rcc-result-team-cell"><strong>${escape(mappedTeam)}</strong>${rawTeamNote}</td>
               <td><input class="manual-results-input" data-field="gridPosition" inputmode="numeric" min="1" value="${escape(row.gridPosition ?? '')}"></td>
               <td><input class="manual-results-input" data-field="pitStops" inputmode="numeric" min="0" value="${escape(row.pitStops ?? 0)}"></td>
               <td><input class="manual-results-input manual-results-time" data-field="fastestLap" value="${escape(row.fastestLap)}" placeholder="01:23,456"></td>
               <td><input class="manual-results-input manual-results-time" data-field="raceTime" value="${escape(row.raceTime)}" placeholder="42:15,827"></td>
-              <td>
-                <select class="manual-results-select" data-field="participationStatus">
-                  <option value="PLAYER" ${row.participationStatus === 'PLAYER' ? 'selected' : ''}>Spieler</option>
-                  <option value="BOT" ${row.participationStatus === 'BOT' ? 'selected' : ''}>KI-Fahrer</option>
-                </select>
-              </td>
-              <td><span class="preview-badge ${row.confidence < 0.7 ? 'notice-warning' : ''}">${confidenceLabel(row.confidence)}</span></td>
-            </tr>
-          `).join('')}
+            </tr>`;
+          }).join('')}
         </tbody>
       </table>`;
 
@@ -436,7 +468,8 @@
             id: driver.id,
             display_name: driver.display_name,
             gamertag: driver.gamertag,
-            ai_driver_reference: driver.ai_driver_reference
+            ai_driver_reference: driver.ai_driver_reference,
+            team: driverTeam(driver)
           }))
         }
       });
@@ -481,11 +514,46 @@
     }
   }
 
+  function participationForSelection(source, driver) {
+    if (!driver) return 'PLAYER';
+    const raw = normalize(source?.rawDriver);
+    const rawWithoutPrefix = withoutAiPrefix(source?.rawDriver);
+    const aiReference = normalize(driver.ai_driver_reference);
+    const gamertag = normalize(driver.gamertag);
+
+    if (aiReference && (
+      raw === aiReference ||
+      rawWithoutPrefix === aiReference ||
+      raw.includes(aiReference) ||
+      rawWithoutPrefix.includes(aiReference)
+    )) return 'BOT';
+    if (gamertag && (raw === gamertag || raw.includes(gamertag))) return 'PLAYER';
+    if (String(source?.driverId) === String(driver.id) && source?.participationStatus === 'BOT') return 'BOT';
+    return defaultDisplayParticipation(driver);
+  }
+
+  function buildRawPayload(source, driver, participationStatus) {
+    const base = source?.rawPayload && typeof source.rawPayload === 'object' && !Array.isArray(source.rawPayload)
+      ? { ...source.rawPayload }
+      : { source_payload: source?.rawPayload ?? null };
+    return {
+      ...base,
+      rcc_mapping: {
+        driver_id: driver?.id || null,
+        participation_status: participationStatus,
+        team: driver ? driverTeam(driver) : null,
+        source: source?.matchSource || 'manual-mapping'
+      }
+    };
+  }
+
   function readEditableRows() {
     return [...(state.panel?.querySelectorAll('[data-ai-result-row]') || [])].map((row) => {
       const value = (field) => String(row.querySelector(`[data-field="${field}"]`)?.value || '').trim();
       const key = row.dataset.aiResultRow;
       const source = state.analysisRows.find((item) => item.key === key);
+      const driver = selectedDriverForRow(row);
+      const participationStatus = participationForSelection(source, driver);
       return {
         driver_id: value('driverId'),
         finish_position: value('position') ? Number(value('position')) : 0,
@@ -493,9 +561,9 @@
         pit_stops: value('pitStops') ? Number(value('pitStops')) : 0,
         fastest_lap_time: value('fastestLap') || null,
         race_time: value('raceTime') || null,
-        participation_status: value('participationStatus') || 'PLAYER',
+        participation_status: participationStatus,
         driver_name_raw: source?.rawDriver || null,
-        raw_payload: source?.rawPayload || null
+        raw_payload: buildRawPayload(source, driver, participationStatus)
       };
     });
   }
@@ -516,9 +584,17 @@
     const race = selectedRace();
     if (!race) return setFeedback('Bitte zuerst ein Rennen auswählen.', true);
 
+    const timeValidation = window.RCCResultTimeFormat?.normalizeWithin?.(state.panel || document);
+    if (timeValidation && !timeValidation.valid) {
+      timeValidation.firstInvalid?.focus();
+      timeValidation.firstInvalid?.reportValidity();
+      return;
+    }
+
     const rows = readEditableRows();
     const validationError = validateRows(rows);
     if (validationError) return setFeedback(validationError, true);
+    if (!window.RCCResultDraft?.save) return setFeedback('Der gemeinsame Entwurfs-Workflow ist nicht geladen.', true);
 
     state.saving = true;
     const button = state.panel?.querySelector('#rcc-save-ai-draft');
@@ -526,79 +602,14 @@
       button.disabled = true;
       button.textContent = 'Speichert …';
     }
-    setFeedback('KI-Ergebnis wird als Entwurf gespeichert …');
+    setFeedback('KI-Ergebnis wird als gemeinsamer Entwurf gespeichert …');
 
     try {
-      const session = await requireAdmin();
-      const { data: existingImport, error: existingError } = await window.supabaseClient
-        .from('race_result_imports')
-        .select('id')
-        .eq('race_id', race.id)
-        .maybeSingle();
-
-      if (existingError) throw existingError;
-
-      const now = new Date().toISOString();
       const sourceFilename = state.selectedFiles.length === 1
         ? `KI · ${state.selectedFiles[0].name}`
         : `KI-Bildimport · ${state.selectedFiles.length} Bilder`;
-      let importId = existingImport?.id || null;
-
-      if (importId) {
-        const { error: deleteError } = await window.supabaseClient
-          .from('race_result_import_rows')
-          .delete()
-          .eq('import_id', importId);
-        if (deleteError) throw deleteError;
-
-        const { error: updateError } = await window.supabaseClient
-          .from('race_result_imports')
-          .update({
-            status: 'under_review',
-            source_filename: sourceFilename,
-            imported_by: session?.user?.id || null,
-            imported_at: now,
-            published_by: null,
-            published_at: null
-          })
-          .eq('id', importId);
-        if (updateError) throw updateError;
-      } else {
-        const { data: created, error: createError } = await window.supabaseClient
-          .from('race_result_imports')
-          .insert([{
-            race_id: race.id,
-            status: 'under_review',
-            source_filename: sourceFilename,
-            imported_by: session?.user?.id || null,
-            imported_at: now
-          }])
-          .select('id')
-          .single();
-        if (createError) throw createError;
-        importId = created.id;
-      }
-
-      const payload = rows.map((row) => ({
-        import_id: importId,
-        driver_id: row.driver_id,
-        driver_name_raw: row.driver_name_raw,
-        finish_position: row.finish_position,
-        grid_position: row.grid_position,
-        pit_stops: row.pit_stops,
-        fastest_lap_time: row.fastest_lap_time,
-        race_time: row.race_time,
-        awarded_points: 0,
-        participation_status: row.participation_status,
-        raw_payload: row.raw_payload
-      }));
-
-      const { error: insertError } = await window.supabaseClient
-        .from('race_result_import_rows')
-        .insert(payload);
-      if (insertError) throw insertError;
-
-      setFeedback('KI-Rennergebnis wurde als Entwurf gespeichert. Es kann jetzt unter „Entwürfe & Freigabe“ geprüft werden.');
+      await window.RCCResultDraft.save({ raceId: race.id, rows, sourceFilename });
+      setFeedback('KI-Rennergebnis wurde als Entwurf gespeichert. Es liegt jetzt zusammen mit manuellen Entwürfen unter „Entwürfe & Freigabe“.');
     } catch (error) {
       console.error(error);
       setFeedback(`Entwurf konnte nicht gespeichert werden: ${error.message || 'Unbekannter Fehler'}`, true);
@@ -723,6 +734,14 @@
       if (!driverSelect) return;
       const row = driverSelect.closest('[data-ai-result-row]');
       row?.classList.toggle('rcc-ai-row-needs-mapping', !driverSelect.value);
+      const source = state.analysisRows.find((item) => item.key === row?.dataset.aiResultRow);
+      const driver = selectedDriverForRow(row);
+      if (source) {
+        source.driverId = driver?.id || '';
+        source.participationStatus = participationForSelection(source, driver);
+        source.matchSource = driver ? 'manuell zugeordnet' : '';
+      }
+      renderTeamCell(row, driver, source);
     });
 
     state.panel = panel;

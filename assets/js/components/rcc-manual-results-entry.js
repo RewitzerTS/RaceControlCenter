@@ -24,7 +24,8 @@
       raceQuery,
       window.supabaseClient
         .from('drivers')
-        .select('id, display_name, gamertag, ai_driver_reference')
+        .select('id, display_name, gamertag, ai_driver_reference, league_team, car_name, is_active')
+        .eq('is_active', true)
         .order('display_name', { ascending: true })
     ]);
 
@@ -34,29 +35,58 @@
     state.drivers = driverResponse.data || [];
   }
 
-  function driverOptions(selected = '') {
-    return '<option value="">Fahrer wählen</option>' + state.drivers.map((driver) => {
-      const label = driver.display_name || driver.gamertag || driver.ai_driver_reference || 'Fahrer';
-      return `<option value="${escape(driver.id)}" ${String(driver.id) === String(selected) ? 'selected' : ''}>${escape(label)}</option>`;
-    }).join('');
+  function driverTeam(driver) {
+    return String(driver?.league_team || driver?.car_name || '').trim() || '—';
+  }
+
+  function encodeIdentity(driverId, participationStatus) {
+    return `${driverId}::${participationStatus}`;
+  }
+
+  function decodeIdentity(value) {
+    const [driverId = '', rawStatus = 'PLAYER'] = String(value || '').split('::');
+    return {
+      driverId: String(driverId || '').trim(),
+      participationStatus: String(rawStatus || '').toUpperCase() === 'BOT' ? 'BOT' : 'PLAYER'
+    };
+  }
+
+  function identityOptions(selected = '') {
+    const options = ['<option value="">Fahrer wählen</option>'];
+
+    state.drivers.forEach((driver) => {
+      const displayName = String(driver.display_name || driver.gamertag || driver.ai_driver_reference || 'Fahrer').trim();
+      const gamertag = String(driver.gamertag || '').trim();
+      const aiReference = String(driver.ai_driver_reference || '').trim();
+
+      if (gamertag || !aiReference) {
+        const value = encodeIdentity(driver.id, 'PLAYER');
+        const label = gamertag && gamertag !== displayName
+          ? `${displayName} · ${gamertag} · Spieler`
+          : `${displayName} · Spieler`;
+        options.push(`<option value="${escape(value)}" ${value === selected ? 'selected' : ''}>${escape(label)}</option>`);
+      }
+
+      if (aiReference) {
+        const value = encodeIdentity(driver.id, 'BOT');
+        const assignedLabel = gamertag && displayName !== aiReference ? ` · KI für ${displayName}` : ' · KI';
+        options.push(`<option value="${escape(value)}" ${value === selected ? 'selected' : ''}>${escape(`${aiReference}${assignedLabel}`)}</option>`);
+      }
+    });
+
+    return options.join('');
   }
 
   function rowTemplate(position) {
     return `
       <tr data-manual-entry-row>
         <td><input class="manual-results-input" data-field="finish_position" inputmode="numeric" min="1" value="${position}"></td>
-        <td><select class="manual-results-select" data-field="driver_id">${driverOptions()}</select></td>
+        <td><select class="manual-results-select" data-field="driver_identity">${identityOptions()}</select></td>
+        <td data-field="team" class="rcc-result-team-cell">—</td>
         <td><input class="manual-results-input" data-field="grid_position" inputmode="numeric" min="1" placeholder="Grid"></td>
         <td><input class="manual-results-input" data-field="pit_stops" inputmode="numeric" min="0" placeholder="0"></td>
         <td><input class="manual-results-input manual-results-time" data-field="fastest_lap_time" placeholder="01:23,456"></td>
         <td><input class="manual-results-input manual-results-time" data-field="race_time" placeholder="42:15,827"></td>
-        <td>
-          <select class="manual-results-select" data-field="participation_status">
-            <option value="PLAYER" selected>Spieler</option>
-            <option value="BOT">KI-Fahrer</option>
-          </select>
-        </td>
-        <td><button type="button" class="button-secondary" data-remove-manual-row aria-label="Zeile entfernen">×</button></td>
       </tr>`;
   }
 
@@ -67,24 +97,35 @@
     body.innerHTML = Array.from({ length: size }, (_, index) => rowTemplate(index + 1)).join('');
   }
 
-  function addRow() {
-    const body = document.querySelector('#rcc-manual-results-table tbody');
-    if (!body) return;
-    const nextPosition = body.querySelectorAll('[data-manual-entry-row]').length + 1;
-    body.insertAdjacentHTML('beforeend', rowTemplate(nextPosition));
+  function updateRowTeam(row) {
+    if (!row) return;
+    const identity = decodeIdentity(row.querySelector('[data-field="driver_identity"]')?.value || '');
+    const driver = state.drivers.find((entry) => String(entry.id) === identity.driverId);
+    const teamCell = row.querySelector('[data-field="team"]');
+    if (teamCell) teamCell.textContent = driver ? driverTeam(driver) : '—';
   }
 
   function readRows() {
     return [...document.querySelectorAll('[data-manual-entry-row]')].map((row) => {
       const value = (field) => String(row.querySelector(`[data-field="${field}"]`)?.value || '').trim();
+      const identity = decodeIdentity(value('driver_identity'));
+      const driver = state.drivers.find((entry) => String(entry.id) === identity.driverId);
       return {
-        driver_id: value('driver_id'),
+        driver_id: identity.driverId,
         finish_position: Number(value('finish_position') || 0),
         grid_position: value('grid_position') ? Number(value('grid_position')) : null,
         pit_stops: value('pit_stops') ? Number(value('pit_stops')) : 0,
         fastest_lap_time: value('fastest_lap_time') || null,
         race_time: value('race_time') || null,
-        participation_status: value('participation_status') || 'PLAYER'
+        participation_status: identity.participationStatus,
+        driver_name_raw: identity.participationStatus === 'BOT'
+          ? String(driver?.ai_driver_reference || driver?.display_name || '').trim() || null
+          : String(driver?.gamertag || driver?.display_name || '').trim() || null,
+        raw_payload: {
+          source: 'manual',
+          selected_identity: identity.participationStatus,
+          team: driver ? driverTeam(driver) : null
+        }
       };
     }).filter((row) => row.driver_id);
   }
@@ -112,9 +153,19 @@
     const raceId = String(document.getElementById('manual-race-select')?.value || '').trim();
     if (!raceId) return setFeedback('Bitte zuerst ein Rennen auswählen.', true);
 
+    const timeValidation = window.RCCResultTimeFormat?.normalizeWithin?.(
+      document.getElementById('rcc-manual-entry-editor') || document
+    );
+    if (timeValidation && !timeValidation.valid) {
+      timeValidation.firstInvalid?.focus();
+      timeValidation.firstInvalid?.reportValidity();
+      return;
+    }
+
     const rows = readRows();
     const validationError = validateRows(rows);
     if (validationError) return setFeedback(validationError, true);
+    if (!window.RCCResultDraft?.save) return setFeedback('Der gemeinsame Entwurfs-Workflow ist nicht geladen.', true);
 
     state.saving = true;
     const button = document.getElementById('rcc-save-manual-draft');
@@ -122,58 +173,15 @@
       button.disabled = true;
       button.textContent = 'Speichert …';
     }
-    setFeedback('Ergebnis wird als Entwurf gespeichert …');
+    setFeedback('Ergebnis wird als gemeinsamer Entwurf gespeichert …');
 
     try {
-      const { data: existingImport, error: existingError } = await window.supabaseClient
-        .from('race_result_imports')
-        .select('id')
-        .eq('race_id', raceId)
-        .maybeSingle();
-      if (existingError) throw existingError;
-
-      let importId = existingImport?.id || null;
-      if (importId) {
-        const { error: deleteError } = await window.supabaseClient
-          .from('race_result_import_rows')
-          .delete()
-          .eq('import_id', importId);
-        if (deleteError) throw deleteError;
-
-        const { error: updateError } = await window.supabaseClient
-          .from('race_result_imports')
-          .update({ status: 'under_review', imported_at: new Date().toISOString(), published_at: null })
-          .eq('id', importId);
-        if (updateError) throw updateError;
-      } else {
-        const { data: created, error: createError } = await window.supabaseClient
-          .from('race_result_imports')
-          .insert([{ race_id: raceId, status: 'under_review', imported_at: new Date().toISOString() }])
-          .select('id')
-          .single();
-        if (createError) throw createError;
-        importId = created.id;
-      }
-
-      const payload = rows.map((row) => ({
-        import_id: importId,
-        driver_id: row.driver_id,
-        finish_position: row.finish_position,
-        grid_position: row.grid_position,
-        pit_stops: row.pit_stops,
-        fastest_lap_time: row.fastest_lap_time,
-        race_time: row.race_time,
-        awarded_points: 0,
-        participation_status: row.participation_status
-      }));
-
-      const { error: insertError } = await window.supabaseClient
-        .from('race_result_import_rows')
-        .insert(payload);
-      if (insertError) throw insertError;
-
-      await window.supabaseClient.from('races').update({ status: 'upcoming' }).eq('id', raceId);
-      setFeedback('Manuelles Rennergebnis wurde als Entwurf gespeichert. Punkte werden bei der finalen Ergebnisberechnung aus den Liga-Regeln ermittelt.');
+      await window.RCCResultDraft.save({
+        raceId,
+        rows,
+        sourceFilename: 'Manuelle Eingabe'
+      });
+      setFeedback('Manuelles Rennergebnis wurde als Entwurf gespeichert. Es liegt jetzt zusammen mit KI-Entwürfen unter „Entwürfe & Freigabe“.');
     } catch (error) {
       console.error(error);
       setFeedback(`Entwurf konnte nicht gespeichert werden: ${error.message || 'Unbekannter Fehler'}`, true);
@@ -192,7 +200,7 @@
     panel.innerHTML = `
       <summary><strong>Ergebnis manuell eingeben</strong></summary>
       <div class="rcc-manual-entry">
-        <div class="notice">Wähle zuerst das Rennen. Danach erhältst du eine leere Ergebnistabelle. Der Stand wird nur als Entwurf gespeichert und noch nicht veröffentlicht.</div>
+        <div class="notice">Wähle zuerst das Rennen. Danach erhältst du eine leere Ergebnistabelle. Spieler und zugeordnete KI-Fahrer werden direkt im Fahrerfeld unterschieden; Punkte berechnet RCC erst bei der finalen Freigabe.</div>
         <div class="form-grid section-spacer-top">
           <div class="field">
             <label for="manual-race-select">Rennen</label>
@@ -202,12 +210,11 @@
         <div id="rcc-manual-entry-editor" hidden>
           <div class="table-wrap section-spacer-top">
             <table class="manual-results-table" id="rcc-manual-results-table">
-              <thead><tr><th>Pos.</th><th>Fahrer</th><th>Grid</th><th>Stopps</th><th>Beste</th><th>Zeit</th><th>Teilnahme</th><th></th></tr></thead>
+              <thead><tr><th>Pos.</th><th>Fahrer</th><th>Team</th><th>Grid</th><th>Stopps</th><th>Beste</th><th>Zeit</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
           <div class="card-actions section-spacer-top">
-            <button type="button" class="button-secondary" id="rcc-add-manual-row">+ Zeile</button>
             <button type="button" class="button-primary" id="rcc-save-manual-draft">Als Entwurf speichern</button>
           </div>
           <div id="rcc-manual-results-feedback" class="notice" hidden></div>
@@ -230,10 +237,13 @@
       });
     }).catch((error) => setFeedback(`Rennen/Fahrer konnten nicht geladen werden: ${error.message}`, true));
 
+    panel.addEventListener('change', (event) => {
+      const identitySelect = event.target.closest('[data-manual-entry-row] [data-field="driver_identity"]');
+      if (identitySelect) updateRowTeam(identitySelect.closest('[data-manual-entry-row]'));
+    });
+
     panel.addEventListener('click', (event) => {
-      if (event.target.closest('#rcc-add-manual-row')) addRow();
       if (event.target.closest('#rcc-save-manual-draft')) saveDraft();
-      if (event.target.closest('[data-remove-manual-row]')) event.target.closest('[data-manual-entry-row]')?.remove();
     });
 
     state.mounted = true;
