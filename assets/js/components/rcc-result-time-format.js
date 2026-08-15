@@ -2,6 +2,8 @@
   if (window.RCCResultTimeFormat) return;
 
   const TARGET_PATTERN = /^[+-]?\d{2,}:\d{2},\d{3}$/;
+  const RACE_STATUS_FIELDS = new Set(['raceTime', 'race_time']);
+  const RACE_STATUS_CODES = new Set(['DNF', 'DNS', 'DSQ', 'DNQ', 'RET']);
 
   function normalize(value) {
     const raw = String(value ?? '').trim();
@@ -49,6 +51,27 @@
     return `${sign}${String(totalMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')},${millis}`;
   }
 
+  function normalizeRaceStatus(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    const code = raw.toUpperCase();
+    if (RACE_STATUS_CODES.has(code)) return code;
+
+    const lapMatch = raw.match(/^\+\s*(\d+)\s*(runde|runden|lap|laps)$/i);
+    if (lapMatch) {
+      const count = Number(lapMatch[1]);
+      if (!Number.isSafeInteger(count) || count < 1) return null;
+      return `+ ${count} ${count === 1 ? 'Runde' : 'Runden'}`;
+    }
+
+    return null;
+  }
+
+  function acceptsRaceStatus(input) {
+    return Boolean(input && RACE_STATUS_FIELDS.has(String(input.dataset?.field || '')));
+  }
+
   function normalizeInput(input) {
     if (!input) return true;
     const raw = String(input.value || '').trim();
@@ -57,9 +80,22 @@
       return true;
     }
 
+    if (acceptsRaceStatus(input)) {
+      const status = normalizeRaceStatus(raw);
+      if (status) {
+        input.value = status;
+        input.setCustomValidity('');
+        return true;
+      }
+    }
+
     const normalized = normalize(raw);
     if (!normalized || !TARGET_PATTERN.test(normalized)) {
-      input.setCustomValidity('Bitte Zeit im Format mm:ss,mmm eingeben, z. B. 01:23,456.');
+      input.setCustomValidity(
+        acceptsRaceStatus(input)
+          ? 'Bitte Zeit als mm:ss,mmm oder einen Rennstatus wie DNF bzw. + 1 Runde eingeben.'
+          : 'Bitte Zeit im Format mm:ss,mmm eingeben, z. B. 01:23,456.'
+      );
       return false;
     }
 
@@ -112,6 +148,7 @@
 
   window.RCCResultTimeFormat = {
     normalize,
+    normalizeRaceStatus,
     normalizeInput,
     normalizeWithin,
     pattern: TARGET_PATTERN
