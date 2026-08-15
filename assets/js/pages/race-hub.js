@@ -60,6 +60,40 @@
     return { season: seasons?.[0] || null, active: false };
   }
 
+  async function renderLatestPole() {
+    const facts = byId('race-hub-latest-facts');
+    if (!facts) return;
+    try {
+      const resolved = await resolveSeason();
+      if (!resolved.season?.id) return;
+      const races = await window.RCCData.fetchRaces({ seasonId: resolved.season.id });
+      const completed = (races || [])
+        .map((race) => ({
+          ...race,
+          lifecycleStatus: window.getRaceLifecycleStatus ? window.getRaceLifecycleStatus(race) : race.status
+        }))
+        .filter((race) => race.lifecycleStatus === 'completed')
+        .sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
+      const latest = completed[0];
+      if (!latest?.id) return;
+
+      const [rows, drivers] = await Promise.all([
+        window.RCCData.fetchRaceResults({ raceId: latest.id }),
+        window.RCCData.fetchDrivers()
+      ]);
+      const poleRow = (rows || []).find((row) => Number(row.grid_position) === 1);
+      if (!poleRow?.driver_id) return;
+      const poleDriver = (drivers || []).find((driver) => String(driver.id) === String(poleRow.driver_id));
+      const poleName = poleDriver?.display_name || '—';
+      const cards = [...facts.querySelectorAll('.fact-card')];
+      const poleCard = cards.find((card) => /pole/i.test(String(card.querySelector('span')?.textContent || '')));
+      const value = poleCard?.querySelector('strong');
+      if (value) value.textContent = poleName;
+    } catch (error) {
+      console.warn('Race Hub pole fact could not be resolved:', error);
+    }
+  }
+
   async function renderSeasonProgress() {
     const valueEl = byId('race-hub-progress-value');
     const copyEl = byId('race-hub-progress-copy');
@@ -112,11 +146,9 @@
       if (seasonNameEl) seasonNameEl.textContent = seasonLabel;
       if (progressStateEl) progressStateEl.textContent = resolved.active ? 'Aktiv' : 'Abgeschlossen';
       if (seasonStatusEl) seasonStatusEl.textContent = resolved.active ? `${seasonLabel} aktiv` : `${seasonLabel} abgeschlossen`;
-      if (statusEl) {
-        statusEl.textContent = resolved.active
-          ? `${completed}/${total} Rennen · ${percent}%`
-          : 'Saison abgeschlossen';
-      }
+      if (statusEl) statusEl.textContent = resolved.active
+        ? `${completed}/${total} Rennen · ${percent}%`
+        : 'Saison abgeschlossen';
     } catch (error) {
       console.error('Race Hub season progress failed:', error);
       valueEl.textContent = '—';
@@ -129,9 +161,10 @@
   function refresh() {
     syncLatestRace();
     renderSeasonProgress();
+    renderLatestPole();
   }
 
-  window.RCCRaceHub = { refresh, syncLatestRace, renderSeasonProgress };
+  window.RCCRaceHub = { refresh, syncLatestRace, renderSeasonProgress, renderLatestPole };
 
   document.addEventListener('dashboard:content-ready', refresh);
   if (document.readyState === 'loading') {
