@@ -15,15 +15,10 @@
     document.head.appendChild(link);
   }
 
-  function buildHomeSection() {
-    const section = document.createElement('details');
-    section.id = HOME_SECTION_ID;
-    section.className = 'panel rcc-admin-home-section';
-    section.hidden = true;
-    section.open = true;
-    section.innerHTML = `
+  function homeMarkup() {
+    return `
       <summary><strong>${HOME_TAB_LABEL}</strong></summary>
-      <section class="rcc-results-workflow rcc-admin-home">
+      <section class="rcc-results-workflow rcc-admin-home" data-rcc-admin-home-ready="true">
         <div class="rcc-results-workflow__intro rcc-admin-home__intro">
           <div>
             <span class="eyebrow">Admin Center</span>
@@ -106,6 +101,15 @@
           <button type="button" class="button-secondary" data-rcc-admin-home-action="rules">Regeln & Inhalte</button>
         </div>
       </section>`;
+  }
+
+  function createHomeSection() {
+    const section = document.createElement('details');
+    section.id = HOME_SECTION_ID;
+    section.className = 'panel rcc-admin-home-section';
+    section.hidden = true;
+    section.open = true;
+    section.innerHTML = homeMarkup();
     return section;
   }
 
@@ -128,10 +132,14 @@
 
     let section = document.getElementById(HOME_SECTION_ID);
     if (!section) {
-      section = buildHomeSection();
+      section = createHomeSection();
       const authPanel = document.getElementById('admin-section-auth');
       if (authPanel?.parentNode === layout) authPanel.after(section);
       else layout.prepend(section);
+    } else if (!section.querySelector('[data-rcc-admin-home-ready="true"]')) {
+      section.classList.add('rcc-admin-home-section');
+      section.open = true;
+      section.innerHTML = homeMarkup();
     }
     return true;
   }
@@ -224,12 +232,17 @@
     window.initAdminPage = wrapped;
   }
 
+  function refreshOverview() {
+    if (typeof window.updateAdminOverview !== 'function') return;
+    Promise.resolve(window.updateAdminOverview()).catch(() => undefined);
+  }
+
   function init() {
-    if (initialized) return true;
     ensureStylesheet();
     if (!ensureStructure()) return false;
     bindActions();
     wrapAdminInit();
+    refreshOverview();
     initialized = true;
     return true;
   }
