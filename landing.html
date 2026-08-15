@@ -3,205 +3,267 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Race Control Center · Landing</title>
-  <meta name="description" content="Race Control Center ist die zentrale Plattform für Sim-Racing-Ligen: Fahrer, Rennkalender, Stewarding, Ergebnisse und Community in einem klaren System.">
-  <link rel="stylesheet" href="assets/css/style.css">
-  <link rel="stylesheet" href="assets/css/pages/landing.css">
-  <link rel="manifest" href="manifest.json">
+  <meta name="description" content="Race Control Center ist die zentrale Plattform für Rennligen: Kalender, Fahrer, Ergebnisse, Stewarding, Meisterschaften und Race Hub in einem System.">
+  <meta name="theme-color" content="#06111f">
+  <title>Race Control Center · Rennligen professionell organisieren</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/pages/landing.css">
 </head>
 <body data-page="landing">
-  <div class="landing-noise" aria-hidden="true"></div>
-  <div class="landing-bg-orb landing-bg-orb--one" aria-hidden="true"></div>
-  <div class="landing-bg-orb landing-bg-orb--two" aria-hidden="true"></div>
-  <div class="landing-bg-grid" aria-hidden="true"></div>
+  <header class="marketing-header" id="top">
+    <a class="marketing-brand" href="#top" aria-label="Race Control Center Startseite">
+      <img src="assets/images/logo.png" alt="" width="48" height="48">
+      <span>Race Control Center</span>
+    </a>
 
-  <a class="landing-logo-anchor" href="index.html" aria-label="Race Control Center Startseite">
-    <img src="assets/images/logo.png" alt="Race Control Center Logo" class="landing-logo-image">
-  </a>
+    <nav class="marketing-nav" aria-label="Hauptnavigation">
+      <a href="#features">Funktionen</a>
+      <a href="#workflow">So funktioniert's</a>
+      <a href="#leagues">Für Rennligen</a>
+    </nav>
 
-  <main class="landing-main">
-    <section class="landing-hero container" aria-labelledby="landing-title">
-      <p class="eyebrow landing-hero__eyebrow" data-hero-item>Race Control Center · Das Operating System für deine Liga</p>
-      <h1 id="landing-title" class="landing-title" data-hero-item>Die Zentrale für Sim-Racing-Ligen, die professionell geführt werden wollen.</h1>
-      <div class="landing-hero__content">
-        <p class="landing-subline" data-hero-item>
-          Mit Race Control Center organisierst du Fahrer, Teams, Rennkalender und Entscheidungen an einem Ort. Weniger Aufwand für Ligaleiter, mehr Klarheit für alle und ein Wettbewerb, der bis zum Finale überzeugt.
-        </p>
-        <div class="landing-actions" data-hero-item>
-          <a
-            class="button-primary landing-cta landing-cta--primary"
-            href="index.html"
-            data-magnetic
-            data-cta-primary
-            data-track-event="landing_cta_primary_click"
-            data-track-target="join_flow"
-          >Liga aufsetzen</a>
-          <a
-            class="button-secondary landing-cta"
-            href="#experience"
-            data-magnetic
-            data-cta-secondary
-            data-track-event="landing_cta_secondary_click"
-            data-track-target="experience"
-          >Vorteile ansehen</a>
+    <div class="marketing-header-actions">
+      <a class="landing-button landing-button--ghost landing-demo-link" href="index.html?league=rcc">Live-Demo</a>
+      <button class="landing-button landing-button--primary" type="button" data-login-open>
+        <span data-login-button-label>Login</span>
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="landing-hero" aria-labelledby="landing-title">
+      <div class="landing-hero__glow landing-hero__glow--one" aria-hidden="true"></div>
+      <div class="landing-hero__glow landing-hero__glow--two" aria-hidden="true"></div>
+
+      <div class="landing-shell landing-hero__grid">
+        <div class="landing-hero__copy">
+          <div class="landing-kicker"><span></span> Race Management für moderne Rennligen</div>
+          <h1 id="landing-title">Deine Rennliga.<br><em>Professionell organisiert.</em></h1>
+          <p class="landing-hero__lead">Kalender, Fahrer, Ergebnisse, Stewarding und Meisterschaften in einem System. Race Control Center nimmt der Ligaleitung Verwaltungsarbeit ab und gibt Fahrern eine professionelle Anlaufstelle für die gesamte Saison.</p>
+          <div class="landing-hero__actions">
+            <a class="landing-button landing-button--primary landing-button--large landing-demo-link" href="index.html?league=rcc">Live-Demo ansehen <span aria-hidden="true">→</span></a>
+            <a class="landing-button landing-button--ghost landing-button--large" href="#features">Funktionen entdecken</a>
+          </div>
+          <div class="landing-trust-row" aria-label="Kernfunktionen">
+            <span>✓ Multi-Liga</span>
+            <span>✓ KI-Ergebnisimport</span>
+            <span>✓ Stewarding</span>
+            <span>✓ Race Hub</span>
+          </div>
+        </div>
+
+        <div class="landing-product-stage" aria-label="Vorschau des Race Control Centers">
+          <div class="product-window">
+            <div class="product-window__topbar">
+              <div class="product-window__brand">
+                <img src="assets/images/logo.png" alt="" width="32" height="32">
+                <div><strong>Race Control Center</strong><span>League Dashboard</span></div>
+              </div>
+              <div class="product-window__dots" aria-hidden="true"><i></i><i></i><i></i></div>
+            </div>
+
+            <div class="product-window__body">
+              <div class="product-sidebar" aria-hidden="true">
+                <span class="is-active"></span><span></span><span></span><span></span><span></span>
+              </div>
+              <div class="product-content">
+                <div class="product-eyebrow">NEXT RACE</div>
+                <div class="product-race-card">
+                  <div>
+                    <span>ROUND 08</span>
+                    <strong>Belgian Grand Prix</strong>
+                    <small>Spa-Francorchamps · Sonntag 20:00</small>
+                  </div>
+                  <div class="product-countdown"><strong>02</strong><span>TAGE</span></div>
+                </div>
+
+                <div class="product-mini-grid">
+                  <article>
+                    <span>FAHRER-WM</span>
+                    <strong>1. Mo</strong>
+                    <small>354 Punkte</small>
+                    <div class="mini-progress"><i style="width:86%"></i></div>
+                  </article>
+                  <article>
+                    <span>LETZTER SIEGER</span>
+                    <strong>Aaron</strong>
+                    <small>Emilia-Romagna GP</small>
+                    <div class="mini-progress"><i style="width:64%"></i></div>
+                  </article>
+                </div>
+
+                <div class="product-table-card">
+                  <div class="product-table-card__title"><strong>Letztes Ergebnis</strong><span>Veröffentlicht</span></div>
+                  <div class="product-result-row"><b>1</b><span>Aaron</span><small>25 PTS</small></div>
+                  <div class="product-result-row"><b>2</b><span>Mo</span><small>19 PTS</small></div>
+                  <div class="product-result-row"><b>3</b><span>Nils</span><small>15 PTS</small></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="landing-floating-card landing-floating-card--top"><span>Stewarding</span><strong>Fall geprüft ✓</strong></div>
+          <div class="landing-floating-card landing-floating-card--bottom"><span>KI-Import</span><strong>20 Fahrer erkannt</strong></div>
         </div>
       </div>
+    </section>
 
-      <div class="landing-hero__aside" data-hero-item>
-        <article class="status-pill">
-          <span class="status-pill__label">Saisons verwaltet</span>
-          <strong class="status-pill__value" data-counter="120" data-counter-suffix="+">0</strong>
-        </article>
-        <article class="status-pill">
-          <span class="status-pill__label">Aktive Fahrer</span>
-          <strong class="status-pill__value" data-counter="1600" data-counter-suffix="+">0</strong>
-        </article>
-        <article class="status-pill">
-          <span class="status-pill__label">Steward-Fälle entschieden</span>
-          <strong class="status-pill__value" data-counter="98" data-counter-suffix="%">0</strong>
-        </article>
-      </div>
-
-      <div class="landing-hero__visual" aria-label="Video-Vorschau Race Control Center" data-hero-item>
-        <div class="landing-glow" aria-hidden="true"></div>
-        <div class="hero-visual-overlay" aria-hidden="true">
-          <span>Zentrale Rennleitung</span>
-          <span>Live Tabellen & Ergebnisse</span>
-          <span>Transparentes Stewarding</span>
+    <section class="landing-proof">
+      <div class="landing-shell landing-proof__inner">
+        <span>Eine Plattform für den kompletten Rennbetrieb</span>
+        <div class="landing-proof__items">
+          <strong>SAISON</strong><strong>KALENDER</strong><strong>ERGEBNISSE</strong><strong>STEWARDING</strong><strong>WM</strong><strong>RACE HUB</strong>
         </div>
-        <video
-          class="hero-video"
-          src="assets/videos/tvf1.mp4"
-          autoplay
-          loop
-          muted
-          playsinline
-          preload="metadata"
-          aria-label="RCC Hero Video"
-        ></video>
       </div>
     </section>
 
-    <section class="landing-marquee" aria-label="RCC Highlights">
-      <div class="landing-marquee__track">
-        <span>Fahrer- & Teamverwaltung</span>
-        <span>Rennkalender & Organisation</span>
-        <span>Live Tabellen & Ergebnisse</span>
-        <span>Stewarding & Vorfallsystem</span>
-        <span>Regeln, FAQ & Transparenz</span>
-        <span>Desktop & Mobile verfügbar</span>
-        <span>Fahrer- & Teamverwaltung</span>
-        <span>Rennkalender & Organisation</span>
-        <span>Live Tabellen & Ergebnisse</span>
-        <span>Stewarding & Vorfallsystem</span>
-        <span>Regeln, FAQ & Transparenz</span>
-        <span>Desktop & Mobile verfügbar</span>
+    <section class="landing-section" id="features">
+      <div class="landing-shell">
+        <div class="landing-section-heading">
+          <div class="landing-kicker"><span></span> Alles an einem Ort</div>
+          <h2>Weniger Tabellen.<br>Mehr <em>Rennbetrieb.</em></h2>
+          <p>RCC verbindet die Arbeit der Ligaleitung mit dem öffentlichen Erlebnis der Fahrer. Daten müssen nur einmal gepflegt werden und stehen danach überall konsistent zur Verfügung.</p>
+        </div>
+
+        <div class="landing-feature-grid">
+          <article class="landing-feature-card landing-feature-card--wide">
+            <div class="feature-icon">▣</div>
+            <div>
+              <span>ERGEBNISSE</span>
+              <h3>Vom Screenshot zum fertigen Ergebnis.</h3>
+              <p>Renn-Screenshots per KI auslesen, Fahrer automatisch zuordnen, Ergebnis prüfen und erst nach Steward-Freigabe veröffentlichen.</p>
+            </div>
+            <div class="feature-visual feature-visual--result" aria-hidden="true">
+              <div><b>1</b><span>Lando Norris</span><small>McLaren</small></div>
+              <div><b>2</b><span>George Russell</span><small>Mercedes</small></div>
+              <div><b>3</b><span>Charles Leclerc</span><small>Ferrari</small></div>
+            </div>
+          </article>
+
+          <article class="landing-feature-card">
+            <div class="feature-icon">⚑</div>
+            <span>STEWARDING</span>
+            <h3>Entscheidungen ohne Excel-Chaos.</h3>
+            <p>Vorfälle, Strafen und Entscheidungen direkt dem Rennen zuordnen. Die finale Reihenfolge wird kontrolliert freigegeben.</p>
+          </article>
+
+          <article class="landing-feature-card">
+            <div class="feature-icon">S</div>
+            <span>SAISON & KALENDER</span>
+            <h3>Eine Season in Minuten aufsetzen.</h3>
+            <p>Rennkalender, Wetter, Sprint-Wochenenden, Termine und Fahrer über geführte Workflows konfigurieren.</p>
+          </article>
+
+          <article class="landing-feature-card">
+            <div class="feature-icon">↗</div>
+            <span>RACE HUB</span>
+            <h3>Die Liga fühlt sich wie eine echte Meisterschaft an.</h3>
+            <p>Countdown, letztes Ergebnis, WM-Top-3, Saisonfortschritt und automatische Racing Insights auf einer öffentlichen Startseite.</p>
+          </article>
+
+          <article class="landing-feature-card">
+            <div class="feature-icon">◎</div>
+            <span>MULTI-LIGA</span>
+            <h3>Jede Liga sieht nur ihre eigenen Daten.</h3>
+            <p>Getrennte Fahrer, Seasons, Ergebnisse, Regeln und Branding pro Liga – auf derselben RCC-Plattform.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <section id="experience" class="landing-section landing-sequence container" aria-labelledby="sequence-title">
-      <div class="section-heading" data-animate-block>
-        <p class="eyebrow">So läuft eine Saison mit RCC</p>
-        <h2 id="sequence-title">Von der Anmeldung bis zur Zielflagge: alles klar, schnell und zentral.</h2>
-      </div>
+    <section class="landing-section landing-section--contrast" id="workflow">
+      <div class="landing-shell">
+        <div class="landing-section-heading landing-section-heading--center">
+          <div class="landing-kicker"><span></span> Einfacher Ablauf</div>
+          <h2>Von der Liga zum <em>Race Weekend.</em></h2>
+          <p>RCC führt die Ligaleitung durch die wichtigsten Schritte und hält die Datenstruktur im Hintergrund sauber.</p>
+        </div>
 
-      <div class="sequence-grid">
-        <article class="sequence-step" data-animate-card>
-          <p class="sequence-step__index">01</p>
-          <h3>Schneller Start für Fahrer und Teams</h3>
-          <p>Lege Fahrer, Teams und Fahrzeugzuteilungen strukturiert an. Alle wissen sofort, was gilt und wann was ansteht.</p>
-        </article>
-        <article class="sequence-step" data-animate-card>
-          <p class="sequence-step__index">02</p>
-          <h3>Rennen mit klarer Übersicht</h3>
-          <p>Ergebnisse, Zwischenstände und Tabellen sind zentral verfügbar. So bleibt die Liga jederzeit informiert und handlungsfähig.</p>
-        </article>
-        <article class="sequence-step" data-animate-card>
-          <p class="sequence-step__index">03</p>
-          <h3>Stewarding, dem alle vertrauen</h3>
-          <p>Vorfälle werden sauber dokumentiert, Entscheidungen nachvollziehbar getroffen und Strafen oder Zeitgutschriften fair vergeben.</p>
-        </article>
+        <ol class="landing-steps">
+          <li><span>01</span><div><strong>Liga einrichten</strong><p>Name, Logo, Farben und öffentliche Links festlegen.</p></div></li>
+          <li><span>02</span><div><strong>Season starten</strong><p>Fahrerbasis, Kalender, Wetter und Sprint-Rennen konfigurieren.</p></div></li>
+          <li><span>03</span><div><strong>Rennen durchführen</strong><p>Ergebnis importieren und Steward-Fälle bearbeiten.</p></div></li>
+          <li><span>04</span><div><strong>Veröffentlichen</strong><p>Finale Punkte freigeben und Race Hub automatisch aktualisieren.</p></div></li>
+        </ol>
       </div>
     </section>
 
-    <section id="key-facts" class="landing-section container" aria-labelledby="facts-title" data-animate-block>
-      <div class="section-heading">
-        <p class="eyebrow">Dein Liga-Control-Center</p>
-        <h2 id="facts-title">Alle wichtigen Werkzeuge in einer Plattform – ohne Orga-Chaos.</h2>
-      </div>
-      <div class="facts-grid">
-        <article class="fact-card" data-animate-card>
-          <h3>Saisonmanagement</h3>
-          <p>Plane den kompletten Rennkalender, verwalte Termine und behalte den Überblick über jede Session und jedes Event.</p>
-        </article>
-        <article class="fact-card" data-animate-card>
-          <h3>Fahrer- & Teamwertung</h3>
-          <p>Alle Ergebnisse und Tabellen auf einen Blick – klar, aktuell und jederzeit für Fahrer, Teams und Ligaleitung einsehbar.</p>
-        </article>
-        <article class="fact-card" data-animate-card>
-          <h3>Stewarding-Workflow</h3>
-          <p>Bearbeite Vorfälle strukturiert, dokumentiere Entscheidungen sauber und beeinflusse Rennergebnisse regelkonform direkt im System.</p>
-        </article>
-        <article class="fact-card" data-animate-card>
-          <h3>Historie & Hall of Fame</h3>
-          <p>Bewahre jede Saison nachvollziehbar auf und ehre Fahrer- und Team-Weltmeister sichtbar in der Hall of Fame.</p>
-        </article>
+    <section class="landing-section" id="leagues">
+      <div class="landing-shell landing-league-grid">
+        <div class="landing-section-heading">
+          <div class="landing-kicker"><span></span> Für Ligaleitungen gebaut</div>
+          <h2>Du organisierst die Rennen.<br><em>RCC organisiert den Rest.</em></h2>
+          <p>Die Plattform ist darauf ausgelegt, dass auch wachsende Rennligen ihre Abläufe standardisieren können, ohne für jede Season neue Tabellen, Formulare und Webseiten zu bauen.</p>
+          <a class="landing-button landing-button--primary landing-button--large landing-demo-link" href="index.html?league=rcc">Race Control Liga ansehen <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="landing-benefit-list">
+          <article><span>01</span><div><strong>Einheitliche Prozesse</strong><p>Jede Season folgt demselben kontrollierten Ablauf.</p></div></article>
+          <article><span>02</span><div><strong>Weniger manuelle Arbeit</strong><p>Automatische Zuordnungen, Punkteberechnung und Racing Insights.</p></div></article>
+          <article><span>03</span><div><strong>Professioneller Auftritt</strong><p>Eigene Farben, Logo und öffentliche Ligaansicht.</p></div></article>
+          <article><span>04</span><div><strong>Skalierbar</strong><p>Mehrere Rennligen laufen getrennt auf derselben Plattform.</p></div></article>
+        </div>
       </div>
     </section>
 
-    <section class="landing-section container" aria-labelledby="community-title" data-animate-block>
-      <div class="section-heading">
-        <p class="eyebrow">Community & Vertrauen</p>
-        <h2 id="community-title">Warum Ligen dauerhaft auf RCC setzen.</h2>
+    <section class="landing-cta">
+      <div class="landing-shell landing-cta__inner">
+        <div>
+          <div class="landing-kicker"><span></span> Ready to race?</div>
+          <h2>Mach aus deiner Rennliga<br>eine <em>echte Plattform.</em></h2>
+          <p>Sieh dir RCC mit echten Renndaten an oder melde dich direkt in deiner Liga an.</p>
+        </div>
+        <div class="landing-cta__actions">
+          <a class="landing-button landing-button--light landing-button--large landing-demo-link" href="index.html?league=rcc">Live-Demo</a>
+          <button class="landing-button landing-button--outline-light landing-button--large" type="button" data-login-open>Login</button>
+        </div>
       </div>
-      <div class="proof-grid">
-        <article class="proof-card" data-animate-card>
-          <p>„Endlich eine Plattform, in der unsere komplette Liga-Organisation an einem Ort läuft – schnell und zuverlässig.“</p>
-          <span>— @ApexNova77</span>
-        </article>
-        <article class="proof-card" data-animate-card>
-          <p>„Das Stewarding ist nachvollziehbar dokumentiert. Weniger Diskussionen, mehr Fokus auf sauberes Racing.“</p>
-          <span>— @TurboHex</span>
-        </article>
-        <article class="proof-card" data-animate-card>
-          <p>„Ergebnisse, Historie und Hall of Fame geben jeder Saison Gewicht und halten die Community langfristig aktiv.“</p>
-          <span>— @PixelRacer_DE</span>
-        </article>
-      </div>
-      <div class="trust-rail" data-animate-block aria-label="Trust Kennzahlen">
-        <span>120+ Saisons</span>
-        <span>1600+ aktive Fahrer</span>
-        <span>98% Fälle entschieden</span>
-        <span>Zentrale Liga-Workflows</span>
-      </div>
-    </section>
-
-    <section class="landing-section container final-cta" aria-labelledby="final-title" data-animate-block>
-      <p class="eyebrow">Bereit für die nächste Saison?</p>
-      <h2 id="final-title">Mach Race Control Center zur unverzichtbaren Schaltzentrale deiner Liga.</h2>
-      <p>Reduziere Orga-Aufwand, schaffe klare Prozesse und gib Fahrern und Teams jederzeit volle Transparenz.</p>
-      <a
-        class="button-primary landing-cta landing-cta--primary"
-        href="index.html"
-        data-magnetic
-        data-cta-final
-        data-track-event="landing_cta_final_click"
-        data-track-target="final_join_flow"
-      >Jetzt starten</a>
     </section>
   </main>
 
-  <div id="site-footer"></div>
+  <footer class="landing-footer">
+    <div class="landing-shell landing-footer__inner">
+      <div class="marketing-brand marketing-brand--footer">
+        <img src="assets/images/logo.png" alt="" width="42" height="42">
+        <div><strong>Race Control Center</strong><span>Race Management Platform</span></div>
+      </div>
+      <p>Kalender. Ergebnisse. Stewarding. Meisterschaft.</p>
+      <p>© <span id="landing-year"></span> Race Control Center</p>
+    </div>
+  </footer>
 
-  <script src="assets/js/layout.js"></script>
-  <script src="assets/js/app.js"></script>
-  <script src="assets/js/utils.js"></script>
+  <div class="login-modal" id="landing-login-modal" hidden aria-hidden="true">
+    <div class="login-modal__backdrop" data-login-close></div>
+    <section class="login-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="landing-login-title">
+      <button class="login-modal__close" type="button" data-login-close aria-label="Login schließen">×</button>
+      <div class="login-modal__brand">
+        <img src="assets/images/logo.png" alt="" width="54" height="54">
+        <div><span>RACE CONTROL CENTER</span><strong id="landing-login-title">Willkommen zurück.</strong></div>
+      </div>
+      <p class="login-modal__intro" id="landing-login-intro">Melde dich mit deinem RCC-Account an. Danach kannst du direkt deine Rennliga auswählen.</p>
 
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js" defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js" defer></script>
-  <script src="assets/js/pages/landing.js" defer></script>
+      <form id="landing-login-form" class="login-form">
+        <label>
+          <span>E-Mail</span>
+          <input id="landing-login-email" type="email" autocomplete="username" required placeholder="name@beispiel.de">
+        </label>
+        <label>
+          <span>Passwort</span>
+          <input id="landing-login-password" type="password" autocomplete="current-password" required placeholder="••••••••">
+        </label>
+        <button class="landing-button landing-button--primary landing-button--large login-form__submit" type="submit">Einloggen <span aria-hidden="true">→</span></button>
+      </form>
+
+      <div id="landing-login-feedback" class="login-feedback" role="status" aria-live="polite" hidden></div>
+      <div id="landing-league-picker" class="login-league-picker" hidden></div>
+      <p class="login-modal__footnote">Der Login verwendet die bestehende RCC-Authentifizierung. Deine Liga-Daten werden weiterhin getrennt über die jeweiligen Zugriffsrechte geladen.</p>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/pages/landing.js"></script>
 </body>
 </html>
