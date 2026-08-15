@@ -10,6 +10,30 @@ const RCC_TRANSLATE_COOKIE_NAME = 'googtrans';
 const RCC_SOURCE_LANGUAGE = 'de';
 const RCC_THEME_META_COLORS = { dark: '#021b34', light: '#4f63b8' };
 
+function ensureUxPassStylesheet(){
+  if(document.querySelector('link[data-rcc-ux-pass1="true"]'))return;
+  const link=document.createElement('link');
+  link.rel='stylesheet';
+  link.href='assets/css/rcc-ux-pass1.css';
+  link.dataset.rccUxPass1='true';
+  document.head.appendChild(link);
+}
+
+function relabelAdminTabs(){
+  if(document.body?.dataset?.page!=='admin')return;
+  const labels={
+    'admin-section-results':'Ergebnisse',
+    'admin-section-stewarding':'Stewards',
+    'admin-section-drivers':'Fahrer & Teams',
+    'admin-section-calendar':'Rennen & Saison',
+    'admin-section-rules':'Regeln & Inhalte'
+  };
+  document.querySelectorAll('#admin-mobile-tabs [data-admin-tab-target]').forEach(button=>{
+    const label=labels[button.dataset.adminTabTarget];
+    if(label)button.textContent=label;
+  });
+}
+
 function ensureLeagueBrandingService(){
   if(window.RCCBranding||document.querySelector('script[data-rcc-branding="true"]'))return;
   const s=document.createElement('script');
@@ -42,8 +66,9 @@ function loadGoogleTranslateScript(){if(googleTranslateLoadPromise)return google
 function applyGoogleTranslateLanguage(targetLanguage){const s=document.querySelector('.goog-te-combo');if(!s)return false;if(s.value===targetLanguage)return true;s.value=targetLanguage;s.dispatchEvent(new Event('change'));return true;}
 async function applyLanguageSelection(selectedLanguage,{forceReload=false}={}){document.documentElement.lang=selectedLanguage;if(selectedLanguage===RCC_SOURCE_LANGUAGE){clearTranslationCookie();if(forceReload)window.location.reload();return;}setTranslationCookie(selectedLanguage);try{await loadGoogleTranslateScript();let applied=applyGoogleTranslateLanguage(selectedLanguage);if(!applied){window.setTimeout(()=>applyGoogleTranslateLanguage(selectedLanguage),220);window.setTimeout(()=>applyGoogleTranslateLanguage(selectedLanguage),600);if(forceReload)window.setTimeout(()=>window.location.reload(),900);}}catch(error){console.warn(error);if(forceReload)window.location.reload();}}
 window.resolveCurrentPage=resolveCurrentPage;window.updateActiveNavigation=updateActiveNavigation;window.loadSiteLayout=loadSiteLayout;window.preserveLeagueContextInLinks=preserveLeagueContextInLinks;window.withLeagueContextHref=withLeagueContextHref;
+ensureUxPassStylesheet();
 ensureLeagueBrandingService();
-document.addEventListener('DOMContentLoaded',loadSiteLayout);document.addEventListener('DOMContentLoaded',applyPreferredLanguage);document.addEventListener('DOMContentLoaded',applyThemePreference);document.addEventListener('DOMContentLoaded',()=>{const p=getPreferredLanguage();if(p!==RCC_SOURCE_LANGUAGE)applyLanguageSelection(p);});
+document.addEventListener('DOMContentLoaded',loadSiteLayout);document.addEventListener('DOMContentLoaded',applyPreferredLanguage);document.addEventListener('DOMContentLoaded',applyThemePreference);document.addEventListener('DOMContentLoaded',relabelAdminTabs);document.addEventListener('DOMContentLoaded',()=>{const p=getPreferredLanguage();if(p!==RCC_SOURCE_LANGUAGE)applyLanguageSelection(p);});
 function setupAdminShortcut(){const b=document.querySelector('.brand');if(!b||b.dataset.adminShortcutBound==='true')return;const home=b.getAttribute('href')||'index.html';let timer=null;b.addEventListener('click',e=>{e.preventDefault();if(timer)clearTimeout(timer);timer=window.setTimeout(()=>{window.location.href=withLeagueContextHref(home);},220);});b.addEventListener('dblclick',e=>{e.preventDefault();if(timer){clearTimeout(timer);timer=null;}window.location.href=withLeagueContextHref('admin.html');});b.dataset.adminShortcutBound='true';}
 document.addEventListener('layout:loaded',setupAdminShortcut);
 function setupThemeSelector(){const s=document.querySelector('#footer-theme-select');if(!s||s.dataset.initialized==='true')return;s.value=getPreferredTheme();s.addEventListener('change',e=>{const v=e.target.value;if(!RCC_SUPPORTED_THEMES.includes(v))return;localStorage.setItem(RCC_THEME_STORAGE_KEY,v);applyThemePreference();});const m=window.matchMedia('(prefers-color-scheme: light)');const change=()=>{if(getPreferredTheme()==='system')applyThemePreference();};if(typeof m.addEventListener==='function')m.addEventListener('change',change);else if(typeof m.addListener==='function')m.addListener(change);s.dataset.initialized='true';}
