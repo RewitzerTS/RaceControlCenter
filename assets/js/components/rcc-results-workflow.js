@@ -3,7 +3,6 @@
 
   let manualModulePromise = null;
   let aiModulePromise = null;
-  let fileImportPanel = null;
 
   function ensureStylesheet() {
     if (document.querySelector('link[data-rcc-results-workflow="true"]')) return;
@@ -79,69 +78,14 @@
     });
   }
 
-  function setImportHubFeedback(message = '', isError = false) {
-    const feedback = fileImportPanel?.querySelector('#rcc-file-import-feedback');
-    if (!feedback) return;
-    feedback.hidden = !message;
-    feedback.textContent = message;
-    feedback.classList.toggle('notice-error', Boolean(isError));
-  }
-
   async function openAiImport() {
     try {
-      setImportHubFeedback('');
       const module = await loadAiModule();
       await module?.open?.();
     } catch (error) {
       console.error(error);
-      setImportHubFeedback(error.message || 'KI-Bildimport konnte nicht geöffnet werden.', true);
+      window.alert?.(error.message || 'KI-Bildimport konnte nicht geöffnet werden.');
     }
-  }
-
-  function ensureFileImportPanel(csvPanel) {
-    if (fileImportPanel) return fileImportPanel;
-
-    fileImportPanel = document.createElement('section');
-    fileImportPanel.id = 'rcc-file-import-panel';
-    fileImportPanel.className = 'panel admin-panel-wide admin-panel-accent rcc-results-workflow-panel';
-    fileImportPanel.innerHTML = `
-      <div class="rcc-file-import-choice">
-        <div class="notice">
-          Wähle, wie du das Rennergebnis importieren möchtest. Beide Wege erzeugen zunächst einen Entwurf, der vor der Veröffentlichung geprüft werden kann.
-        </div>
-        <div class="rcc-file-import-choice__grid section-spacer-top">
-          <article class="rcc-results-workflow__card rcc-file-import-choice__card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">▣</div>
-            <div>
-              <h4>KI-Bilder</h4>
-              <p>Bis zu 8 Screenshots des Rennergebnisses hochladen. Die KI liest Positionen, Fahrer, Startplätze, Stopps und Zeiten aus und zeigt alles anschließend als bearbeitbare Tabelle.</p>
-            </div>
-            <button type="button" class="button-primary" data-rcc-file-import="ai">Bilder auslesen</button>
-          </article>
-          <article class="rcc-results-workflow__card rcc-file-import-choice__card">
-            <div class="rcc-results-workflow__icon" aria-hidden="true">CSV</div>
-            <div>
-              <h4>CSV-Datei</h4>
-              <p>Eine vorhandene Ergebnis-CSV hochladen, das Fahrer-Mapping prüfen und den Import als Entwurf übernehmen.</p>
-            </div>
-            <button type="button" class="button-primary" data-rcc-file-import="csv">CSV hochladen</button>
-          </article>
-        </div>
-        <div id="rcc-file-import-feedback" class="notice notice-error section-spacer-top" hidden></div>
-      </div>`;
-
-    fileImportPanel.querySelector('[data-rcc-file-import="ai"]')?.addEventListener('click', openAiImport);
-    fileImportPanel.querySelector('[data-rcc-file-import="csv"]')?.addEventListener('click', () => {
-      setImportHubFeedback('');
-      openPanel(csvPanel, 'CSV-Datei importieren');
-    });
-
-    return fileImportPanel;
-  }
-
-  function openFileImport(csvPanel) {
-    const panel = ensureFileImportPanel(csvPanel);
-    openPanel(panel, 'Datei importieren');
   }
 
   async function openManualEntry(manualPanel) {
@@ -174,17 +118,17 @@
         <div>
           <span class="eyebrow">Rennergebnis</span>
           <h3>Wie möchtest du das Ergebnis erfassen?</h3>
-          <p class="muted">Importiere Ergebnisbilder per KI oder eine CSV-Datei – oder erfasse das Rennen vollständig manuell. Erst die spätere Freigabe veröffentlicht das Ergebnis.</p>
+          <p class="muted">Wähle zwischen KI-Bildimport und manueller Eingabe. Beide Wege führen anschließend in den gemeinsamen Entwurfs- und Freigabeprozess.</p>
         </div>
       </div>
       <div class="rcc-results-workflow__grid">
         <article class="rcc-results-workflow__card">
-          <div class="rcc-results-workflow__icon" aria-hidden="true">↥</div>
+          <div class="rcc-results-workflow__icon" aria-hidden="true">▣</div>
           <div>
-            <h4>Datei importieren</h4>
-            <p>KI-Bilder auslesen oder eine CSV-Datei hochladen. Die importierten Werte können vor der Freigabe kontrolliert werden.</p>
+            <h4>KI-Bildimport</h4>
+            <p>Renn-Screenshots hochladen und direkt von der KI auslesen lassen. Die erkannten Werte können vor dem Übernehmen vollständig geprüft und bearbeitet werden.</p>
           </div>
-          <button type="button" class="button-primary" data-rcc-results-action="import">Datei importieren</button>
+          <button type="button" class="button-primary" data-rcc-results-action="ai">KI-Bildimport öffnen</button>
         </article>
         <article class="rcc-results-workflow__card">
           <div class="rcc-results-workflow__icon" aria-hidden="true">✎</div>
@@ -208,14 +152,14 @@
     if (summary?.nextSibling) section.insertBefore(launcher, summary.nextSibling);
     else section.appendChild(launcher);
 
-    launcher.querySelector('[data-rcc-results-action="import"]')?.addEventListener('click', () => openFileImport(csvPanel));
+    launcher.querySelector('[data-rcc-results-action="ai"]')?.addEventListener('click', openAiImport);
     launcher.querySelector('[data-rcc-results-action="manual"]')?.addEventListener('click', () => openManualEntry(manualPanel));
     launcher.querySelector('[data-rcc-results-action="publish"]')?.addEventListener('click', () => openPanel(publishPanel, 'Entwürfe & Freigabe'));
     return true;
   }
 
   ensureStylesheet();
-  window.RCCResultsWorkflow = { ensureLauncher, openFileImport };
+  window.RCCResultsWorkflow = { ensureLauncher, openAiImport };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => ensureLauncher(), { once: true });
