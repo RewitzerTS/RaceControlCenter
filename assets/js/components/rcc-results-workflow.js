@@ -7,6 +7,7 @@
   let resultDraftModulePromise = null;
   let resultReleaseModulePromise = null;
   let adminSectionHubsPromise = null;
+  let adminHomePromise = null;
 
   function ensureStylesheet() {
     if (document.querySelector('link[data-rcc-results-workflow="true"]')) return;
@@ -15,6 +16,55 @@
     link.href = 'assets/css/components/rcc-results-workflow.css';
     link.dataset.rccResultsWorkflow = 'true';
     document.head.appendChild(link);
+  }
+
+  function ensureAdminHomePlaceholder() {
+    const tabs = document.getElementById('admin-mobile-tabs');
+    const layout = document.querySelector('.admin-layout');
+    if (!tabs || !layout) return false;
+
+    let homeButton = tabs.querySelector('[data-admin-tab-target="admin-section-home"]');
+    if (!homeButton) {
+      homeButton = document.createElement('button');
+      homeButton.type = 'button';
+      homeButton.className = 'admin-mobile-tab';
+      homeButton.dataset.adminTabTarget = 'admin-section-home';
+      homeButton.setAttribute('role', 'tab');
+      homeButton.setAttribute('aria-selected', 'false');
+      homeButton.textContent = 'Übersicht';
+      tabs.prepend(homeButton);
+    }
+
+    let homeSection = document.getElementById('admin-section-home');
+    if (!homeSection) {
+      homeSection = document.createElement('details');
+      homeSection.id = 'admin-section-home';
+      homeSection.className = 'panel rcc-admin-home-section';
+      homeSection.hidden = true;
+      homeSection.open = true;
+      homeSection.innerHTML = `
+        <summary><strong>Übersicht</strong></summary>
+        <section class="rcc-results-workflow rcc-admin-home">
+          <div class="notice">Admin-Übersicht wird vorbereitet…</div>
+        </section>`;
+      const authPanel = document.getElementById('admin-section-auth');
+      if (authPanel?.parentNode === layout) authPanel.after(homeSection);
+      else layout.prepend(homeSection);
+    }
+
+    if (typeof window.initAdminPage === 'function' && !window.initAdminPage.__rccAdminHomeWrapped) {
+      const originalInit = window.initAdminPage;
+      const wrappedInit = function (...args) {
+        const result = originalInit.apply(this, args);
+        queueMicrotask(() => {
+          document.querySelector('#admin-mobile-tabs [data-admin-tab-target="admin-section-home"]')?.click();
+        });
+        return result;
+      };
+      wrappedInit.__rccAdminHomeWrapped = true;
+      window.initAdminPage = wrappedInit;
+    }
+    return true;
   }
 
   function loadScriptModule(globalName, src, errorMessage, promiseGetter, promiseSetter) {
@@ -114,6 +164,20 @@
     });
   }
 
+  function loadAdminHome() {
+    ensureAdminHomePlaceholder();
+    return loadScriptModule(
+      'RCCAdminHome',
+      'assets/js/components/rcc-admin-home.js',
+      'Admin-Übersicht konnte nicht geladen werden.',
+      () => adminHomePromise,
+      (value) => { adminHomePromise = value; }
+    ).then((module) => {
+      module?.init?.();
+      return module;
+    });
+  }
+
   function getPanels(root) {
     const section = root.querySelector?.('#admin-section-results');
     if (!section) return null;
@@ -164,12 +228,14 @@
   }
 
   function ensureLauncher(root = document) {
+    ensureAdminHomePlaceholder();
     const found = getPanels(root);
     if (!found) return false;
     const { section, csvPanel, publishPanel, manualPanel } = found;
     if (!csvPanel || !publishPanel || !manualPanel) return false;
     if (section.querySelector('#admin-results-workflow-launcher')) {
       loadAdminSectionHubs().catch((error) => console.warn(error));
+      loadAdminHome().catch((error) => console.warn(error));
       loadResultReleaseModule().catch((error) => console.warn(error));
       return true;
     }
@@ -224,11 +290,13 @@
     launcher.querySelector('[data-rcc-results-action="manual"]')?.addEventListener('click', () => openManualEntry(manualPanel));
     launcher.querySelector('[data-rcc-results-action="publish"]')?.addEventListener('click', () => openPanel(publishPanel, 'Entwürfe & Freigabe'));
     loadAdminSectionHubs().catch((error) => console.warn(error));
+    loadAdminHome().catch((error) => console.warn(error));
     loadResultReleaseModule().catch((error) => console.warn(error));
     return true;
   }
 
   ensureStylesheet();
+  ensureAdminHomePlaceholder();
   prepareResultEntryModules().catch((error) => console.warn(error));
   loadResultReleaseModule().catch((error) => console.warn(error));
   window.RCCResultsWorkflow = { ensureLauncher, openAiImport };
