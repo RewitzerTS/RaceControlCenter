@@ -98,13 +98,14 @@
 
   function installDomGuard() {
     if (observer) return;
+
+    // DOM changes are presentation events, not league-context changes.
+    // Keep this observer limited to cheap DOM cleanup. Re-resolving the tenant
+    // from here caused a feedback loop when the onboarding wizard moved or
+    // updated its panel.
     observer = new MutationObserver(() => {
       removeDuplicateLeagueSwitchers();
-      if (leagueIsComplete) {
-        removeCompletedOnboardingPanel();
-      } else if (document.getElementById('admin-section-league-onboarding')) {
-        reconcileLeagueState();
-      }
+      if (leagueIsComplete) removeCompletedOnboardingPanel();
     });
     observer.observe(document.body, { childList: true, subtree: true });
   }
@@ -121,7 +122,10 @@
 
     window.addEventListener('rcc:league-context-ready', () => {
       removeDuplicateLeagueSwitchers();
-      reconcileLeagueState();
+      // The context-ready event may also be emitted by reconcile itself.
+      // reconcileRunning prevents recursion; explicit navigation/bootstrap is
+      // the source of truth for context changes.
+      if (!reconcileRunning) reconcileLeagueState();
     });
 
     initialized = true;
