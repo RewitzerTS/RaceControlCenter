@@ -1,278 +1,284 @@
-(function initLandingPage() {
-  const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const prefersReducedMotion = reduceMotionQuery.matches;
+(() => {
+  const modal = document.getElementById('landing-login-modal');
+  const form = document.getElementById('landing-login-form');
+  const emailInput = document.getElementById('landing-login-email');
+  const passwordInput = document.getElementById('landing-login-password');
+  const feedback = document.getElementById('landing-login-feedback');
+  const leaguePicker = document.getElementById('landing-league-picker');
+  const intro = document.getElementById('landing-login-intro');
+  const year = document.getElementById('landing-year');
+  let lastFocusedElement = null;
+  let authBusy = false;
 
-  function getTrackingPayload(target) {
-    return {
-      event: target.dataset.trackEvent,
-      target: target.dataset.trackTarget || '',
-      location: 'landing',
-      timestamp: new Date().toISOString()
-    };
+  const roleLabels = {
+    owner: 'Owner',
+    admin: 'Ligaleitung',
+    steward: 'Steward'
+  };
+
+  function setFeedback(message = '', level = 'info') {
+    if (!feedback) return;
+    feedback.hidden = !message;
+    feedback.textContent = message;
+    feedback.dataset.level = level;
   }
 
-  function trackEvent(payload) {
-    if (Array.isArray(window.dataLayer)) {
-      window.dataLayer.push(payload);
+  function setLoginButtons(session) {
+    document.querySelectorAll('[data-login-button-label]').forEach((label) => {
+      label.textContent = session?.user ? 'Admin öffnen' : 'Login';
+    });
+  }
+
+  function setFormVisible(visible) {
+    if (form) form.hidden = !visible;
+  }
+
+  function clearLeaguePicker() {
+    if (!leaguePicker) return;
+    leaguePicker.hidden = true;
+    leaguePicker.replaceChildren();
+  }
+
+  function closeModal() {
+    if (!modal || modal.hidden) return;
+    modal.hidden = true;
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    setFeedback('');
+    lastFocusedElement?.focus?.({ preventScroll: true });
+  }
+
+  async function getSession() {
+    if (!window.supabaseClient?.auth) return null;
+    const { data, error } = await window.supabaseClient.auth.getSession();
+    if (error) throw error;
+    return data?.session || null;
+  }
+
+  function makeLeagueLink(league) {
+    const link = document.createElement('a');
+    link.className = 'login-league-link';
+    link.href = `admin.html?league=${encodeURIComponent(league.slug)}`;
+
+    const copy = document.createElement('div');
+    const name = document.createElement('strong');
+    const role = document.createElement('small');
+    name.textContent = league.name || league.slug || 'Rennliga';
+    role.textContent = roleLabels[league.role] || league.role || 'Zugang';
+    copy.append(name, role);
+
+    const arrow = document.createElement('span');
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '→';
+    link.append(copy, arrow);
+    return link;
+  }
+
+  async function fetchAccessibleLeagues(session) {
+    if (!session?.user?.id) return [];
+
+    const membershipResponse = await window.supabaseClient
+      .from('league_members')
+      .select('league_id, role')
+      .eq('user_id', session.user.id)
+      .in('role', ['owner', 'admin', 'steward']);
+
+    if (membershipResponse.error) throw membershipResponse.error;
+    const memberships = membershipResponse.data || [];
+    if (!memberships.length) return [];
+
+    const roleByLeagueId = new Map(memberships.map((entry) => [String(entry.league_id), entry.role]));
+    const leagueIds = memberships.map((entry) => entry.league_id);
+    const leagueResponse = await window.supabaseClient
+      .from('leagues')
+      .select('id, name, slug, status')
+      .in('id', leagueIds)
+      .eq('status', 'active')
+      .order('name', { ascending: true });
+
+    if (leagueResponse.error) throw leagueResponse.error;
+    return (leagueResponse.data || []).map((league) => ({
+      ...league,
+      role: roleByLeagueId.get(String(league.id)) || 'admin'
+    }));
+  }
+
+  async function isPlatformOwner() {
+    try {
+      const { data, error } = await window.supabaseClient.rpc('is_platform_owner');
+      return !error && data === true;
+    } catch (_) {
+      return false;
     }
-    document.dispatchEvent(new CustomEvent('rcc:tracking', { detail: payload }));
-    console.info('[RCC Tracking]', payload.event, payload);
   }
 
-  function appendPreservedUtms(rawHref) {
-    const href = rawHref || '';
-    if (!href || href.startsWith('#')) return href;
+  async function renderSessionState(session) {
+    setLoginButtons(session);
+    clearLeaguePicker();
 
-    const current = new URL(window.location.href);
-    const destination = new URL(href, window.location.origin);
-    current.searchParams.forEach((value, key) => {
-      if (key.startsWith('utm_') || key === 'gclid' || key === 'fbclid') {
-        if (!destination.searchParams.has(key)) {
-          destination.searchParams.set(key, value);
-        }
-      }
-    });
-
-    return `${destination.pathname}${destination.search}${destination.hash}`;
-  }
-
-  function bindCtaTracking() {
-    const ctaLinks = document.querySelectorAll('[data-track-event]');
-
-    ctaLinks.forEach((link) => {
-      if (link.dataset.bound === 'true') return;
-
-      link.addEventListener('click', (event) => {
-        trackEvent(getTrackingPayload(link));
-
-        if (link.dataset.ctaSecondary !== undefined) {
-          event.preventDefault();
-          const targetSection = document.querySelector(link.getAttribute('href'));
-          if (targetSection) {
-            targetSection.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
-          }
-          return;
-        }
-
-        const nextHref = appendPreservedUtms(link.getAttribute('href'));
-        if (nextHref) {
-          link.setAttribute('href', nextHref);
-        }
-      });
-
-      link.dataset.bound = 'true';
-    });
-  }
-
-  function runGsapAnimations() {
-    if (prefersReducedMotion || !window.gsap) return;
-
-    const { gsap } = window;
-    if (window.ScrollTrigger) {
-      gsap.registerPlugin(window.ScrollTrigger);
-    }
-
-    gsap.timeline({ defaults: { duration: 0.85, ease: 'power3.out' } })
-      .from('[data-hero-item]', {
-        y: 40,
-        opacity: 0,
-        stagger: 0.12,
-        clearProps: 'opacity,transform'
-      })
-      .from('.landing-marquee', {
-        y: 20,
-        opacity: 0,
-        duration: 0.62,
-        clearProps: 'opacity,transform'
-      }, '-=0.38');
-
-    gsap.utils.toArray('[data-animate-card]').forEach((card, index) => {
-      gsap.from(card, {
-        scrollTrigger: {
-          trigger: card,
-          start: 'top 86%'
-        },
-        y: 30,
-        opacity: 0,
-        duration: 0.72,
-        delay: Math.min(index * 0.03, 0.15),
-        ease: 'power2.out',
-        clearProps: 'opacity,transform'
-      });
-    });
-
-    gsap.utils.toArray('[data-animate-block]').forEach((block) => {
-      gsap.from(block, {
-        scrollTrigger: {
-          trigger: block,
-          start: 'top 84%'
-        },
-        y: 26,
-        opacity: 0,
-        duration: 0.68,
-        ease: 'power2.out',
-        clearProps: 'opacity,transform'
-      });
-    });
-
-    const landingLogo = document.querySelector('.landing-logo-anchor');
-    if (landingLogo && window.ScrollTrigger) {
-      gsap.to(landingLogo, {
-        y: -130,
-        autoAlpha: 0,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '.landing-main',
-          start: 'top top',
-          end: 'top+=240 top',
-          scrub: true
-        }
-      });
-    }
-
-    const heroVisual = document.querySelector('.landing-hero__visual');
-    const landingGlow = document.querySelector('.landing-glow');
-    if (heroVisual && landingGlow) {
-      heroVisual.addEventListener('pointermove', (event) => {
-        const bounds = heroVisual.getBoundingClientRect();
-        const xNorm = (event.clientX - bounds.left) / bounds.width - 0.5;
-        const yNorm = (event.clientY - bounds.top) / bounds.height - 0.5;
-
-        gsap.to(landingGlow, {
-          x: xNorm * 28,
-          y: yNorm * 24,
-          duration: 0.42,
-          overwrite: 'auto',
-          ease: 'power2.out'
-        });
-
-        gsap.to(heroVisual, {
-          rotateY: xNorm * 3.2,
-          rotateX: yNorm * -2.8,
-          transformPerspective: 950,
-          transformOrigin: 'center',
-          duration: 0.42,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-      });
-
-      heroVisual.addEventListener('pointerleave', () => {
-        gsap.to(heroVisual, {
-          rotateX: 0,
-          rotateY: 0,
-          duration: 0.55,
-          ease: 'power2.out'
-        });
-
-        gsap.to(landingGlow, {
-          x: 0,
-          y: 0,
-          duration: 0.55,
-          ease: 'power2.out'
-        });
-      });
-
-      if (window.ScrollTrigger) {
-        gsap.to(heroVisual, {
-          yPercent: -6,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: heroVisual,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: true
-          }
-        });
-      }
-    }
-
-    gsap.to('.landing-bg-orb--one', {
-      xPercent: 10,
-      yPercent: 8,
-      repeat: -1,
-      yoyo: true,
-      duration: 9.5,
-      ease: 'sine.inOut'
-    });
-
-    gsap.to('.landing-bg-orb--two', {
-      xPercent: -10,
-      yPercent: -9,
-      repeat: -1,
-      yoyo: true,
-      duration: 11.5,
-      ease: 'sine.inOut'
-    });
-  }
-
-  function bindMagneticButtons() {
-    if (prefersReducedMotion || !window.gsap) return;
-
-    const buttons = document.querySelectorAll('[data-magnetic]');
-    buttons.forEach((button) => {
-      button.addEventListener('pointermove', (event) => {
-        const rect = button.getBoundingClientRect();
-        const offsetX = event.clientX - rect.left - rect.width / 2;
-        const offsetY = event.clientY - rect.top - rect.height / 2;
-
-        window.gsap.to(button, {
-          x: offsetX * 0.14,
-          y: offsetY * 0.22,
-          duration: 0.24,
-          ease: 'power2.out',
-          overwrite: 'auto'
-        });
-      });
-
-      button.addEventListener('pointerleave', () => {
-        window.gsap.to(button, {
-          x: 0,
-          y: 0,
-          duration: 0.42,
-          ease: 'elastic.out(1, 0.45)'
-        });
-      });
-    });
-  }
-
-  function initCounters() {
-    const counters = document.querySelectorAll('[data-counter]');
-
-    if (!window.gsap || !window.ScrollTrigger || prefersReducedMotion) {
-      counters.forEach((counter) => {
-        const target = Number(counter.dataset.counter || 0);
-        const suffix = counter.dataset.counterSuffix || '';
-        counter.textContent = `${target}${suffix}`;
-      });
+    if (!session?.user) {
+      setFormVisible(true);
+      if (intro) intro.textContent = 'Melde dich mit deinem RCC-Account an. Danach kannst du direkt deine Rennliga auswählen.';
       return;
     }
 
-    counters.forEach((counter) => {
-      const target = Number(counter.dataset.counter || 0);
-      const state = { value: 0 };
-      const suffix = counter.dataset.counterSuffix || '';
+    setFormVisible(false);
+    if (intro) intro.textContent = `Angemeldet als ${session.user.email || 'RCC-Nutzer'}. Wähle die Liga, die du verwalten möchtest.`;
+    setFeedback('Ligen werden geladen …');
 
-      window.gsap.to(state, {
-        value: target,
-        duration: 1.8,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: counter,
-          start: 'top 88%',
-          once: true
-        },
-        onUpdate: () => {
-          counter.textContent = `${Math.round(state.value)}${suffix}`;
-        }
+    try {
+      const leagues = await fetchAccessibleLeagues(session);
+      const platformOwner = leagues.length ? false : await isPlatformOwner();
+      setFeedback('');
+
+      if (!leaguePicker) return;
+      leaguePicker.hidden = false;
+
+      const heading = document.createElement('strong');
+      heading.textContent = leagues.length ? 'Deine Rennligen' : 'Admin-Zugang';
+      const list = document.createElement('div');
+      list.className = 'login-league-picker__list';
+
+      leagues.forEach((league) => list.appendChild(makeLeagueLink(league)));
+
+      if (!leagues.length && platformOwner) {
+        list.appendChild(makeLeagueLink({ name: 'Race Control Center', slug: 'rcc', role: 'owner' }));
+      }
+
+      if (!leagues.length && !platformOwner) {
+        const empty = document.createElement('div');
+        empty.className = 'login-feedback';
+        empty.textContent = 'Deinem Account ist aktuell keine administrierbare Rennliga zugeordnet.';
+        list.appendChild(empty);
+      }
+
+      const switchAccount = document.createElement('button');
+      switchAccount.type = 'button';
+      switchAccount.className = 'landing-button landing-button--ghost';
+      switchAccount.textContent = 'Anderen Account verwenden';
+      switchAccount.addEventListener('click', async () => {
+        await window.supabaseClient.auth.signOut().catch(() => null);
+        clearLeaguePicker();
+        setFeedback('');
+        setFormVisible(true);
+        if (intro) intro.textContent = 'Melde dich mit deinem RCC-Account an. Danach kannst du direkt deine Rennliga auswählen.';
+        emailInput?.focus?.();
+      });
+
+      leaguePicker.append(heading, list, switchAccount);
+    } catch (error) {
+      console.error('Landing league lookup failed:', error);
+      clearLeaguePicker();
+      setFeedback('Deine Rennligen konnten gerade nicht geladen werden. Öffne alternativ das Admin Center und versuche es erneut.', 'error');
+
+      if (leaguePicker) {
+        leaguePicker.hidden = false;
+        const fallback = document.createElement('a');
+        fallback.className = 'landing-button landing-button--ghost';
+        fallback.href = 'admin.html?league=rcc';
+        fallback.textContent = 'Admin Center öffnen';
+        leaguePicker.appendChild(fallback);
+      }
+    }
+  }
+
+  async function openModal(trigger) {
+    if (!modal) return;
+    lastFocusedElement = trigger || document.activeElement;
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('modal-open');
+    setFeedback('');
+
+    try {
+      const session = await getSession();
+      await renderSessionState(session);
+      if (!session?.user) emailInput?.focus?.({ preventScroll: true });
+      else modal.querySelector('.login-league-link, .landing-button')?.focus?.({ preventScroll: true });
+    } catch (error) {
+      console.error('Landing session check failed:', error);
+      setFormVisible(true);
+      setFeedback('Die Session konnte nicht geprüft werden. Du kannst dich trotzdem neu anmelden.', 'error');
+      emailInput?.focus?.({ preventScroll: true });
+    }
+  }
+
+  async function signIn(event) {
+    event.preventDefault();
+    if (authBusy || !window.supabaseClient?.auth) return;
+    const email = String(emailInput?.value || '').trim();
+    const password = String(passwordInput?.value || '');
+    if (!email || !password) return;
+
+    authBusy = true;
+    const submit = form?.querySelector('button[type="submit"]');
+    const originalLabel = submit?.innerHTML || '';
+    if (submit) {
+      submit.disabled = true;
+      submit.textContent = 'Anmeldung läuft …';
+    }
+    setFeedback('');
+
+    try {
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      passwordInput.value = '';
+      await renderSessionState(data?.session || null);
+    } catch (error) {
+      console.error('Landing login failed:', error);
+      setFeedback('Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.', 'error');
+    } finally {
+      authBusy = false;
+      if (submit) {
+        submit.disabled = false;
+        submit.innerHTML = originalLabel;
+      }
+    }
+  }
+
+  function bindSmoothAnchors() {
+    document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+      anchor.addEventListener('click', (event) => {
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (!target) return;
+        event.preventDefault();
+        target.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
       });
     });
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    bindCtaTracking();
-    runGsapAnimations();
-    bindMagneticButtons();
-    initCounters();
-  });
+  function bindEvents() {
+    document.querySelectorAll('[data-login-open]').forEach((button) => {
+      button.addEventListener('click', () => openModal(button));
+    });
+    document.querySelectorAll('[data-login-close]').forEach((button) => {
+      button.addEventListener('click', closeModal);
+    });
+    form?.addEventListener('submit', signIn);
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modal && !modal.hidden) closeModal();
+    });
+
+    window.supabaseClient?.auth?.onAuthStateChange?.((_event, session) => {
+      setLoginButtons(session);
+    });
+  }
+
+  async function init() {
+    if (year) year.textContent = String(new Date().getFullYear());
+    bindSmoothAnchors();
+    bindEvents();
+    try {
+      setLoginButtons(await getSession());
+    } catch (_) {
+      setLoginButtons(null);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
 })();
