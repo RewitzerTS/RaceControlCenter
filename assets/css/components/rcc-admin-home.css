@@ -74,6 +74,61 @@
   margin-top: auto;
 }
 
+/* Action-card pictograms are real SVG masks. The icon color follows the active RCC theme via currentColor. */
+.rcc-admin-home__action-card > .rcc-results-workflow__icon {
+  font-size: 0;
+}
+
+.rcc-admin-home__action-card > .rcc-results-workflow__icon::before {
+  content: "";
+  display: block;
+  width: 25px;
+  height: 25px;
+  background: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Ergebnis: Dokument mit Check */
+.rcc-admin-home__action-card:nth-child(1) > .rcc-results-workflow__icon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.75h9l3 3V20a1.25 1.25 0 0 1-1.25 1.25H6A1.25 1.25 0 0 1 4.75 20V4A1.25 1.25 0 0 1 6 2.75Z'/%3E%3Cpath d='M14.75 2.75V6H18M8 10h5M8 14h3m2.5 2 1.5 1.5 3-3'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 2.75h9l3 3V20a1.25 1.25 0 0 1-1.25 1.25H6A1.25 1.25 0 0 1 4.75 20V4A1.25 1.25 0 0 1 6 2.75Z'/%3E%3Cpath d='M14.75 2.75V6H18M8 10h5M8 14h3m2.5 2 1.5 1.5 3-3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Rennen: Zielflagge */
+.rcc-admin-home__action-card:nth-child(2) > .rcc-results-workflow__icon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V3M5 4h11.5l-1.7 3 1.7 3H5M8 4v6M11 4v6M14 4v6M5 7h10.4'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 21V3M5 4h11.5l-1.7 3 1.7 3H5M8 4v6M11 4v6M14 4v6M5 7h10.4'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Fahrer & Teams: Fahrergruppe */
+.rcc-admin-home__action-card:nth-child(3) > .rcc-results-workflow__icon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3'/%3E%3Cpath d='M3.75 19c.45-3.25 2.2-5 5.25-5s4.8 1.75 5.25 5'/%3E%3Ccircle cx='17' cy='9' r='2.25'/%3E%3Cpath d='M15.5 14.25c2.9-.45 4.45.95 4.75 3.75'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='9' cy='8' r='3'/%3E%3Cpath d='M3.75 19c.45-3.25 2.2-5 5.25-5s4.8 1.75 5.25 5'/%3E%3Ccircle cx='17' cy='9' r='2.25'/%3E%3Cpath d='M15.5 14.25c2.9-.45 4.45.95 4.75 3.75'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Stewarding: Richterhammer */
+.rcc-admin-home__action-card:nth-child(4) > .rcc-results-workflow__icon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m14.25 4.25 5.5 5.5m-7.35-3.65 3.5-3.5 5.5 5.5-3.5 3.5zM3.25 15.25l6.5-6.5 5.5 5.5-6.5 6.5zM2.75 21.25h9m-1.25-8 2.25 2.25'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m14.25 4.25 5.5 5.5m-7.35-3.65 3.5-3.5 5.5 5.5-3.5 3.5zM3.25 15.25l6.5-6.5 5.5 5.5-6.5 6.5zM2.75 21.25h9m-1.25-8 2.25 2.25'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Saison: Pokal */
+.rcc-admin-home__action-card:nth-child(5) > .rcc-results-workflow__icon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3h8v4.25A4 4 0 0 1 12 11.25a4 4 0 0 1-4-4V3ZM8 5H4.75v1.5A4.25 4.25 0 0 0 9 10.75M16 5h3.25v1.5A4.25 4.25 0 0 1 15 10.75M12 11.25V16M8.5 20.5h7M9.5 16h5v4.5h-5z'/%3E%3C/g%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 3h8v4.25A4 4 0 0 1 12 11.25a4 4 0 0 1-4-4V3ZM8 5H4.75v1.5A4.25 4.25 0 0 0 9 10.75M16 5h3.25v1.5A4.25 4.25 0 0 1 15 10.75M12 11.25V16M8.5 20.5h7M9.5 16h5v4.5h-5z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Branding: Farbpalette */
+.rcc-admin-home__action-card:nth-child(6) > .rcc-results-workflow__icon::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18h1.25a1.75 1.75 0 0 0 0-3.5h-.5a1.5 1.5 0 0 1 0-3h2.5A5.75 5.75 0 0 0 21 8.75C21 5.6 17 3 12 3Z'/%3E%3C/g%3E%3Ccircle cx='7.5' cy='9' r='1'/%3E%3Ccircle cx='10.5' cy='6.75' r='1'/%3E%3Ccircle cx='15' cy='7' r='1'/%3E%3Ccircle cx='17.25' cy='10.25' r='1'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a9 9 0 1 0 0 18h1.25a1.75 1.75 0 0 0 0-3.5h-.5a1.5 1.5 0 0 1 0-3h2.5A5.75 5.75 0 0 0 21 8.75C21 5.6 17 3 12 3Z'/%3E%3C/g%3E%3Ccircle cx='7.5' cy='9' r='1'/%3E%3Ccircle cx='10.5' cy='6.75' r='1'/%3E%3Ccircle cx='15' cy='7' r='1'/%3E%3Ccircle cx='17.25' cy='10.25' r='1'/%3E%3C/svg%3E");
+}
+
 .rcc-admin-home__secondary-actions {
   display: flex;
   justify-content: flex-end;
@@ -91,6 +146,11 @@
   .rcc-admin-home__status-grid,
   .rcc-admin-home__action-grid {
     grid-template-columns: 1fr;
+  }
+
+  .rcc-admin-home__action-card > .rcc-results-workflow__icon::before {
+    width: 26px;
+    height: 26px;
   }
 
   .rcc-admin-home__secondary-actions,
