@@ -1,0 +1,169 @@
+(() => {
+  const MAX_IMAGES = 8;
+  const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+  function esc(value) {
+    return window.escapeHtml ? window.escapeHtml(value) : String(value ?? '');
+  }
+
+  function normalize(value) {
+    return String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+
+  function toDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(reader.error || new Error('Bild konnte nicht gelesen werden.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function matchDriver(aiName, drivers) {
+    const needle = normalize(aiName);
+    if (!needle) return null;
+    const exact = drivers.find((d) => [d.gamertag, d.display_name].some((v) => normalize(v) === needle));
+    if (exact) return exact;
+    return drivers.find((d) => [d.gamertag, d.display_name].some((v) => {
+      const candidate = normalize(v);
+      return candidate && (candidate.includes(needle) || needle.includes(candidate));
+    })) || null;
+  }
+
+  function buildCsv(raceName, rows, drivers) {
+    const header = 'Grand Prix;Pos;Fahrer;Startposition;Boxenstopps;Schnellste Runde;Renndauer;Punkte';
+    const lines = rows.map((row) => {
+      const matched = matchDriver(row.driver, drivers);
+      const driver = matched?.gamertag || row.driver || '';
+      return [
+        raceName,
+        row.position ?? '',
+        driver,
+        row.grid_position ?? '',
+        row.pit_stops ?? '',
+        row.fastest_lap ?? '',
+        row.race_time ?? '',
+        ''
+      ].map((value) => String(value ?? '').replaceAll(';', ',')).join(';');
+    });
+    return [header, ...lines].join('\n');
+  }
+
+  function renderPreview(container, rows, drivers, warnings = []) {
+    if (!rows.length) {
+      container.innerHTML = '<div class="notice">Keine Ergebniszeilen erkannt.</div>';
+      return;
+    }
+    const body = rows.map((row) => {
+      const matched = matchDriver(row.driver, drivers);
+      const confidence = Math.round(Number(row.confidence || 0) * 100);
+      return `<tr>
+        <td>${esc(row.position ?? '—')}</td>
+        <td>${esc(row.driver || '—')}</td>
+        <td>${matched ? esc(matched.gamertag || matched.display_name) : '<strong>Nicht gemappt</strong>'}</td>
+        <td>${esc(row.grid_position ?? '—')}</td>
+        <td>${esc(row.pit_stops ?? '—')}</td>
+        <td>${esc(row.fastest_lap ?? '—')}</td>
+        <td>${esc(row.race_time ?? '—')}</td>
+        <td>${confidence}%</td>
+      </tr>`;
+    }).join('');
+    const warningHtml = warnings.length ? `<div class="notice section-spacer-top"><strong>KI-Hinweise:</strong><br>${warnings.map(esc).join('<br>')}</div>` : '';
+    container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Pos</th><th>Erkannt</th><th>RCC-Mapping</th><th>Start</th><th>Stops</th><th>FL</th><th>Renndauer</th><th>Sicherheit</th></tr></thead><tbody>${body}</tbody></table></div>${warningHtml}`;
+  }
+
+  async function loadContext(raceSelect) {
+    const season = await window.RCCData.fetchCurrentSeason();
+    const [races, drivers] = await Promise.all([
+      window.RCCData.fetchRaces({ seasonId: season?.id }),
+      window.RCCData.fetchDrivers()
+    ]);
+    raceSelect.innerHTML = '<option value="">Rennen wählen</option>' + (races || []).map((race) => `<option value="${esc(race.id)}" data-name="${esc(race.grand_prix_name || '')}">R${esc(race.round_number)} · ${esc(race.grand_prix_name || 'Grand Prix')}</option>`).join('');
+    return { races, drivers };
+  }
+
+  function injectPanel() {
+    const resultsSection = document.getElementById('admin-section-results');
+    if (!resultsSection || document.getElementById('ai-result-import-panel')) return;
+    const firstImport = resultsSection.querySelector('details');
+    const panel = document.createElement('details');
+    panel.className = 'panel admin-panel-accent';
+    panel.id = 'ai-result-import-panel';
+    panel.innerHTML = `
+      <summary><strong>KI Ergebnisbilder auswerten</strong></summary>
+      <div class="notice section-spacer-top">Bis zu ${MAX_IMAGES} F1-Ergebnisbilder hochladen. Die KI liest die Tabelle aus und übergibt das Ergebnis anschließend an den bestehenden CSV-Mapping- und Freigabe-Workflow. Vor dem Import bleibt alles als Vorschau.</div>
+      <div class="form-grid section-spacer-top">
+        <div class="field"><label for="ai-result-race">Rennen</label><select id="ai-result-race"><option value="">Rennen werden geladen…</option></select></div>
+        <div class="field full"><label for="ai-result-images">Ergebnisbilder</label><input id="ai-result-images" type="file" accept="image/png,image/jpeg,image/webp" multiple></div>
+      </div>
+      <div class="card-actions"><button type="button" class="button-primary" id="ai-result-analyze-btn">Bilder mit KI auswerten</button><button type="button" class="button-secondary" id="ai-result-to-csv-btn" disabled>In CSV-Vorschau übernehmen</button></div>
+      <div id="ai-result-feedback" class="notice" hidden></div>
+      <div id="ai-result-preview" class="section-spacer-top"><div class="notice">Noch keine Bilder ausgewertet.</div></div>`;
+    if (firstImport) resultsSection.insertBefore(panel, firstImport); else resultsSection.appendChild(panel);
+
+    const raceSelect = document.getElementById('ai-result-race');
+    const fileInput = document.getElementById('ai-result-images');
+    const analyzeBtn = document.getElementById('ai-result-analyze-btn');
+    const toCsvBtn = document.getElementById('ai-result-to-csv-btn');
+    const feedback = document.getElementById('ai-result-feedback');
+    const preview = document.getElementById('ai-result-preview');
+    let context = { races: [], drivers: [] };
+    let latest = null;
+
+    loadContext(raceSelect).then((value) => { context = value; }).catch((error) => {
+      feedback.hidden = false; feedback.textContent = `Rennen/Fahrer konnten nicht geladen werden: ${error.message}`;
+    });
+
+    analyzeBtn.addEventListener('click', async () => {
+      const files = [...(fileInput.files || [])];
+      const raceId = raceSelect.value;
+      if (!raceId) { feedback.hidden = false; feedback.textContent = 'Bitte zuerst ein Rennen auswählen.'; return; }
+      if (!files.length) { feedback.hidden = false; feedback.textContent = 'Bitte mindestens ein Ergebnisbild auswählen.'; return; }
+      if (files.length > MAX_IMAGES) { feedback.hidden = false; feedback.textContent = `Maximal ${MAX_IMAGES} Bilder pro Auswertung.`; return; }
+      const oversized = files.find((f) => f.size > MAX_FILE_BYTES);
+      if (oversized) { feedback.hidden = false; feedback.textContent = `${oversized.name} ist größer als 5 MB.`; return; }
+
+      analyzeBtn.disabled = true; toCsvBtn.disabled = true; latest = null;
+      feedback.hidden = false; feedback.textContent = `KI wertet ${files.length} Bild${files.length === 1 ? '' : 'er'} aus…`;
+      preview.innerHTML = '<div class="notice">Bildanalyse läuft…</div>';
+      try {
+        const images = await Promise.all(files.map(toDataUrl));
+        const race = context.races.find((r) => String(r.id) === String(raceId));
+        const { data, error } = await window.supabaseClient.functions.invoke('analyze-race-result-images', {
+          body: {
+            race_name: race?.grand_prix_name || '',
+            images,
+            drivers: context.drivers.map((d) => ({ display_name: d.display_name, gamertag: d.gamertag }))
+          }
+        });
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+        latest = { race, rows: Array.isArray(data?.rows) ? data.rows : [], warnings: Array.isArray(data?.warnings) ? data.warnings : [] };
+        renderPreview(preview, latest.rows, context.drivers, latest.warnings);
+        const unmapped = latest.rows.filter((row) => !matchDriver(row.driver, context.drivers)).length;
+        feedback.textContent = `${latest.rows.length} Fahrerzeilen erkannt${unmapped ? ` · ${unmapped} noch nicht eindeutig gemappt` : ' · alle Fahrer gemappt'}. Bitte Vorschau prüfen.`;
+        toCsvBtn.disabled = !latest.rows.length;
+      } catch (error) {
+        console.error(error);
+        const message = error?.message || String(error);
+        feedback.textContent = message.includes('OPENAI_API_KEY') ? 'KI-Backend ist vorbereitet, aber der OpenAI API-Key ist in Supabase noch nicht hinterlegt.' : `KI-Auswertung fehlgeschlagen: ${message}`;
+        preview.innerHTML = '<div class="notice">Keine KI-Vorschau verfügbar.</div>';
+      } finally {
+        analyzeBtn.disabled = false;
+      }
+    });
+
+    toCsvBtn.addEventListener('click', () => {
+      if (!latest?.rows?.length) return;
+      const csvPreview = document.getElementById('csv-preview');
+      if (!csvPreview) { feedback.hidden = false; feedback.textContent = 'CSV-Vorschau wurde nicht gefunden.'; return; }
+      csvPreview.value = buildCsv(latest.race?.grand_prix_name || '', latest.rows, context.drivers);
+      csvPreview.dispatchEvent(new Event('input', { bubbles: true }));
+      feedback.hidden = false;
+      feedback.textContent = 'KI-Ergebnis wurde in die bestehende CSV-Vorschau übernommen. Jetzt Mapping prüfen und wie gewohnt importieren.';
+      document.getElementById('csv-import-preview')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', injectPanel);
+})();
