@@ -20,9 +20,9 @@
 .rcc-admin-home__status-card {
   min-width: 0;
   padding: 16px;
-  border: 1px solid rgba(255,255,255,.09);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
   border-radius: 18px;
-  background: rgba(255,255,255,.035);
+  background: color-mix(in srgb, var(--surface-2) 62%, var(--surface));
 }
 
 .rcc-admin-home__status-card > span,
@@ -61,6 +61,12 @@
 .rcc-admin-home__action-card {
   min-width: 0;
   height: 100%;
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 7%, var(--surface)), var(--surface));
+}
+
+.rcc-admin-home__action-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
 }
 
 .rcc-admin-home__action-card > button {
