@@ -64,10 +64,13 @@
     const valueEl = byId('race-hub-progress-value');
     const copyEl = byId('race-hub-progress-copy');
     const barEl = byId('race-hub-progress-bar');
+    const trackEl = barEl?.parentElement || null;
     const completedEl = byId('race-hub-progress-completed');
     const totalEl = byId('race-hub-progress-total');
     const statusEl = byId('race-hub-status-progress');
     const seasonNameEl = byId('race-hub-progress-season');
+    const progressStateEl = byId('race-hub-progress-state');
+    const seasonStatusEl = byId('status-season');
 
     if (!valueEl || !copyEl || !barEl) return;
 
@@ -77,10 +80,13 @@
         valueEl.textContent = '0%';
         copyEl.textContent = 'Noch keine Saison eingerichtet.';
         barEl.style.width = '0%';
+        trackEl?.setAttribute('aria-valuenow', '0');
         if (completedEl) completedEl.textContent = '0';
         if (totalEl) totalEl.textContent = '0';
         if (statusEl) statusEl.textContent = 'Noch keine Saison';
         if (seasonNameEl) seasonNameEl.textContent = '—';
+        if (progressStateEl) progressStateEl.textContent = 'Nicht gestartet';
+        if (seasonStatusEl) seasonStatusEl.textContent = 'Keine Saison';
         return;
       }
 
@@ -93,16 +99,19 @@
       const completed = lifecycle.filter((race) => race.lifecycleStatus === 'completed').length;
       const percent = total ? Math.round((completed / total) * 100) : 0;
       const open = Math.max(total - completed, 0);
+      const seasonLabel = resolved.season.name || 'Saison';
 
       valueEl.textContent = `${percent}%`;
       copyEl.textContent = resolved.active
         ? `${completed} von ${total} Rennen sind abgeschlossen. ${open ? `${open} Rennen stehen noch aus.` : 'Alle Rennen sind gefahren.'}`
-        : `${resolved.season.name || 'Die Saison'} ist abgeschlossen.`;
+        : `${seasonLabel} ist abgeschlossen.`;
       barEl.style.width = `${Math.max(0, Math.min(100, percent))}%`;
-      barEl.setAttribute('aria-valuenow', String(percent));
+      trackEl?.setAttribute('aria-valuenow', String(percent));
       if (completedEl) completedEl.textContent = String(completed);
       if (totalEl) totalEl.textContent = String(total);
-      if (seasonNameEl) seasonNameEl.textContent = resolved.season.name || 'Saison';
+      if (seasonNameEl) seasonNameEl.textContent = seasonLabel;
+      if (progressStateEl) progressStateEl.textContent = resolved.active ? 'Aktiv' : 'Abgeschlossen';
+      if (seasonStatusEl) seasonStatusEl.textContent = resolved.active ? `${seasonLabel} aktiv` : `${seasonLabel} abgeschlossen`;
       if (statusEl) {
         statusEl.textContent = resolved.active
           ? `${completed}/${total} Rennen · ${percent}%`
@@ -113,6 +122,7 @@
       valueEl.textContent = '—';
       copyEl.textContent = 'Saisonfortschritt konnte nicht geladen werden.';
       if (statusEl) statusEl.textContent = 'Nicht verfügbar';
+      if (progressStateEl) progressStateEl.textContent = 'Unbekannt';
     }
   }
 
