@@ -182,7 +182,7 @@
             <h4>Entwürfe & Freigabe</h4>
             <p>Zwischengespeicherte Rennergebnisse prüfen und nach den Steward-Entscheidungen final veröffentlichen.</p>
           </div>
-          <button type="button" class="button-secondary" data-rcc-results-action="publish">Freigabe öffnen</button>
+          <button type="button" class="button-primary" data-rcc-results-action="publish">Freigabe öffnen</button>
         </article>
       </div>`;
 
