@@ -43,6 +43,10 @@
     data.__rccFreshCurrentSeasonReader = true;
   }
 
+  function removeLegacySeasonStartControls() {
+    document.getElementById('season-start-controls')?.remove();
+  }
+
   async function refreshCompletedSeasonSummary() {
     const summary = document.getElementById('season-summary');
     if (!summary || completedStateRefreshInFlight || !window.RCCData?.fetchCurrentSeason) return;
@@ -67,9 +71,7 @@
       delete summary.dataset.gameKey;
 
       const activeControls = document.getElementById('season-active-controls');
-      const startControls = document.getElementById('season-start-controls');
       if (activeControls) activeControls.hidden = true;
-      if (startControls) startControls.hidden = false;
 
       const overviewSeason = document.getElementById('admin-overview-season');
       const overviewRaces = document.getElementById('admin-overview-races');
@@ -148,6 +150,8 @@
   }
 
   function ensureLauncher() {
+    removeLegacySeasonStartControls();
+
     const seasonSummary = document.getElementById('season-summary');
     const seasonDetails = seasonSummary?.closest('details');
     if (!seasonDetails || document.getElementById('season-calendar-wizard-launcher')) return;
@@ -161,16 +165,13 @@
       </button>`;
     seasonSummary.insertAdjacentElement('afterend', launcher);
 
-    const oldStartButton = document.getElementById('start-new-season-btn');
-    if (oldStartButton) oldStartButton.textContent = 'Season-Wizard öffnen';
-
     const oldGenerator = document.getElementById('generate-season-btn');
     if (oldGenerator) oldGenerator.hidden = true;
   }
 
   function interceptLegacyActions(event) {
     const trigger = event.target?.closest?.(
-      '#start-new-season-btn, #generate-season-btn, #open-season-calendar-wizard-btn'
+      '#generate-season-btn, #open-season-calendar-wizard-btn'
     );
     if (!trigger) return;
     event.preventDefault();
@@ -199,6 +200,7 @@
     if (initialized) return;
     installGeneratedRaceColumnSanitizer();
     installFreshCurrentSeasonReader();
+    removeLegacySeasonStartControls();
     ensureLauncher();
     installSeasonSummaryObserver();
 
