@@ -35,10 +35,10 @@
   overflow: hidden;
   padding: 19px;
   border-radius: 22px;
-  border: 1px solid rgba(255,255,255,.09);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line));
   background:
-    radial-gradient(circle at 100% 0%, rgba(44,143,166,.12), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--primary) 4%), var(--surface));
   box-shadow: var(--shadow);
 }
 
@@ -50,7 +50,7 @@
   right: -54px;
   bottom: -62px;
   border-radius: 50%;
-  background: rgba(255,255,255,.04);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
   pointer-events: none;
 }
 
@@ -87,32 +87,32 @@
 
 .racing-insight-card--attack {
   background:
-    radial-gradient(circle at 100% 0%, rgba(183,140,255,.18), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--secondary) 20%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--secondary) 4%), var(--surface));
 }
 
 .racing-insight-card--pole {
   background:
-    radial-gradient(circle at 100% 0%, rgba(245,196,81,.16), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent-2, var(--accent)) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--accent-2, var(--accent)) 4%), var(--surface));
 }
 
 .racing-insight-card--form {
   background:
-    radial-gradient(circle at 100% 0%, rgba(54,212,199,.16), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--accent) 4%), var(--surface));
 }
 
 .racing-insight-card--battle {
   background:
-    radial-gradient(circle at 100% 0%, rgba(255,122,122,.14), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--primary) 4%), var(--surface));
 }
 
 .racing-insight-card--streak {
   background:
-    radial-gradient(circle at 100% 0%, rgba(125,197,255,.16), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent-2, var(--secondary)) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--accent-2, var(--secondary)) 4%), var(--surface));
 }
 
 @media (max-width: 980px) {
