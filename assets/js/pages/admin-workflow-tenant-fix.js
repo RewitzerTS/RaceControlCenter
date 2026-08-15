@@ -9,6 +9,11 @@
   aiImportScript.defer = true;
   document.head.appendChild(aiImportScript);
 
+  const resultPreviewScript = document.createElement('script');
+  resultPreviewScript.src = 'assets/js/pages/admin-result-preview-ui.js';
+  resultPreviewScript.defer = true;
+  document.head.appendChild(resultPreviewScript);
+
   document.addEventListener('DOMContentLoaded', () => {
     if (!window.supabaseClient || !window.RCCData) return;
 
