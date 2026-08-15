@@ -34,18 +34,18 @@
   }
 
   function open(panel, options = {}) {
-    if (!panel) return;
+    if (!panel) return false;
     ensureStylesheet();
     const shell = buildShell();
     const content = shell.querySelector('[data-rcc-wizard-content]');
     const title = shell.querySelector('#rcc-wizard-dialog-title');
-    if (!content) return;
+    if (!content) return false;
 
     panel.dataset.rccWizardAdopted = 'true';
     panel.classList.add('rcc-wizard-dialog__panel');
     panel.hidden = false;
     if (panel.tagName === 'DETAILS') panel.open = true;
-    content.replaceChildren(panel);
+    if (panel.parentNode !== content) content.replaceChildren(panel);
     if (title && options.title) title.textContent = options.title;
     shell.hidden = false;
     shell.setAttribute('aria-hidden', 'false');
@@ -55,6 +55,7 @@
       const firstInput = panel.querySelector('input:not([type="hidden"]), select, textarea, button');
       firstInput?.focus?.({ preventScroll: true });
     });
+    return true;
   }
 
   function close() {
@@ -96,25 +97,13 @@
   function adoptLeagueOnboarding(root = document) {
     const panel = root.querySelector?.('#admin-section-league-onboarding');
     if (!panel) return false;
-    open(panel, { title: 'Liga einrichten' });
-    return true;
+    return open(panel, { title: 'Liga einrichten' });
   }
 
-  function observeAdminWizardSurfaces() {
-    ensureLeagueCreateLauncher();
-    adoptLeagueOnboarding();
-    const observer = new MutationObserver(() => {
-      ensureLeagueCreateLauncher();
-      adoptLeagueOnboarding();
-    });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-  }
-
+  // Lifecycle is explicit: the league-create module calls these functions
+  // immediately after creating the respective DOM surface. We intentionally do
+  // not observe the whole document because moving/updating wizard content would
+  // otherwise trigger the lifecycle again and can lock the page in a feedback loop.
   ensureStylesheet();
-  window.RCCWizardDialog = { open, close, ensureLeagueCreateLauncher, adoptLeagueOnboarding, observeAdminWizardSurfaces };
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', observeAdminWizardSurfaces, { once: true });
-  } else {
-    observeAdminWizardSurfaces();
-  }
+  window.RCCWizardDialog = { open, close, ensureLeagueCreateLauncher, adoptLeagueOnboarding };
 })();
