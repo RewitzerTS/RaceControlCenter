@@ -1,3 +1,5 @@
+@import url('components/rcc-tenant-theme-coverage.css');
+
 @media (min-width: 861px) {
   html { scrollbar-width: none; }
   html::-webkit-scrollbar { display: none; width: 0; height: 0; }
