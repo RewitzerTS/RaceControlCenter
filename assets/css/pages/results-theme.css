@@ -1,0 +1,168 @@
+/* Results page: tenant-theme coverage and chart presentation. */
+body[data-page="ergebnisse"] .table-card,
+body[data-page="ergebnisse"] .results-chart-panel {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: linear-gradient(155deg, color-mix(in srgb, var(--primary) 5%, var(--surface)), var(--surface));
+}
+
+body[data-page="ergebnisse"] .results-matrix-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--text);
+}
+
+body[data-page="ergebnisse"] .results-matrix-table th,
+body[data-page="ergebnisse"] .results-matrix-table td {
+  border-color: var(--line) !important;
+  color: var(--text);
+}
+
+body[data-page="ergebnisse"] .results-matrix-table thead th,
+body[data-page="ergebnisse"] .results-race-header,
+body[data-page="ergebnisse"] .sticky-driver-head,
+body[data-page="ergebnisse"] .results-total-head {
+  background: color-mix(in srgb, var(--primary) 11%, var(--surface-2)) !important;
+  color: var(--text) !important;
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--accent) 22%, var(--line));
+}
+
+body[data-page="ergebnisse"] .results-matrix-table tbody tr {
+  background: color-mix(in srgb, var(--surface) 94%, var(--primary) 6%);
+  transition: background .18s ease, box-shadow .18s ease;
+}
+
+body[data-page="ergebnisse"] .results-matrix-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface-2) 52%, var(--surface));
+}
+
+body[data-page="ergebnisse"] .results-matrix-table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 11%, var(--surface)) !important;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+body[data-page="ergebnisse"] .results-matrix-table .sticky-driver,
+body[data-page="ergebnisse"] .results-matrix-table .sticky-total {
+  background: color-mix(in srgb, var(--surface) 91%, var(--primary) 9%) !important;
+  backdrop-filter: blur(12px);
+}
+
+body[data-page="ergebnisse"] .results-matrix-table tbody tr:nth-child(even) .sticky-driver,
+body[data-page="ergebnisse"] .results-matrix-table tbody tr:nth-child(even) .sticky-total {
+  background: color-mix(in srgb, var(--surface-2) 58%, var(--surface)) !important;
+}
+
+body[data-page="ergebnisse"] .results-matrix-table tbody tr:hover .sticky-driver,
+body[data-page="ergebnisse"] .results-matrix-table tbody tr:hover .sticky-total {
+  background: color-mix(in srgb, var(--accent) 11%, var(--surface)) !important;
+}
+
+body[data-page="ergebnisse"] .driver-label-text {
+  color: var(--text);
+  font-weight: 760;
+}
+
+body[data-page="ergebnisse"] .results-points-value {
+  color: var(--text);
+}
+
+body[data-page="ergebnisse"] .results-points-value--fl-chip {
+  color: var(--text-on-primary, #fff) !important;
+  background: var(--primary) !important;
+  border-color: color-mix(in srgb, var(--primary) 72%, var(--text)) !important;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+body[data-page="ergebnisse"] .results-points-value--bot {
+  color: var(--text) !important;
+  background: color-mix(in srgb, var(--secondary) 18%, var(--surface-2)) !important;
+  border-color: color-mix(in srgb, var(--secondary) 55%, var(--line)) !important;
+}
+
+body[data-page="ergebnisse"] .results-total-cell strong {
+  color: var(--accent-text, var(--accent));
+}
+
+body[data-page="ergebnisse"] .results-legend-pill {
+  color: var(--text);
+  border-color: var(--line);
+  background: var(--surface-2);
+}
+
+body[data-page="ergebnisse"] .results-legend-pill--player {
+  color: var(--text-on-primary, #fff);
+  border-color: color-mix(in srgb, var(--primary) 68%, var(--line));
+  background: var(--primary);
+}
+
+body[data-page="ergebnisse"] .results-legend-pill--bot {
+  border-color: color-mix(in srgb, var(--secondary) 55%, var(--line));
+  background: color-mix(in srgb, var(--secondary) 18%, var(--surface-2));
+}
+
+.results-chart-panel {
+  overflow: hidden;
+}
+
+.results-trend-heading--enhanced {
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.results-chart-heading-copy {
+  display: grid;
+  gap: 5px;
+}
+
+.results-chart-heading-copy p {
+  margin: 0;
+  max-width: 720px;
+  color: var(--text-muted);
+  font-size: .9rem;
+  line-height: 1.55;
+}
+
+.results-chart-frame {
+  position: relative;
+  min-height: 310px;
+  margin-top: 18px;
+  padding: 14px 12px 6px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line));
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-2) 42%, var(--surface));
+}
+
+.results-chart-frame canvas {
+  width: 100% !important;
+  max-height: 390px;
+}
+
+.results-dynamics-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: .78rem;
+}
+
+.results-dynamics-note::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 62%, transparent);
+}
+
+@media (max-width: 700px) {
+  .results-chart-frame {
+    min-height: 270px;
+    margin-inline: -4px;
+    padding: 10px 7px 4px;
+    border-radius: 14px;
+  }
+
+  .results-chart-heading-copy p {
+    font-size: .82rem;
+  }
+}
