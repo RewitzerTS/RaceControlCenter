@@ -1,53 +1,107 @@
 (() => {
   let initialized = false;
-  const GAME_LABELS = { f1_25: 'F1 25', f1_26: 'F1 26' };
+  let wizardPromise = null;
 
-  function feedback(message, error = false) {
-    const el = document.getElementById('season-feedback');
-    if (!el) return;
-    el.hidden = false;
-    el.style.display = 'block';
-    el.textContent = message;
-    el.classList.toggle('notice-error', error);
+  function loadWizard() {
+    if (window.RCCSeasonCalendarWizard) return Promise.resolve(window.RCCSeasonCalendarWizard);
+    if (wizardPromise) return wizardPromise;
+
+    wizardPromise = new Promise((resolve, reject) => {
+      const src = 'assets/js/components/rcc-season-calendar-wizard.js';
+      const existing = document.querySelector(`script[data-rcc-dynamic-src="${src}"]`);
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window.RCCSeasonCalendarWizard), { once: true });
+        existing.addEventListener('error', () => reject(new Error('Season-Wizard konnte nicht geladen werden.')), { once: true });
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = src;
+      script.dataset.rccDynamicSrc = src;
+      script.onload = () => {
+        if (!window.RCCSeasonCalendarWizard) {
+          reject(new Error('Season-Wizard wurde geladen, aber nicht initialisiert.'));
+          return;
+        }
+        resolve(window.RCCSeasonCalendarWizard);
+      };
+      script.onerror = () => reject(new Error('Season-Wizard konnte nicht geladen werden.'));
+      document.head.appendChild(script);
+    }).finally(() => {
+      wizardPromise = null;
+    });
+
+    return wizardPromise;
   }
 
-  async function createNextSeason(event) {
-    const button = event.target?.closest?.('#start-new-season-btn');
-    if (!button) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    button.disabled = true;
+  async function openWizard() {
     try {
-      const context = await window.RCCData.getLeagueContext({ forceRefresh: true });
-      if (!context?.leagueId || !['owner','admin'].includes(context.role)) throw new Error('Owner- oder Admin-Rechte erforderlich.');
-      const current = await window.RCCData.fetchCurrentSeason({ forceRefresh: true, backgroundRefresh: false });
-      if (current?.id) throw new Error('Es gibt bereits eine aktive Saison. Bitte diese zuerst abschließen.');
-      const gameKey = String(document.getElementById('season-game-select-new')?.value || 'f1_25').trim() || 'f1_25';
-      const gameLabel = GAME_LABELS[gameKey] || gameKey;
-      if (!window.confirm(`Neue Saison für ${gameLabel} in ${context.name || 'dieser Liga'} starten?`)) return;
-      const { data, error } = await window.supabaseClient.rpc('create_next_league_season', {
-        p_league_id: context.leagueId,
-        p_game_key: gameKey,
-        p_game_label: gameLabel
-      });
-      if (error) throw error;
-      if (!data?.ok) throw new Error('Neue Saison konnte nicht angelegt werden.');
-      feedback(`${data.name} wurde für ${gameLabel} gestartet. Die Saison gehört ausschließlich zu ${context.name || 'dieser Liga'}.`);
-      window.setTimeout(() => window.location.reload(), 500);
+      const wizard = await loadWizard();
+      wizard?.init?.();
+      await wizard?.open?.();
     } catch (error) {
       console.error(error);
-      feedback(error.message || 'Neue Saison konnte nicht gestartet werden.', true);
-    } finally {
-      button.disabled = false;
+      window.alert?.(error.message || 'Season-Wizard konnte nicht geöffnet werden.');
     }
+  }
+
+  function ensureLauncher() {
+    const seasonSummary = document.getElementById('season-summary');
+    const seasonDetails = seasonSummary?.closest('details');
+    if (!seasonDetails || document.getElementById('season-calendar-wizard-launcher')) return;
+
+    const launcher = document.createElement('div');
+    launcher.id = 'season-calendar-wizard-launcher';
+    launcher.className = 'card-actions';
+    launcher.innerHTML = `
+      <button type="button" class="button-primary" id="open-season-calendar-wizard-btn">
+        Season & Rennkalender einrichten
+      </button>`;
+    seasonSummary.insertAdjacentElement('afterend', launcher);
+
+    const oldStartButton = document.getElementById('start-new-season-btn');
+    if (oldStartButton) oldStartButton.textContent = 'Season-Wizard öffnen';
+
+    const oldGenerator = document.getElementById('generate-season-btn');
+    if (oldGenerator) oldGenerator.hidden = true;
+  }
+
+  function interceptLegacyActions(event) {
+    const trigger = event.target?.closest?.(
+      '#start-new-season-btn, #generate-season-btn, #open-season-calendar-wizard-btn'
+    );
+    if (!trigger) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    openWizard();
+  }
+
+  function installBrandingCompletionBridge() {
+    const wasBrandingSetup = new URLSearchParams(window.location.search).get('onboarding') === '1';
+    const brandingPanel = document.getElementById('admin-section-league-onboarding');
+    if (!wasBrandingSetup || !brandingPanel) return;
+
+    let handled = false;
+    const observer = new MutationObserver(() => {
+      if (handled || document.contains(brandingPanel)) return;
+      const onboardingFlagStillPresent = new URLSearchParams(window.location.search).get('onboarding') === '1';
+      if (onboardingFlagStillPresent) return;
+      handled = true;
+      observer.disconnect();
+      window.setTimeout(() => openWizard(), 80);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   }
 
   function init() {
     if (initialized) return;
-    document.addEventListener('click', createNextSeason, true);
+    ensureLauncher();
+
+    document.addEventListener('click', interceptLegacyActions, true);
+    installBrandingCompletionBridge();
+
     initialized = true;
   }
 
-  window.RCCNextSeason = { init };
+  window.RCCNextSeason = { init, openWizard };
 })();
