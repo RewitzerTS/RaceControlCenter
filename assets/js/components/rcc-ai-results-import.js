@@ -1,6 +1,11 @@
 (() => {
   if (window.RCCAIResultsImport) return;
 
+  const IMAGE_PREP_TIMEOUT_MS = 20000;
+  const AI_ANALYSIS_TIMEOUT_MS = 90000;
+  const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+  const MAX_IMAGE_DIMENSION = 2200;
+
   const state = {
     panel: null,
     races: [],
@@ -9,7 +14,8 @@
     analysisRows: [],
     warnings: [],
     analyzing: false,
-    saving: false
+    saving: false,
+    analysisRunId: 0
   };
 
   function escape(value) {
@@ -97,10 +103,10 @@
     const fuzzy = [];
     for (const driver of state.drivers) {
       [
-        ['gamertag', driver.gamertag, 'PLAYER', 'Gamertag'],
-        ['ai_driver_reference', driver.ai_driver_reference, 'BOT', 'KI-Fahrer'],
-        ['display_name', driver.display_name, 'PLAYER', 'Anzeigename']
-      ].forEach(([, value, participationStatus, source]) => {
+        [driver.gamertag, 'PLAYER', 'Gamertag'],
+        [driver.ai_driver_reference, 'BOT', 'KI-Fahrer'],
+        [driver.display_name, 'PLAYER', 'Anzeigename']
+      ].forEach(([value, participationStatus, source]) => {
         const candidate = normalize(value);
         if (!candidate || candidate.length < 4) return;
         if (candidate.includes(key) || key.includes(candidate)) {
@@ -222,54 +228,129 @@
     }
 
     list.innerHTML = state.selectedFiles.map((file, index) =>
-      `<span class="rcc-ai-file-chip"><strong>${index + 1}.</strong> ${escape(file.name)} <button type="button" data-remove-ai-file="${index}" aria-label="${escape(file.name)} entfernen">×</button></span>`
+      `<span class="rcc-ai-file-chip"><strong>${index + 1}.</strong> ${escape(file.name)} <button type="button" data-remove-ai-file="${index}" ${state.analyzing ? 'disabled' : ''} aria-label="${escape(file.name)} entfernen">×</button></span>`
     ).join('');
-    if (analyzeButton) analyzeButton.disabled = !selectedRace();
+    if (analyzeButton) analyzeButton.disabled = state.analyzing || !selectedRace();
   }
 
-  function readAsDataUrl(file) {
+  function timeoutPromise(ms, message) {
+    return new Promise((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), ms);
+    });
+  }
+
+  function withTimeout(promise, ms, message) {
+    return Promise.race([promise, timeoutPromise(ms, message)]);
+  }
+
+  function readAsDataUrl(blob) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ''));
-      reader.onerror = () => reject(reader.error || new Error('Bild konnte nicht gelesen werden.'));
-      reader.readAsDataURL(file);
+      let settled = false;
+      const finish = (callback, value) => {
+        if (settled) return;
+        settled = true;
+        callback(value);
+      };
+      reader.onload = () => finish(resolve, String(reader.result || ''));
+      reader.onerror = () => finish(reject, reader.error || new Error('Bild konnte nicht gelesen werden.'));
+      reader.onabort = () => finish(reject, new Error('Bildverarbeitung wurde abgebrochen.'));
+      reader.readAsDataURL(blob);
     });
+  }
+
+  function canvasToBlob(canvas, type = 'image/jpeg', quality = 0.9) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error('Bild konnte nicht komprimiert werden.'));
+          return;
+        }
+        resolve(blob);
+      }, type, quality);
+    });
+  }
+
+  function loadImageElement(file) {
+    return new Promise((resolve, reject) => {
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+      const cleanup = () => URL.revokeObjectURL(objectUrl);
+      image.onload = () => resolve({ source: image, width: image.naturalWidth, height: image.naturalHeight, cleanup });
+      image.onerror = () => {
+        cleanup();
+        reject(new Error(`Bild „${file.name}“ konnte vom Browser nicht geöffnet werden.`));
+      };
+      image.src = objectUrl;
+    });
+  }
+
+  async function decodeImage(file) {
+    if (typeof window.createImageBitmap === 'function') {
+      try {
+        const bitmap = await withTimeout(
+          window.createImageBitmap(file),
+          IMAGE_PREP_TIMEOUT_MS,
+          `Bild „${file.name}“ konnte nicht rechtzeitig decodiert werden.`
+        );
+        return {
+          source: bitmap,
+          width: bitmap.width,
+          height: bitmap.height,
+          cleanup: () => bitmap.close?.()
+        };
+      } catch (error) {
+        console.warn('createImageBitmap fehlgeschlagen, Fallback auf Image-Element:', error);
+      }
+    }
+
+    return withTimeout(
+      loadImageElement(file),
+      IMAGE_PREP_TIMEOUT_MS,
+      `Bild „${file.name}“ konnte nicht rechtzeitig geladen werden.`
+    );
   }
 
   async function optimizeImage(file) {
-    const original = await readAsDataUrl(file);
-    if (!original || !file.type.startsWith('image/')) return original;
+    if (!file?.type?.startsWith('image/')) throw new Error(`„${file?.name || 'Datei'}“ ist kein unterstütztes Bild.`);
+    if (file.size > MAX_IMAGE_BYTES) {
+      throw new Error(`„${file.name}“ ist größer als 20 MB. Bitte das Bild vor dem Upload verkleinern.`);
+    }
 
-    return new Promise((resolve) => {
-      const image = new Image();
-      image.onload = () => {
-        const maxDimension = 2200;
-        const longest = Math.max(image.naturalWidth || 0, image.naturalHeight || 0);
-        const scale = longest > maxDimension ? maxDimension / longest : 1;
+    if (file.size <= 2_500_000) {
+      return withTimeout(
+        readAsDataUrl(file),
+        IMAGE_PREP_TIMEOUT_MS,
+        `Bild „${file.name}“ konnte nicht rechtzeitig gelesen werden.`
+      );
+    }
 
-        if (scale === 1 && file.size <= 2_500_000) {
-          resolve(original);
-          return;
-        }
+    const decoded = await decodeImage(file);
+    try {
+      const longest = Math.max(decoded.width || 0, decoded.height || 0);
+      if (!longest) throw new Error(`Bild „${file.name}“ hat ungültige Abmessungen.`);
 
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
-          const context = canvas.getContext('2d');
-          if (!context) {
-            resolve(original);
-            return;
-          }
-          context.drawImage(image, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL('image/jpeg', 0.9));
-        } catch (_) {
-          resolve(original);
-        }
-      };
-      image.onerror = () => resolve(original);
-      image.src = original;
-    });
+      const scale = longest > MAX_IMAGE_DIMENSION ? MAX_IMAGE_DIMENSION / longest : 1;
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(decoded.width * scale));
+      canvas.height = Math.max(1, Math.round(decoded.height * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('Bildverarbeitung wird von diesem Browser nicht unterstützt.');
+
+      context.drawImage(decoded.source, 0, 0, canvas.width, canvas.height);
+      const compressed = await withTimeout(
+        canvasToBlob(canvas, 'image/jpeg', 0.9),
+        IMAGE_PREP_TIMEOUT_MS,
+        `Bild „${file.name}“ konnte nicht rechtzeitig komprimiert werden.`
+      );
+      return withTimeout(
+        readAsDataUrl(compressed),
+        IMAGE_PREP_TIMEOUT_MS,
+        `Bild „${file.name}“ konnte nach der Komprimierung nicht gelesen werden.`
+      );
+    } finally {
+      decoded.cleanup?.();
+    }
   }
 
   async function requireAdmin() {
@@ -280,6 +361,48 @@
     return data.session;
   }
 
+  function setAnalyzingUi(isAnalyzing) {
+    const button = state.panel?.querySelector('#rcc-analyze-images');
+    const cancelButton = state.panel?.querySelector('#rcc-cancel-ai-analysis');
+    const raceSelect = state.panel?.querySelector('#rcc-ai-race-select');
+    const imageInput = state.panel?.querySelector('#rcc-ai-image-input');
+
+    if (button) {
+      button.disabled = isAnalyzing || !state.selectedFiles.length || !selectedRace();
+      button.textContent = isAnalyzing ? 'KI liest Bilder …' : 'Bilder mit KI auslesen';
+    }
+    if (cancelButton) cancelButton.hidden = !isAnalyzing;
+    if (raceSelect) raceSelect.disabled = isAnalyzing;
+    if (imageInput) imageInput.disabled = isAnalyzing;
+    renderSelectedFiles();
+  }
+
+  async function getFunctionErrorMessage(error) {
+    if (!error) return 'Unbekannter Fehler';
+    try {
+      if (error.context?.clone) {
+        const payload = await error.context.clone().json();
+        if (payload?.error) return String(payload.error);
+        if (payload?.message) return String(payload.message);
+      } else if (error.context?.json) {
+        const payload = await error.context.json();
+        if (payload?.error) return String(payload.error);
+        if (payload?.message) return String(payload.message);
+      }
+    } catch (_) {
+      // Fall back to the SDK error message below.
+    }
+    return String(error.message || error.name || 'Unbekannter Fehler');
+  }
+
+  function cancelAnalysis() {
+    if (!state.analyzing) return;
+    state.analysisRunId += 1;
+    state.analyzing = false;
+    setAnalyzingUi(false);
+    setFeedback('KI-Auswertung abgebrochen. Du kannst die Bilder ändern oder die Auswertung erneut starten.');
+  }
+
   async function analyzeImages() {
     if (state.analyzing) return;
     const race = selectedRace();
@@ -287,24 +410,25 @@
     if (!state.selectedFiles.length) return setFeedback('Bitte mindestens ein Ergebnisbild auswählen.', true);
     if (state.selectedFiles.length > 8) return setFeedback('Es können maximal 8 Ergebnisbilder gleichzeitig ausgewertet werden.', true);
 
+    const runId = state.analysisRunId + 1;
+    state.analysisRunId = runId;
     state.analyzing = true;
-    const button = state.panel?.querySelector('#rcc-analyze-images');
-    if (button) {
-      button.disabled = true;
-      button.textContent = 'KI liest Bilder …';
-    }
+    setAnalyzingUi(true);
     setFeedback('Bilder werden für die KI-Auswertung vorbereitet …');
 
     try {
-      await requireAdmin();
+      await withTimeout(requireAdmin(), 15000, 'Die Admin-Sitzung konnte nicht rechtzeitig geprüft werden. Bitte Seite neu laden und erneut einloggen.');
+      if (runId !== state.analysisRunId) return;
+
       const images = [];
       for (let index = 0; index < state.selectedFiles.length; index += 1) {
         setFeedback(`Bild ${index + 1} von ${state.selectedFiles.length} wird vorbereitet …`);
         images.push(await optimizeImage(state.selectedFiles[index]));
+        if (runId !== state.analysisRunId) return;
       }
 
-      setFeedback('KI liest Positionen, Fahrer und Zeiten aus den Bildern …');
-      const { data, error } = await window.supabaseClient.functions.invoke('analyze-race-result-images', {
+      setFeedback('KI wertet die Bilder aus … Das dauert normalerweise etwa 20–40 Sekunden.');
+      const invocation = window.supabaseClient.functions.invoke('analyze-race-result-images', {
         body: {
           race_name: race.grand_prix_name,
           images,
@@ -317,7 +441,14 @@
         }
       });
 
-      if (error) throw error;
+      const { data, error } = await withTimeout(
+        invocation,
+        AI_ANALYSIS_TIMEOUT_MS,
+        'Die KI-Auswertung hat nach 90 Sekunden nicht geantwortet. Bitte erneut versuchen.'
+      );
+      if (runId !== state.analysisRunId) return;
+
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       if (data?.error) throw new Error(data.error);
 
       state.analysisRows = (Array.isArray(data?.rows) ? data.rows : []).map(analysisRow);
@@ -336,17 +467,16 @@
       setFeedback(
         missing
           ? `KI-Auswertung fertig. ${missing} Fahrer konnten nicht automatisch zugeordnet werden und müssen vor dem Speichern gewählt werden.`
-          : `KI-Auswertung fertig. ${state.analysisRows.length} Ergebniszeilen wurden erkannt. Bitte die Tabelle vor dem Speichern kontrollieren.`,
-        false
+          : `KI-Auswertung fertig. ${state.analysisRows.length} Ergebniszeilen wurden erkannt. Bitte die Tabelle vor dem Speichern kontrollieren.`
       );
     } catch (error) {
+      if (runId !== state.analysisRunId) return;
       console.error(error);
       setFeedback(`KI-Auswertung fehlgeschlagen: ${error.message || 'Unbekannter Fehler'}`, true);
     } finally {
-      state.analyzing = false;
-      if (button) {
-        button.disabled = !state.selectedFiles.length || !selectedRace();
-        button.textContent = 'Bilder mit KI auslesen';
+      if (runId === state.analysisRunId) {
+        state.analyzing = false;
+        setAnalyzingUi(false);
       }
     }
   }
@@ -482,6 +612,7 @@
   }
 
   function handleFileSelection(fileList) {
+    if (state.analyzing) return;
     const incoming = [...(fileList || [])].filter((file) => file.type.startsWith('image/'));
     const combined = [...state.selectedFiles, ...incoming];
     const unique = combined.filter((file, index, list) =>
@@ -498,7 +629,10 @@
     renderAnalysisTable();
     renderWarnings();
 
-    if (unique.length > 8) {
+    const oversized = state.selectedFiles.find((file) => file.size > MAX_IMAGE_BYTES);
+    if (oversized) {
+      setFeedback(`„${oversized.name}“ ist größer als 20 MB. Bitte das Bild vor der KI-Auswertung verkleinern.`, true);
+    } else if (unique.length > 8) {
       setFeedback('Es werden maximal 8 Bilder verwendet. Weitere ausgewählte Dateien wurden nicht übernommen.', true);
     } else {
       setFeedback('');
@@ -526,7 +660,7 @@
             <select id="rcc-ai-race-select"><option value="">Rennen werden geladen …</option></select>
           </div>
           <div class="field full">
-            <label for="rcc-ai-image-input">Ergebnisbilder · maximal 8</label>
+            <label for="rcc-ai-image-input">Ergebnisbilder · maximal 8 · je maximal 20 MB</label>
             <input type="file" id="rcc-ai-image-input" accept="image/*" multiple>
           </div>
         </div>
@@ -537,6 +671,7 @@
 
         <div class="card-actions section-spacer-top">
           <button type="button" class="button-primary" id="rcc-analyze-images" disabled>Bilder mit KI auslesen</button>
+          <button type="button" class="button-secondary" id="rcc-cancel-ai-analysis" hidden>Auswertung abbrechen</button>
         </div>
 
         <div id="rcc-ai-warnings" class="notice notice-warning section-spacer-top" hidden></div>
@@ -565,11 +700,12 @@
     });
 
     panel.querySelector('#rcc-analyze-images')?.addEventListener('click', analyzeImages);
+    panel.querySelector('#rcc-cancel-ai-analysis')?.addEventListener('click', cancelAnalysis);
     panel.querySelector('#rcc-save-ai-draft')?.addEventListener('click', saveDraft);
 
     panel.addEventListener('click', (event) => {
       const remove = event.target.closest('[data-remove-ai-file]');
-      if (!remove) return;
+      if (!remove || state.analyzing) return;
       const index = Number(remove.dataset.removeAiFile);
       if (Number.isInteger(index)) {
         state.selectedFiles.splice(index, 1);
@@ -600,7 +736,10 @@
     window.RCCWizardDialog.open(panel, {
       title: 'KI-Bilder importieren',
       headerActionLabel: 'Schließen',
-      onHeaderAction: () => window.RCCWizardDialog.close?.()
+      onHeaderAction: () => {
+        if (state.analyzing) cancelAnalysis();
+        window.RCCWizardDialog.close?.();
+      }
     });
 
     setFeedback('Rennen und Fahrer werden geladen …');
@@ -623,5 +762,5 @@
     return true;
   }
 
-  window.RCCAIResultsImport = { open, analyzeImages, saveDraft };
+  window.RCCAIResultsImport = { open, analyzeImages, saveDraft, cancelAnalysis };
 })();
