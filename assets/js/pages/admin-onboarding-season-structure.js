@@ -16,6 +16,13 @@
     return [...document.querySelectorAll('[data-onboarding-row="team"]')];
   }
 
+  function isLegacySeasonOnboarding(panel) {
+    return Boolean(
+      panel?.querySelector('[data-onboarding-step="4"]')
+      && panel.querySelector('[data-onboarding-step="5"]')
+    );
+  }
+
   function ensureRoleSelect(row) {
     if (!row || row.querySelector('[data-driver-role]')) return;
     const grid = row.querySelector('.form-grid');
@@ -69,6 +76,9 @@
   }
 
   function validateSeasonStructure() {
+    const panel = document.getElementById('admin-section-league-onboarding');
+    if (!isLegacySeasonOnboarding(panel)) return '';
+
     const teams = getTeamRows()
       .map((row) => String(row.querySelector('[data-team-name]')?.value || '').trim())
       .filter(Boolean);
@@ -108,6 +118,9 @@
 
   function installValidationGuard() {
     document.addEventListener('click', (event) => {
+      const panel = document.getElementById('admin-section-league-onboarding');
+      if (!isLegacySeasonOnboarding(panel)) return;
+
       const button = event.target.closest('#onboarding-next, #onboarding-finish');
       if (!button) return;
 
@@ -163,7 +176,7 @@
   async function init() {
     if (initialized) return;
     const panel = document.getElementById('admin-section-league-onboarding');
-    if (!panel) return;
+    if (!isLegacySeasonOnboarding(panel)) return;
 
     ensureStructureNotice();
     decorateExistingRows();
