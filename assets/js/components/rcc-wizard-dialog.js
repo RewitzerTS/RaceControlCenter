@@ -34,7 +34,7 @@
   }
 
   function open(panel, options = {}) {
-    if (!panel || panel.dataset.rccWizardAdopted === 'true') return;
+    if (!panel) return;
     ensureStylesheet();
     const shell = buildShell();
     const content = shell.querySelector('[data-rcc-wizard-content]');
@@ -43,6 +43,8 @@
 
     panel.dataset.rccWizardAdopted = 'true';
     panel.classList.add('rcc-wizard-dialog__panel');
+    panel.hidden = false;
+    if (panel.tagName === 'DETAILS') panel.open = true;
     content.replaceChildren(panel);
     if (title && options.title) title.textContent = options.title;
     shell.hidden = false;
@@ -63,6 +65,34 @@
     document.body.classList.remove('rcc-wizard-dialog-open');
   }
 
+  function ensureLeagueCreateLauncher(root = document) {
+    const panel = root.querySelector?.('#admin-section-create-league');
+    if (!panel) return false;
+    if (document.getElementById('admin-create-league-launcher')) return true;
+
+    panel.hidden = true;
+    const launcher = document.createElement('section');
+    launcher.id = 'admin-create-league-launcher';
+    launcher.className = 'container admin-session-banner';
+    launcher.innerHTML = `
+      <div>
+        <strong>Ligaverwaltung</strong>
+        <span class="muted">Eine weitere Rennliga auf RCC anlegen und anschließend Schritt für Schritt einrichten.</span>
+      </div>
+      <button type="button" class="button-primary" data-rcc-create-league>Neue Liga erstellen</button>`;
+
+    const tabs = document.getElementById('admin-mobile-tabs');
+    const layout = document.querySelector('.admin-layout');
+    const anchor = tabs || layout;
+    if (anchor?.parentNode) anchor.parentNode.insertBefore(launcher, anchor);
+    else document.body.appendChild(launcher);
+
+    launcher.querySelector('[data-rcc-create-league]')?.addEventListener('click', () => {
+      open(panel, { title: 'Neue Liga erstellen' });
+    });
+    return true;
+  }
+
   function adoptLeagueOnboarding(root = document) {
     const panel = root.querySelector?.('#admin-section-league-onboarding');
     if (!panel) return false;
@@ -70,19 +100,21 @@
     return true;
   }
 
-  function observeLeagueOnboarding() {
-    if (adoptLeagueOnboarding()) return;
+  function observeAdminWizardSurfaces() {
+    ensureLeagueCreateLauncher();
+    adoptLeagueOnboarding();
     const observer = new MutationObserver(() => {
-      if (adoptLeagueOnboarding()) observer.disconnect();
+      ensureLeagueCreateLauncher();
+      adoptLeagueOnboarding();
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
   }
 
   ensureStylesheet();
-  window.RCCWizardDialog = { open, close, adoptLeagueOnboarding, observeLeagueOnboarding };
+  window.RCCWizardDialog = { open, close, ensureLeagueCreateLauncher, adoptLeagueOnboarding, observeAdminWizardSurfaces };
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', observeLeagueOnboarding, { once: true });
+    document.addEventListener('DOMContentLoaded', observeAdminWizardSurfaces, { once: true });
   } else {
-    observeLeagueOnboarding();
+    observeAdminWizardSurfaces();
   }
 })();
