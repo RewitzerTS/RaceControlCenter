@@ -1,0 +1,263 @@
+/* Tenant theme coverage layer.
+   Loaded globally by rcc-ux-pass1.css.
+   Reusable RCC surfaces consume league theme tokens instead of legacy
+   hard-coded RCC navy/violet/teal values. Semantic status colors are excluded. */
+
+html[data-league-branding-applied="true"] {
+  color-scheme: dark;
+}
+
+/* Header/navigation details not fully covered by the base branding service. */
+html[data-league-branding-applied="true"] .mobile-toggle,
+html[data-league-branding-applied="true"] .nav-more-toggle {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 62%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .main-nav a .nav-label,
+html[data-league-branding-applied="true"] .nav-more-menu {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: color-mix(in srgb, var(--surface) 97%, var(--bg-main));
+}
+
+/* Dashboard / Race Hub */
+html[data-league-branding-applied="true"] #app-launch-splash {
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 38%),
+    var(--bg-main);
+}
+
+html[data-league-branding-applied="true"] #app-launch-splash img {
+  filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--accent) 38%, transparent));
+}
+
+html[data-league-branding-applied="true"] .dashboard-card,
+html[data-league-branding-applied="true"] .hero-side,
+html[data-league-branding-applied="true"] .side-kpi,
+html[data-league-branding-applied="true"] .countdown-item {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 66%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .hero-side {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--secondary) 14%, transparent), transparent 24%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, var(--secondary) 3%), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .countdown-box {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--secondary) 34%, var(--line));
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--secondary) 20%, var(--surface)),
+    color-mix(in srgb, var(--secondary) 7%, var(--surface)));
+}
+
+html[data-league-branding-applied="true"] .accent-outline {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 13%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .violet-outline {
+  border-color: color-mix(in srgb, var(--secondary) 36%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--secondary) 16%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .status-dot.violet {
+  background: var(--secondary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--secondary) 68%, transparent);
+}
+
+html[data-league-branding-applied="true"] .race-hub-progress {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, var(--primary) 4%), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .race-hub-progress-track {
+  border-color: color-mix(in srgb, var(--text) 14%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 76%, var(--bg-main));
+}
+
+html[data-league-branding-applied="true"] .race-hub-progress-bar {
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent-2, var(--secondary)));
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+
+html[data-league-branding-applied="true"] .race-hub-progress-meta > div,
+html[data-league-branding-applied="true"] .race-hub-latest-facts .fact-card,
+html[data-league-branding-applied="true"] .race-hub-latest-podium .podium-card-lite {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 72%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .race-hub-empty {
+  color: var(--text-muted);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+/* Admin navigation and overview */
+html[data-league-branding-applied="true"] body[data-page="admin"] .admin-mobile-tabs {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 25%, var(--line));
+  background: color-mix(in srgb, var(--surface) 94%, var(--bg-main));
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--bg-main) 72%, transparent);
+}
+
+html[data-league-branding-applied="true"] body[data-page="admin"] .admin-mobile-tab {
+  color: var(--text-muted);
+  border-color: color-mix(in srgb, var(--text) 10%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 68%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] body[data-page="admin"] .admin-mobile-tab:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] body[data-page="admin"] .admin-mobile-tab.is-active {
+  color: var(--text-on-primary, #fff);
+  border-color: var(--primary);
+  background: var(--primary);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--text-on-primary, #fff) 12%, transparent),
+    0 8px 20px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+html[data-league-branding-applied="true"] .rcc-admin-home__status-card,
+html[data-league-branding-applied="true"] .rcc-admin-home__action-card,
+html[data-league-branding-applied="true"] .rcc-results-workflow__card,
+html[data-league-branding-applied="true"] .rcc-results-workflow__card--secondary {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 7%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .rcc-results-workflow__card:hover,
+html[data-league-branding-applied="true"] .rcc-admin-home__action-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+}
+
+html[data-league-branding-applied="true"] .rcc-results-workflow__icon {
+  color: var(--text-on-primary, #fff);
+  border-color: color-mix(in srgb, var(--primary) 72%, var(--text));
+  background: var(--primary);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+/* RCC wizard / admin popup shell */
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__backdrop,
+html[data-league-branding-applied="true"] .trackmap-lightbox-backdrop {
+  background: color-mix(in srgb, var(--bg-main) 78%, rgba(0,0,0,.76));
+  backdrop-filter: blur(8px);
+}
+
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__surface,
+html[data-league-branding-applied="true"] .trackmap-lightbox-dialog,
+html[data-league-branding-applied="true"] .modal-card {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--line));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 9%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, var(--primary) 3%), var(--surface));
+  box-shadow: 0 30px 90px color-mix(in srgb, var(--bg-main) 72%, rgba(0,0,0,.55));
+}
+
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__header,
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__panel [aria-label="Einrichtungsfortschritt"],
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__panel > .card-actions:last-child {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: color-mix(in srgb, var(--surface) 96%, var(--bg-main));
+}
+
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__content {
+  scrollbar-color: var(--accent) var(--surface);
+}
+
+html[data-league-branding-applied="true"] .rcc-wizard-dialog__panel [data-onboarding-progress][aria-current="step"] {
+  color: var(--text-on-primary, #fff);
+  border-color: var(--primary);
+  background: var(--primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 62%, transparent);
+}
+
+html[data-league-branding-applied="true"] .rcc-season-wizard__progress-track {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 72%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .rcc-season-wizard__progress-track span {
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent-2, var(--secondary)));
+}
+
+html[data-league-branding-applied="true"] .rcc-season-wizard__choice,
+html[data-league-branding-applied="true"] .rcc-season-wizard__weekday,
+html[data-league-branding-applied="true"] .rcc-season-wizard__summary {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 62%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .rcc-season-wizard__choice.is-selected,
+html[data-league-branding-applied="true"] .rcc-season-wizard__weekday.is-selected {
+  border-color: var(--accent);
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--primary) 22%, var(--surface)),
+    color-mix(in srgb, var(--accent) 13%, var(--surface)));
+}
+
+html[data-league-branding-applied="true"] .rcc-season-wizard__footer {
+  background: linear-gradient(180deg, transparent, var(--surface) 34%);
+}
+
+/* Reusable content surfaces */
+html[data-league-branding-applied="true"] .notice,
+html[data-league-branding-applied="true"] .detail-list,
+html[data-league-branding-applied="true"] .admin-session-banner,
+html[data-league-branding-applied="true"] .admin-session-inline,
+html[data-league-branding-applied="true"] .table-wrap {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+}
+
+html[data-league-branding-applied="true"] .notice {
+  background: color-mix(in srgb, var(--surface-2) 62%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .chip,
+html[data-league-branding-applied="true"] .badge,
+html[data-league-branding-applied="true"] .status-pill-card {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 64%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] th {
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface-2) 82%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+/* Keep semantic racing/status colors semantic, not tenant-branded. */
+html[data-league-branding-applied="true"] .f1-loader-lights span.is-red {
+  background: #ff2b2b !important;
+  border-color: rgba(255, 214, 214, .88) !important;
+  box-shadow: 0 0 16px rgba(255, 50, 50, .9), inset 0 0 10px rgba(255,255,255,.24) !important;
+}
+
+html[data-league-branding-applied="true"] .f1-loader-lights span.is-green {
+  background: #1fef75 !important;
+  border-color: rgba(218, 255, 232, .9) !important;
+  box-shadow: 0 0 16px rgba(46, 255, 131, .92), inset 0 0 10px rgba(255,255,255,.24) !important;
+}
