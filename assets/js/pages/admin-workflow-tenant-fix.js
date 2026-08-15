@@ -4,6 +4,11 @@
   compatScript.defer = true;
   document.head.appendChild(compatScript);
 
+  const aiImportScript = document.createElement('script');
+  aiImportScript.src = 'assets/js/pages/admin-ai-result-import.js';
+  aiImportScript.defer = true;
+  document.head.appendChild(aiImportScript);
+
   document.addEventListener('DOMContentLoaded', () => {
     if (!window.supabaseClient || !window.RCCData) return;
 
@@ -69,14 +74,8 @@
 
         const [pending, driversResponse, penaltiesResponse] = await Promise.all([
           window.fetchPendingImportsFromDb(),
-          window.supabaseClient
-            .from('drivers')
-            .select('id, display_name')
-            .eq('league_id', scope.context.leagueId),
-          window.supabaseClient
-            .from('race_penalties')
-            .select('race_id, driver_id, time_delta_ms')
-            .in('race_id', scope.raceIds)
+          window.supabaseClient.from('drivers').select('id, display_name').eq('league_id', scope.context.leagueId),
+          window.supabaseClient.from('race_penalties').select('race_id, driver_id, time_delta_ms').in('race_id', scope.raceIds)
         ]);
 
         if (driversResponse.error) throw driversResponse.error;
