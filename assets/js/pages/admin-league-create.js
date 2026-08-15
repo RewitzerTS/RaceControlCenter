@@ -116,7 +116,7 @@
           ${platformOwner
             ? 'Du erhältst als Plattform-Owner automatisch Owner-Zugriff auf die neue Liga.'
             : 'Du wirst automatisch Ligaleitung der neuen Liga.'}
-          Nach dem Erstellen richtest du nur noch Name, Links, Farben und Logo ein. Rennkalender, Saison, Fahrer und Teams werden separat verwaltet.
+          Nach dem Erstellen richtest du nur noch Name, Links, Farbschema und Logo ein. Rennkalender, Saison, Fahrer und Teams werden separat verwaltet.
         </div>
         <div class="form-grid section-spacer-top">
           <div class="field">

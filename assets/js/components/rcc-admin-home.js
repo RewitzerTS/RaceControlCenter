@@ -95,6 +95,15 @@
             </div>
             <button type="button" class="button-primary" data-rcc-admin-home-action="season">Saison öffnen</button>
           </article>
+
+          <article class="rcc-results-workflow__card rcc-admin-home__action-card">
+            <div class="rcc-results-workflow__icon" aria-hidden="true">◈</div>
+            <div>
+              <h4>Branding bearbeiten</h4>
+              <p>Logo, Liganame, Links und das geprüfte RCC-Farbschema jederzeit anpassen.</p>
+            </div>
+            <button type="button" class="button-primary" data-rcc-admin-home-action="branding">Branding öffnen</button>
+          </article>
         </div>
 
         <div class="rcc-admin-home__secondary-actions">
@@ -183,6 +192,36 @@
     const timeoutId = window.setTimeout(() => observer.disconnect(), 2500);
   }
 
+  function openBranding() {
+    if (window.RCCAdminBranding?.open) {
+      window.RCCAdminBranding.open();
+      return;
+    }
+
+    if (!document.querySelector('script[data-rcc-admin-branding="true"]')) {
+      const script = document.createElement('script');
+      script.src = 'assets/js/pages/admin-branding.js';
+      script.dataset.rccAdminBranding = 'true';
+      script.onload = async () => {
+        await window.RCCAdminBranding?.init?.();
+        window.RCCAdminBranding?.open?.();
+      };
+      document.head.appendChild(script);
+      return;
+    }
+
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      attempts += 1;
+      if (window.RCCAdminBranding?.open) {
+        window.clearInterval(timer);
+        window.RCCAdminBranding.open();
+      } else if (attempts >= 25) {
+        window.clearInterval(timer);
+      }
+    }, 80);
+  }
+
   function runAction(action) {
     switch (action) {
       case 'results':
@@ -199,6 +238,9 @@
         break;
       case 'season':
         openHubCard('admin-section-calendar', /saisonverwaltung/i);
+        break;
+      case 'branding':
+        openBranding();
         break;
       case 'rules':
         selectTab('admin-section-rules');
