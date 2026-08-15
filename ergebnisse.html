@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RCC">
   <meta name="mobile-web-app-capable" content="yes">
-
+  <link rel="stylesheet" href="assets/css/pages/results-theme.css">
 </head>
 <body data-page="ergebnisse">
   <div id="site-header"></div>
@@ -42,12 +42,33 @@
     </div>
 
     <div class="container section-spacer-top">
-      <section class="panel">
-        <div class="results-trend-heading">
-          <h3>Punkteverlauf</h3>
+      <section class="panel results-chart-panel">
+        <div class="results-trend-heading results-trend-heading--enhanced">
+          <div class="results-chart-heading-copy">
+            <h3>Punkteverlauf</h3>
+            <p>Kumulierte WM-Punkte nach jedem Rennen. Die aktuellen Top 5 werden hervorgehoben, das restliche Feld bleibt zur Einordnung sichtbar.</p>
+          </div>
           <span class="results-trend-hint">Tipp: Querformat</span>
         </div>
-        <canvas id="results-trend-chart" height="120"></canvas>
+        <div class="results-chart-frame">
+          <canvas id="results-trend-chart" height="120"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <div class="container section-spacer-top">
+      <section class="panel results-chart-panel">
+        <div class="results-trend-heading results-trend-heading--enhanced">
+          <div class="results-chart-heading-copy">
+            <div class="eyebrow">Neue Ansicht</div>
+            <h3>WM-Dynamik · Abstand zur Spitze</h3>
+            <p>Zeigt für die aktuellen Top 5, wie groß ihr Rückstand auf den jeweils Führenden nach jedem Rennen war. Je näher eine Linie an 0 liegt, desto enger ist der Titelkampf.</p>
+          </div>
+        </div>
+        <div class="results-chart-frame">
+          <canvas id="results-gap-chart" aria-label="WM-Dynamik: Punkteabstand zur Meisterschaftsführung"></canvas>
+        </div>
+        <div class="results-dynamics-note">0 Punkte entspricht der jeweiligen Meisterschaftsführung.</div>
       </section>
     </div>
   </main>
@@ -64,5 +85,6 @@
   <script defer src="assets/js/utils.js"></script>
   <script defer src="assets/js/app.js"></script>
   <script defer src="assets/js/pages/results.js"></script>
+  <script defer src="assets/js/pages/results-enhancements.js"></script>
 </body>
 </html>
