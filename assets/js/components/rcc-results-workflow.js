@@ -3,6 +3,7 @@
 
   let manualModulePromise = null;
   let aiModulePromise = null;
+  let timeFormatModulePromise = null;
 
   function ensureStylesheet() {
     if (document.querySelector('link[data-rcc-results-workflow="true"]')) return;
@@ -34,6 +35,16 @@
 
     promiseSetter(promise);
     return promise;
+  }
+
+  function loadTimeFormatModule() {
+    return loadScriptModule(
+      'RCCResultTimeFormat',
+      'assets/js/components/rcc-result-time-format.js',
+      'Zeitformat-Modul konnte nicht geladen werden.',
+      () => timeFormatModulePromise,
+      (value) => { timeFormatModulePromise = value; }
+    );
   }
 
   function loadManualModule() {
@@ -80,6 +91,7 @@
 
   async function openAiImport() {
     try {
+      await loadTimeFormatModule();
       const module = await loadAiModule();
       await module?.open?.();
     } catch (error) {
@@ -90,6 +102,7 @@
 
   async function openManualEntry(manualPanel) {
     try {
+      await loadTimeFormatModule();
       const manualModule = await loadManualModule();
       manualModule?.mount?.(manualPanel);
       openPanel(manualPanel, 'Ergebnis manuell eingeben');
@@ -159,6 +172,7 @@
   }
 
   ensureStylesheet();
+  loadTimeFormatModule().catch((error) => console.warn(error));
   window.RCCResultsWorkflow = { ensureLauncher, openAiImport };
 
   if (document.readyState === 'loading') {
