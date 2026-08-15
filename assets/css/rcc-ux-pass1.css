@@ -12,6 +12,15 @@
   .table-wrap::-webkit-scrollbar,
   .results-matrix-wrap::-webkit-scrollbar,
   .admin-mobile-tabs::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+  /* Desktop navigation is a fixed icon row, not a horizontally scrollable strip. */
+  .main-nav {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+    scroll-behavior: auto;
+  }
 }
 
 body[data-page="admin"] .admin-layout {
@@ -115,5 +124,54 @@ body[data-page="admin"] .admin-mobile-tab.is-active {
   }
   body[data-page="admin"] .admin-mobile-tab {
     min-width: 118px;
+  }
+
+  /* The mobile navigation drawer follows the selected tenant theme in both
+     light and dark mode instead of using the legacy RCC navy/violet colors. */
+  html[data-league-branding-applied="true"] body::after {
+    background: color-mix(in srgb, var(--bg-main) 70%, transparent) !important;
+    backdrop-filter: blur(3px);
+  }
+
+  html[data-league-branding-applied="true"] .main-nav {
+    color: var(--text) !important;
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 36%),
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--surface) 97%, var(--primary) 3%),
+        color-mix(in srgb, var(--surface-2) 90%, var(--bg-main))) !important;
+    border-left-color: color-mix(in srgb, var(--accent) 28%, var(--line)) !important;
+    box-shadow: -20px 0 44px color-mix(in srgb, var(--bg-main) 62%, rgba(0, 0, 0, .38)) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--accent) transparent;
+  }
+
+  html[data-league-branding-applied="true"] .main-nav a {
+    color: var(--text-muted) !important;
+    border-color: transparent !important;
+    background: transparent !important;
+  }
+
+  html[data-league-branding-applied="true"] .main-nav a:hover,
+  html[data-league-branding-applied="true"] .main-nav a:focus-visible {
+    color: var(--text) !important;
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line)) !important;
+    background: color-mix(in srgb, var(--accent) 11%, var(--surface)) !important;
+  }
+
+  html[data-league-branding-applied="true"] .main-nav a.active {
+    color: var(--text-on-primary, #fff) !important;
+    border-color: var(--primary) !important;
+    background: var(--primary) !important;
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  html[data-league-branding-applied="true"] body.nav-drawer-open .mobile-toggle {
+    color: var(--text-on-primary, #fff) !important;
+    border-color: color-mix(in srgb, var(--primary) 70%, var(--text)) !important;
+    background: var(--primary) !important;
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 25%, transparent);
   }
 }
