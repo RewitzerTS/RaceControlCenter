@@ -4,6 +4,7 @@
   let manualModulePromise = null;
   let aiModulePromise = null;
   let timeFormatModulePromise = null;
+  let resultDraftModulePromise = null;
   let adminSectionHubsPromise = null;
 
   function ensureStylesheet() {
@@ -53,6 +54,16 @@
       'Zeitformat-Modul konnte nicht geladen werden.',
       () => timeFormatModulePromise,
       (value) => { timeFormatModulePromise = value; }
+    );
+  }
+
+  function loadResultDraftModule() {
+    return loadScriptModule(
+      'RCCResultDraft',
+      'assets/js/components/rcc-result-draft.js',
+      'Entwurfs-Workflow konnte nicht geladen werden.',
+      () => resultDraftModulePromise,
+      (value) => { resultDraftModulePromise = value; }
     );
   }
 
@@ -111,9 +122,13 @@
     });
   }
 
+  async function prepareResultEntryModules() {
+    await Promise.all([loadTimeFormatModule(), loadResultDraftModule()]);
+  }
+
   async function openAiImport() {
     try {
-      await loadTimeFormatModule();
+      await prepareResultEntryModules();
       const module = await loadAiModule();
       await module?.open?.();
     } catch (error) {
@@ -124,7 +139,7 @@
 
   async function openManualEntry(manualPanel) {
     try {
-      await loadTimeFormatModule();
+      await prepareResultEntryModules();
       const manualModule = await loadManualModule();
       manualModule?.mount?.(manualPanel);
       openPanel(manualPanel, 'Ergebnis manuell eingeben');
@@ -156,7 +171,7 @@
         <div>
           <span class="eyebrow">Rennergebnis</span>
           <h3>Wie möchtest du das Ergebnis erfassen?</h3>
-          <p class="muted">Wähle zwischen KI-Bildimport und manueller Eingabe. Beide Wege führen anschließend in den gemeinsamen Entwurfs- und Freigabeprozess.</p>
+          <p class="muted">Wähle zwischen KI-Bildimport und manueller Eingabe. Beide Wege führen anschließend in denselben gespeicherten Ergebnisentwurf.</p>
         </div>
       </div>
       <div class="rcc-results-workflow__grid">
@@ -172,7 +187,7 @@
           <div class="rcc-results-workflow__icon" aria-hidden="true">✎</div>
           <div>
             <h4>Manuelle Eingabe</h4>
-            <p>Zuerst ein Rennen auswählen. Danach öffnet sich eine leere Tabelle für Positionen, Fahrer, Grid, Stopps und Renn- sowie Rundenzeiten.</p>
+            <p>Zuerst ein Rennen auswählen. Danach öffnet sich eine leere Tabelle für Position, Fahrer, Team, Grid, Stopps und Zeiten.</p>
           </div>
           <button type="button" class="button-primary" data-rcc-results-action="manual">Manuell eingeben</button>
         </article>
@@ -198,7 +213,7 @@
   }
 
   ensureStylesheet();
-  loadTimeFormatModule().catch((error) => console.warn(error));
+  prepareResultEntryModules().catch((error) => console.warn(error));
   window.RCCResultsWorkflow = { ensureLauncher, openAiImport };
 
   if (document.readyState === 'loading') {
