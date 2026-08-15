@@ -1,4 +1,12 @@
 (() => {
+  const logoFixHref = 'assets/css/pages/landing-brand-fix.css';
+  if (!document.querySelector(`link[href="${logoFixHref}"]`)) {
+    const logoFix = document.createElement('link');
+    logoFix.rel = 'stylesheet';
+    logoFix.href = logoFixHref;
+    document.head.appendChild(logoFix);
+  }
+
   const modal = document.getElementById('landing-login-modal');
   const form = document.getElementById('landing-login-form');
   const emailInput = document.getElementById('landing-login-email');
