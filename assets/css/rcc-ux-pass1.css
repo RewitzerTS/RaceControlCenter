@@ -1,0 +1,85 @@
+@media (min-width: 861px) {
+  html { scrollbar-width: none; }
+  html::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  body { overflow-x: clip; }
+  .main-nav,
+  .table-wrap,
+  .results-matrix-wrap,
+  .admin-mobile-tabs { scrollbar-width: none; }
+  .main-nav::-webkit-scrollbar,
+  .table-wrap::-webkit-scrollbar,
+  .results-matrix-wrap::-webkit-scrollbar,
+  .admin-mobile-tabs::-webkit-scrollbar { display: none; width: 0; height: 0; }
+}
+
+body[data-page="admin"] .admin-layout {
+  display: block;
+}
+
+body[data-page="admin"] .admin-layout > details.panel {
+  width: 100%;
+  margin: 0;
+}
+
+body[data-page="admin"] .admin-layout > details.panel > summary {
+  display: none;
+}
+
+body[data-page="admin"] .admin-mobile-tabs {
+  position: sticky;
+  top: calc(var(--site-header-offset, 0px) + 10px);
+  z-index: 80;
+  display: flex;
+  gap: 8px;
+  padding: 9px;
+  margin-bottom: 18px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(2, 27, 52, 0.94);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.18);
+  scrollbar-width: none;
+}
+
+body[data-page="admin"] .admin-mobile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+body[data-page="admin"] .admin-mobile-tab {
+  flex: 1 0 auto;
+  min-width: 130px;
+  min-height: 44px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+body[data-page="admin"] .admin-mobile-tab.is-active {
+  box-shadow: inset 0 0 0 1px rgba(44,143,166,.22), 0 8px 20px rgba(0,0,0,.14);
+}
+
+body[data-page="admin"] .admin-layout > details.panel[open] {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body[data-page="admin"] .admin-layout > details.panel[open]:hover {
+  transform: none;
+}
+
+body[data-page="admin"] .admin-layout > details.panel > section,
+body[data-page="admin"] .admin-layout > details.panel > details {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+@media (max-width: 860px) {
+  body[data-page="admin"] .admin-mobile-tabs {
+    top: calc(76px + env(safe-area-inset-top) + 8px);
+  }
+  body[data-page="admin"] .admin-mobile-tab {
+    min-width: 118px;
+  }
+}
