@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Race Control Center · Dashboard</title>
+  <title>Race Control Center · Race Hub</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -16,10 +16,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="RCC">
   <meta name="mobile-web-app-capable" content="yes">
-
-    <link rel="stylesheet" href="assets/css/pages/index-dashboard.css">
-
-
+  <link rel="stylesheet" href="assets/css/pages/index-dashboard.css">
+  <link rel="stylesheet" href="assets/css/pages/race-hub.css">
 </head>
 <body data-page="index">
   <div id="app-launch-splash" aria-hidden="true">
@@ -29,7 +27,7 @@
   <div id="site-header"></div>
 
   <main class="dashboard-shell">
-    <section class="status-strip" data-animate style="--anim-delay: 40ms;">
+    <section class="status-strip race-hub-strip" data-animate style="--anim-delay: 40ms;">
       <article class="status-pill-card">
         <span class="status-dot"></span>
         <div class="status-copy">
@@ -40,22 +38,22 @@
       <article class="status-pill-card">
         <span class="status-dot gold"></span>
         <div class="status-copy">
-          <strong>Nächste Events</strong>
+          <strong>Nächste Rennen</strong>
           <span id="status-next-event">Wird geladen…</span>
         </div>
       </article>
       <article class="status-pill-card">
         <span class="status-dot violet"></span>
         <div class="status-copy">
-          <strong>Stewards</strong>
-          <span id="status-stewards">Wird geladen…</span>
+          <strong>Letzter Sieger</strong>
+          <span id="race-hub-status-winner">Wird geladen…</span>
         </div>
       </article>
       <article class="status-pill-card">
-        <span id="status-admin-dot" class="status-dot"></span>
+        <span class="status-dot"></span>
         <div class="status-copy">
-          <strong>Admin-Session</strong>
-          <span id="status-admin">Prüfe…</span>
+          <strong>Saisonfortschritt</strong>
+          <span id="race-hub-status-progress">Wird geladen…</span>
         </div>
       </article>
     </section>
@@ -72,7 +70,7 @@
       <article class="hero-main">
         <div class="hero-feature-grid">
           <section class="next-race-showcase">
-            <div class="card-label">Nächste Events</div>
+            <div class="card-label">Nächste Rennen</div>
             <div id="hero-next-race">
               <div class="empty-state">Nächstes Rennen wird geladen…</div>
             </div>
@@ -110,12 +108,46 @@
       </aside>
     </section>
 
+    <section class="race-hub-overview" data-animate style="--anim-delay: 210ms;">
+      <article class="dashboard-card race-hub-latest">
+        <div class="card-title-row">
+          <div>
+            <div class="card-label">Letztes Ergebnis</div>
+            <h2 id="race-hub-latest-title">Wird geladen…</h2>
+          </div>
+          <a class="btn-secondary-ghost" id="race-hub-latest-link" href="ergebnisse.html" hidden>Rennen öffnen</a>
+        </div>
+        <div id="race-hub-latest-summary" class="race-hub-latest-summary">Letztes Rennen wird geladen…</div>
+        <div id="race-hub-latest-podium" class="race-hub-latest-podium">
+          <div class="race-hub-empty">Podium wird geladen…</div>
+        </div>
+        <div id="race-hub-latest-facts" class="race-hub-latest-facts"></div>
+      </article>
+
+      <article class="dashboard-card race-hub-progress">
+        <div>
+          <div class="card-label">Saisonfortschritt</div>
+          <div id="race-hub-progress-value" class="race-hub-progress-value">—</div>
+          <p id="race-hub-progress-copy" class="race-hub-progress-copy">Saison wird geladen…</p>
+        </div>
+        <div class="race-hub-progress-track" role="progressbar" aria-label="Saisonfortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="race-hub-progress-bar" class="race-hub-progress-bar"></div>
+        </div>
+        <div class="race-hub-progress-meta">
+          <div><span>Saison</span><strong id="race-hub-progress-season">—</strong></div>
+          <div><span>Gefahren</span><strong id="race-hub-progress-completed">—</strong></div>
+          <div><span>Rennen gesamt</span><strong id="race-hub-progress-total">—</strong></div>
+          <div><span>Status</span><strong id="race-hub-progress-state">Live</strong></div>
+        </div>
+      </article>
+    </section>
+
     <section class="podium-grid" data-animate style="--anim-delay: 240ms;">
       <article class="dashboard-card">
         <div class="card-title-row">
           <div>
             <div class="card-label">Top Performer</div>
-            <h2>Fahrer-Podium</h2>
+            <h2>Fahrer-WM · Top 3</h2>
           </div>
           <a class="btn-secondary-ghost" href="fahrer-wm.html">Komplette Fahrer-WM</a>
         </div>
@@ -129,7 +161,7 @@
         <div class="card-title-row">
           <div>
             <div class="card-label">Constructor Order</div>
-            <h2>Team-Podium</h2>
+            <h2>Team-WM · Top 3</h2>
           </div>
           <a class="btn-secondary-ghost" href="team-wm.html">Komplette Team-WM</a>
         </div>
@@ -142,6 +174,9 @@
     <div id="mobile-season-summary-anchor" class="mobile-season-summary-anchor"></div>
 
     <div hidden aria-hidden="true">
+      <span id="status-stewards"></span>
+      <span id="status-admin"></span>
+      <span id="status-admin-dot"></span>
       <span id="latest-race-winner"></span>
       <span id="latest-race-highlight"></span>
       <span id="latest-race-title"></span>
@@ -158,6 +193,7 @@
       <div id="points-chart-legend"></div>
     </div>
   </main>
+
   <div id="season-champion-overlay" class="season-champion-overlay" aria-hidden="true">
     <div class="season-champion-overlay__backdrop"></div>
     <div class="season-champion-overlay__confetti" aria-hidden="true"></div>
@@ -181,7 +217,7 @@
   <script src="assets/js/layout.js"></script>
   <script src="assets/js/app.js"></script>
   <script src="assets/js/utils.js"></script>
-    <script src="assets/js/pages/index-dashboard.js"></script>
-
+  <script src="assets/js/pages/index-dashboard.js"></script>
+  <script src="assets/js/pages/race-hub.js"></script>
 </body>
 </html>
