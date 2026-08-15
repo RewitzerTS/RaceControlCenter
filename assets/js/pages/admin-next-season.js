@@ -1,6 +1,8 @@
 (() => {
   let initialized = false;
   let wizardPromise = null;
+  let completedStateRefreshTimer = null;
+  let completedStateRefreshInFlight = false;
 
   function installGeneratedRaceColumnSanitizer() {
     const client = window.supabaseClient;
@@ -28,8 +30,79 @@
     client.__rccGeneratedRaceColumnsSanitized = true;
   }
 
+  function installFreshCurrentSeasonReader() {
+    const data = window.RCCData;
+    if (!data?.fetchCurrentSeason || data.__rccFreshCurrentSeasonReader) return;
+
+    const originalFetchCurrentSeason = data.fetchCurrentSeason.bind(data);
+    data.fetchCurrentSeason = (options = {}) => originalFetchCurrentSeason({
+      ...options,
+      forceRefresh: true,
+      backgroundRefresh: false
+    });
+    data.__rccFreshCurrentSeasonReader = true;
+  }
+
+  async function refreshCompletedSeasonSummary() {
+    const summary = document.getElementById('season-summary');
+    if (!summary || completedStateRefreshInFlight || !window.RCCData?.fetchCurrentSeason) return;
+
+    completedStateRefreshInFlight = true;
+    try {
+      const activeSeason = await window.RCCData.fetchCurrentSeason({
+        forceRefresh: true,
+        backgroundRefresh: false
+      });
+      if (activeSeason) return;
+
+      const seasons = await window.RCCData.fetchSeasons?.({
+        forceRefresh: true,
+        backgroundRefresh: false
+      });
+      const latestSeason = Array.isArray(seasons) ? seasons[0] : null;
+      if (!latestSeason || latestSeason.is_active !== false) return;
+
+      const completedMarkup = '<strong>Aktive Saison:</strong> Abgeschlossen<br><strong>Spiel:</strong> —<br><strong>Rennen:</strong> —<br><strong>Status:</strong> abgeschlossen';
+      if (summary.innerHTML !== completedMarkup) summary.innerHTML = completedMarkup;
+      delete summary.dataset.gameKey;
+
+      const activeControls = document.getElementById('season-active-controls');
+      const startControls = document.getElementById('season-start-controls');
+      if (activeControls) activeControls.hidden = true;
+      if (startControls) startControls.hidden = false;
+
+      const overviewSeason = document.getElementById('admin-overview-season');
+      const overviewRaces = document.getElementById('admin-overview-races');
+      if (overviewSeason) overviewSeason.textContent = 'Keine aktive Saison';
+      if (overviewRaces) overviewRaces.textContent = 'Saison abgeschlossen';
+    } catch (error) {
+      console.warn('Abgeschlossenen Saisonstatus konnte nicht aktualisiert werden.', error);
+    } finally {
+      completedStateRefreshInFlight = false;
+    }
+  }
+
+  function scheduleCompletedSeasonSummaryRefresh(delay = 0) {
+    if (completedStateRefreshTimer) window.clearTimeout(completedStateRefreshTimer);
+    completedStateRefreshTimer = window.setTimeout(() => {
+      completedStateRefreshTimer = null;
+      refreshCompletedSeasonSummary();
+    }, delay);
+  }
+
+  function installSeasonSummaryObserver() {
+    const summary = document.getElementById('season-summary');
+    if (!summary || summary.dataset.rccCompletedSeasonObserver === 'true') return;
+
+    const observer = new MutationObserver(() => scheduleCompletedSeasonSummaryRefresh(20));
+    observer.observe(summary, { childList: true, subtree: true, characterData: true });
+    summary.dataset.rccCompletedSeasonObserver = 'true';
+    scheduleCompletedSeasonSummaryRefresh();
+  }
+
   function loadWizard() {
     installGeneratedRaceColumnSanitizer();
+    installFreshCurrentSeasonReader();
     if (window.RCCSeasonCalendarWizard) return Promise.resolve(window.RCCSeasonCalendarWizard);
     if (wizardPromise) return wizardPromise;
 
@@ -64,6 +137,7 @@
   async function openWizard() {
     try {
       installGeneratedRaceColumnSanitizer();
+      installFreshCurrentSeasonReader();
       const wizard = await loadWizard();
       wizard?.init?.();
       await wizard?.open?.();
@@ -124,7 +198,9 @@
   function init() {
     if (initialized) return;
     installGeneratedRaceColumnSanitizer();
+    installFreshCurrentSeasonReader();
     ensureLauncher();
+    installSeasonSummaryObserver();
 
     document.addEventListener('click', interceptLegacyActions, true);
     installBrandingCompletionBridge();
@@ -132,5 +208,5 @@
     initialized = true;
   }
 
-  window.RCCNextSeason = { init, openWizard };
+  window.RCCNextSeason = { init, openWizard, refreshCompletedSeasonSummary };
 })();
