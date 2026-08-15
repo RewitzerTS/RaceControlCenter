@@ -5,6 +5,7 @@
   let aiModulePromise = null;
   let timeFormatModulePromise = null;
   let resultDraftModulePromise = null;
+  let resultReleaseModulePromise = null;
   let adminSectionHubsPromise = null;
 
   function ensureStylesheet() {
@@ -65,6 +66,19 @@
       () => resultDraftModulePromise,
       (value) => { resultDraftModulePromise = value; }
     );
+  }
+
+  function loadResultReleaseModule() {
+    return loadScriptModule(
+      'RCCResultRelease',
+      'assets/js/components/rcc-result-release.js',
+      'Steward-/Freigabe-Workflow konnte nicht geladen werden.',
+      () => resultReleaseModulePromise,
+      (value) => { resultReleaseModulePromise = value; }
+    ).then((module) => {
+      module?.init?.();
+      return module;
+    });
   }
 
   function loadManualModule() {
@@ -156,6 +170,7 @@
     if (!csvPanel || !publishPanel || !manualPanel) return false;
     if (section.querySelector('#admin-results-workflow-launcher')) {
       loadAdminSectionHubs().catch((error) => console.warn(error));
+      loadResultReleaseModule().catch((error) => console.warn(error));
       return true;
     }
 
@@ -209,11 +224,13 @@
     launcher.querySelector('[data-rcc-results-action="manual"]')?.addEventListener('click', () => openManualEntry(manualPanel));
     launcher.querySelector('[data-rcc-results-action="publish"]')?.addEventListener('click', () => openPanel(publishPanel, 'Entwürfe & Freigabe'));
     loadAdminSectionHubs().catch((error) => console.warn(error));
+    loadResultReleaseModule().catch((error) => console.warn(error));
     return true;
   }
 
   ensureStylesheet();
   prepareResultEntryModules().catch((error) => console.warn(error));
+  loadResultReleaseModule().catch((error) => console.warn(error));
   window.RCCResultsWorkflow = { ensureLauncher, openAiImport };
 
   if (document.readyState === 'loading') {
