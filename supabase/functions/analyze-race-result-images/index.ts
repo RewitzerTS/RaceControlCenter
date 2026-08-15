@@ -19,13 +19,14 @@ const schema = {
         properties: {
           position: { type: ["integer", "null"] },
           driver: { type: "string" },
+          team: { type: ["string", "null"] },
           grid_position: { type: ["integer", "null"] },
           pit_stops: { type: ["integer", "null"] },
           fastest_lap: { type: ["string", "null"] },
           race_time: { type: ["string", "null"] },
           confidence: { type: "number" }
         },
-        required: ["position", "driver", "grid_position", "pit_stops", "fastest_lap", "race_time", "confidence"]
+        required: ["position", "driver", "team", "grid_position", "pit_stops", "fastest_lap", "race_time", "confidence"]
       }
     },
     warnings: { type: "array", items: { type: "string" } }
@@ -66,8 +67,10 @@ Deno.serve(async (req: Request) => {
     const model = "gpt-4.1-mini";
     const driverReference = knownDrivers
       .map((d: any) => {
-        const parts = [d.gamertag, d.ai_driver_reference, d.display_name].filter(Boolean);
-        return [...new Set(parts)].join(" / ");
+        const identities = [d.gamertag, d.ai_driver_reference, d.display_name].filter(Boolean);
+        const identityText = [...new Set(identities)].join(" / ");
+        const team = typeof d.team === "string" && d.team.trim() ? ` → Team: ${d.team.trim()}` : "";
+        return identityText ? `${identityText}${team}` : "";
       })
       .filter(Boolean)
       .join(", ");
@@ -75,17 +78,23 @@ Deno.serve(async (req: Request) => {
     const instruction = [
       "Extrahiere die sichtbare Rennergebnis-Tabelle aus F1-Spiel-Screenshots für Race Control Center.",
       "Lies nur sichtbare Werte. Nichts erfinden.",
+      "Jede Ergebniszeile hat semantisch diese getrennten Spalten: position | driver | team | grid_position | pit_stops | fastest_lap | race_time.",
+      "Nutze die räumliche Ausrichtung und sichtbaren Spaltenüberschriften des Screenshots, nicht nur die Reihenfolge einzelner OCR-Wörter.",
       "Fahrer exakt so ausgeben, wie er im Screenshot steht. Gamertag und KI-Fahrername nicht miteinander vertauschen.",
-      "position = Zielposition; grid_position = Startposition; pit_stops = Boxenstopps.",
+      "team ist ausschließlich der sichtbare Team-/Konstrukteursname. Lange Teamnamen vollständig zusammenhalten, auch mit Leerzeichen, Bindestrichen oder mehreren Wörtern.",
+      "Beispiele für EINEN vollständigen Teamnamen sind: 'Visa Cash App Racing Bulls' und 'Mercedes-AMG Petronas'. Eine direkt danach stehende Zahl gehört zur nächsten numerischen Spalte und NIEMALS zum Teamnamen.",
+      "Wenn ein Teamname visuell über mehrere Textfragmente oder Zeilen umbricht, die Fragmente zum Teamnamen zusammenführen. Grid-/Stopps-Zahlen dabei strikt getrennt lassen.",
+      "Wenn der Teamname nicht sichtbar oder nicht sicher lesbar ist, team = null statt einen Teamnamen zu erfinden.",
+      "position = Zielposition; grid_position = Startposition; pit_stops = Boxenstopps. Diese Zahlen niemals an Fahrer- oder Teamnamen anhängen.",
       "fastest_lap ist eine echte Rundenzeit: falls sichtbar immer als mm:ss,mmm ausgeben. Dezimalpunkt in Komma umwandeln. Wenn keine schnellste Runde sichtbar ist, null ausgeben.",
       "race_time ist entweder eine Zeit/ein Zeitabstand ODER sichtbarer Rennstatus. Zeiten immer als mm:ss,mmm ausgeben; Dezimalpunkt in Komma umwandeln; einstellige Minuten auf zwei Stellen auffüllen; Stunden in Gesamtminuten umrechnen, z.B. 1:02:03.456 -> 62:03,456.",
       "Bei sichtbaren Zeitabständen Vorzeichen beibehalten und ebenfalls mm:ss,mmm verwenden, z.B. +5.123 -> +00:05,123.",
       "Wenn im race_time-Feld statt einer Zeit ein Status steht, diesen Status übernehmen, z.B. DNF, DNS, DSQ, DNQ, RET oder + 1 Runde / + 2 Runden. Solchen Text NICHT in eine Zeit umwandeln.",
       "Mehrere Screenshots können überlappende Teile derselben Tabelle zeigen: Duplikate zusammenführen.",
-      "Tabellenspalten strikt voneinander trennen. Zahlen aus Grid/Stopps/Zeit niemals an Fahrer- oder Teamnamen anhängen.",
+      "Prüfe vor der Ausgabe jede Zeile nochmals spaltenweise: Fahrer enthält keine Grid-Zahl; Team enthält keine Grid-/Stopps-Zahl; Grid und Stopps sind eigenständige Integer.",
       "confidence zwischen 0 und 1. Unsicherheiten zusätzlich in warnings nennen.",
       raceName ? `Ausgewähltes Rennen: ${raceName}.` : "",
-      driverReference ? `Bekannte RCC Fahrerzuordnungen (Gamertag / KI-Fahrer / Anzeigename): ${driverReference}.` : ""
+      driverReference ? `Bekannte RCC Fahrerzuordnungen (Gamertag / KI-Fahrer / Anzeigename → Team) nur als Zuordnungshilfe, nicht zum Erfinden unsichtbarer Werte: ${driverReference}.` : ""
     ].filter(Boolean).join("\n");
 
     const content: any[] = [{ type: "input_text", text: instruction }];
