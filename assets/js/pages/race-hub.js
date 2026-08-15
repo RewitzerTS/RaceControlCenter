@@ -3,6 +3,59 @@
 
   const byId = (id) => document.getElementById(id);
 
+  function ensureInsightsSection() {
+    if (byId('racing-insights-section')) return byId('racing-insights-section');
+    const podium = document.querySelector('.podium-grid');
+    if (!podium) return null;
+    const section = document.createElement('section');
+    section.id = 'racing-insights-section';
+    section.className = 'racing-insights-section';
+    section.hidden = true;
+    section.innerHTML = `
+      <div class="racing-insights-header">
+        <div>
+          <div class="card-label">Automatisch aus Renndaten</div>
+          <h2>Racing Insights</h2>
+        </div>
+        <p>Form, Aufholjagden, Titelkampf und Serien – automatisch aus den veröffentlichten Ergebnissen dieser Saison.</p>
+      </div>
+      <div id="racing-insights-grid" class="racing-insights-grid" aria-live="polite"></div>
+    `;
+    podium.after(section);
+    return section;
+  }
+
+  function ensureInsightsAssets() {
+    const section = ensureInsightsSection();
+    if (!section) return;
+
+    if (!document.querySelector('link[data-rcc-racing-insights="true"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'assets/css/pages/racing-insights.css';
+      link.dataset.rccRacingInsights = 'true';
+      document.head.appendChild(link);
+    }
+
+    if (window.RCCRacingInsights) {
+      window.RCCRacingInsights.restoreCache?.();
+      window.RCCRacingInsights.render?.();
+      return;
+    }
+    if (document.querySelector('script[data-rcc-racing-insights="true"]')) return;
+
+    const script = document.createElement('script');
+    script.src = 'assets/js/pages/racing-insights.js';
+    script.async = true;
+    script.dataset.rccRacingInsights = 'true';
+    script.onload = () => {
+      window.RCCRacingInsights?.restoreCache?.();
+      window.RCCRacingInsights?.render?.();
+    };
+    script.onerror = () => console.warn('Racing Insights konnten nicht geladen werden.');
+    document.body.appendChild(script);
+  }
+
   function copyText(sourceId, targetId, fallback = '—') {
     const source = byId(sourceId);
     const target = byId(targetId);
@@ -162,9 +215,16 @@
     syncLatestRace();
     renderSeasonProgress();
     renderLatestPole();
+    ensureInsightsAssets();
   }
 
-  window.RCCRaceHub = { refresh, syncLatestRace, renderSeasonProgress, renderLatestPole };
+  window.RCCRaceHub = {
+    refresh,
+    syncLatestRace,
+    renderSeasonProgress,
+    renderLatestPole,
+    ensureInsightsAssets
+  };
 
   document.addEventListener('dashboard:content-ready', refresh);
   if (document.readyState === 'loading') {
