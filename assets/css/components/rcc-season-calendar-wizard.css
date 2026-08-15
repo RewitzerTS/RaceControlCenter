@@ -1,0 +1,218 @@
+.rcc-season-calendar-wizard {
+  width: min(1080px, 100%);
+}
+
+.rcc-season-wizard__progress {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.rcc-season-wizard__progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.rcc-season-wizard__progress > div:first-child span {
+  color: var(--text-muted);
+  font-size: .92rem;
+}
+
+.rcc-season-wizard__progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-2) 72%, transparent);
+  border: 1px solid var(--line);
+}
+
+.rcc-season-wizard__progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--secondary), var(--accent));
+  transition: width .2s ease;
+}
+
+.rcc-season-wizard__step h3 {
+  margin-top: .25rem;
+}
+
+.rcc-season-wizard__choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rcc-season-wizard__choice-grid--calendar {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rcc-season-wizard__choice {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  min-height: 116px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  cursor: pointer;
+  transition: border-color .16s ease, transform .16s ease, background .16s ease;
+}
+
+.rcc-season-wizard__choice:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+}
+
+.rcc-season-wizard__choice.is-selected {
+  border-color: color-mix(in srgb, var(--accent) 72%, white 8%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--primary) 22%, var(--surface)),
+    color-mix(in srgb, var(--accent) 11%, var(--surface))
+  );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.rcc-season-wizard__choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.rcc-season-wizard__choice strong {
+  font-size: 1rem;
+}
+
+.rcc-season-wizard__choice span {
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.rcc-season-wizard__weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rcc-season-wizard__weekday {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 52px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  cursor: pointer;
+}
+
+.rcc-season-wizard__weekday input {
+  position: absolute;
+  opacity: 0;
+}
+
+.rcc-season-wizard__weekday.is-selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+.rcc-season-wizard__summary {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-2) 62%, transparent);
+}
+
+.rcc-season-wizard__summary dl {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.rcc-season-wizard__summary dl > div {
+  display: grid;
+  grid-template-columns: minmax(140px, .6fr) 1fr;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.rcc-season-wizard__summary dt {
+  color: var(--text-muted);
+}
+
+.rcc-season-wizard__summary dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.rcc-season-wizard__footer {
+  position: sticky;
+  bottom: -1px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 16px;
+  background: linear-gradient(180deg, transparent, var(--bg-main) 32%);
+}
+
+.rcc-season-wizard__manual-wrap {
+  max-height: min(58vh, 640px);
+}
+
+.rcc-season-wizard__manual-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+}
+
+.rcc-season-wizard__manual-table th,
+.rcc-season-wizard__manual-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.rcc-season-wizard__manual-table select,
+.rcc-season-wizard__manual-table input[type="date"],
+.rcc-season-wizard__manual-table input[type="time"] {
+  width: 100%;
+  min-width: 120px;
+}
+
+#season-calendar-wizard-launcher {
+  margin-top: 14px;
+}
+
+@media (max-width: 760px) {
+  .rcc-season-wizard__choice-grid,
+  .rcc-season-wizard__choice-grid--calendar {
+    grid-template-columns: 1fr;
+  }
+
+  .rcc-season-wizard__weekday-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rcc-season-wizard__summary dl > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .rcc-season-wizard__footer {
+    flex-direction: column-reverse;
+  }
+
+  .rcc-season-wizard__footer button {
+    width: 100%;
+  }
+}
