@@ -199,6 +199,42 @@
   background: linear-gradient(90deg, var(--preview-secondary), var(--preview-accent-2));
 }
 
+/* In light mode the branding preview mirrors the same automatic light
+   counterpart used by the real application, while keeping identity colors. */
+html[data-theme="light"] .rcc-theme-preview {
+  color: #101820;
+  background: color-mix(in srgb, var(--preview-primary) 5%, #f8fafc);
+}
+
+html[data-theme="light"] .rcc-theme-preview__header,
+html[data-theme="light"] .rcc-theme-preview__footer {
+  color: #101820;
+  background: color-mix(in srgb, var(--preview-primary) 2%, #ffffff);
+}
+
+html[data-theme="light"] .rcc-theme-preview__body {
+  color: #101820;
+  background:
+    radial-gradient(circle at 90% 0, color-mix(in srgb, var(--preview-accent-1) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--preview-primary) 5%, #f8fafc);
+}
+
+html[data-theme="light"] .rcc-theme-preview__card {
+  color: #101820;
+  border-color: color-mix(in srgb, var(--preview-accent-1) 22%, #d8e0e8);
+  background: #ffffff;
+}
+
+html[data-theme="light"] .rcc-theme-preview__brand span,
+html[data-theme="light"] .rcc-theme-preview__footer span,
+html[data-theme="light"] .rcc-theme-preview__card span {
+  color: #536273;
+}
+
+html[data-theme="light"] .rcc-theme-preview__footer {
+  border-top-color: color-mix(in srgb, var(--preview-primary) 16%, #d8e0e8);
+}
+
 .rcc-theme-legacy-note {
   margin: 0;
 }

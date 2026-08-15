@@ -3,8 +3,81 @@
    Reusable RCC surfaces consume league theme tokens instead of legacy
    hard-coded RCC navy/violet/teal values. Semantic status colors are excluded. */
 
-html[data-league-branding-applied="true"] {
+html[data-league-branding-applied="true"][data-theme="dark"] {
   color-scheme: dark;
+}
+
+/* Every curated league theme gets a light counterpart automatically.
+   Identity colors stay intact for decorative UI. Neutral surfaces are lifted,
+   while a readable text-accent is derived from the theme primary color. */
+html[data-league-branding-applied="true"][data-theme="light"] {
+  color-scheme: light;
+  --bg-main: color-mix(in srgb, var(--primary) 5%, #f8fafc) !important;
+  --bg-deep: color-mix(in srgb, var(--primary) 9%, #eef3f8) !important;
+  --surface: color-mix(in srgb, var(--primary) 2%, #ffffff) !important;
+  --surface-2: color-mix(in srgb, var(--accent) 8%, #ffffff) !important;
+  --text: #101820 !important;
+  --text-muted: #536273 !important;
+  --text-accent: color-mix(in srgb, var(--primary) 45%, #0f172a) !important;
+  --line: color-mix(in srgb, var(--primary) 18%, #d8e0e8) !important;
+  --shadow: 0 18px 44px color-mix(in srgb, var(--primary) 10%, rgba(15, 23, 42, .16)) !important;
+  background: var(--bg-main) !important;
+  background-color: var(--bg-main) !important;
+}
+
+html[data-league-branding-applied="true"][data-theme="light"] body {
+  color: var(--text) !important;
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 10%, transparent), transparent 32%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 9%, transparent), transparent 27%),
+    linear-gradient(180deg, var(--bg-main), var(--bg-deep)) !important;
+}
+
+/* The legacy generic light theme painted the header violet. Tenant themes own it. */
+html[data-league-branding-applied="true"][data-theme="light"] .brand-title {
+  color: var(--text) !important;
+  text-shadow: none !important;
+}
+
+html[data-league-branding-applied="true"][data-theme="light"] .brand-subtitle,
+html[data-league-branding-applied="true"][data-theme="light"] .eyebrow,
+html[data-league-branding-applied="true"][data-theme="light"] .hero-kicker,
+html[data-league-branding-applied="true"][data-theme="light"] .card-label,
+html[data-league-branding-applied="true"][data-theme="light"] .racing-insight-kicker {
+  color: var(--text-accent) !important;
+  text-shadow: none !important;
+}
+
+/* Native selects + their opened option menus. color-scheme helps OS/browser UI,
+   while option/optgroup covers the rendered dropdown where CSS is supported. */
+html[data-league-branding-applied="true"] select {
+  color-scheme: inherit;
+  color: var(--text) !important;
+  background-color: color-mix(in srgb, var(--surface) 88%, var(--bg-main)) !important;
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line)) !important;
+}
+
+html[data-league-branding-applied="true"] select option,
+html[data-league-branding-applied="true"] select optgroup {
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  background-color: var(--surface) !important;
+}
+
+html[data-league-branding-applied="true"] select option:checked {
+  color: var(--text-on-primary, #fff) !important;
+  background: var(--primary) !important;
+  background-color: var(--primary) !important;
+}
+
+html[data-league-branding-applied="true"] select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 72%, transparent);
+  outline-offset: 2px;
+}
+
+html[data-league-branding-applied="true"] .footer__theme select,
+html[data-league-branding-applied="true"] .footer__language select {
+  min-height: 38px;
 }
 
 /* Header/navigation details not fully covered by the base branding service. */
@@ -20,6 +93,19 @@ html[data-league-branding-applied="true"] .nav-more-menu {
   color: var(--text);
   border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
   background: color-mix(in srgb, var(--surface) 97%, var(--bg-main));
+}
+
+html[data-league-branding-applied="true"] .nav-more-menu a {
+  color: var(--text-muted);
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 60%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .nav-more-menu a:hover,
+html[data-league-branding-applied="true"] .nav-more-menu a.active {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
 }
 
 /* Dashboard / Race Hub */
