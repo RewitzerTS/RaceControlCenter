@@ -1,36 +1,14 @@
 (() => {
-  const normalize = (value) => String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g,'ss').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
-  const esc = (value) => window.escapeHtml?.(String(value ?? '')) ?? String(value ?? '');
-  const parse = (text) => {
-    const lines=String(text||'').split(/\r?\n/).filter(Boolean); if(lines.length<2)return[];
-    const delim=(lines[0].match(/;/g)||[]).length>(lines[0].match(/,/g)||[]).length?';':',';
-    const split=(line)=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(c===delim&&!q){out.push(cur.trim());cur='';}else cur+=c;}out.push(cur.trim());return out;};
-    const headers=split(lines[0]).map(x=>x.replace(/^\uFEFF/,'').trim().toLowerCase());
-    return lines.slice(1).map(line=>{const vals=split(line);return headers.reduce((o,h,i)=>(o[h]=vals[i]??'',o),{});});
-  };
-  async function renderCleanPreview(){
-    const preview=document.getElementById('csv-import-preview'), field=document.getElementById('csv-preview');
-    if(!preview||!field?.value.trim())return;
-    const rows=parse(field.value); if(!rows.length)return;
-    const {data:drivers,error}=await window.supabaseClient.from('drivers').select('id, display_name, gamertag, league_team, car_name');
-    if(error)return;
-    const map=new Map(); (drivers||[]).forEach(d=>[d.gamertag,d.display_name].filter(Boolean).forEach(k=>map.set(normalize(k),d)));
-    const body=rows.map(row=>{
-      const raw=String(row['fahrer']||'').trim(), d=map.get(normalize(raw));
-      const driver=d?.gamertag||raw||'—', team=d?.league_team||d?.car_name||'—';
-      const problem=!d?'<div><span class="preview-badge preview-badge--error">⚠ Nicht zugeordnet</span></div>':'';
-      return `<tr><td>${esc(row['pos']||'—')}</td><td><strong>${esc(driver)}</strong>${problem}</td><td>${esc(team)}</td><td>${esc(row['startposition']||'—')}</td><td>${esc(row['boxenstopps']||'—')}</td><td>${esc(row['schnellste runde']||'—')}</td><td>${esc(row['renndauer']||'—')}</td><td><strong>${esc(row['punkte']||'0')}</strong></td></tr>`;
-    }).join('');
-    preview.innerHTML=`<div class="notice">${rows.length} Ergebniszeilen · Bitte vor dem Import kurz prüfen.</div><table class="admin-preview-table"><thead><tr><th>Pos.</th><th>Fahrer</th><th>Team</th><th>Grid</th><th>Stopps</th><th>Beste</th><th>Zeit</th><th>Punkte</th></tr></thead><tbody>${body}</tbody></table>`;
-  }
-  function improveRawCsvUi(){
-    const field=document.getElementById('csv-preview'); if(!field||field.closest('.rcc-raw-csv-details'))return;
-    const parent=field.parentElement; if(!parent)return;
-    const details=document.createElement('details'); details.className='rcc-raw-csv-details';
-    const summary=document.createElement('summary'); summary.innerHTML='<strong>Technische CSV anzeigen</strong>';
-    parent.insertBefore(details,field); details.append(summary,field);
-    const label=parent.querySelector('label[for="csv-preview"]'); if(label)label.hidden=true;
-  }
-  function bind(){improveRawCsvUi();const file=document.getElementById('csv-file');file?.addEventListener('change',()=>setTimeout(renderCleanPreview,250));document.getElementById('csv-preview')?.addEventListener('input',()=>setTimeout(renderCleanPreview,100));document.addEventListener('rcc:ai-results-to-csv',()=>setTimeout(renderCleanPreview,100));}
+  const normalize=v=>String(v||'').trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ß/g,'ss').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  const esc=v=>window.escapeHtml?.(String(v??''))??String(v??'');
+  let driverList=[]; let syncing=false;
+  const parse=text=>{const lines=String(text||'').split(/\r?\n/).filter(Boolean);if(lines.length<2)return{headers:[],rows:[],delim:';'};const delim=(lines[0].match(/;/g)||[]).length>(lines[0].match(/,/g)||[]).length?';':',';const split=line=>{const out=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(c===delim&&!q){out.push(cur.trim());cur='';}else cur+=c;}out.push(cur.trim());return out;};const headers=split(lines[0]).map(x=>x.replace(/^\uFEFF/,'').trim());const keys=headers.map(x=>x.toLowerCase());const rows=lines.slice(1).map(line=>{const vals=split(line);return keys.reduce((o,h,i)=>(o[h]=vals[i]??'',o),{});});return{headers,keys,rows,delim};};
+  const quote=(v,d)=>{v=String(v??'');return v.includes(d)||/["\r\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v;};
+  function driverMap(){const m=new Map();driverList.forEach(d=>[d.gamertag,d.display_name].filter(Boolean).forEach(k=>m.set(normalize(k),d)));return m;}
+  function driverOptions(selected){return `<option value="">⚠ Nicht zugeordnet</option>${driverList.map(d=>`<option value="${esc(d.gamertag||d.display_name)}" ${normalize(selected)===normalize(d.gamertag||d.display_name)?'selected':''}>${esc(d.gamertag||d.display_name)}${d.display_name&&d.gamertag?` · ${esc(d.display_name)}`:''}</option>`).join('')}`;}
+  function syncTableToCsv(){if(syncing)return;const field=document.getElementById('csv-preview'),table=document.querySelector('#csv-import-preview table[data-editable-results]');if(!field||!table)return;const parsed=parse(field.value);if(!parsed.headers.length)return;const rows=[...table.querySelectorAll('tbody tr')].map(tr=>{const obj={};parsed.keys.forEach(k=>obj[k]='');tr.querySelectorAll('[data-csv-key]').forEach(input=>obj[input.dataset.csvKey]=input.value);return obj;});field.value=[parsed.headers.join(parsed.delim),...rows.map(row=>parsed.keys.map(k=>quote(row[k],parsed.delim)).join(parsed.delim))].join('\n');field.dispatchEvent(new Event('change',{bubbles:true}));}
+  async function renderCleanPreview(){if(syncing)return;const preview=document.getElementById('csv-import-preview'),field=document.getElementById('csv-preview');if(!preview||!field?.value.trim())return;const parsed=parse(field.value),rows=parsed.rows;if(!rows.length)return;if(!driverList.length){const {data,error}=await window.supabaseClient.from('drivers').select('id, display_name, gamertag, league_team, car_name');if(error)return;driverList=data||[];}const map=driverMap();const body=rows.map(row=>{const raw=String(row['fahrer']||'').trim(),d=map.get(normalize(raw));return `<tr><td><input class="preview-edit" data-csv-key="pos" value="${esc(row['pos']||'')}"></td><td><select class="preview-edit preview-driver-select" data-csv-key="fahrer">${driverOptions(d?.gamertag||raw)}</select></td><td class="preview-team">${esc(d?.league_team||d?.car_name||'—')}</td><td><input class="preview-edit" data-csv-key="startposition" value="${esc(row['startposition']||'')}"></td><td><input class="preview-edit" data-csv-key="boxenstopps" value="${esc(row['boxenstopps']||'')}"></td><td><input class="preview-edit" data-csv-key="schnellste runde" value="${esc(row['schnellste runde']||'')}"></td><td><input class="preview-edit" data-csv-key="renndauer" value="${esc(row['renndauer']||'')}"></td><td><input class="preview-edit" data-csv-key="punkte" value="${esc(row['punkte']||'0')}"></td></tr>`;}).join('');preview.innerHTML=`<div class="notice">${rows.length} Ergebniszeilen · Werte können hier vor dem Import korrigiert werden. Änderungen werden automatisch in die Importdaten übernommen.</div><div class="table-wrap"><table class="admin-preview-table" data-editable-results><thead><tr><th>Pos.</th><th>Fahrer</th><th>Team</th><th>Grid</th><th>Stopps</th><th>Beste</th><th>Zeit</th><th>Punkte</th></tr></thead><tbody>${body}</tbody></table></div>`;preview.querySelectorAll('.preview-edit').forEach(el=>el.addEventListener('change',()=>{if(el.classList.contains('preview-driver-select')){const d=driverMap().get(normalize(el.value));el.closest('tr').querySelector('.preview-team').textContent=d?.league_team||d?.car_name||'—';}syncing=true;syncTableToCsv();syncing=false;}));}
+  function improveRawCsvUi(){const field=document.getElementById('csv-preview');if(!field||field.closest('.rcc-raw-csv-details'))return;const parent=field.parentElement;if(!parent)return;const details=document.createElement('details');details.className='rcc-raw-csv-details';const summary=document.createElement('summary');summary.innerHTML='<strong>Technische CSV anzeigen</strong>';parent.insertBefore(details,field);details.append(summary,field);const label=parent.querySelector('label[for="csv-preview"]');if(label)label.hidden=true;}
+  function bind(){improveRawCsvUi();document.getElementById('csv-file')?.addEventListener('change',()=>setTimeout(renderCleanPreview,250));document.getElementById('csv-preview')?.addEventListener('input',()=>setTimeout(renderCleanPreview,100));document.addEventListener('rcc:ai-results-to-csv',()=>setTimeout(renderCleanPreview,100));}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
 })();
