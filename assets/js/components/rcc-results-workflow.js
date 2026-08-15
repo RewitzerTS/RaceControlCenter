@@ -4,6 +4,7 @@
   let manualModulePromise = null;
   let aiModulePromise = null;
   let timeFormatModulePromise = null;
+  let adminSectionHubsPromise = null;
 
   function ensureStylesheet() {
     if (document.querySelector('link[data-rcc-results-workflow="true"]')) return;
@@ -20,8 +21,16 @@
     if (pending) return pending;
 
     const promise = new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[data-rcc-dynamic-src="${src}"]`);
+      if (existing) {
+        existing.addEventListener('load', () => resolve(window[globalName]), { once: true });
+        existing.addEventListener('error', () => reject(new Error(errorMessage)), { once: true });
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = src;
+      script.dataset.rccDynamicSrc = src;
       script.onload = () => {
         if (!window[globalName]) {
           reject(new Error(errorMessage));
@@ -65,6 +74,19 @@
       () => aiModulePromise,
       (value) => { aiModulePromise = value; }
     );
+  }
+
+  function loadAdminSectionHubs() {
+    return loadScriptModule(
+      'RCCAdminSectionHubs',
+      'assets/js/components/rcc-admin-section-hubs.js',
+      'Admin-Bereichsnavigation konnte nicht geladen werden.',
+      () => adminSectionHubsPromise,
+      (value) => { adminSectionHubsPromise = value; }
+    ).then((module) => {
+      module?.ensureAll?.();
+      return module;
+    });
   }
 
   function getPanels(root) {
@@ -117,7 +139,10 @@
     if (!found) return false;
     const { section, csvPanel, publishPanel, manualPanel } = found;
     if (!csvPanel || !publishPanel || !manualPanel) return false;
-    if (section.querySelector('#admin-results-workflow-launcher')) return true;
+    if (section.querySelector('#admin-results-workflow-launcher')) {
+      loadAdminSectionHubs().catch((error) => console.warn(error));
+      return true;
+    }
 
     [csvPanel, publishPanel, manualPanel].forEach((panel) => {
       panel.hidden = true;
@@ -168,6 +193,7 @@
     launcher.querySelector('[data-rcc-results-action="ai"]')?.addEventListener('click', openAiImport);
     launcher.querySelector('[data-rcc-results-action="manual"]')?.addEventListener('click', () => openManualEntry(manualPanel));
     launcher.querySelector('[data-rcc-results-action="publish"]')?.addEventListener('click', () => openPanel(publishPanel, 'Entwürfe & Freigabe'));
+    loadAdminSectionHubs().catch((error) => console.warn(error));
     return true;
   }
 
