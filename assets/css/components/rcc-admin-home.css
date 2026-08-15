@@ -1,0 +1,94 @@
+.rcc-admin-home-section > summary {
+  display: none;
+}
+
+.rcc-admin-home {
+  display: grid;
+  gap: 22px;
+}
+
+.rcc-admin-home__intro {
+  margin-bottom: 0;
+}
+
+.rcc-admin-home__status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rcc-admin-home__status-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 18px;
+  background: rgba(255,255,255,.035);
+}
+
+.rcc-admin-home__status-card > span,
+.rcc-admin-home__status-card > strong,
+.rcc-admin-home__status-card > small {
+  display: block;
+}
+
+.rcc-admin-home__status-card > span {
+  margin-bottom: 7px;
+  color: var(--text-muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.rcc-admin-home__status-card > strong {
+  overflow-wrap: anywhere;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.rcc-admin-home__status-card > small {
+  margin-top: 6px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.rcc-admin-home__action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.rcc-admin-home__action-card {
+  min-width: 0;
+  height: 100%;
+}
+
+.rcc-admin-home__action-card > button {
+  width: 100%;
+  margin-top: auto;
+}
+
+.rcc-admin-home__secondary-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 1050px) {
+  .rcc-admin-home__status-grid,
+  .rcc-admin-home__action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .rcc-admin-home__status-grid,
+  .rcc-admin-home__action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rcc-admin-home__secondary-actions,
+  .rcc-admin-home__secondary-actions > button {
+    width: 100%;
+  }
+}
