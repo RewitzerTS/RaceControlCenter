@@ -1,6 +1,14 @@
 (() => {
   if (window.RCCAdminSectionHubs) return;
 
+  const ADMIN_TAB_SECTION_IDS = [
+    'admin-section-results',
+    'admin-section-stewarding',
+    'admin-section-drivers',
+    'admin-section-calendar',
+    'admin-section-rules'
+  ];
+
   const SECTION_CONFIG = {
     'admin-section-calendar': {
       eyebrow: 'Saison & Kalender',
@@ -66,6 +74,77 @@
       description: 'Öffentliche Liga-Regeln, Rennparameter und weitere Vorgaben zentral bearbeiten.'
     }
   ];
+
+  function ensureTabIsolationStyles() {
+    if (document.getElementById('rcc-admin-tab-isolation-style')) return;
+    const style = document.createElement('style');
+    style.id = 'rcc-admin-tab-isolation-style';
+    style.textContent = `
+      body[data-page="admin"] .admin-layout > details:not(#admin-section-auth) {
+        display: none !important;
+      }
+      body[data-page="admin"] .admin-layout > details[data-admin-tab-active="true"]:has(> .rcc-results-workflow) {
+        display: block !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function activateAdminTab(targetId, { closeDialog = false } = {}) {
+    if (!ADMIN_TAB_SECTION_IDS.includes(targetId)) return false;
+
+    if (closeDialog) window.RCCWizardDialog?.close?.();
+
+    const tabsRoot = document.getElementById('admin-mobile-tabs');
+    const buttons = [...(tabsRoot?.querySelectorAll('[data-admin-tab-target]') || [])];
+    buttons.forEach((button) => {
+      const active = button.dataset.adminTabTarget === targetId;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', String(active));
+    });
+
+    ADMIN_TAB_SECTION_IDS.forEach((sectionId) => {
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+      const active = sectionId === targetId;
+      if (active) section.dataset.adminTabActive = 'true';
+      else delete section.dataset.adminTabActive;
+      section.hidden = !active;
+      if (section.tagName === 'DETAILS') section.open = active;
+    });
+    return true;
+  }
+
+  function installTabIsolation() {
+    ensureTabIsolationStyles();
+    const tabsRoot = document.getElementById('admin-mobile-tabs');
+    if (!tabsRoot) return false;
+
+    const buttons = [...tabsRoot.querySelectorAll('[data-admin-tab-target]')];
+    if (!buttons.length) return false;
+
+    const currentSection = ADMIN_TAB_SECTION_IDS
+      .map((id) => document.getElementById(id))
+      .find((section) => section?.dataset.adminTabActive === 'true');
+    const currentButton = buttons.find((button) => button.classList.contains('is-active')) || buttons[0];
+    const initialTarget = currentSection?.id || currentButton?.dataset.adminTabTarget || 'admin-section-results';
+    activateAdminTab(initialTarget);
+
+    if (tabsRoot.dataset.rccTabIsolationBound === 'true') return true;
+
+    tabsRoot.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-admin-tab-target]');
+      if (!button || !tabsRoot.contains(button)) return;
+      const nextTarget = button.dataset.adminTabTarget;
+      const previousTarget = ADMIN_TAB_SECTION_IDS
+        .map((id) => document.getElementById(id))
+        .find((section) => section?.dataset.adminTabActive === 'true')?.id || '';
+      activateAdminTab(nextTarget, { closeDialog: Boolean(previousTarget && previousTarget !== nextTarget) });
+    }, true);
+
+    tabsRoot.dataset.rccTabIsolationBound = 'true';
+    return true;
+  }
 
   function getPanelTitle(panel) {
     if (!panel) return 'Bereich';
@@ -168,8 +247,15 @@
   }
 
   function ensureAll() {
-    return Object.keys(SECTION_CONFIG).map(ensureSectionHub).every(Boolean);
+    const hubsReady = Object.keys(SECTION_CONFIG).map(ensureSectionHub).every(Boolean);
+    installTabIsolation();
+    return hubsReady;
   }
 
-  window.RCCAdminSectionHubs = { ensureAll, ensureSectionHub };
+  window.RCCAdminSectionHubs = {
+    ensureAll,
+    ensureSectionHub,
+    activateAdminTab,
+    installTabIsolation
+  };
 })();
