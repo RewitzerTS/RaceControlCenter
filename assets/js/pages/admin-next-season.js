@@ -2,7 +2,34 @@
   let initialized = false;
   let wizardPromise = null;
 
+  function installGeneratedRaceColumnSanitizer() {
+    const client = window.supabaseClient;
+    if (!client || client.__rccGeneratedRaceColumnsSanitized) return;
+
+    const originalFrom = client.from.bind(client);
+    client.from = (table) => {
+      const builder = originalFrom(table);
+      if (table !== 'races' || typeof builder?.insert !== 'function') return builder;
+
+      const originalInsert = builder.insert.bind(builder);
+      builder.insert = (payload, options) => {
+        const sanitizeRow = (row) => {
+          if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
+          const next = { ...row };
+          delete next.race_order;
+          return next;
+        };
+        const sanitized = Array.isArray(payload) ? payload.map(sanitizeRow) : sanitizeRow(payload);
+        return originalInsert(sanitized, options);
+      };
+      return builder;
+    };
+
+    client.__rccGeneratedRaceColumnsSanitized = true;
+  }
+
   function loadWizard() {
+    installGeneratedRaceColumnSanitizer();
     if (window.RCCSeasonCalendarWizard) return Promise.resolve(window.RCCSeasonCalendarWizard);
     if (wizardPromise) return wizardPromise;
 
@@ -36,6 +63,7 @@
 
   async function openWizard() {
     try {
+      installGeneratedRaceColumnSanitizer();
       const wizard = await loadWizard();
       wizard?.init?.();
       await wizard?.open?.();
@@ -95,6 +123,7 @@
 
   function init() {
     if (initialized) return;
+    installGeneratedRaceColumnSanitizer();
     ensureLauncher();
 
     document.addEventListener('click', interceptLegacyActions, true);
