@@ -7,6 +7,7 @@
   let authReloadBound = false;
   let membersModulePromise = null;
   let leagueCreateModulePromise = null;
+  let adminResultsUiPromise = null;
   let switcherRenderPromise = null;
 
   function requestedLeagueSlug() {
@@ -150,6 +151,49 @@
     return leagueCreateModulePromise;
   }
 
+  async function loadAdminResultsUi() {
+    if (window.RCCWizardDialog && window.RCCResultsWorkflow) {
+      window.RCCResultsWorkflow.ensureLauncher?.();
+      return window.RCCResultsWorkflow;
+    }
+    if (adminResultsUiPromise) return adminResultsUiPromise;
+
+    const loadScript = (src, globalName, errorMessage) => {
+      if (window[globalName]) return Promise.resolve(window[globalName]);
+      return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[data-rcc-dynamic-src="${src}"]`);
+        if (existing) {
+          existing.addEventListener('load', () => resolve(window[globalName]), { once: true });
+          existing.addEventListener('error', () => reject(new Error(errorMessage)), { once: true });
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.dataset.rccDynamicSrc = src;
+        script.onload = () => resolve(window[globalName]);
+        script.onerror = () => reject(new Error(errorMessage));
+        document.head.appendChild(script);
+      });
+    };
+
+    adminResultsUiPromise = (async () => {
+      await loadScript(
+        'assets/js/components/rcc-wizard-dialog.js',
+        'RCCWizardDialog',
+        'Dialog-Komponente konnte nicht geladen werden.'
+      );
+      const workflow = await loadScript(
+        'assets/js/components/rcc-results-workflow.js',
+        'RCCResultsWorkflow',
+        'Ergebnis-Workflow konnte nicht geladen werden.'
+      );
+      workflow?.ensureLauncher?.();
+      return workflow;
+    })().finally(() => { adminResultsUiPromise = null; });
+
+    return adminResultsUiPromise;
+  }
+
   function installLeagueScopedSupabase(leagueId) {
     const client = window.supabaseClient;
     if (!client || client.__rccLeagueScoped === leagueId) return;
@@ -260,6 +304,7 @@
     try {
       const context = await prepare();
       if (typeof window.initAdminPage === 'function') await window.initAdminPage();
+      await loadAdminResultsUi().catch((error) => console.warn('Ergebnis-Workflow konnte nicht geladen werden.', error));
       const session = await getSession().catch(() => null);
       setAdminSurfaceVisibility(session);
       if (!context) return;
