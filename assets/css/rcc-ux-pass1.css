@@ -16,8 +16,13 @@ body[data-page="admin"] .admin-layout {
   display: block;
 }
 
-/* The outer details elements are only tab containers now. They must not render
-   their old card shell or reserve space around the real admin content. */
+/* Admin tab visibility is controlled exclusively by the native hidden attribute
+   set in admin.js. CSS only defines presentation and never derives visibility
+   from the details/open state. */
+body[data-page="admin"] .admin-layout > details.panel[hidden] {
+  display: none !important;
+}
+
 body[data-page="admin"] .admin-layout > details.panel {
   width: 100%;
   margin: 0 !important;
@@ -29,23 +34,14 @@ body[data-page="admin"] .admin-layout > details.panel {
   min-height: 0 !important;
 }
 
-body[data-page="admin"] .admin-layout > details.panel:not([open]) {
-  display: none !important;
-}
-
-body[data-page="admin"] .admin-layout > details.panel[open] {
-  display: block !important;
-}
-
 body[data-page="admin"] .admin-layout > details.panel > summary {
   display: none !important;
 }
 
-body[data-page="admin"] .admin-layout > details.panel[open]:hover {
+body[data-page="admin"] .admin-layout > details.panel:hover {
   transform: none;
 }
 
-/* The first real card of a selected tab starts immediately below the tabs. */
 body[data-page="admin"] .admin-layout > details.panel > :not(summary):first-of-type,
 body[data-page="admin"] .admin-layout > details.panel > section:first-of-type,
 body[data-page="admin"] .admin-layout > details.panel > details:first-of-type {
@@ -77,6 +73,10 @@ body[data-page="admin"] .admin-mobile-tabs {
   backdrop-filter: blur(16px);
   box-shadow: 0 12px 30px rgba(0,0,0,.18);
   scrollbar-width: none;
+}
+
+body[data-page="admin"] .admin-mobile-tabs[hidden] {
+  display: none !important;
 }
 
 body[data-page="admin"] .admin-mobile-tabs::-webkit-scrollbar {
