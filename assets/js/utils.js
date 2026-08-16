@@ -56,10 +56,20 @@ const TEAM_LOGO_MAP = [
     logoUrl: 'assets/images/team-logos/williams.png'
   },
   {
-    // Legacy mapping: Alfa Romeo/Audi-Bezeichnungen sollen bewusst auf das Sauber-Logo zeigen.
-    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'kick sauber ferrari', 'stake sauber', 'alfa romeo', 'alfa romeo racing', 'alfa romeo f1 team', 'alfa romeo racing orlen', 'audi', 'audi f1', 'audi f1 team'],
+    // F1 25 / Legacy: Sauber, Stake und Alfa-Romeo-Bezeichnungen bleiben auf dem neutralen Sauber-Emblem.
+    keys: ['sauber', 'stake', 'kick sauber', 'kick f1', 'stake f1', 'stake f1 team kick sauber', 'stake kick sauber', 'kick sauber ferrari', 'stake sauber', 'alfa romeo', 'alfa romeo racing', 'alfa romeo f1 team', 'alfa romeo racing orlen'],
     name: 'Sauber',
     logoUrl: 'assets/images/team-logos/sauber.png'
+  },
+  {
+    keys: ['audi', 'audi f1', 'audi f1 team', 'audi revolut', 'audi revolut f1 team'],
+    name: 'Audi',
+    logoUrl: 'assets/images/team-logos/audi.svg'
+  },
+  {
+    keys: ['cadillac', 'cadillac f1', 'cadillac f1 team', 'cadillac formula 1', 'cadillac formula 1 team'],
+    name: 'Cadillac',
+    logoUrl: 'assets/images/team-logos/cadillac.svg'
   }
 ];
 
@@ -233,7 +243,6 @@ function formatWeatherLabel(weather) {
   return String(weather).charAt(0).toUpperCase() + String(weather).slice(1);
 }
 
-
 function getRaceTrackMeta(race) {
   const track = window.findTrackByRace?.(race) || window.findTrackByGrandPrixName?.(race?.grand_prix_name) || null;
   const trackMapUrl = track?.trackMapFile ? `assets/trackmaps/${track.trackMapFile}` : '';
@@ -244,8 +253,6 @@ function getRaceTrackMeta(race) {
     track
   };
 }
-
-
 
 function createFlagBadge(countryCode, label = 'Flagge') {
   const flagUrl = window.getFlagImageUrl?.(countryCode);
@@ -274,8 +281,6 @@ function createFlagBadge(countryCode, label = 'Flagge') {
     </span>
   `;
 }
-
-
 
 function createTrackMapSvg(track, options = {}) {
   const mapFile = track?.trackMapFile;
@@ -309,7 +314,6 @@ function createTrackMapSvg(track, options = {}) {
     </div>
   `;
 }
-
 
 function createRaceCard(race) {
   const { track } = getRaceTrackMeta(race);
@@ -348,7 +352,6 @@ function createRaceCard(race) {
     </a>
   `;
 }
-
 
 function parseTimeFieldToMs(value) {
   if (window.RCCData?.parseLapTimeToMs) {
