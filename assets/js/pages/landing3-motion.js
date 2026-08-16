@@ -86,7 +86,7 @@
             <div class="l3-story-device l3-story-device--phone" data-story-device="phone">
               <div class="l3-story-shell">
                 <div class="l3-story-preview l3-story-preview--phone">
-                  <iframe src="ergebnisse.html?league=rcc" title="Race Control Center Ergebnisse" loading="lazy" tabindex="-1"></iframe>
+                  <iframe src="ergebnisse.html?league=rcc#wm-dynamics" title="Race Control Center WM-Dynamik" loading="lazy" tabindex="-1"></iframe>
                 </div>
               </div>
             </div>
