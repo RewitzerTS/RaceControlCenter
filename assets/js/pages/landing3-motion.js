@@ -7,7 +7,6 @@
   const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktopStoryQuery = window.matchMedia('(min-width: 1081px)');
   const finePointerQuery = window.matchMedia('(pointer: fine)');
-
   const header = document.querySelector('.l3-header');
   const hero = document.querySelector('.l3-hero');
   const heroStage = document.querySelector('.l3-device-stage');
@@ -15,8 +14,8 @@
 
   const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
   const lerp = (a, b, t) => a + (b - a) * t;
-  const smooth = t => {
-    const p = clamp(t);
+  const smooth = value => {
+    const p = clamp(value);
     return p * p * (3 - 2 * p);
   };
 
@@ -69,72 +68,27 @@
 
             <div class="l3-story-device l3-story-device--desktop" data-story-device="desktop">
               <div class="l3-story-shell">
-                <div class="l3-story-browser"><i></i><i></i><i></i><span>racecontrol.center/admin</span></div>
-                <div class="l3-story-screen">
-                  <div class="l3-story-screen__top">
-                    <span class="l3-story-screen__eyebrow" data-story-eyebrow>ADMIN CENTER</span>
-                    <span class="l3-story-live" data-story-live>Synchronisiert</span>
-                  </div>
-
-                  <div class="l3-story-ui-stack">
-                    <section class="l3-story-ui is-visible" data-ui-scene="0">
-                      <div class="l3-ui-heading"><div><small>LIGA · SEASON 14</small><h3>Race Weekend Control</h3></div><span class="l3-ui-chip">LIVE</span></div>
-                      <div class="l3-control-grid">
-                        <article><b>▣</b><span><small>ERGEBNIS</small><strong>Eintragen</strong></span></article>
-                        <article><b>🏁</b><span><small>RENNEN</small><strong>Verwalten</strong></span></article>
-                        <article><b>F</b><span><small>FAHRER</small><strong>Teams & Grid</strong></span></article>
-                        <article><b>⚑</b><span><small>STEWARDING</small><strong>Fälle prüfen</strong></span></article>
-                      </div>
-                      <div class="l3-control-status"><span><small>SAISON</small><strong>14</strong></span><span><small>RENNEN</small><strong>11 / 24</strong></span><span><small>STATUS</small><strong>Aktiv</strong></span></div>
-                    </section>
-
-                    <section class="l3-story-ui" data-ui-scene="1">
-                      <div class="l3-ui-heading"><div><small>KI-ERGEBNISIMPORT</small><h3>São Paulo GP</h3></div><span class="l3-ui-chip l3-ui-chip--ai">AI</span></div>
-                      <div class="l3-upload-flow">
-                        <div class="l3-upload-shot"><span class="l3-upload-icon">▣</span><strong>race-result.png</strong><small>Screenshot erkannt · 1920 × 1080</small><div class="l3-scan-line"></div></div>
-                        <div class="l3-ai-arrow"><span>KI liest</span><b>→</b></div>
-                        <div class="l3-ai-draft"><small>DRAFT · 20 FAHRER</small><div class="l3-draft-row"><b>1</b><strong>Nils</strong><span>46:14,072</span></div><div class="l3-draft-row"><b>2</b><strong>Mo</strong><span>+0,378</span></div><div class="l3-draft-row"><b>3</b><strong>Richard</strong><span>+3,847</span></div></div>
-                      </div>
-                      <div class="l3-ai-confidence"><span>Fahrer erkannt <b>20/20</b></span><span>Teams zugeordnet <b>100%</b></span><span>Entwurf <b>bereit</b></span></div>
-                    </section>
-
-                    <section class="l3-story-ui" data-ui-scene="2">
-                      <div class="l3-ui-heading"><div><small>STEWARDING · RUNDE 10</small><h3>Vorfall prüfen</h3></div><span class="l3-ui-chip l3-ui-chip--review">REVIEW</span></div>
-                      <div class="l3-steward-layout">
-                        <div class="l3-steward-case"><span class="l3-steward-dot"></span><div><small>VORFALL</small><strong>Alessandro / Aaron · Kurve 15</strong><p>Schwierige Bedingungen, beschädigter Frontflügel und unterschiedliche Reifen.</p></div></div>
-                        <div class="l3-steward-decision"><small>ENTSCHEIDUNG</small><strong>Keine Strafe</strong><span>Ergebnis bleibt unverändert</span></div>
-                      </div>
-                      <div class="l3-result-preview"><small>ERGEBNISVORSCHAU</small><span><b>1</b>Nils<em>25 P</em></span><span><b>2</b>Mo<em>18 P</em></span><span><b>3</b>Richard<em>15 P</em></span></div>
-                    </section>
-
-                    <section class="l3-story-ui" data-ui-scene="3">
-                      <div class="l3-publish-success"><div class="l3-publish-check">✓</div><div><small>ERGEBNIS VERÖFFENTLICHT</small><h3>São Paulo ist live.</h3><p>Race Hub und Meisterschaften wurden gemeinsam aktualisiert.</p></div></div>
-                      <div class="l3-publish-grid"><article><small>FAHRER-WM</small><strong>Mo · 189 P</strong><span>Nils verkürzt auf 26 Punkte</span></article><article><small>TEAM-WM</small><strong>Understeer · 316 P</strong><span>Vorsprung nur noch 17 Punkte</span></article><article><small>RACE HUB</small><strong>Aktualisiert</strong><span>Ergebnis + Insights live</span></article></div>
-                      <div class="l3-sync-line"><i></i><span>Desktop</span><b>→</b><span>Tablet</span><b>→</b><span>Smartphone</span><i></i></div>
-                    </section>
-                  </div>
+                <div class="l3-story-browser"><i></i><i></i><i></i><span>racecontrol.center</span></div>
+                <div class="l3-story-preview l3-story-preview--desktop">
+                  <iframe src="index.html?league=rcc" title="Race Control Center Race Hub" loading="lazy" tabindex="-1"></iframe>
                 </div>
               </div>
             </div>
 
             <div class="l3-story-device l3-story-device--tablet" data-story-device="tablet">
-              <div class="l3-story-shell"><div class="l3-story-tablet-screen">
-                <div class="l3-story-mini-logo"><img src="assets/images/logo.png" alt=""><span>RCC · RACE HUB</span></div>
-                <div class="l3-tablet-state" data-tablet-scene="0"><small>NÄCHSTES RENNEN</small><strong>São Paulo GP</strong><span>Round 11 · Interlagos</span><div class="l3-tablet-countdown"><b>02</b><small>Tage</small><b>14</b><small>Std</small></div></div>
-                <div class="l3-tablet-state" data-tablet-scene="1"><small>ERGEBNIS-DRAFT</small><strong>Noch nicht öffentlich</strong><span>Ligaleitung prüft den KI-Import.</span><div class="l3-tablet-lock">⌁ Draft geschützt</div></div>
-                <div class="l3-tablet-state" data-tablet-scene="2"><small>STEWARDING</small><strong>Review läuft</strong><span>Offizielle Tabellen bleiben unverändert.</span><div class="l3-tablet-lock">⚑ 1 Fall in Prüfung</div></div>
-                <div class="l3-tablet-state" data-tablet-scene="3"><small>FAHRER-WM · LIVE</small><div class="l3-story-podium"><span><b>1</b><strong>Mo</strong><small>189 P</small></span><span><b>2</b><strong>Nils</strong><small>163 P</small></span><span><b>3</b><strong>Richard</strong><small>136 P</small></span></div><div class="l3-story-progress"><small>SAISONFORTSCHRITT</small><div class="l3-story-progress-track"><i></i></div></div></div>
-              </div></div>
+              <div class="l3-story-shell">
+                <div class="l3-story-preview l3-story-preview--tablet">
+                  <iframe src="fahrer-wm.html?league=rcc" title="Race Control Center Fahrer-WM" loading="lazy" tabindex="-1"></iframe>
+                </div>
+              </div>
             </div>
 
             <div class="l3-story-device l3-story-device--phone" data-story-device="phone">
-              <div class="l3-story-shell"><div class="l3-story-phone-screen">
-                <div class="l3-story-mini-logo"><img src="assets/images/logo.png" alt=""><span>RCC · MOBILE</span></div>
-                <div class="l3-phone-state" data-phone-scene="0"><small>QUICK ACTIONS</small><strong>Admin unterwegs</strong><div class="l3-story-phone-actions"><span>＋ Ergebnis eintragen</span><span>⚑ Steward-Fall</span><span>🏁 Rennen verwalten</span></div></div>
-                <div class="l3-phone-state" data-phone-scene="1"><small>KI-IMPORT</small><strong>20 Fahrer erkannt</strong><div class="l3-phone-meter"><i></i></div><span class="l3-phone-caption">Draft bereit zur Kontrolle</span></div>
-                <div class="l3-phone-state" data-phone-scene="2"><small>STEWARD-FALL</small><strong>Runde 10</strong><div class="l3-phone-case"><span>Alessandro</span><b>↔</b><span>Aaron</span></div><button type="button">Entscheidung öffnen</button></div>
-                <div class="l3-phone-state" data-phone-scene="3"><small>RACE HUB · LIVE</small><strong>São Paulo GP</strong><div class="l3-story-podium"><span><b>1</b><strong>Nils</strong><small>25 P</small></span><span><b>2</b><strong>Mo</strong><small>+0,378</small></span><span><b>3</b><strong>Richard</strong><small>P3</small></span></div><div class="l3-phone-live">● Live aktualisiert</div></div>
-              </div></div>
+              <div class="l3-story-shell">
+                <div class="l3-story-preview l3-story-preview--phone">
+                  <iframe src="ergebnisse.html?league=rcc" title="Race Control Center Ergebnisse" loading="lazy" tabindex="-1"></iframe>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -152,14 +106,9 @@
   const storySticky = story?.querySelector('.l3-scroll-story__sticky');
   const storyProgressBar = story?.querySelector('.l3-scroll-story__progress i');
   const storySteps = [...document.querySelectorAll('[data-story-step]')];
-  const uiScenes = [...document.querySelectorAll('[data-ui-scene]')];
-  const tabletScenes = [...document.querySelectorAll('[data-tablet-scene]')];
-  const phoneScenes = [...document.querySelectorAll('[data-phone-scene]')];
   const storyDesktop = document.querySelector('[data-story-device="desktop"]');
   const storyTablet = document.querySelector('[data-story-device="tablet"]');
   const storyPhone = document.querySelector('[data-story-device="phone"]');
-  const storyEyebrow = document.querySelector('[data-story-eyebrow]');
-  const storyLive = document.querySelector('[data-story-live]');
 
   const deviceKeyframes = {
     desktop: [
@@ -184,14 +133,10 @@
 
   let geometry = { top: 0, travel: 1, viewport: window.innerHeight };
   let rafId = 0;
-  let lastDominantScene = -1;
 
   function sceneWeights(progress) {
     const position = clamp(progress) * (scenes.length - 1);
-    return scenes.map((_, index) => {
-      const distance = Math.abs(position - index);
-      return smooth(clamp(1 - distance));
-    });
+    return scenes.map((_, index) => smooth(clamp(1 - Math.abs(position - index))));
   }
 
   function interpolateKeyframes(frames, progress) {
@@ -211,16 +156,6 @@
     node.style.filter = frame.blur > .05 ? `blur(${frame.blur.toFixed(2)}px) saturate(.92)` : 'none';
   }
 
-  function applySceneVisibility(nodes, weights, translate = 18) {
-    nodes.forEach((node, index) => {
-      const weight = weights[index] || 0;
-      node.style.opacity = weight.toFixed(3);
-      node.style.transform = `translate3d(0,${((1 - weight) * translate).toFixed(2)}px,0) scale(${(0.985 + weight * .015).toFixed(4)})`;
-      node.style.pointerEvents = weight > .6 ? 'auto' : 'none';
-      node.classList.toggle('is-visible', weight > .5);
-    });
-  }
-
   function setStoryCopy(weights) {
     const dominant = weights.indexOf(Math.max(...weights));
     storySteps.forEach((step, index) => {
@@ -237,30 +172,12 @@
     if (!story) return;
     const p = clamp(progress);
     const weights = sceneWeights(p);
-    const dominantScene = weights.indexOf(Math.max(...weights));
-
     setStoryCopy(weights);
-    applySceneVisibility(uiScenes, weights, 12);
-    applySceneVisibility(tabletScenes, weights, 10);
-    applySceneVisibility(phoneScenes, weights, 10);
-
     applyDeviceTransform(storyDesktop, interpolateKeyframes(deviceKeyframes.desktop, p), 0);
     applyDeviceTransform(storyTablet, interpolateKeyframes(deviceKeyframes.tablet, p), 42);
     applyDeviceTransform(storyPhone, interpolateKeyframes(deviceKeyframes.phone, p), 84);
-
     root.style.setProperty('--l3-stage-progress', p.toFixed(5));
-    root.style.setProperty('--l3-story-scene', String(dominantScene));
     storyProgressBar?.style.setProperty('--progress', p.toFixed(5));
-
-    if (storyEyebrow) storyEyebrow.textContent = ['ADMIN CENTER', 'KI-ERGEBNISIMPORT', 'STEWARDING', 'VERÖFFENTLICHT'][dominantScene];
-    if (storyLive) storyLive.textContent = ['Synchronisiert', 'Draft wird erstellt', 'Review aktiv', 'Live veröffentlicht'][dominantScene];
-
-    if (dominantScene !== lastDominantScene) {
-      story.classList.toggle('is-published', dominantScene === 3);
-      story.classList.toggle('is-ai', dominantScene === 1);
-      story.classList.toggle('is-steward', dominantScene === 2);
-      lastDominantScene = dominantScene;
-    }
   }
 
   function measure() {
@@ -340,7 +257,8 @@
 
   function render() {
     rafId = 0;
-    const maxScroll = Math.max(1, document.documentElement.scrollHeight - (window.visualViewport?.height || window.innerHeight));
+    const viewport = window.visualViewport?.height || window.innerHeight;
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - viewport);
     root.style.setProperty('--l3-scroll-progress', clamp(window.scrollY / maxScroll).toFixed(5));
     header?.classList.toggle('is-scrolled', window.scrollY > 36);
     updateHero();
@@ -353,21 +271,15 @@
         step.style.pointerEvents = 'auto';
         step.classList.add('is-active');
       });
-      const finalWeights = [0, 0, 0, 1];
-      applySceneVisibility(uiScenes, finalWeights, 0);
-      applySceneVisibility(tabletScenes, finalWeights, 0);
-      applySceneVisibility(phoneScenes, finalWeights, 0);
       applyDeviceTransform(storyDesktop, deviceKeyframes.desktop[3], 0);
       applyDeviceTransform(storyTablet, deviceKeyframes.tablet[3], 42);
       applyDeviceTransform(storyPhone, deviceKeyframes.phone[3], 84);
       root.style.setProperty('--l3-stage-progress', '1');
       storyProgressBar?.style.setProperty('--progress', '1');
-      story.classList.add('is-published');
       return;
     }
 
-    const progress = clamp((window.scrollY - geometry.top) / geometry.travel);
-    updateStory(progress);
+    updateStory(clamp((window.scrollY - geometry.top) / geometry.travel));
   }
 
   function requestRender() {
