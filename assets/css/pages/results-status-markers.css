@@ -1,0 +1,36 @@
+body[data-page="ergebnisse"] .results-cell-stack--has-bot {
+  gap: 5px;
+}
+
+body[data-page="ergebnisse"] .results-status-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 17px;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: .62rem;
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+body[data-page="ergebnisse"] .results-status-marker--bot {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--secondary) 72%, var(--text));
+  background: color-mix(in srgb, var(--secondary) 42%, var(--surface-2));
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--secondary) 20%, transparent);
+}
+
+@media (max-width: 700px) {
+  body[data-page="ergebnisse"] .results-status-marker {
+    min-width: 25px;
+    min-height: 16px;
+    padding: 2px 5px;
+    font-size: .58rem;
+  }
+}

@@ -1,0 +1,143 @@
+name: Results and Team Assets Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  results-team-assets-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/rcc-http.log 2>&1 &
+          echo $! > /tmp/rcc-http.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/ergebnisse.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/rcc-http.log
+          exit 1
+
+      - name: Verify BOT markers and team assets
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          const teamNames = [
+            'McLaren',
+            'Ferrari',
+            'Red Bull Racing',
+            'Mercedes',
+            'Aston Martin',
+            'Alpine',
+            'Haas',
+            'Racing Bulls',
+            'Williams',
+            'Sauber',
+            'Audi',
+            'Cadillac'
+          ];
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+
+            const results = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+            await results.goto('http://127.0.0.1:8080/ergebnisse.html?league=rcc', {
+              waitUntil: 'domcontentloaded',
+              timeout: 30000
+            });
+            await results.waitForSelector('#results-matrix-wrap .results-matrix-table', { timeout: 20000 });
+            await results.waitForSelector('.results-points-value--bot', { timeout: 10000 });
+            await results.waitForSelector('[data-result-marker="bot"]', { timeout: 10000 });
+
+            const botState = await results.evaluate(() => ({
+              botValues: document.querySelectorAll('.results-points-value--bot').length,
+              botMarkers: document.querySelectorAll('[data-result-marker="bot"]').length,
+              orphanMarkers: [...document.querySelectorAll('[data-result-marker="bot"]')]
+                .filter((marker) => !marker.closest('.results-cell-stack')?.querySelector('.results-points-value--bot')).length
+            }));
+
+            if (botState.botValues < 1) throw new Error('No BOT result values found in active results');
+            if (botState.botMarkers < 1) throw new Error('BOT result marker was not rendered');
+            if (botState.orphanMarkers !== 0) throw new Error('BOT marker rendered without a BOT result value');
+            console.log(`PASS BOT markers (${botState.botMarkers} visible markers)`);
+            await results.close();
+
+            const teams = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+            await teams.goto('http://127.0.0.1:8080/team-wm.html?league=rcc', {
+              waitUntil: 'domcontentloaded',
+              timeout: 30000
+            });
+            await teams.waitForFunction(() => typeof window.createTeamLogoBadge === 'function', { timeout: 10000 });
+
+            await teams.evaluate((names) => {
+              const probe = document.createElement('div');
+              probe.id = 'team-logo-smoke-probe';
+              probe.style.display = 'flex';
+              probe.style.flexWrap = 'wrap';
+              probe.innerHTML = names.map((name) => window.createTeamLogoBadge(name, { size: 'large', label: name })).join('');
+              document.body.appendChild(probe);
+            }, teamNames);
+
+            await teams.waitForFunction((expected) => {
+              const badges = [...document.querySelectorAll('#team-logo-smoke-probe .team-logo-badge')];
+              if (badges.length !== expected) return false;
+              return badges.every((badge) => {
+                const img = badge.querySelector('img');
+                return img && img.complete && img.naturalWidth > 0 && !badge.classList.contains('is-fallback');
+              });
+            }, teamNames.length, { timeout: 10000 });
+
+            const assetState = await teams.evaluate(() => [...document.querySelectorAll('#team-logo-smoke-probe .team-logo-badge')].map((badge) => {
+              const img = badge.querySelector('img');
+              return {
+                name: badge.dataset.teamLogoName || '',
+                src: img?.getAttribute('src') || '',
+                loading: img?.getAttribute('loading') || '',
+                naturalWidth: img?.naturalWidth || 0,
+                fallback: badge.classList.contains('is-fallback')
+              };
+            }));
+
+            const aston = assetState.find((entry) => entry.name === 'Aston Martin');
+            if (!aston || aston.naturalWidth <= 0) throw new Error('Aston Martin team asset did not load');
+            if (!assetState.every((entry) => entry.src.includes('v=2026-08-16-1'))) throw new Error('Fresh team asset cache key missing');
+            if (!assetState.every((entry) => entry.loading === 'eager')) throw new Error('Team assets are not eagerly loaded');
+            if (assetState.some((entry) => entry.fallback)) throw new Error('A supported team fell back to text');
+
+            console.log(`PASS team assets (${assetState.length}/${teamNames.length})`);
+            await teams.close();
+            await browser.close();
+          })().catch((error) => {
+            const message = String(error?.message || error || 'Unknown smoke failure')
+              .replace(/%/g, '%25')
+              .replace(/\r/g, '%0D')
+              .replace(/\n/g, '%0A');
+            console.error(error);
+            console.error(`::error title=Results/team assets smoke failed::${message}`);
+            process.exit(1);
+          });
+          NODE
