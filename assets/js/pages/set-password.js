@@ -1,4 +1,5 @@
 (() => {
+  const PENDING_REGISTRATION_KEY = 'rcc.pendingLeagueRegistration.v1';
   const statusEl = document.getElementById('password-setup-status');
   const formEl = document.getElementById('password-setup-form');
   const feedbackEl = document.getElementById('password-setup-feedback');
@@ -13,6 +14,18 @@
     feedbackEl.hidden = !message;
     feedbackEl.textContent = message || '';
     feedbackEl.classList.toggle('notice-error', Boolean(isError));
+  }
+
+  function getPendingRegistration() {
+    try {
+      const raw = localStorage.getItem(PENDING_REGISTRATION_KEY);
+      if (!raw) return null;
+      const pending = JSON.parse(raw);
+      if (!pending?.email || !pending?.leagueName || !pending?.leagueSlug) return null;
+      return pending;
+    } catch (_) {
+      return null;
+    }
   }
 
   function getLeagueSlug() {
@@ -50,6 +63,15 @@
       const session = data?.session;
       if (!session?.user) {
         setStatus('Der Einladungslink ist ungültig oder abgelaufen. Bitte lass dir eine neue Einladung senden.');
+        return;
+      }
+
+      const pending = getPendingRegistration();
+      const sessionEmail = String(session.user.email || '').trim().toLowerCase();
+      if (pending && sessionEmail === String(pending.email || '').trim().toLowerCase()) {
+        setStatus('E-Mail bestätigt. Deine Registrierung wird fortgesetzt …');
+        const target = new URL('register.html?confirmed=1', window.location.href);
+        window.location.replace(target.toString());
         return;
       }
 
