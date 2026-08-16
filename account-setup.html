@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="RaceVora richtet dein Konto und deine Rennliga sicher ein.">
+  <meta name="theme-color" content="#07111f">
+  <title>RaceVora · Konto wird eingerichtet</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/pages/account-setup.css">
+</head>
+<body data-page="account-setup">
+  <main class="setup-shell">
+    <section class="setup-card" aria-labelledby="setup-title">
+      <a class="setup-brand" href="/" aria-label="RaceVora Startseite">
+        <span class="setup-brand__mark" aria-hidden="true">RV</span>
+        <span><strong>RaceVora</strong><small>Race Management Platform</small></span>
+      </a>
+
+      <div class="setup-spinner" id="setup-spinner" aria-hidden="true"><span></span></div>
+      <span class="setup-kicker">ACCOUNT SETUP</span>
+      <h1 id="setup-title">Dein RaceVora-Konto wird eingerichtet …</h1>
+      <p id="setup-status" class="setup-status" role="status" aria-live="polite">Sichere Anmeldung wird bestätigt …</p>
+
+      <ol class="setup-steps" aria-label="Einrichtungsschritte">
+        <li id="setup-step-session" data-state="active"><span>1</span><div><strong>Anmeldung bestätigen</strong><small>Deine sichere RaceVora-Session wird geladen.</small></div></li>
+        <li id="setup-step-league"><span>2</span><div><strong>Rennliga vorbereiten</strong><small>Name, URL und Liga-Zuordnung werden geprüft.</small></div></li>
+        <li id="setup-step-permissions"><span>3</span><div><strong>Berechtigungen laden</strong><small>Deine Liga-Leitung wird aktiviert.</small></div></li>
+      </ol>
+
+      <div id="setup-error" class="setup-error" hidden>
+        <strong>Die Einrichtung konnte nicht abgeschlossen werden.</strong>
+        <p id="setup-error-message"></p>
+        <div class="setup-error__actions">
+          <button id="setup-retry" type="button">Erneut versuchen</button>
+          <a href="register.html">Zur Registrierung</a>
+        </div>
+      </div>
+
+      <p class="setup-footnote">Du wirst automatisch weitergeleitet, sobald alles bereit ist. Dieses Fenster muss nicht neu geladen werden.</p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/pages/account-setup.js"></script>
+</body>
+</html>
