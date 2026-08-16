@@ -38,26 +38,60 @@
 
     <button class="mobile-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Navigation umschalten">
       <span class="sr-only">Menü öffnen</span>
-      <span class="mobile-toggle__icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      <svg class="mobile-toggle__svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M4 12h16M4 17h16"></path>
+      </svg>
     </button>
 
     <nav class="main-nav" data-main-nav>
-      <a href="race-hub.html" data-nav-link="index" class="nav-primary-link"><img class="nav-icon" src="assets/icons/uebersicht_home.png" alt="" aria-hidden="true"><span class="nav-label">Übersicht</span></a>
-      <a href="kalender.html" data-nav-link="kalender" class="nav-primary-link"><img class="nav-icon" src="assets/icons/kalender.png" alt="" aria-hidden="true"><span class="nav-label">Kalender</span></a>
-      <a href="ergebnisse.html" data-nav-link="ergebnisse" class="nav-primary-link"><img class="nav-icon" src="assets/icons/ergebnisse_flag.png" alt="" aria-hidden="true"><span class="nav-label">Ergebnisse</span></a>
-      <a href="fahrer-wm.html" data-nav-link="fahrer-wm" class="nav-primary-link"><img class="nav-icon" src="assets/icons/fahrer_wm_helmet.png" alt="" aria-hidden="true"><span class="nav-label">Fahrer-WM</span></a>
-      <a href="team-wm.html" data-nav-link="team-wm" class="nav-extra-link"><img class="nav-icon" src="assets/icons/team_wm_group.png" alt="" aria-hidden="true"><span class="nav-label">Team-WM</span></a>
-      <a href="regeln-faq.html" data-nav-link="regeln-faq" class="nav-extra-link"><img class="nav-icon" src="assets/icons/regeln_faqs_document.png" alt="" aria-hidden="true"><span class="nav-label">Regeln &amp; FAQs</span></a>
-      <a href="grid.html" data-nav-link="grid" class="nav-extra-link"><img class="nav-icon" src="assets/icons/grid.png" alt="" aria-hidden="true"><span class="nav-label">Grid</span></a>
-      <a href="hall-of-fame.html" data-nav-link="hall-of-fame" class="nav-extra-link"><img class="nav-icon" src="assets/icons/hall_of_fame_trophy.png" alt="" aria-hidden="true"><span class="nav-label">Hall of Fame</span></a>
+      <a href="race-hub.html" data-nav-link="index" class="nav-primary-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10.5V20h13v-9.5M9.5 20v-6h5v6"></path></svg>
+        <span class="nav-label">Übersicht</span>
+      </a>
+      <a href="kalender.html" data-nav-link="kalender" class="nav-primary-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 9.5h17"></path></svg>
+        <span class="nav-label">Kalender</span>
+      </a>
+      <a href="ergebnisse.html" data-nav-link="ergebnisse" class="nav-primary-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"></path><path d="M6 5h11l-2.5 3L17 11H6"></path></svg>
+        <span class="nav-label">Ergebnisse</span>
+      </a>
+      <a href="fahrer-wm.html" data-nav-link="fahrer-wm" class="nav-primary-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13a7 7 0 0 1 14 0v2H5z"></path><path d="M8 13v-1a4 4 0 0 1 8 0v1M7 15v3h10v-3"></path></svg>
+        <span class="nav-label">Fahrer-WM</span>
+      </a>
+      <a href="team-wm.html" data-nav-link="team-wm" class="nav-extra-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"></circle><circle cx="16.5" cy="9" r="2.5"></circle><path d="M2.8 19c.5-3.3 2.2-5 5.2-5s4.7 1.7 5.2 5M13.5 14.3c.9-.6 1.9-.8 3-.8 2.6 0 4.1 1.5 4.6 4.5"></path></svg>
+        <span class="nav-label">Team-WM</span>
+      </a>
+      <a href="regeln-faq.html" data-nav-link="regeln-faq" class="nav-extra-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l3 3V20.5H6z"></path><path d="M14.5 3.5v4h3.5M9 11h6M9 15h6"></path></svg>
+        <span class="nav-label">Regeln &amp; FAQs</span>
+      </a>
+      <a href="grid.html" data-nav-link="grid" class="nav-extra-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
+        <span class="nav-label">Grid</span>
+      </a>
+      <a href="hall-of-fame.html" data-nav-link="hall-of-fame" class="nav-extra-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v4a4 4 0 0 1-8 0zM10 12v3M14 12v3M8 19h8M10 15h4v4"></path><path d="M8 6H4v1.5A3.5 3.5 0 0 0 7.5 11M16 6h4v1.5a3.5 3.5 0 0 1-3.5 3.5"></path></svg>
+        <span class="nav-label">Hall of Fame</span>
+      </a>
+
+      <a href="admin.html" class="nav-admin-link" data-admin-nav-link hidden>
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5c0 4.5-2.8 7.7-7 9.5C7.8 18.7 5 15.5 5 11V6z"></path><path d="M9.5 12.2 11.2 14l3.6-4"></path></svg>
+        <span class="nav-label">Admin</span>
+      </a>
 
       <div class="nav-more" data-nav-more>
-        <button type="button" class="nav-more-toggle" data-nav-more-toggle aria-expanded="false">Mehr</button>
+        <button type="button" class="nav-more-toggle" data-nav-more-toggle aria-expanded="false">
+          <svg class="nav-more-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.25"></circle><circle cx="12" cy="12" r="1.25"></circle><circle cx="19" cy="12" r="1.25"></circle></svg>
+          <span>Mehr</span>
+        </button>
         <div class="nav-more-menu" data-nav-more-menu>
-          <a href="team-wm.html" data-nav-link="team-wm"><span class="nav-label">Team-WM</span></a>
-          <a href="regeln-faq.html" data-nav-link="regeln-faq"><span class="nav-label">Regeln &amp; FAQs</span></a>
-          <a href="grid.html" data-nav-link="grid"><span class="nav-label">Grid</span></a>
-          <a href="hall-of-fame.html" data-nav-link="hall-of-fame"><span class="nav-label">Hall of Fame</span></a>
+          <a href="team-wm.html" data-nav-link="team-wm"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"></circle><circle cx="16.5" cy="9" r="2.5"></circle><path d="M2.8 19c.5-3.3 2.2-5 5.2-5s4.7 1.7 5.2 5M13.5 14.3c.9-.6 1.9-.8 3-.8 2.6 0 4.1 1.5 4.6 4.5"></path></svg><span class="nav-label">Team-WM</span></a>
+          <a href="regeln-faq.html" data-nav-link="regeln-faq"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l3 3V20.5H6z"></path><path d="M14.5 3.5v4h3.5M9 11h6M9 15h6"></path></svg><span class="nav-label">Regeln &amp; FAQs</span></a>
+          <a href="grid.html" data-nav-link="grid"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg><span class="nav-label">Grid</span></a>
+          <a href="hall-of-fame.html" data-nav-link="hall-of-fame"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v4a4 4 0 0 1-8 0zM10 12v3M14 12v3M8 19h8M10 15h4v4"></path><path d="M8 6H4v1.5A3.5 3.5 0 0 0 7.5 11M16 6h4v1.5a3.5 3.5 0 0 1-3.5 3.5"></path></svg><span class="nav-label">Hall of Fame</span></a>
         </div>
       </div>
     </nav>

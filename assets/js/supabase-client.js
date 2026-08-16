@@ -254,3 +254,92 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
     isStaff
   };
 })();
+
+// Shared public navigation access. The Admin entry stays hidden until the
+// authenticated user's role for the requested tenant is known. Platform owners
+// can also enter the Admin Center even if they are not a member of that league.
+(() => {
+  const client = window.supabaseClient;
+  let refreshPromise = null;
+  let authListenerBound = false;
+
+  function scopedAdminHref(slug) {
+    const target = new URL('admin.html', window.location.href);
+    target.searchParams.set('league', normalizeSupabaseLeagueSlug(slug || RCC_REQUEST_LEAGUE_SLUG));
+    return `${target.pathname.split('/').pop()}${target.search}`;
+  }
+
+  function removeLegacyBrandShortcut() {
+    const brand = document.querySelector('.brand');
+    if (!brand || brand.dataset.directNavigation === 'true') return;
+    const replacement = brand.cloneNode(true);
+    replacement.dataset.directNavigation = 'true';
+    brand.replaceWith(replacement);
+  }
+
+  function hideAdminEntry() {
+    const link = document.querySelector('[data-admin-nav-link]');
+    if (!link) return;
+    link.hidden = true;
+    link.removeAttribute('aria-current');
+  }
+
+  async function refreshAdminEntry() {
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = (async () => {
+      const link = document.querySelector('[data-admin-nav-link]');
+      if (!link || !client?.auth) return;
+      hideAdminEntry();
+
+      const { data, error } = await client.auth.getSession();
+      if (error || !data?.session?.user?.id) return;
+
+      let context = null;
+      try {
+        context = await window.RCCLeagueContext?.initialize?.({
+          slug: RCC_REQUEST_LEAGUE_SLUG,
+          forceRefresh: true
+        });
+      } catch (errorContext) {
+        console.warn('Admin-Navigation: Liga-Kontext konnte nicht geladen werden.', errorContext);
+      }
+
+      let allowed = ['owner', 'admin'].includes(context?.role);
+      if (!allowed) {
+        const { data: platformOwner, error: ownerError } = await client.rpc('is_platform_owner');
+        if (ownerError) console.warn('Admin-Navigation: Plattform-Owner-Status konnte nicht geprüft werden.', ownerError);
+        allowed = platformOwner === true;
+      }
+
+      if (!allowed) return;
+      link.href = scopedAdminHref(context?.slug || RCC_REQUEST_LEAGUE_SLUG);
+      link.hidden = false;
+    })().finally(() => {
+      refreshPromise = null;
+    });
+    return refreshPromise;
+  }
+
+  document.addEventListener('layout:loaded', () => {
+    // layout.js still binds the historical logo double-click shortcut during the
+    // same event. Clone the brand after all synchronous listeners have run so the
+    // old click/double-click handlers are removed and the logo behaves as a normal link.
+    window.setTimeout(removeLegacyBrandShortcut, 0);
+    refreshAdminEntry().catch(() => {});
+
+    if (!authListenerBound && client?.auth?.onAuthStateChange) {
+      authListenerBound = true;
+      client.auth.onAuthStateChange((event) => {
+        if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) {
+          window.setTimeout(() => refreshAdminEntry().catch(() => {}), 0);
+        }
+      });
+    }
+  });
+
+  window.addEventListener('rcc:league-context-ready', () => {
+    refreshAdminEntry().catch(() => {});
+  });
+
+  window.RCCNavigationAccess = { refresh: refreshAdminEntry };
+})();

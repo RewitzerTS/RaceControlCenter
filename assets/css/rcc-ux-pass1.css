@@ -2,6 +2,42 @@
 @import url('components/rcc-theme-audit-final.css');
 @import url('components/rcc-theme-audit-dashboard.css');
 
+/* Shared navigation icon system. Inline SVGs inherit the active tenant theme
+   instead of carrying fixed PNG colors. */
+.main-nav .nav-icon,
+.main-nav .nav-more-icon,
+.mobile-toggle__svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.main-nav .nav-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+}
+
+.main-nav .nav-more-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-toggle__svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-admin-link[hidden] {
+  display: none !important;
+}
+
+.nav-admin-link:not([hidden]) {
+  color: var(--accent) !important;
+}
+
 @media (min-width: 861px) {
   html { scrollbar-width: none; }
   html::-webkit-scrollbar { display: none; width: 0; height: 0; }
@@ -22,6 +58,16 @@
     overscroll-behavior: none;
     touch-action: manipulation;
     scroll-behavior: auto;
+  }
+
+  .main-nav a .nav-icon {
+    display: block;
+  }
+
+  .nav-more-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 }
 
@@ -128,6 +174,52 @@ body[data-page="admin"] .admin-mobile-tab.is-active {
     min-width: 118px;
   }
 
+  /* Each mobile row owns its complete visual state. In particular, labels do
+     not carry an independent background that can appear behind single glyphs. */
+  .main-nav a,
+  .main-nav .nav-more-menu a {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-start !important;
+    gap: 12px;
+    width: 100%;
+    min-height: 48px;
+    padding: 11px 14px !important;
+    border-radius: 13px !important;
+    text-align: left !important;
+  }
+
+  .main-nav a .nav-icon,
+  .main-nav .nav-more-menu a .nav-icon {
+    display: block !important;
+    width: 21px;
+    height: 21px;
+  }
+
+  .main-nav a .nav-label,
+  .main-nav .nav-more-menu a .nav-label {
+    position: static !important;
+    display: inline !important;
+    opacity: 1 !important;
+    transform: none !important;
+    flex: 1 1 auto;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: inherit !important;
+    pointer-events: auto !important;
+  }
+
+  .nav-more-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+
   /* The mobile navigation drawer follows the selected tenant theme in both
      light and dark mode instead of using the legacy RCC navy/violet colors. */
   html[data-league-branding-applied="true"] body::after {
@@ -168,6 +260,12 @@ body[data-page="admin"] .admin-mobile-tab.is-active {
     border-color: var(--primary) !important;
     background: var(--primary) !important;
     box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  html[data-league-branding-applied="true"] .main-nav .nav-admin-link:not([hidden]) {
+    color: var(--accent) !important;
+    border-color: color-mix(in srgb, var(--accent) 32%, var(--line)) !important;
+    background: color-mix(in srgb, var(--accent) 7%, transparent) !important;
   }
 
   html[data-league-branding-applied="true"] body.nav-drawer-open .mobile-toggle {
