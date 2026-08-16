@@ -1,0 +1,92 @@
+name: Tenant Security Guards
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - security/**
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  tenant-security-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify security guards
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const migrationPath = 'database/2026-harden-tenant-write-paths.sql';
+          const memberFnPath = 'supabase/functions/manage-league-member/index.ts';
+          const aiFnPath = 'supabase/functions/analyze-race-result-images/index.ts';
+
+          const read = (path) => fs.readFileSync(path, 'utf8');
+          const migration = read(migrationPath);
+          const memberFn = read(memberFnPath);
+          const aiFn = read(aiFnPath);
+
+          const requireMatch = (text, pattern, label) => {
+            if (!pattern.test(text)) throw new Error(`Missing security guard: ${label}`);
+          };
+
+          // Direct privilege / RLS protections.
+          requireMatch(migration, /revoke all privileges on table public\.platform_owners from anon, authenticated;/i, 'platform_owners direct client revoke');
+          requireMatch(migration, /revoke all privileges on table public\.app_admins from anon, authenticated;/i, 'legacy app_admins direct client revoke');
+          requireMatch(migration, /drop policy if exists "admins read admin list" on public\.app_admins;/i, 'legacy admin enumeration policy removal');
+
+          // Owner rows must be protected in both USING and WITH CHECK.
+          const ownerRoleGuards = migration.match(/role\s*<>\s*'owner'/gi) || [];
+          if (ownerRoleGuards.length < 2) throw new Error('Owner demotion RLS guard must protect both old and new membership rows');
+          requireMatch(migration, /drop policy if exists "request scope race substitutions"/i, 'broad substitution read policy removal');
+          requireMatch(migration, /status\s*=\s*'closed'/i, 'public steward closed-only guard');
+
+          // Result publishing must bind every driver to the race league and tenant.
+          requireMatch(migration, /can_manage_race_workflow\(p_race_id\)/i, 'result publish tenant/role guard');
+          requireMatch(migration, /d\.league_id\s*=\s*v_league_id/i, 'result driver tenant binding');
+          requireMatch(migration, /Official result contains a driver outside this league/i, 'cross-league driver rejection');
+          requireMatch(migration, /revoke execute on function public\.apply_race_penalties\(uuid\) from anon;/i, 'legacy penalty RPC anon revoke');
+
+          // service_role member management must explicitly protect existing owners.
+          requireMatch(memberFn, /existingTargetMembership\?\.role\s*===\s*"owner"\s*&&\s*!platformOwner/i, 'service-role owner protection');
+          requireMatch(memberFn, /only_platform_owner_can_modify_owner/i, 'owner modification denial response');
+          requireMatch(memberFn, /safeRedirect\(/i, 'live safe invite redirect behavior retained');
+          requireMatch(memberFn, /email_rate_limit_exceeded/i, 'live invite rate-limit behavior retained');
+
+          // AI calls need user + tenant + owner/admin authorization before the paid key/call.
+          requireMatch(aiFn, /auth\.getUser\(\)/i, 'AI authenticated user check');
+          requireMatch(aiFn, /x-rcc-league-slug/i, 'AI requested tenant context');
+          requireMatch(aiFn, /rpc\("is_platform_owner"\)/i, 'AI platform owner check');
+          requireMatch(aiFn, /\["owner",\s*"admin"\]\.includes\(role\)/i, 'AI league admin role check');
+
+          const authIndex = aiFn.indexOf('auth.getUser()');
+          const roleIndex = aiFn.indexOf('["owner", "admin"].includes(role)');
+          const apiKeyIndex = aiFn.indexOf('Deno.env.get("OPENAI_API_KEY")');
+          const openAiIndex = aiFn.indexOf('fetch("https://api.openai.com/v1/responses"');
+          if ([authIndex, roleIndex, apiKeyIndex, openAiIndex].some((value) => value < 0)) {
+            throw new Error('Could not verify AI authorization ordering');
+          }
+          if (!(authIndex < roleIndex && roleIndex < apiKeyIndex && apiKeyIndex < openAiIndex)) {
+            throw new Error('AI authorization must complete before resolving the OpenAI key or issuing a paid request');
+          }
+
+          if (/Race Control Center/.test(aiFn)) throw new Error('Legacy platform brand remains in AI Edge Function prompt');
+
+          console.log('PASS owner membership protection');
+          console.log('PASS tenant-scoped result publishing');
+          console.log('PASS closed-only steward public access');
+          console.log('PASS privileged table client revokes');
+          console.log('PASS AI tenant/admin authorization before OpenAI');
+          NODE
