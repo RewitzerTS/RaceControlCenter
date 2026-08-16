@@ -96,6 +96,37 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
+// These helper RPCs intentionally require an authenticated role in Supabase.
+// Older UI modules may probe them while the login page is still anonymous.
+// Short-circuit those probes locally instead of weakening the database grants or
+// producing avoidable 401 responses before a user has signed in.
+(() => {
+  const client = window.supabaseClient;
+  if (!client?.rpc || client.__rccAuthenticatedRoleRpcGuard) return;
+
+  const authenticatedOnlyBooleanRpcs = new Set([
+    'is_platform_owner',
+    'is_league_member',
+    'has_league_role'
+  ]);
+  const nativeRpc = client.rpc.bind(client);
+
+  client.rpc = async (fn, args, options) => {
+    if (authenticatedOnlyBooleanRpcs.has(String(fn || ''))) {
+      try {
+        const { data, error } = await client.auth.getSession();
+        if (error) return { data: null, error };
+        if (!data?.session?.user?.id) return { data: false, error: null };
+      } catch (error) {
+        return { data: null, error };
+      }
+    }
+    return nativeRpc(fn, args, options);
+  };
+
+  client.__rccAuthenticatedRoleRpcGuard = true;
+})();
+
 // The bundled Hall-of-Fame JSON is legacy data for the original RCC league.
 // Other tenants must show an empty history until they archive their own season.
 if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch === 'function') {
