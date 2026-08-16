@@ -82,7 +82,9 @@ using (
   )
 );
 
--- Same request-scope rule for staff-only substitution reads.
+-- Race substitutions are admin UI data, not a general member/public feed. Drop
+-- the broad request-scope policy so the staff-only policy below is effective.
+drop policy if exists "request scope race substitutions" on public.race_substitutions;
 drop policy if exists "league staff read race substitutions" on public.race_substitutions;
 create policy "league staff read race substitutions"
 on public.race_substitutions
