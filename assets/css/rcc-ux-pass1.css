@@ -1,4 +1,6 @@
 @import url('components/rcc-tenant-theme-coverage.css');
+@import url('components/rcc-theme-audit-final.css');
+@import url('components/rcc-theme-audit-dashboard.css');
 
 @media (min-width: 861px) {
   html { scrollbar-width: none; }

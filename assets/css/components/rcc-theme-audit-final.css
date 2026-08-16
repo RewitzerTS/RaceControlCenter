@@ -1,0 +1,156 @@
+/* Final RCC tenant-theme audit layer.
+   Loaded after the legacy styles so reusable product UI consistently consumes
+   league tokens. Semantic racing/status colors (red/green/warning/podium) remain
+   intentionally untouched. */
+
+html[data-league-branding-applied="true"] {
+  accent-color: var(--primary);
+  scrollbar-color: var(--accent) color-mix(in srgb, var(--surface) 86%, var(--bg-main));
+}
+
+html[data-league-branding-applied="true"] body,
+html[data-league-branding-applied="true"] main,
+html[data-league-branding-applied="true"] .section,
+html[data-league-branding-applied="true"] .dashboard-shell {
+  color: var(--text);
+}
+
+html[data-league-branding-applied="true"] :is(.panel,.table-card,.race-card,.list-card,.stat,.leader-item,.result-item,.incident-item,.detail-card,.info-card,.summary-card,.admin-card) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: linear-gradient(155deg, color-mix(in srgb, var(--primary) 5%, var(--surface)), var(--surface));
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--bg-main) 42%, transparent);
+}
+
+html[data-league-branding-applied="true"] :is(.panel,.table-card,.race-card,.list-card,.result-item,.incident-item):hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+}
+
+html[data-league-branding-applied="true"] :is(.muted,.page-subtitle,.card-subtitle,.meta,.helper-text,.form-hint,small) {
+  color: var(--text-muted);
+}
+
+html[data-league-branding-applied="true"] :is(.eyebrow,.card-label,.brand-subtitle) {
+  color: var(--text-accent, var(--accent));
+}
+
+html[data-league-branding-applied="true"] :is(input,textarea,select) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 54%, var(--surface));
+  caret-color: var(--primary);
+}
+
+html[data-league-branding-applied="true"] :is(input,textarea,select)::placeholder {
+  color: color-mix(in srgb, var(--text-muted) 82%, transparent);
+}
+
+html[data-league-branding-applied="true"] :is(input,textarea,select):focus {
+  border-color: var(--accent);
+  outline-color: color-mix(in srgb, var(--accent) 62%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+html[data-league-branding-applied="true"] :is(.btn-primary,.button-primary,.btn-primary-glow) {
+  color: var(--text-on-primary, #fff);
+  border-color: color-mix(in srgb, var(--primary) 72%, var(--text));
+  background: var(--primary);
+  box-shadow: 0 9px 24px color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+html[data-league-branding-applied="true"] :is(.btn-secondary,.button-secondary,.btn-secondary-ghost,.btn:not(.btn-primary):not(.btn-danger)) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 62%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] :is(.btn-secondary,.button-secondary,.btn-secondary-ghost,.btn:not(.btn-primary):not(.btn-danger)):hover {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--line));
+  background: color-mix(in srgb, var(--accent) 11%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] table {
+  color: var(--text);
+  border-color: var(--line);
+}
+
+html[data-league-branding-applied="true"] :is(thead th,.sticky-driver-head,.results-total-head) {
+  color: var(--text);
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-2));
+}
+
+html[data-league-branding-applied="true"] tbody td { border-color: var(--line); }
+html[data-league-branding-applied="true"] tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-2) 34%, transparent); }
+html[data-league-branding-applied="true"] tbody tr:hover { background: color-mix(in srgb, var(--accent) 9%, var(--surface)); }
+html[data-league-branding-applied="true"] :is(.sticky-driver,.sticky-total) {
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 94%, var(--primary) 6%);
+}
+
+html[data-league-branding-applied="true"] :is(.standings-table,.standings-card,.standings-row,.driver-card,.team-card,.driver-link-list) { color: var(--text); }
+html[data-league-branding-applied="true"] :is(.standings-row,.driver-card,.team-card) {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 58%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] :is(.calendar-card,.calendar-item,.race-item,.race-list-item,.event-card) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--primary) 5%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] :is(.incident-item,.incident-card,.steward-card,.steward-case,.decision-card) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 58%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] :is(.modal-card,.dialog-card,.popup-card,.trackmap-lightbox-dialog,.rcc-wizard-dialog__surface) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--line));
+  background: linear-gradient(165deg, color-mix(in srgb, var(--primary) 5%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] :is(.modal-header,.modal-footer,.dialog-header,.dialog-footer) {
+  color: var(--text);
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--surface-2) 45%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] :is([role="tooltip"],.tooltip,.popover,.context-menu,.dropdown-menu) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--line));
+  background: color-mix(in srgb, var(--surface) 97%, var(--bg-main));
+  box-shadow: 0 16px 36px color-mix(in srgb, var(--bg-main) 54%, transparent);
+}
+
+html[data-league-branding-applied="true"] :is(.progress-track,.season-progress-track,.progress-bar-track) {
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 74%, var(--bg-main));
+}
+
+html[data-league-branding-applied="true"] :is(.progress-fill,.season-progress-fill,.progress-bar-fill) {
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent-2, var(--secondary)));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 36%, transparent);
+}
+
+html[data-league-branding-applied="true"] :is(.site-footer,footer) {
+  color: var(--text-muted);
+  border-color: var(--line);
+}
+
+html[data-league-branding-applied="true"] .site-footer a:hover,
+html[data-league-branding-applied="true"] footer a:hover { color: var(--text-accent, var(--accent)); }
+
+html[data-league-branding-applied="true"][data-theme="light"] :is(.panel,.table-card,.race-card,.list-card,.result-item,.incident-item,.modal-card,.dashboard-card) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 18%, var(--line));
+  background: linear-gradient(155deg, color-mix(in srgb, var(--primary) 3%, var(--surface)), var(--surface));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 8%, rgba(15,23,42,.12));
+}
+
+html[data-league-branding-applied="true"] ::selection {
+  color: var(--text-on-primary, #fff);
+  background: var(--primary);
+}
