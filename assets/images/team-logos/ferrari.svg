@@ -1,6 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" role="img" aria-label="FER logo">
-  <rect width="320" height="180" rx="20" fill="#DC0000"/>
-  <rect x="8" y="8" width="304" height="164" rx="14" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.5"/>
-  <text x="160" y="94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700" fill="#FFFFFF">FER</text>
-  <text x="160" y="128" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#FFFFFF" opacity="0.9">Ferrari</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Crimson Crest</title>
+  <desc id="desc">Eigenständiges abstraktes Motorsport-Emblem ohne fremde Logos oder Wortmarken.</desc>
+  <path d="M256 54 L410 112 L382 304 Q352 392 256 452 Q160 392 130 304 L102 112 Z" fill="#151515" stroke="#F2C94C" stroke-width="14"/>
+  <path d="M256 82 L380 128 L356 292 Q332 360 256 412 Q180 360 156 292 L132 128 Z" fill="#D90412"/>
+  <path d="M178 176 H334 L304 242 H208 Z" fill="#F2C94C" opacity=".95"/>
+  <path d="M208 272 H304 L256 350 Z" fill="#151515" opacity=".95"/>
 </svg>
