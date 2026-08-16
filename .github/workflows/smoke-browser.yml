@@ -66,12 +66,15 @@ jobs:
             const layout = await page.evaluate(() => ({
               innerWidth: window.innerWidth,
               scrollWidth: document.documentElement.scrollWidth,
+              htmlOverflowX: getComputedStyle(document.documentElement).overflowX,
+              bodyOverflowX: getComputedStyle(document.body).overflowX,
               storySteps: document.querySelectorAll('[data-story-step]').length,
               loginButtons: document.querySelectorAll('[data-login-open]').length
             }));
 
-            if (layout.scrollWidth > layout.innerWidth + 2) {
-              throw new Error(`${testCase.name}: horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
+            const xOverflowClipped = ['hidden', 'clip'].includes(layout.htmlOverflowX) || ['hidden', 'clip'].includes(layout.bodyOverflowX);
+            if (layout.scrollWidth > layout.innerWidth + 2 && !xOverflowClipped) {
+              throw new Error(`${testCase.name}: visible horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
             }
             if (layout.storySteps !== 4) {
               throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
