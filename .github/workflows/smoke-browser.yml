@@ -76,17 +76,13 @@ jobs:
             if (layout.scrollWidth > layout.innerWidth + 2 && !xOverflowClipped) {
               throw new Error(`${testCase.name}: visible horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
             }
-            if (layout.storySteps !== 4) {
-              throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
-            }
-            if (layout.loginButtons < 1) {
-              throw new Error(`${testCase.name}: login CTA missing`);
-            }
+            if (layout.storySteps !== 4) throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
+            if (layout.loginButtons < 1) throw new Error(`${testCase.name}: login CTA missing`);
 
             await page.locator('[data-login-open]').first().click();
             await page.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 5000 });
             await page.locator('[data-login-close]').last().click();
-            await page.waitForSelector('#landing-login-modal[hidden]', { timeout: 5000 });
+            await page.waitForFunction(() => document.querySelector('#landing-login-modal')?.hidden === true, { timeout: 5000 });
 
             await page.locator('#experience').scrollIntoViewIfNeeded();
             await page.waitForTimeout(300);
