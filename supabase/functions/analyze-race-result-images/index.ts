@@ -1,10 +1,25 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-rcc-league-slug",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function normalizeLeagueSlug(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "");
+}
 
 const schema = {
   type: "object",
@@ -36,31 +51,72 @@ const schema = {
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" }
-    });
-  }
+  if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   const startedAt = Date.now();
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authHeader = req.headers.get("Authorization") || "";
+    const requestedSlug = normalizeLeagueSlug(req.headers.get("x-rcc-league-slug"));
+
+    if (!authHeader) return json({ error: "unauthorized", message: "Keine gültige Sitzung." }, 401);
+    if (!requestedSlug) return json({ error: "missing_league_context", message: "Der Liga-Kontext fehlt." }, 400);
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+          "x-rcc-league-slug": requestedSlug,
+        },
+      },
+      auth: { persistSession: false },
+    });
+
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    const actor = userData?.user;
+    if (userError || !actor?.id) return json({ error: "unauthorized", message: "Keine gültige Sitzung." }, 401);
+
+    const { data: league, error: leagueError } = await userClient
+      .from("leagues")
+      .select("id, slug")
+      .eq("slug", requestedSlug)
+      .maybeSingle();
+    if (leagueError) throw leagueError;
+    if (!league?.id) return json({ error: "forbidden", message: "Kein Zugriff auf diese Liga." }, 403);
+
+    const [membershipResponse, platformOwnerResponse] = await Promise.all([
+      userClient
+        .from("league_members")
+        .select("role")
+        .eq("league_id", league.id)
+        .eq("user_id", actor.id)
+        .maybeSingle(),
+      userClient.rpc("is_platform_owner"),
+    ]);
+
+    if (membershipResponse.error) throw membershipResponse.error;
+    if (platformOwnerResponse.error) throw platformOwnerResponse.error;
+
+    const role = String(membershipResponse.data?.role || "").toLowerCase();
+    const allowed = platformOwnerResponse.data === true || ["owner", "admin"].includes(role);
+    if (!allowed) {
+      return json({
+        error: "forbidden",
+        message: "Nur Ligaleitung oder Plattform-Owner dürfen die KI-Ergebnisanalyse verwenden.",
+      }, 403);
+    }
+
+    // Only resolve the paid OpenAI credential after authentication, tenant and
+    // role authorization have all succeeded.
     const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: "OPENAI_API_KEY is not configured for this Edge Function." }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+      return json({ error: "OPENAI_API_KEY is not configured for this Edge Function." }, 503);
     }
 
     const body = await req.json();
     const images = Array.isArray(body?.images) ? body.images.filter((x: unknown) => typeof x === "string") : [];
-    if (!images.length || images.length > 8) {
-      return new Response(JSON.stringify({ error: "Bitte 1 bis 8 Ergebnisbilder senden." }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
-    }
+    if (!images.length || images.length > 8) return json({ error: "Bitte 1 bis 8 Ergebnisbilder senden." }, 400);
 
     const knownDrivers = Array.isArray(body?.drivers) ? body.drivers.slice(0, 40) : [];
     const raceName = typeof body?.race_name === "string" ? body.race_name : "";
@@ -76,7 +132,7 @@ Deno.serve(async (req: Request) => {
       .join(", ");
 
     const instruction = [
-      "Extrahiere die sichtbare Rennergebnis-Tabelle aus F1-Spiel-Screenshots für Race Control Center.",
+      "Extrahiere die sichtbare Rennergebnis-Tabelle aus F1-Spiel-Screenshots für RaceVora.",
       "Lies nur sichtbare Werte. Nichts erfinden.",
       "Jede Ergebniszeile hat semantisch diese getrennten Spalten: position | driver | team | grid_position | pit_stops | fastest_lap | race_time.",
       "Nutze die räumliche Ausrichtung und sichtbaren Spaltenüberschriften des Screenshots, nicht nur die Reihenfolge einzelner OCR-Wörter.",
@@ -94,7 +150,7 @@ Deno.serve(async (req: Request) => {
       "Prüfe vor der Ausgabe jede Zeile nochmals spaltenweise: Fahrer enthält keine Grid-Zahl; Team enthält keine Grid-/Stopps-Zahl; Grid und Stopps sind eigenständige Integer.",
       "confidence zwischen 0 und 1. Unsicherheiten zusätzlich in warnings nennen.",
       raceName ? `Ausgewähltes Rennen: ${raceName}.` : "",
-      driverReference ? `Bekannte RCC Fahrerzuordnungen (Gamertag / KI-Fahrer / Anzeigename → Team) nur als Zuordnungshilfe, nicht zum Erfinden unsichtbarer Werte: ${driverReference}.` : ""
+      driverReference ? `Bekannte RaceVora-Fahrerzuordnungen (Gamertag / KI-Fahrer / Anzeigename → Team) nur als Zuordnungshilfe, nicht zum Erfinden unsichtbarer Werte: ${driverReference}.` : ""
     ].filter(Boolean).join("\n");
 
     const content: any[] = [{ type: "input_text", text: instruction }];
@@ -114,7 +170,7 @@ Deno.serve(async (req: Request) => {
         text: {
           format: {
             type: "json_schema",
-            name: "rcc_race_results",
+            name: "racevora_race_results",
             strict: true,
             schema
           }
@@ -124,13 +180,19 @@ Deno.serve(async (req: Request) => {
 
     const raw = await response.json();
     const openAiMs = Date.now() - openAiStartedAt;
-    console.log(JSON.stringify({ event: "race_image_analysis", model, images: images.length, openai_ms: openAiMs, total_ms: Date.now() - startedAt, status: response.status }));
+    console.log(JSON.stringify({
+      event: "race_image_analysis",
+      model,
+      league_slug: requestedSlug,
+      actor_id: actor.id,
+      images: images.length,
+      openai_ms: openAiMs,
+      total_ms: Date.now() - startedAt,
+      status: response.status,
+    }));
 
     if (!response.ok) {
-      return new Response(JSON.stringify({ error: raw?.error?.message || "OpenAI request failed", details: raw?.error || null }), {
-        status: response.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
-      });
+      return json({ error: raw?.error?.message || "OpenAI request failed", details: raw?.error || null }, response.status);
     }
 
     const outputText = raw?.output
@@ -138,14 +200,13 @@ Deno.serve(async (req: Request) => {
       .find((item: any) => item?.type === "output_text")?.text || raw?.output_text || "";
     if (!outputText) throw new Error("Die KI hat keine auswertbaren Ergebnisdaten zurückgegeben.");
 
-    return new Response(JSON.stringify(JSON.parse(outputText)), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" }
-    });
+    return json(JSON.parse(outputText));
   } catch (error) {
-    console.error(JSON.stringify({ event: "race_image_analysis_error", total_ms: Date.now() - startedAt, error: error instanceof Error ? error.message : String(error) }));
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" }
-    });
+    console.error(JSON.stringify({
+      event: "race_image_analysis_error",
+      total_ms: Date.now() - startedAt,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+    return json({ error: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
