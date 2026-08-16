@@ -1,0 +1,68 @@
+/* Dashboard-specific audit for legacy hard-coded RCC gradients. */
+html[data-league-branding-applied="true"] :is(.hero-main,.hero-side,.dashboard-card) {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent), transparent 28%),
+    radial-gradient(circle at bottom right, color-mix(in srgb, var(--secondary) 13%, transparent), transparent 32%),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 4%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .hero-main::before {
+  background: radial-gradient(circle, color-mix(in srgb, var(--secondary) 22%, transparent), transparent 68%);
+}
+
+html[data-league-branding-applied="true"] :is(.hero-main,.dashboard-card)::after {
+  background: linear-gradient(110deg, transparent 32%, color-mix(in srgb, var(--text) 10%, transparent) 48%, transparent 64%);
+}
+
+html[data-league-branding-applied="true"] .live-badge {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+}
+
+html[data-league-branding-applied="true"] .live-badge::before {
+  background: var(--accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 72%, transparent);
+}
+
+html[data-league-branding-applied="true"] .next-race-item {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 31%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+html[data-league-branding-applied="true"] .countdown-box {
+  border-color: color-mix(in srgb, var(--secondary) 34%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--secondary) 18%, var(--surface)), color-mix(in srgb, var(--secondary) 6%, var(--surface)));
+}
+
+html[data-league-branding-applied="true"] .side-kpi {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--line));
+  background: color-mix(in srgb, var(--surface-2) 68%, var(--surface));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+html[data-league-branding-applied="true"] .accent-outline {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, var(--surface)), var(--surface));
+}
+
+html[data-league-branding-applied="true"] .violet-outline {
+  border-color: color-mix(in srgb, var(--secondary) 34%, var(--line));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--secondary) 14%, var(--surface)), var(--surface));
+}
+
+/* Gold outline stays semantic for podium/champion meaning. */
+html[data-league-branding-applied="true"] .status-dot.violet {
+  background: var(--secondary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--secondary) 68%, transparent);
+}
+
+html[data-league-branding-applied="true"][data-theme="light"] :is(.hero-main,.hero-side,.dashboard-card,.next-race-item,.countdown-box,.side-kpi) {
+  color: var(--text);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 8%, rgba(15,23,42,.12));
+}
