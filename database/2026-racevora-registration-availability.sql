@@ -1,61 +1,89 @@
 -- RaceVora - registration availability and duplicate protection
--- This migration is intentionally tenant-data preserving. It does not update or
--- delete existing leagues; it only adds uniqueness/lookup safeguards and updates
--- the self-service league creation RPC.
+-- Tenant-data preserving: existing leagues are not renamed, reset or deleted.
+-- Availability is exposed through SHA-256 identity keys instead of an anonymous
+-- SECURITY DEFINER RPC, so private league rows stay hidden behind RLS.
 
 begin;
 
 -- Treat league names case-insensitively and ignore surrounding whitespace.
--- Slugs already have the leagues_slug_unique constraint from the multi-tenant
--- foundation migration.
+-- Slugs already have leagues_slug_unique from the multi-tenant foundation.
 create unique index if not exists leagues_name_normalized_unique
   on public.leagues ((lower(btrim(name))));
 
--- Registration needs an exact-match availability check before an account is
--- created. The function returns booleans only, so private league rows are not
--- exposed to anonymous callers.
-create or replace function public.check_league_registration_availability(
-  p_name text,
-  p_slug text
-)
-returns table (
-  name_available boolean,
-  slug_available boolean,
-  slug_reserved boolean
-)
+create table if not exists public.league_registration_keys (
+  name_key text primary key,
+  slug_key text not null unique,
+  constraint league_registration_name_key_format check (name_key ~ '^[0-9a-f]{64}$'),
+  constraint league_registration_slug_key_format check (slug_key ~ '^[0-9a-f]{64}$')
+);
+
+alter table public.league_registration_keys enable row level security;
+
+revoke all on table public.league_registration_keys from public, anon, authenticated;
+grant select on table public.league_registration_keys to anon, authenticated;
+grant all on table public.league_registration_keys to service_role;
+
+drop policy if exists "registration checks read hashed league keys" on public.league_registration_keys;
+create policy "registration checks read hashed league keys"
+on public.league_registration_keys
+for select
+to anon, authenticated
+using (true);
+
+-- Seed hashes for every current tenant without exposing the underlying names or
+-- slugs through the registration endpoint.
+insert into public.league_registration_keys (name_key, slug_key)
+select
+  encode(digest(lower(btrim(l.name)), 'sha256'), 'hex'),
+  encode(digest(lower(btrim(l.slug)), 'sha256'), 'hex')
+from public.leagues l
+on conflict (name_key) do update
+set slug_key = excluded.slug_key;
+
+-- Keep the public hash registry transactionally aligned with league identities.
+-- The trigger function is never directly executable from anon/authenticated.
+create or replace function public.sync_league_registration_keys()
+returns trigger
 language plpgsql
-stable
 security definer
 set search_path = ''
 as $$
 declare
-  v_name text := lower(btrim(coalesce(p_name, '')));
-  v_slug text := lower(btrim(coalesce(p_slug, '')));
-  v_reserved boolean;
+  v_old_name_key text;
+  v_new_name_key text;
+  v_new_slug_key text;
 begin
-  v_reserved := v_slug = any (array[
-    'admin', 'api', 'app', 'auth', 'login', 'logout', 'signup', 'register',
-    'support', 'help', 'www', 'racecontrolcenter', 'racevora'
-  ]);
+  if tg_op in ('UPDATE', 'DELETE') then
+    v_old_name_key := encode(digest(lower(btrim(old.name)), 'sha256'), 'hex');
+    delete from public.league_registration_keys where name_key = v_old_name_key;
+  end if;
 
-  return query
-  select
-    not exists (
-      select 1
-      from public.leagues l
-      where lower(btrim(l.name)) = v_name
-    ),
-    not v_reserved and not exists (
-      select 1
-      from public.leagues l
-      where l.slug = v_slug
-    ),
-    v_reserved;
+  if tg_op = 'DELETE' then
+    return old;
+  end if;
+
+  v_new_name_key := encode(digest(lower(btrim(new.name)), 'sha256'), 'hex');
+  v_new_slug_key := encode(digest(lower(btrim(new.slug)), 'sha256'), 'hex');
+
+  insert into public.league_registration_keys (name_key, slug_key)
+  values (v_new_name_key, v_new_slug_key)
+  on conflict (name_key) do update
+  set slug_key = excluded.slug_key;
+
+  return new;
 end;
 $$;
 
-revoke all on function public.check_league_registration_availability(text, text) from public;
-grant execute on function public.check_league_registration_availability(text, text) to anon, authenticated;
+revoke all on function public.sync_league_registration_keys() from public, anon, authenticated;
+
+drop trigger if exists trg_sync_league_registration_keys on public.leagues;
+create trigger trg_sync_league_registration_keys
+after insert or update or delete on public.leagues
+for each row execute function public.sync_league_registration_keys();
+
+-- Remove an earlier experimental availability RPC if this migration is replayed
+-- on a database where it was created manually.
+drop function if exists public.check_league_registration_availability(text, text);
 
 create or replace function public.create_league(
   p_name text,
@@ -113,7 +141,7 @@ begin
     raise exception 'This league slug is reserved';
   end if;
 
-  -- Friendly pre-checks. The unique index/constraint below still remain the
+  -- Friendly checks before INSERT. The unique index/constraint remain the
   -- authoritative race-condition protection at the database boundary.
   if exists (
     select 1
