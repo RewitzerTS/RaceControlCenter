@@ -1,98 +1,84 @@
-# Race Control Center · TrackVision Studio
+# RaceVora
 
-GitHub-Pages-fähige Liga-Webseite mit Supabase-Backend für Saisonverwaltung, Kalender, Ergebnisse, Stewarding und Admin-Workflow.
+**RaceVora** ist eine Multi-Tenant-Plattform für Simracing-Rennligen. Sie verbindet Race Hub, Saison- und Fahrerverwaltung, Ergebnisworkflows, Stewarding, Meisterschaften, Rollen und individuelles Liga-Branding in einer gemeinsamen Web-App.
 
-## Seitenstruktur
-- `index.html` – Dashboard / Übersicht
-- `kalender.html` – Rennkalender
-- `ergebnisse.html` – Ergebnis-Matrix
-- `fahrer-wm.html` – Fahrerwertung
-- `team-wm.html` – Teamwertung
-- `rennen-detail.html` – Renn-Detailseite inkl. Stewarding
-- `regeln-faq.html` – Regeln + FAQ
-- `hall-of-fame.html` – Historie / Champions
-- `admin.html` – Admin Center
+Produktiv: `https://racevora.com`
 
-## Tech-Stack (Frontend)
-- Vanilla HTML/CSS/JS
-- Chart.js für Trends/Diagramme
-- Supabase JS Client (Auth + Database)
+> Das Repository ist historisch aus dem **Race Control Center (RCC)** entstanden. Interne technische Präfixe wie `RCCData`, `rcc.*` Storage Keys und bestehende Migrationsnamen bleiben vorerst bewusst erhalten, um unnötige technische Migrationen zu vermeiden. Sie sind keine Plattformmarke.
 
-Wichtige Dateien:
-- `assets/js/services/rcc-data.js` – zentrale Datenabfragen + Standings-Logik
+## Plattform vs. Liga-Branding
+
+- **Plattformmarke:** RaceVora
+- **Tenant-/Liga-Branding:** individuell pro Liga
+- **Produktive Bestandsliga:** `rcc` / Race Control Center — ihre Daten und ihr Liga-Branding dürfen bei Plattformänderungen nicht überschrieben oder zurückgesetzt werden.
+
+## Wichtige Routen
+
+- `/` / `index.html` – öffentliche RaceVora-Landingpage
+- `/race-hub.html?league=<slug>` – Race Hub einer Liga
+- `/register.html` – Liga-/Owner-Registrierung
+- `/account-setup.html` – Auth-Bestätigung und Account-/Liga-Einrichtung
+- `/forgot-password.html` – Passwort-Reset anfordern
+- `/set-password.html` – Passwort nach Reset/Einladung setzen
+- `/admin.html?league=<slug>` – rollenbasierter Adminbereich
+- `/kalender.html`, `/ergebnisse.html`, `/fahrer-wm.html`, `/team-wm.html` – öffentliche/rollenabhängige Ligaansichten
+
+## Tech-Stack
+
+- Vanilla HTML/CSS/JavaScript
+- Supabase: Auth, PostgreSQL, RLS, RPCs, Edge Functions
+- Chart.js
+- Cloudflare für die produktive Domain/Deployment-Anbindung
+- GitHub Actions für Syntax- und Browser-Smoke-Tests
+
+## Multi-Tenant-Sicherheit
+
+Jede ligaabhängige Anfrage muss im Tenant-Kontext des angeforderten Slugs ausgeführt werden. Die Datenbank nutzt RLS und rollenbasierte Helfer/RPCs; schreibende RPCs müssen zusätzlich ihre Tenant- und Rollenprüfung selbst erzwingen.
+
+Wichtige Regeln:
+
+1. Kein Benutzer aus Liga A darf Daten von Liga B lesen oder verändern.
+2. `anon` erhält keine unnötigen Ausführungsrechte auf privilegierte `SECURITY DEFINER`-Funktionen.
+3. Neue Datenbankänderungen werden zuerst auf RLS-/RPC-Abhängigkeiten geprüft.
+4. Die produktive Liga `rcc` wird nicht als destruktives Testobjekt verwendet.
+
+## Auth und Registrierung
+
+RaceVora nutzt Supabase Auth. Der Signup-Flow ist:
+
+1. Liga-Name und Slug werden vorab auf Verfügbarkeit geprüft.
+2. Benutzer registriert sich per E-Mail/Passwort.
+3. Bestätigungslink führt auf `account-setup.html`.
+4. Session, Liga und Berechtigungen werden geladen bzw. idempotent eingerichtet.
+5. Weiterleitung ins Liga-Onboarding/Admin Center.
+
+Gebrandete Supabase-Auth-E-Mail-Templates liegen unter:
+
+`supabase/email-templates/racevora/`
+
+## Zentrale Frontend-Dateien
+
+- `assets/js/supabase-client.js` – Supabase-Client, früher Tenant-Kontext und Auth-Guards
+- `assets/js/services/rcc-data.js` – zentrale Datenabfragen und Ergebnis-/Standings-Helfer
+- `assets/js/services/rcc-branding.js` – ligaabhängiges Branding/Theme
 - `assets/js/services/rcc-driver-context.js` – saisonabhängige Fahrer-/Team-Zuordnungen
 - `assets/js/pages/admin.js` – Admin-Workflows
-- `assets/css/style.css` und `assets/css/pages/index-dashboard.css` – UI/Responsive/Dashboard
+- `assets/js/pages/register.js` / `account-setup.js` – Registrierung und Account-Setup
 
----
+## Datenbank
 
-## Supabase Workflow (Stand 2026)
-
-### 1) Voraussetzungen
-1. Supabase-Projekt anlegen.
-2. In Supabase **Authentication → Providers** mindestens E-Mail/Passwort aktivieren.
-3. Im Frontend die Projekt-URL + `anon` Key hinterlegen (siehe `assets/js/supabase-client.js`).
-
-### 2) SQL-Migrationen anwenden
-Die Migrationen liegen unter `database/`.
-
-Empfohlene Reihenfolge für neue Setups:
-1. Basis-Workflow + RLS:
-   - `database/supabase-workflow-upgrade.sql`
-2. Saisonhistorie/Hall-of-Fame:
-   - `database/2026-season-history.sql`
-   - `database/2026-v10.4.5-hof-upgrade.sql`
-   - optional Seeds: `database/2026-hof-seed-seasons-2-14.sql`
-3. Fahrer-/Saison-Zuordnungen:
-   - `database/2026-driver-season-assignments.sql`
-4. Stewarding/Workflow-Erweiterungen:
-   - `database/2026-v11-steward-workflow.sql`
-5. Content-/FAQ-Erweiterungen:
-   - `database/2026-v11.2-league-content.sql`
-   - `database/2026-v11.3-faq-items.sql`
-6. Slot-/Ledger-Logik (falls genutzt):
-   - `database/2026-v11.1-season-slot-ledger.sql`
-
-> Hinweis: Bei bestehenden Instanzen bitte die jeweiligen Dateien prüfen, da viele Skripte `if not exists`/`add column if not exists` nutzen.
-
-### 3) Admin-Zugriff einrichten
-Admin-Rechte werden über `public.app_admins` gesteuert.
-
-Beispiel (Supabase SQL Editor):
-```sql
-insert into public.app_admins (user_id)
-values ('<AUTH_USER_UUID>')
-on conflict (user_id) do nothing;
-```
-
-Die Policies im Workflow-Skript erlauben Schreibzugriff nur für `is_app_admin()`.
-
-### 4) Typischer Betriebsablauf
-1. **Saison aktiv halten** (`seasons.is_active = true` genau eine Saison).
-2. Rennen im Admin Center anlegen / verschieben.
-3. Ergebnisse per CSV importieren (`race_result_imports` + `race_result_import_rows`).
-4. Steward-Fälle/Strafen pflegen (`steward_cases`, `race_penalties`).
-5. Entwurf veröffentlichen → schreibt in `race_results`, setzt Rennen auf `completed`.
-6. Saisonabschluss im Admin Center:
-   - Champions in `championship_history`
-   - alte Saison `is_active = false`
-   - neue aktive Saison wird angelegt
-
-### 5) Performance-Hinweis (aktuelle Saison)
-Ergebnisse/WM-Seiten laden nur die aktive Saison (Rennen + zugehörige Result-Zeilen) statt globaler Vollabfragen.
-
----
-
-## Deployment (GitHub Pages)
-1. Repository/Dateien nach GitHub pushen.
-2. GitHub Pages auf Branch + Root aktivieren.
-3. Sicherstellen, dass Supabase-Projekt CORS/Redirects für die Pages-Domain zulässt.
+Migrationen liegen unter `database/`. Bestehende Instanzen nicht blind mit allen historischen SQL-Dateien neu bespielen; vor Änderungen Abhängigkeiten und aktuellen Live-Schema-Stand prüfen.
 
 ## Lokale Entwicklung
-Da es eine statische App ist, genügt ein lokaler HTTP-Server (kein `file://`).
 
-Beispiel:
+Die Anwendung ist statisch und benötigt einen HTTP-Server:
+
 ```bash
 python -m http.server 8080
 ```
-Dann: `http://localhost:8080` öffnen.
+
+Danach z. B. `http://localhost:8080` öffnen.
+
+## Entwicklung und Merge
+
+Neue größere Änderungen werden über Feature-Branches umgesetzt. Vor Merge nach `main` müssen mindestens die relevanten JavaScript- und Browser-Smoke-Checks grün sein.
