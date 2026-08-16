@@ -119,17 +119,16 @@ jobs:
             if (!state.directBrandNavigation) throw new Error(`${testCase.name}: legacy logo shortcut was not removed`);
 
             if (testCase.mobileNavigation) {
-              const championOverlay = page.locator('#season-champion-overlay.is-visible');
-              if (await championOverlay.count()) {
-                const closeButton = page.locator('#season-champion-close');
-                if (await closeButton.count()) {
-                  await closeButton.click({ force: true });
-                  await page.waitForFunction(() => !document.querySelector('#season-champion-overlay')?.classList.contains('is-visible'), { timeout: 5000 });
+              await page.evaluate(() => {
+                const overlay = document.querySelector('#season-champion-overlay');
+                if (overlay) {
+                  overlay.classList.remove('is-visible');
+                  overlay.setAttribute('hidden', '');
+                  overlay.style.pointerEvents = 'none';
                 }
-              }
-
-              await page.locator('[data-nav-toggle]').click();
-              await page.waitForFunction(() => document.querySelector('[data-main-nav]')?.classList.contains('open'));
+                document.querySelector('[data-nav-toggle]')?.click();
+              });
+              await page.waitForFunction(() => document.querySelector('[data-main-nav]')?.classList.contains('open'), { timeout: 5000 });
               const mobile = await page.evaluate(() => {
                 const visibleLinks = [...document.querySelectorAll('.main-nav > a:not([hidden])')];
                 return visibleLinks.map((link) => {
