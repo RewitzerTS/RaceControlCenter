@@ -28,14 +28,24 @@
     }
   }
 
+  function getParams() {
+    return new URLSearchParams(window.location.search);
+  }
+
+  function isRecoveryFlow() {
+    return getParams().get('mode') === 'recovery';
+  }
+
   function getLeagueSlug() {
-    return String(new URLSearchParams(window.location.search).get('league') || 'rcc')
+    return String(getParams().get('league') || 'rcc')
       .trim()
       .toLowerCase()
       .replace(/[^a-z0-9-]/g, '') || 'rcc';
   }
 
   async function resolveDestination(userId) {
+    if (isRecoveryFlow() && !getParams().has('league')) return 'index.html';
+
     const slug = getLeagueSlug();
     const { data: league } = await window.supabaseClient
       .from('leagues')
@@ -43,7 +53,7 @@
       .eq('slug', slug)
       .maybeSingle();
 
-    if (!league?.id) return `index.html?league=${encodeURIComponent(slug)}`;
+    if (!league?.id) return 'index.html';
 
     const { data: membership } = await window.supabaseClient
       .from('league_members')
@@ -52,7 +62,7 @@
       .eq('user_id', userId)
       .maybeSingle();
 
-    const target = ['owner', 'admin', 'steward'].includes(membership?.role) ? 'admin.html' : 'index.html';
+    const target = ['owner', 'admin', 'steward'].includes(membership?.role) ? 'admin.html' : 'race-hub.html';
     return `${target}?league=${encodeURIComponent(slug)}`;
   }
 
@@ -62,24 +72,28 @@
       if (error) throw error;
       const session = data?.session;
       if (!session?.user) {
-        setStatus('Der Einladungslink ist ungültig oder abgelaufen. Bitte lass dir eine neue Einladung senden.');
+        setStatus(isRecoveryFlow()
+          ? 'Der Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen. Bitte fordere einen neuen Link an.'
+          : 'Der Einladungslink ist ungültig oder abgelaufen. Bitte lass dir eine neue Einladung senden.');
         return;
       }
 
       const pending = getPendingRegistration();
       const sessionEmail = String(session.user.email || '').trim().toLowerCase();
-      if (pending && sessionEmail === String(pending.email || '').trim().toLowerCase()) {
+      if (!isRecoveryFlow() && pending && sessionEmail === String(pending.email || '').trim().toLowerCase()) {
         setStatus('E-Mail bestätigt. Deine Registrierung wird fortgesetzt …');
         const target = new URL('register.html?confirmed=1', window.location.href);
         window.location.replace(target.toString());
         return;
       }
 
-      setStatus(`Account erkannt: ${session.user.email || 'eingeladener Nutzer'}`);
+      setStatus(isRecoveryFlow()
+        ? `Passwort für ${session.user.email || 'deinen Account'} neu vergeben.`
+        : `Account erkannt: ${session.user.email || 'eingeladener Nutzer'}`);
       if (formEl) formEl.hidden = false;
     } catch (error) {
       console.error(error);
-      setStatus('Die Einladung konnte nicht verarbeitet werden.');
+      setStatus(isRecoveryFlow() ? 'Der Passwort-Reset konnte nicht verarbeitet werden.' : 'Die Einladung konnte nicht verarbeitet werden.');
     }
   }
 
@@ -102,7 +116,7 @@
     try {
       const { data: sessionData } = await window.supabaseClient.auth.getSession();
       const user = sessionData?.session?.user;
-      if (!user?.id) throw new Error('Keine aktive Einladungssession gefunden.');
+      if (!user?.id) throw new Error('Keine aktive Auth-Session gefunden.');
 
       const { error } = await window.supabaseClient.auth.updateUser({ password });
       if (error) throw error;

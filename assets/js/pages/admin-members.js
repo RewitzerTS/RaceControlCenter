@@ -1,6 +1,6 @@
 (() => {
   const roleLabels = { owner: 'Owner', admin: 'Ligaleitung', member: 'Member' };
-  const INVITE_BASE_URL = 'https://raw.githack.com/RewitzerTS/RaceControlCenter/feature/league-member-management/set-password.html';
+  const INVITE_BASE_URL = new URL('set-password.html', window.location.origin).toString();
   let initialized = false;
   let loading = false;
 
