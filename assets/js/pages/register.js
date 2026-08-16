@@ -4,6 +4,10 @@
   if (document.body?.dataset?.page !== 'register') return;
 
   const PENDING_KEY = 'rcc.pendingLeagueRegistration.v1';
+  const META_NAME = 'rcc_pending_league_name';
+  const META_SLUG = 'rcc_pending_league_slug';
+  const META_PUBLIC = 'rcc_pending_league_public';
+
   const form = document.getElementById('league-registration-form');
   const nameInput = document.getElementById('register-league-name');
   const slugInput = document.getElementById('register-league-slug');
@@ -15,8 +19,10 @@
   const submitButton = document.getElementById('register-submit');
   const feedback = document.getElementById('register-feedback');
   const resume = document.getElementById('register-resume');
+
   let busy = false;
   let slugWasEdited = false;
+  let continuationPromise = null;
 
   function slugify(value) {
     return String(value || '')
@@ -48,19 +54,9 @@
     button.title = 'Passwort anzeigen';
     button.textContent = '◉';
     Object.assign(button.style, {
-      position: 'absolute',
-      right: '8px',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      width: '36px',
-      height: '36px',
-      border: '0',
-      borderRadius: '9px',
-      background: 'transparent',
-      color: '#9eafc2',
-      fontSize: '18px',
-      lineHeight: '1',
-      cursor: 'pointer'
+      position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+      width: '36px', height: '36px', border: '0', borderRadius: '9px',
+      background: 'transparent', color: '#9eafc2', fontSize: '18px', lineHeight: '1', cursor: 'pointer'
     });
 
     button.addEventListener('click', () => {
@@ -98,16 +94,41 @@
       : 'Liga-Leitung-Account erstellen <span aria-hidden="true">→</span>';
   }
 
+  function normalizePending(value) {
+    if (!value) return null;
+    const leagueName = String(value.leagueName || '').trim();
+    const leagueSlug = slugify(value.leagueSlug || '');
+    const email = String(value.email || '').trim().toLowerCase();
+    if (leagueName.length < 3 || leagueSlug.length < 3 || !email) return null;
+    return { leagueName, leagueSlug, isPublic: Boolean(value.isPublic), email };
+  }
+
   function readPending() {
     try {
       const raw = localStorage.getItem(PENDING_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!parsed?.email || !parsed?.leagueName || !parsed?.leagueSlug) return null;
-      return parsed;
+      return raw ? normalizePending(JSON.parse(raw)) : null;
     } catch (_) {
       return null;
     }
+  }
+
+  function pendingFromUser(user) {
+    const metadata = user?.user_metadata || {};
+    return normalizePending({
+      leagueName: metadata[META_NAME],
+      leagueSlug: metadata[META_SLUG],
+      isPublic: metadata[META_PUBLIC] === true || metadata[META_PUBLIC] === 'true',
+      email: user?.email
+    });
+  }
+
+  function pendingForSession(session) {
+    const local = readPending();
+    const metadata = pendingFromUser(session?.user);
+    if (!local) return metadata;
+    if (!metadata) return local;
+    const sessionEmail = String(session?.user?.email || '').trim().toLowerCase();
+    return local.email === sessionEmail ? local : metadata;
   }
 
   function savePending(payload) {
@@ -116,6 +137,16 @@
 
   function clearPending() {
     localStorage.removeItem(PENDING_KEY);
+  }
+
+  async function clearPendingMetadata() {
+    try {
+      await window.supabaseClient.auth.updateUser({
+        data: { [META_NAME]: null, [META_SLUG]: null, [META_PUBLIC]: null }
+      });
+    } catch (error) {
+      console.warn('Registration metadata cleanup failed:', error);
+    }
   }
 
   function validatePayload() {
@@ -130,18 +161,15 @@
     if (!emailInput?.checkValidity()) throw new Error('Bitte eine gültige E-Mail-Adresse eingeben.');
     if (password.length < 10) throw new Error('Das Passwort muss mindestens 10 Zeichen lang sein.');
     if (password !== passwordConfirm) throw new Error('Die Passwörter stimmen nicht überein.');
-    if (!consentInput?.checked) throw new Error('Bitte bestätige die Account-Erstellung.');
+    if (!consentInput?.checked) throw new Error('Bitte akzeptiere die AGB und die Datenschutzerklärung.');
 
-    return {
-      leagueName,
-      leagueSlug,
-      isPublic: visibilityInput?.value === 'public',
-      email
-    };
+    return { leagueName, leagueSlug, isPublic: visibilityInput?.value === 'public', email };
   }
 
   async function createLeagueForSession(session, pending) {
     if (!session?.user?.id) throw new Error('Bitte bestätige zuerst deine E-Mail und melde dich an.');
+    if (!pending) throw new Error('Die begonnenen Liga-Daten konnten nicht wiederhergestellt werden. Bitte starte die Registrierung erneut.');
+
     const sessionEmail = String(session.user.email || '').trim().toLowerCase();
     if (pending.email && sessionEmail !== String(pending.email).toLowerCase()) {
       throw new Error('Der angemeldete Account passt nicht zur begonnenen Registrierung.');
@@ -158,16 +186,46 @@
     if (error) throw error;
 
     const league = Array.isArray(data) ? data[0] : data;
-    if (!league?.slug || league.role !== 'admin') {
+    if (!league?.slug || !['admin', 'owner'].includes(league.role)) {
       throw new Error('Die Liga-Leitung konnte nicht korrekt angelegt werden.');
     }
 
     clearPending();
+    await clearPendingMetadata();
+    try {
+      sessionStorage.setItem('rcc.activeLeagueSlug.v1', league.slug);
+      sessionStorage.setItem('rcc.lastTenantSlug.v1', league.slug);
+    } catch (_) {
+      // Session storage is optional.
+    }
+
     setFeedback('Deine Rennliga ist angelegt. Der Einrichtungsassistent wird geöffnet …', 'success');
     const target = new URL('admin.html', window.location.href);
     target.searchParams.set('league', league.slug);
     target.searchParams.set('onboarding', '1');
     window.location.assign(target.toString());
+    return league;
+  }
+
+  function continueRegistration(session) {
+    if (!session?.user) return Promise.resolve(null);
+    if (continuationPromise) return continuationPromise;
+
+    const pending = pendingForSession(session);
+    if (!pending) return Promise.resolve(null);
+
+    continuationPromise = createLeagueForSession(session, pending)
+      .catch((error) => {
+        console.error('Registration continuation failed:', error);
+        setFeedback(error?.message || 'Die Liga-Einrichtung konnte nicht fortgesetzt werden.', 'error');
+        setBusy(false);
+        throw error;
+      })
+      .finally(() => {
+        continuationPromise = null;
+      });
+
+    return continuationPromise;
   }
 
   async function resendConfirmation(pending, button) {
@@ -218,8 +276,9 @@
     clear.addEventListener('click', () => {
       clearPending();
       resume.hidden = true;
-      setFeedback('Die begonnene Registrierung wurde lokal verworfen. Ein bereits angelegter, noch unbestätigter Account bleibt bestehen und kann über „Bestätigungs-E-Mail erneut senden“ fortgesetzt werden.');
+      setFeedback('Die lokale Registrierung wurde verworfen. Ein bereits angelegter Account bleibt bestehen.');
     });
+
     resume.append(text, resend, clear);
   }
 
@@ -237,7 +296,14 @@
       const { data, error } = await window.supabaseClient.auth.signUp({
         email: payload.email,
         password: String(passwordInput?.value || ''),
-        options: { emailRedirectTo: confirmationRedirectUrl() }
+        options: {
+          emailRedirectTo: confirmationRedirectUrl(),
+          data: {
+            [META_NAME]: payload.leagueName,
+            [META_SLUG]: payload.leagueSlug,
+            [META_PUBLIC]: Boolean(payload.isPublic)
+          }
+        }
       });
       if (error) throw error;
 
@@ -245,22 +311,22 @@
       passwordConfirmInput.value = '';
 
       if (data?.session) {
-        await createLeagueForSession(data.session, payload);
+        await continueRegistration(data.session);
         return;
       }
 
-      setFeedback('Fast geschafft: Bitte bestätige jetzt deine E-Mail-Adresse. Falls keine Mail ankommt, kannst du sie oben erneut senden.', 'success');
+      setFeedback('Fast geschafft: Bitte bestätige jetzt deine E-Mail-Adresse. Danach wird deine Rennliga automatisch angelegt.', 'success');
     } catch (error) {
       console.error('Liga-Leitung registration failed:', error);
       setFeedback(error?.message || 'Die Registrierung konnte nicht abgeschlossen werden.', 'error');
     } finally {
-      if (!location.href.includes('admin.html')) setBusy(false);
+      if (!location.href.includes('admin.html') && !continuationPromise) setBusy(false);
     }
   }
 
   async function resumeAfterConfirmation() {
-    const pending = readPending();
-    if (pending) renderPendingState(pending);
+    const localPending = readPending();
+    if (localPending) renderPendingState(localPending);
     if (!window.supabaseClient?.auth) return;
 
     try {
@@ -269,15 +335,19 @@
       const session = data?.session;
       if (!session?.user) return;
 
+      const pending = pendingForSession(session);
       if (!pending) {
         setFeedback('Du bist bereits angemeldet. Für eine neue Liga starte bitte eine neue Registrierung oder öffne deine bestehende Liga.', 'info');
         return;
       }
 
-      await createLeagueForSession(session, pending);
+      renderPendingState(pending);
+      await continueRegistration(session);
     } catch (error) {
-      console.error('Registration resume failed:', error);
-      setFeedback(error?.message || 'Die Registrierung konnte nach der Anmeldung nicht fortgesetzt werden.', 'error');
+      if (!String(error?.message || '').includes('Liga-Einrichtung')) {
+        console.error('Registration resume failed:', error);
+        setFeedback(error?.message || 'Die Registrierung konnte nach der Anmeldung nicht fortgesetzt werden.', 'error');
+      }
       setBusy(false);
     }
   }
@@ -296,12 +366,11 @@
     form?.addEventListener('submit', submitRegistration);
 
     window.supabaseClient?.auth?.onAuthStateChange?.((event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user && readPending() && !busy) {
-        createLeagueForSession(session, readPending()).catch((error) => {
-          console.error('Registration auth continuation failed:', error);
-          setFeedback(error?.message || 'Die Liga-Einrichtung konnte nicht fortgesetzt werden.', 'error');
-          setBusy(false);
-        });
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user && !continuationPromise) {
+        const pending = pendingForSession(session);
+        if (!pending) return;
+        renderPendingState(pending);
+        continueRegistration(session).catch(() => {});
       }
     });
   }
