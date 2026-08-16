@@ -23,7 +23,7 @@
     {
       label: '01 · Kontrollzentrum',
       title: 'Deine Liga.<br><em>Ein Kontrollzentrum.</em>',
-      text: 'Kalender, Fahrer, Teams, Ergebnisse und Meisterschaften leben nicht in fünf Werkzeugen. RCC bringt den kompletten Rennbetrieb in eine gemeinsame Oberfläche – auf jedem Gerät.',
+      text: 'Kalender, Fahrer, Teams, Ergebnisse und Meisterschaften leben nicht in fünf Werkzeugen. RaceVora bringt den kompletten Rennbetrieb in eine gemeinsame Oberfläche – auf jedem Gerät.',
       metrics: [['Datenbasis', '1 Liga'], ['Geräte', 'Alle'], ['Status', 'Live synchron']]
     },
     {
@@ -47,7 +47,7 @@
   ];
 
   const storyMarkup = () => `
-    <section class="l3-scroll-story" id="experience" aria-label="Race Control Center Workflow">
+    <section class="l3-scroll-story" id="experience" aria-label="RaceVora Workflow">
       <div class="l3-scroll-story__progress" aria-hidden="true"><i></i></div>
       <div class="l3-scroll-story__sticky">
         <div class="l3-shell l3-scroll-story__grid">
@@ -68,9 +68,9 @@
 
             <div class="l3-story-device l3-story-device--desktop" data-story-device="desktop">
               <div class="l3-story-shell">
-                <div class="l3-story-browser"><i></i><i></i><i></i><span>racecontrol.center</span></div>
+                <div class="l3-story-browser"><i></i><i></i><i></i><span>racevora.com</span></div>
                 <div class="l3-story-preview l3-story-preview--desktop">
-                  <iframe src="index.html?league=rcc" title="Race Control Center Race Hub" loading="lazy" tabindex="-1"></iframe>
+                  <iframe src="race-hub.html?league=rcc" title="RaceVora Live-Demo · Race Hub" loading="lazy" tabindex="-1"></iframe>
                 </div>
               </div>
             </div>
@@ -78,7 +78,7 @@
             <div class="l3-story-device l3-story-device--tablet" data-story-device="tablet">
               <div class="l3-story-shell">
                 <div class="l3-story-preview l3-story-preview--tablet">
-                  <iframe src="fahrer-wm.html?league=rcc" title="Race Control Center Fahrer-WM" loading="lazy" tabindex="-1"></iframe>
+                  <iframe src="fahrer-wm.html?league=rcc" title="RaceVora Live-Demo · Fahrer-WM" loading="lazy" tabindex="-1"></iframe>
                 </div>
               </div>
             </div>
@@ -86,7 +86,7 @@
             <div class="l3-story-device l3-story-device--phone" data-story-device="phone">
               <div class="l3-story-shell">
                 <div class="l3-story-preview l3-story-preview--phone">
-                  <iframe src="ergebnisse.html?league=rcc#wm-dynamics" title="Race Control Center WM-Dynamik" loading="lazy" tabindex="-1"></iframe>
+                  <iframe src="ergebnisse.html?league=rcc#wm-dynamics" title="RaceVora Live-Demo · WM-Dynamik" loading="lazy" tabindex="-1"></iframe>
                 </div>
               </div>
             </div>
