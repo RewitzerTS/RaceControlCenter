@@ -34,8 +34,8 @@ using (true);
 -- slugs through the registration endpoint.
 insert into public.league_registration_keys (name_key, slug_key)
 select
-  encode(digest(lower(btrim(l.name)), 'sha256'), 'hex'),
-  encode(digest(lower(btrim(l.slug)), 'sha256'), 'hex')
+  encode(extensions.digest(lower(btrim(l.name)), 'sha256'), 'hex'),
+  encode(extensions.digest(lower(btrim(l.slug)), 'sha256'), 'hex')
 from public.leagues l
 on conflict (name_key) do update
 set slug_key = excluded.slug_key;
@@ -54,7 +54,7 @@ declare
   v_new_slug_key text;
 begin
   if tg_op in ('UPDATE', 'DELETE') then
-    v_old_name_key := encode(digest(lower(btrim(old.name)), 'sha256'), 'hex');
+    v_old_name_key := encode(extensions.digest(lower(btrim(old.name)), 'sha256'), 'hex');
     delete from public.league_registration_keys where name_key = v_old_name_key;
   end if;
 
@@ -62,8 +62,8 @@ begin
     return old;
   end if;
 
-  v_new_name_key := encode(digest(lower(btrim(new.name)), 'sha256'), 'hex');
-  v_new_slug_key := encode(digest(lower(btrim(new.slug)), 'sha256'), 'hex');
+  v_new_name_key := encode(extensions.digest(lower(btrim(new.name)), 'sha256'), 'hex');
+  v_new_slug_key := encode(extensions.digest(lower(btrim(new.slug)), 'sha256'), 'hex');
 
   insert into public.league_registration_keys (name_key, slug_key)
   values (v_new_name_key, v_new_slug_key)
