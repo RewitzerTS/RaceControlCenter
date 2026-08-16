@@ -150,6 +150,31 @@ html[data-league-branding-applied="true"][data-theme="light"] :is(.panel,.table-
   box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 8%, rgba(15,23,42,.12));
 }
 
+/* Championship podium rows are semantic and must always win over generic
+   zebra/hover/theme table backgrounds. This applies to Fahrer- and Team-WM. */
+html[data-league-branding-applied="true"] tbody tr.podium-1,
+html[data-league-branding-applied="true"] tbody tr.podium-1:hover {
+  background: linear-gradient(90deg, rgba(245, 196, 81, .22), rgba(245, 196, 81, .07)) !important;
+  box-shadow: inset 4px 0 0 #f5c451;
+}
+
+html[data-league-branding-applied="true"] tbody tr.podium-2,
+html[data-league-branding-applied="true"] tbody tr.podium-2:nth-child(even),
+html[data-league-branding-applied="true"] tbody tr.podium-2:hover {
+  background: linear-gradient(90deg, rgba(202, 211, 220, .24), rgba(202, 211, 220, .08)) !important;
+  box-shadow: inset 4px 0 0 #cad3dc;
+}
+
+html[data-league-branding-applied="true"] tbody tr.podium-3,
+html[data-league-branding-applied="true"] tbody tr.podium-3:hover {
+  background: linear-gradient(90deg, rgba(201, 139, 85, .22), rgba(201, 139, 85, .07)) !important;
+  box-shadow: inset 4px 0 0 #c98b55;
+}
+
+html[data-league-branding-applied="true"] tbody tr:is(.podium-1,.podium-2,.podium-3) > td {
+  background: transparent !important;
+}
+
 html[data-league-branding-applied="true"] ::selection {
   color: var(--text-on-primary, #fff);
   background: var(--primary);
