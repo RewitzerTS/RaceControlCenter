@@ -119,13 +119,39 @@
   }
 
   function loadResultReleaseModule() {
+    const NativeMutationObserver = window.MutationObserver;
+    let guardInstalled = false;
+
+    if (NativeMutationObserver && !window.RCCResultRelease) {
+      window.MutationObserver = class RCCResultReleaseMutationObserver extends NativeMutationObserver {
+        constructor(callback) {
+          super((mutations, observer) => {
+            const meaningfulMutations = mutations.filter((mutation) => {
+              const target = mutation.target;
+              return !(
+                mutation.type === 'childList' &&
+                target?.nodeType === 1 &&
+                target.matches?.('.publish-results-btn')
+              );
+            });
+            if (meaningfulMutations.length) callback(meaningfulMutations, observer);
+          });
+        }
+      };
+      guardInstalled = true;
+    }
+
     return loadScriptModule(
       'RCCResultRelease',
       'assets/js/components/rcc-result-release.js',
       'Steward-/Freigabe-Workflow konnte nicht geladen werden.',
       () => resultReleaseModulePromise,
       (value) => { resultReleaseModulePromise = value; }
-    ).then((module) => {
+    ).finally(() => {
+      if (guardInstalled && window.MutationObserver !== NativeMutationObserver) {
+        window.MutationObserver = NativeMutationObserver;
+      }
+    }).then((module) => {
       module?.init?.();
       return module;
     });
