@@ -7,6 +7,10 @@
   const META_NAME = 'rcc_pending_league_name';
   const META_SLUG = 'rcc_pending_league_slug';
   const META_PUBLIC = 'rcc_pending_league_public';
+  const RESERVED_SLUGS = new Set([
+    'admin', 'api', 'app', 'auth', 'login', 'logout', 'signup', 'register',
+    'support', 'help', 'www', 'racecontrolcenter', 'racevora'
+  ]);
 
   const form = document.getElementById('league-registration-form');
   const nameInput = document.getElementById('register-league-name');
@@ -213,6 +217,15 @@
     return message || 'Die Registrierung konnte nicht abgeschlossen werden.';
   }
 
+  async function sha256Key(value) {
+    if (!window.crypto?.subtle || typeof TextEncoder === 'undefined') {
+      throw new Error('Die sichere Liga-Prüfung wird von diesem Browser nicht unterstützt.');
+    }
+    const bytes = new TextEncoder().encode(String(value || ''));
+    const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
   async function checkLeagueAvailability(payload, { announceSuccess = false } = {}) {
     if (!payload || !window.supabaseClient) throw new Error('Die Liga-Verfügbarkeit konnte nicht geprüft werden.');
     if (availabilityPromise) return availabilityPromise;
@@ -221,14 +234,27 @@
     slugInput?.removeAttribute('aria-invalid');
 
     availabilityPromise = (async () => {
-      const { data, error } = await window.supabaseClient.rpc('check_league_registration_availability', {
-        p_name: payload.leagueName,
-        p_slug: payload.leagueSlug
-      });
+      const normalizedName = String(payload.leagueName || '').trim().toLowerCase();
+      const normalizedSlug = slugify(payload.leagueSlug || '');
+      const slugReserved = RESERVED_SLUGS.has(normalizedSlug);
+      const [nameKey, slugKey] = await Promise.all([
+        sha256Key(normalizedName),
+        sha256Key(normalizedSlug)
+      ]);
+
+      const { data, error } = await window.supabaseClient
+        .from('league_registration_keys')
+        .select('name_key, slug_key')
+        .or(`name_key.eq.${nameKey},slug_key.eq.${slugKey}`);
+
       if (error) throw error;
 
-      const availability = Array.isArray(data) ? data[0] : data;
-      if (!availability) throw new Error('Die Liga-Verfügbarkeit konnte nicht geprüft werden.');
+      const rows = Array.isArray(data) ? data : [];
+      const availability = {
+        name_available: !rows.some((row) => row?.name_key === nameKey),
+        slug_available: !slugReserved && !rows.some((row) => row?.slug_key === slugKey),
+        slug_reserved: slugReserved
+      };
 
       const conflictMessage = friendlyAvailabilityError(availability);
       if (conflictMessage) throw new Error(conflictMessage);
