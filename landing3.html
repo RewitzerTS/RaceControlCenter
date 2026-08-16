@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
   <link rel="stylesheet" href="assets/css/pages/landing3.css">
   <link rel="stylesheet" href="assets/css/pages/landing3-motion.css">
+  <link rel="stylesheet" href="assets/css/pages/landing3-previews.css">
 </head>
 <body data-page="landing3">
   <header class="l3-header" id="top">
@@ -27,7 +28,8 @@
 
     <div class="l3-header-actions">
       <a class="l3-button l3-button--ghost" href="index.html?league=rcc">Live-Demo</a>
-      <button class="l3-button l3-button--primary" type="button" data-login-open>
+      <a class="l3-button l3-button--primary l3-register-cta" href="register.html">Jetzt registrieren</a>
+      <button class="l3-button l3-button--ghost" type="button" data-login-open>
         <span data-login-button-label>Login</span><span aria-hidden="true">→</span>
       </button>
     </div>
@@ -43,7 +45,8 @@
           <h1 id="l3-title">Deine Rennliga.<br><em>Immer griffbereit.</em></h1>
           <p class="l3-lead">Race Control Center läuft dort, wo du gerade bist. Ergebnisse am PC erfassen, Fahrer am Tablet verwalten, einen Steward-Fall am Smartphone bearbeiten oder unterwegs die Meisterschaft prüfen – dieselbe Liga, dieselben Daten, dieselbe Plattform.</p>
           <div class="l3-actions">
-            <a class="l3-button l3-button--primary l3-button--large" href="index.html?league=rcc">Live-Demo ansehen <span aria-hidden="true">→</span></a>
+            <a class="l3-button l3-button--primary l3-button--large l3-register-cta" href="register.html">Jetzt Liga registrieren <span aria-hidden="true">→</span></a>
+            <a class="l3-button l3-button--ghost l3-button--large" href="index.html?league=rcc">Live-Demo ansehen</a>
             <a class="l3-button l3-button--ghost l3-button--large" href="#experience">Erlebnis starten</a>
           </div>
           <div class="l3-badges" aria-label="Produkteigenschaften">
@@ -57,41 +60,27 @@
         <div class="l3-device-stage" aria-label="Race Control Center auf Desktop, Tablet und Smartphone">
           <div class="l3-desktop">
             <div class="l3-browser-top"><i></i><i></i><i></i><span>racecontrol.center</span></div>
-            <div class="l3-admin-ui">
-              <aside>
-                <b>RCC</b><span class="active"></span><span></span><span></span><span></span><span></span>
-              </aside>
-              <section>
-                <small>ADMIN CENTER</small>
-                <h3>Was möchtest du erledigen?</h3>
-                <div class="l3-admin-actions">
-                  <article><b>▣</b><span>Ergebnis eintragen</span></article>
-                  <article><b>🏁</b><span>Rennen verwalten</span></article>
-                  <article><b>F</b><span>Fahrer & Teams</span></article>
-                  <article><b>⚑</b><span>Steward-Fall</span></article>
-                </div>
-                <div class="l3-admin-status"><span><small>SAISON</small><strong>Season 14</strong></span><span><small>RENNEN</small><strong>24</strong></span><span><small>ENTWÜRFE</small><strong>0</strong></span></div>
-              </section>
+            <div class="l3-device-preview">
+              <iframe src="index.html?league=rcc" title="Race Control Center Race Hub auf Desktop" loading="eager" tabindex="-1"></iframe>
+              <span class="l3-preview-badge">Echte RCC Ansicht · Race Hub</span>
             </div>
           </div>
 
           <div class="l3-tablet">
             <div class="l3-tablet-screen">
-              <div class="l3-mini-brand"><img src="assets/images/logo.png" alt=""><span>RCC</span></div>
-              <small>RACE HUB</small>
-              <strong>Next Race</strong>
-              <div class="l3-next-race"><span>ROUND 09</span><b>Belgian GP</b><small>Spa · 20:00</small></div>
-              <div class="l3-two-cards"><span><small>WM P1</small><b>354</b></span><span><small>FORTSCHRITT</small><b>100%</b></span></div>
+              <div class="l3-device-preview">
+                <iframe src="fahrer-wm.html?league=rcc" title="Race Control Center Fahrer-WM auf Tablet" loading="eager" tabindex="-1"></iframe>
+                <span class="l3-preview-badge">Echte RCC Ansicht · Fahrer-WM</span>
+              </div>
             </div>
           </div>
 
           <div class="l3-phone">
             <div class="l3-phone-screen">
-              <div class="l3-phone-top"><img src="assets/images/logo.png" alt=""><span>RCC</span><i></i></div>
-              <small>ADMIN · MOBILE</small>
-              <strong>Quick Actions</strong>
-              <button>Ergebnis</button><button>Fahrer</button><button>Stewarding</button>
-              <div class="l3-phone-result"><small>Letztes Ergebnis</small><span><b>1</b>Aaron</span><span><b>2</b>Mo</span><span><b>3</b>Nils</span></div>
+              <div class="l3-device-preview">
+                <iframe src="ergebnisse.html?league=rcc" title="Race Control Center Ergebnisse auf Smartphone" loading="eager" tabindex="-1"></iframe>
+                <span class="l3-preview-badge">Echte RCC Ansicht · Ergebnisse</span>
+              </div>
             </div>
           </div>
 
@@ -170,8 +159,8 @@
 
     <section class="l3-cta">
       <div class="l3-shell l3-cta-inner">
-        <div><div class="l3-kicker"><span></span> Deine Liga. Deine Plattform.</div><h2>Race Management,<br><em>wo immer du bist.</em></h2><p>Teste RCC mit echten Renndaten oder melde dich direkt in deiner Liga an.</p></div>
-        <div class="l3-cta-actions"><a class="l3-button l3-button--light l3-button--large" href="index.html?league=rcc">Live-Demo</a><button class="l3-button l3-button--outline l3-button--large" type="button" data-login-open>Login</button></div>
+        <div><div class="l3-kicker"><span></span> Deine Liga. Deine Plattform.</div><h2>Race Management,<br><em>wo immer du bist.</em></h2><p>Teste RCC mit echten Renndaten oder registriere deine eigene Rennliga.</p></div>
+        <div class="l3-cta-actions"><a class="l3-button l3-button--light l3-button--large" href="register.html">Jetzt registrieren</a><a class="l3-button l3-button--outline l3-button--large" href="index.html?league=rcc">Live-Demo</a><button class="l3-button l3-button--outline l3-button--large" type="button" data-login-open>Login</button></div>
       </div>
     </section>
   </main>
