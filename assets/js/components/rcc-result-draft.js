@@ -1,6 +1,8 @@
 (() => {
   if (window.RCCResultDraft) return;
 
+  const WORKFLOW_REFRESH_TIMEOUT_MS = 8000;
+
   async function requireAdmin() {
     if (typeof window.requireAdminSession === 'function') return window.requireAdminSession();
     const { data, error } = await window.supabaseClient.auth.getSession();
@@ -26,6 +28,29 @@
       participation_status: String(row.participation_status || 'PLAYER').toUpperCase() === 'BOT' ? 'BOT' : 'PLAYER',
       raw_payload: row.raw_payload || null
     };
+  }
+
+  function refreshWorkflowInBackground() {
+    if (typeof window.renderPublishWorkflow !== 'function') return;
+
+    let timeoutId = null;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = window.setTimeout(
+        () => reject(new Error('Entwurfsübersicht-Refresh hat das Zeitlimit überschritten.')),
+        WORKFLOW_REFRESH_TIMEOUT_MS
+      );
+    });
+
+    Promise.race([
+      Promise.resolve().then(() => window.renderPublishWorkflow()),
+      timeout
+    ])
+      .catch((error) => {
+        console.warn('Entwurfsübersicht konnte nach dem Speichern nicht sofort aktualisiert werden.', error);
+      })
+      .finally(() => {
+        if (timeoutId) window.clearTimeout(timeoutId);
+      });
   }
 
   async function save({ raceId, rows = [], sourceFilename = 'Ergebnisentwurf' } = {}) {
@@ -92,15 +117,11 @@
       .eq('id', normalizedRaceId);
     if (raceError) throw raceError;
 
-    try {
-      await window.renderPublishWorkflow?.();
-    } catch (error) {
-      console.warn('Entwurfsübersicht konnte nach dem Speichern nicht sofort aktualisiert werden.', error);
-    }
-
     window.dispatchEvent(new CustomEvent('rcc:result-draft-saved', {
       detail: { raceId: normalizedRaceId, importId, sourceFilename: String(sourceFilename || '') }
     }));
+
+    refreshWorkflowInBackground();
 
     return { importId, rows: payloadRows };
   }
