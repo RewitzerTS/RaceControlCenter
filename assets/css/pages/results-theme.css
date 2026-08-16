@@ -154,6 +154,49 @@ body[data-page="ergebnisse"] .results-legend-pill--bot {
   box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 62%, transparent);
 }
 
+html.wm-dynamics-preview,
+html.wm-dynamics-preview body {
+  min-height: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+html.wm-dynamics-preview #site-header,
+html.wm-dynamics-preview #site-footer,
+html.wm-dynamics-preview main.section > .container:not(#wm-dynamics) {
+  display: none !important;
+}
+
+html.wm-dynamics-preview main.section {
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+html.wm-dynamics-preview #wm-dynamics {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 8px !important;
+}
+
+html.wm-dynamics-preview #wm-dynamics .results-chart-panel {
+  margin: 0 !important;
+  padding: 16px 14px 14px !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+html.wm-dynamics-preview #wm-dynamics .results-chart-heading-copy p {
+  font-size: .76rem;
+  line-height: 1.4;
+}
+
+html.wm-dynamics-preview #wm-dynamics .results-chart-frame {
+  min-height: 245px;
+  margin-top: 12px;
+}
+
 @media (max-width: 700px) {
   .results-chart-frame {
     min-height: 270px;
@@ -164,5 +207,32 @@ body[data-page="ergebnisse"] .results-legend-pill--bot {
 
   .results-chart-heading-copy p {
     font-size: .82rem;
+  }
+
+  html.wm-dynamics-preview #wm-dynamics {
+    padding: 4px !important;
+  }
+
+  html.wm-dynamics-preview #wm-dynamics .results-chart-panel {
+    padding: 12px 10px 10px !important;
+    border-radius: 14px !important;
+  }
+
+  html.wm-dynamics-preview #wm-dynamics .results-trend-heading {
+    margin-bottom: 0 !important;
+  }
+
+  html.wm-dynamics-preview #wm-dynamics .results-chart-heading-copy h3 {
+    font-size: 1.05rem !important;
+  }
+
+  html.wm-dynamics-preview #wm-dynamics .results-chart-heading-copy p,
+  html.wm-dynamics-preview #wm-dynamics .results-dynamics-note {
+    font-size: .68rem !important;
+  }
+
+  html.wm-dynamics-preview #wm-dynamics .results-chart-frame {
+    min-height: 230px;
+    margin: 10px 0 0;
   }
 }
