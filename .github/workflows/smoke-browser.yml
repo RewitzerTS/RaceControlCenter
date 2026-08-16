@@ -95,10 +95,58 @@ jobs:
             await page.waitForTimeout(300);
           };
 
+          const assertNavigation = async (page, testCase) => {
+            await page.waitForSelector('#site-header .main-nav', { timeout: 15000 });
+            await page.waitForFunction(() => document.querySelector('.brand')?.dataset?.directNavigation === 'true', { timeout: 5000 });
+
+            const state = await page.evaluate(() => {
+              const admin = document.querySelector('[data-admin-nav-link]');
+              const labels = [...document.querySelectorAll('.main-nav a .nav-label')];
+              return {
+                svgIcons: document.querySelectorAll('.main-nav svg.nav-icon').length,
+                pngIcons: document.querySelectorAll('.main-nav img.nav-icon').length,
+                hamburgerSvg: Boolean(document.querySelector('.mobile-toggle svg.mobile-toggle__svg')),
+                adminHidden: !admin || admin.hidden || getComputedStyle(admin).display === 'none',
+                directBrandNavigation: document.querySelector('.brand')?.dataset?.directNavigation === 'true',
+                labelBackgrounds: labels.map((label) => getComputedStyle(label).backgroundColor)
+              };
+            });
+
+            if (state.svgIcons < 8) throw new Error(`${testCase.name}: expected SVG navigation icons, got ${state.svgIcons}`);
+            if (state.pngIcons !== 0) throw new Error(`${testCase.name}: legacy PNG navigation icons remain`);
+            if (!state.hamburgerSvg) throw new Error(`${testCase.name}: hamburger SVG missing`);
+            if (!state.adminHidden) throw new Error(`${testCase.name}: anonymous user can see Admin navigation`);
+            if (!state.directBrandNavigation) throw new Error(`${testCase.name}: legacy logo shortcut was not removed`);
+
+            if (testCase.mobileNavigation) {
+              await page.locator('[data-nav-toggle]').click();
+              await page.waitForFunction(() => document.querySelector('[data-main-nav]')?.classList.contains('open'));
+              const mobile = await page.evaluate(() => {
+                const visibleLinks = [...document.querySelectorAll('.main-nav > a:not([hidden])')];
+                return visibleLinks.map((link) => {
+                  const label = link.querySelector('.nav-label');
+                  const icon = link.querySelector('.nav-icon');
+                  return {
+                    linkDisplay: getComputedStyle(link).display,
+                    labelBackground: label ? getComputedStyle(label).backgroundColor : '',
+                    iconDisplay: icon ? getComputedStyle(icon).display : 'none'
+                  };
+                });
+              });
+              if (!mobile.length) throw new Error(`${testCase.name}: mobile navigation has no visible links`);
+              if (mobile.some((item) => item.iconDisplay === 'none')) throw new Error(`${testCase.name}: mobile SVG icon hidden`);
+              if (mobile.some((item) => !['rgba(0, 0, 0, 0)', 'transparent'].includes(item.labelBackground))) {
+                throw new Error(`${testCase.name}: mobile label still has an independent background`);
+              }
+            }
+          };
+
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const cases = [
               { name: 'public-rcc-home', url: 'http://127.0.0.1:8080/index.html?league=rcc', selector: 'body' },
+              { name: 'race-hub-navigation-desktop', url: 'http://127.0.0.1:8080/race-hub.html?league=rcc', selector: 'body', navigation: true },
+              { name: 'race-hub-navigation-iphone', url: 'http://127.0.0.1:8080/race-hub.html?league=rcc', selector: 'body', viewport: { width: 393, height: 852 }, navigation: true, mobileNavigation: true },
               { name: 'rcc-admin-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#admin-login-form' },
               { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' },
               { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' },
@@ -137,6 +185,7 @@ jobs:
               if (!response || response.status() >= 400) throw new Error(`${testCase.name}: HTTP ${response?.status()}`);
               await page.waitForSelector(testCase.selector, { timeout: 15000 });
               await page.waitForTimeout(2500);
+              if (testCase.navigation) await assertNavigation(page, testCase);
               if (testCase.landing3) await assertLanding3(page, testCase);
 
               diagnostics.forEach((line) => console.log(`[${testCase.name}] ${line}`));
