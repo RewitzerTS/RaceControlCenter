@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Midnight Emblem</title>
+  <desc id="desc">Eigenständiges abstraktes Motorsport-Emblem ohne fremde Logos oder Wortmarken.</desc>
+  <circle cx="256" cy="256" r="178" fill="#D81F2A" stroke="#F6D31A" stroke-width="14"/>
+  <circle cx="256" cy="256" r="138" fill="#101A4A"/>
+  <path d="M164 206 H348 L312 258 L348 310 H164 L200 258 Z" fill="#F6D31A"/>
+  <circle cx="256" cy="258" r="44" fill="#D81F2A"/>
+</svg>

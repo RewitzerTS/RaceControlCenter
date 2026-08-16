@@ -1,6 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" role="img" aria-label="MCL logo">
-  <rect width="320" height="180" rx="20" fill="#FF8000"/>
-  <rect x="8" y="8" width="304" height="164" rx="14" fill="none" stroke="#111111" stroke-width="4" opacity="0.5"/>
-  <text x="160" y="94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700" fill="#111111">MCL</text>
-  <text x="160" y="128" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#111111" opacity="0.9">McLaren</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Papaya Roundel</title>
+  <desc id="desc">Eigenständiges abstraktes Motorsport-Emblem ohne fremde Logos oder Wortmarken.</desc>
+  <circle cx="256" cy="256" r="178" fill="#111318" stroke="#42D4E5" stroke-width="14"/>
+  <circle cx="256" cy="256" r="138" fill="#FF8700"/>
+  <path d="M164 206 H348 L312 258 L348 310 H164 L200 258 Z" fill="#42D4E5"/>
+  <circle cx="256" cy="258" r="44" fill="#111318"/>
 </svg>
