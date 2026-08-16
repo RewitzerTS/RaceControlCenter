@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+<title id="title">Liberty Crest</title><desc id="desc">Eigenständiges abstraktes Motorsport-Emblem ohne fremde Logos oder Wortmarken.</desc>
+<path d="M256 54 L408 112 L382 304 Q350 394 256 452 Q162 394 130 304 L104 112 Z" fill="#111318" stroke="#E2C266" stroke-width="14"/>
+<path d="M256 86 L378 132 L354 292 Q330 360 256 412 Q182 360 158 292 L134 132 Z" fill="#E8EAED"/>
+<path d="M176 176 H336 L306 240 H206 Z" fill="#111318"/>
+<circle cx="256" cy="290" r="54" fill="#C7A24E"/>
+<path d="M220 290 H292" stroke="#111318" stroke-width="20" stroke-linecap="round"/>
+</svg>
