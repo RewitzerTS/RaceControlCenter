@@ -69,7 +69,11 @@ jobs:
               htmlOverflowX: getComputedStyle(document.documentElement).overflowX,
               bodyOverflowX: getComputedStyle(document.body).overflowX,
               storySteps: document.querySelectorAll('[data-story-step]').length,
-              loginButtons: document.querySelectorAll('[data-login-open]').length
+              loginButtons: document.querySelectorAll('[data-login-open]').length,
+              visibleLoginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
+              registerLinks: document.querySelectorAll('a[href="register.html"]').length,
+              realPreviewFrames: document.querySelectorAll('.l3-device-preview iframe,.l3-story-preview iframe').length,
+              previewBadges: document.querySelectorAll('.l3-preview-badge').length
             }));
 
             const xOverflowClipped = ['hidden', 'clip'].includes(layout.htmlOverflowX) || ['hidden', 'clip'].includes(layout.bodyOverflowX);
@@ -77,7 +81,10 @@ jobs:
               throw new Error(`${testCase.name}: visible horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
             }
             if (layout.storySteps !== 4) throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
-            if (layout.loginButtons < 1) throw new Error(`${testCase.name}: login CTA missing`);
+            if (layout.loginButtons < 1 || layout.visibleLoginButtons < 1) throw new Error(`${testCase.name}: visible login CTA missing`);
+            if (layout.registerLinks < 2) throw new Error(`${testCase.name}: registration CTA missing`);
+            if (layout.realPreviewFrames < 6) throw new Error(`${testCase.name}: expected 6 real RCC preview frames, got ${layout.realPreviewFrames}`);
+            if (layout.previewBadges !== 0) throw new Error(`${testCase.name}: RCC preview badges should be removed`);
 
             await page.locator('[data-login-open]:visible').first().click();
             await page.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 5000 });
