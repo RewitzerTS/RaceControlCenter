@@ -1,0 +1,126 @@
+name: RaceVora Branding Smoke
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  racevora-brand-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify auth email templates
+        run: |
+          set -euo pipefail
+          templates=(
+            supabase/email-templates/racevora/confirm-signup.html
+            supabase/email-templates/racevora/reset-password.html
+            supabase/email-templates/racevora/invite-user.html
+            supabase/email-templates/racevora/magic-link.html
+            supabase/email-templates/racevora/change-email.html
+          )
+          for template in "${templates[@]}"; do
+            test -f "$template"
+            grep -q 'RaceVora' "$template"
+            grep -q '{{ .ConfirmationURL }}' "$template"
+            if grep -q 'Race Control Center' "$template"; then
+              echo "Legacy platform brand found in $template" >&2
+              exit 1
+            fi
+          done
+          grep -q '{{ .NewEmail }}' supabase/email-templates/racevora/change-email.html
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/racevora-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/index.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/racevora-http.log
+          exit 1
+
+      - name: Verify platform and tenant branding
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          const assertPlatformPage = async (page, path, selector) => {
+            const response = await page.goto(`http://127.0.0.1:8080/${path}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            if (!response || response.status() >= 400) throw new Error(`${path}: HTTP ${response?.status()}`);
+            await page.waitForSelector(selector, { timeout: 15000 });
+            await page.waitForTimeout(300);
+            const state = await page.evaluate(() => ({
+              title: document.title,
+              text: document.body.innerText,
+              svgIcon: document.querySelector('link[rel="icon"][type="image/svg+xml"]')?.getAttribute('href') || ''
+            }));
+            if (!state.title.startsWith('RaceVora')) throw new Error(`${path}: title is not RaceVora: ${state.title}`);
+            if (state.text.includes('Race Control Center') || /\bRCC\b/.test(state.text)) {
+              throw new Error(`${path}: visible legacy platform brand remains`);
+            }
+            if (state.svgIcon && !state.svgIcon.includes('racevora-mark.svg')) throw new Error(`${path}: legacy favicon remains`);
+          };
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+
+            await assertPlatformPage(page, 'index.html', '.l3-hero');
+            await assertPlatformPage(page, 'register.html', '#league-registration-form');
+            await assertPlatformPage(page, 'forgot-password.html', '#password-recovery-form');
+            await assertPlatformPage(page, 'set-password.html', '#password-setup-status');
+            await assertPlatformPage(page, 'account-setup.html', '#setup-title');
+
+            for (const legacyPath of ['landing.html?legacy=1#platform', 'landing2.html?legacy=1#roles']) {
+              await page.goto(`http://127.0.0.1:8080/${legacyPath}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+              await page.waitForURL(/\/index\.html\?legacy=1#(?:platform|roles)$/i, { timeout: 5000 });
+            }
+
+            const manifestResponse = await page.request.get('http://127.0.0.1:8080/manifest.json');
+            if (!manifestResponse.ok()) throw new Error(`manifest: HTTP ${manifestResponse.status()}`);
+            const manifest = await manifestResponse.json();
+            if (manifest.name !== 'RaceVora' || manifest.short_name !== 'RaceVora') throw new Error('manifest is not branded RaceVora');
+            if (!manifest.icons?.some((icon) => String(icon.src).includes('racevora-mark.svg'))) throw new Error('RaceVora manifest icon missing');
+
+            await page.goto('http://127.0.0.1:8080/race-hub.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('.brand-title', { timeout: 15000 });
+            await page.waitForFunction(() => document.querySelector('.brand-title')?.textContent?.trim() === 'Race Control Center', { timeout: 15000 });
+            const rccState = await page.evaluate(() => ({
+              title: document.title,
+              brand: document.querySelector('.brand-title')?.textContent?.trim(),
+              slug: document.documentElement.dataset.leagueSlug || ''
+            }));
+            if (rccState.brand !== 'Race Control Center') throw new Error(`rcc brand changed: ${rccState.brand}`);
+            if (!rccState.title.startsWith('Race Control Center')) throw new Error(`rcc title changed: ${rccState.title}`);
+            if (rccState.slug !== 'rcc') throw new Error(`rcc tenant context changed: ${rccState.slug}`);
+
+            console.log('PASS RaceVora platform branding');
+            console.log('PASS rcc tenant branding preserved');
+            await browser.close();
+          })().catch((error) => {
+            const message = String(error?.message || error || 'Unknown branding smoke failure').replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+            console.error(error);
+            console.error(`::error title=RaceVora branding smoke failed::${message}`);
+            process.exit(1);
+          });
+          NODE
