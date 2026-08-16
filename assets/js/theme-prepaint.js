@@ -55,11 +55,23 @@
     root.dataset.leagueThemePrepaint = 'true';
   }
 
+  function persistFreshCache() {
+    try {
+      const raw = sessionStorage.getItem(CACHE_KEY);
+      if (!raw) return;
+      const cached = JSON.parse(raw);
+      if (!cached || cached.slug !== requestedSlug() || !cached.settings) return;
+      localStorage.setItem(CACHE_KEY, raw);
+    } catch (_) {}
+  }
+
   try {
     const raw = localStorage.getItem(CACHE_KEY) || sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return;
-    const cached = JSON.parse(raw);
-    if (!cached || cached.slug !== requestedSlug() || !cached.settings) return;
-    apply(cached.settings);
+    if (raw) {
+      const cached = JSON.parse(raw);
+      if (cached && cached.slug === requestedSlug() && cached.settings) apply(cached.settings);
+    }
   } catch (_) {}
+
+  window.addEventListener('rcc:league-branding-applied', persistFreshCache);
 })();
