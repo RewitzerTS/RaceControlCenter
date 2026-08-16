@@ -59,6 +59,106 @@ function clearTenantUiCaches() {
 
 const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
 
+// RaceVora is the platform brand. Tenant branding replaces these fallbacks once
+// the requested league has loaded; the productive `rcc` league data is never
+// rewritten here.
+(() => {
+  const PLATFORM_NAME = 'RaceVora';
+  const PLATFORM_MARK = 'assets/images/racevora-mark.svg';
+
+  function replaceStaticPlatformTitle() {
+    const current = String(document.title || '');
+    if (/^Race Control Center\s*·/i.test(current)) {
+      document.title = current.replace(/^Race Control Center\s*·/i, `${PLATFORM_NAME} ·`);
+    } else if (/^RCC\s*·/i.test(current)) {
+      document.title = current.replace(/^RCC\s*·/i, `${PLATFORM_NAME} ·`);
+    }
+  }
+
+  function ensurePlatformMetadata() {
+    replaceStaticPlatformTitle();
+    const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if (appleTitle && /^(RCC|Race Control Center)$/i.test(String(appleTitle.content || '').trim())) {
+      appleTitle.content = PLATFORM_NAME;
+    }
+
+    const existingSvgIcon = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+    if (!existingSvgIcon) {
+      const icon = document.createElement('link');
+      icon.rel = 'icon';
+      icon.type = 'image/svg+xml';
+      icon.href = PLATFORM_MARK;
+      document.head.appendChild(icon);
+    }
+  }
+
+  function replaceVisiblePlatformFallbacks(root = document) {
+    root.querySelectorAll?.('.f1-loader p').forEach((node) => {
+      if (/^Race Control lädt/i.test(String(node.textContent || '').trim())) node.textContent = 'RaceVora lädt…';
+    });
+
+    if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG) {
+      root.querySelectorAll?.('.brand-subtitle').forEach((node) => {
+        if (/^Race Control Center$/i.test(String(node.textContent || '').trim())) node.textContent = PLATFORM_NAME;
+      });
+      root.querySelectorAll?.('.league-brand-footer').forEach((node) => {
+        if (String(node.textContent || '').includes(' · Race Control Center')) {
+          node.textContent = String(node.textContent || '').replace(' · Race Control Center', ` · ${PLATFORM_NAME}`);
+        }
+      });
+    }
+  }
+
+  function patchThemePresetLabels() {
+    const presets = window.RCCThemePresets;
+    if (!presets || presets.__raceVoraLabelsPatched) return;
+    const mapTheme = (theme) => {
+      if (!theme || String(theme.id) !== '0') return theme;
+      return {
+        ...theme,
+        name: theme.name === 'RCC Standard' ? 'RaceVora Standard' : theme.name,
+        subtitle: theme.subtitle === 'RCC Violett & Teal' ? 'RaceVora Violett & Teal' : theme.subtitle
+      };
+    };
+    const nativeAll = presets.all?.bind(presets);
+    const nativeGet = presets.get?.bind(presets);
+    const nativeMatch = presets.match?.bind(presets);
+    if (nativeAll) presets.all = () => nativeAll().map(mapTheme);
+    if (nativeGet) presets.get = (id) => mapTheme(nativeGet(id));
+    if (nativeMatch) presets.match = (settings) => mapTheme(nativeMatch(settings));
+    presets.__raceVoraLabelsPatched = true;
+  }
+
+  ensurePlatformMetadata();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      ensurePlatformMetadata();
+      replaceVisiblePlatformFallbacks(document);
+      patchThemePresetLabels();
+    }, { once: true });
+  } else {
+    replaceVisiblePlatformFallbacks(document);
+    patchThemePresetLabels();
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        replaceVisiblePlatformFallbacks(node);
+      });
+    }
+  });
+  const startObserver = () => document.body && observer.observe(document.body, { childList: true, subtree: true });
+  if (document.body) startObserver();
+  else document.addEventListener('DOMContentLoaded', startObserver, { once: true });
+
+  window.addEventListener('rcc:league-branding-applied', () => {
+    replaceVisiblePlatformFallbacks(document);
+    patchThemePresetLabels();
+  });
+})();
+
 try {
   const previousTenant = window.sessionStorage?.getItem(RCC_TENANT_CACHE_KEY);
   if (previousTenant && previousTenant !== RCC_REQUEST_LEAGUE_SLUG) {

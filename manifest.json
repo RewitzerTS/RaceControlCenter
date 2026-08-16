@@ -1,24 +1,18 @@
 {
-  "name": "Race Control Center",
-  "short_name": "RCC",
-  "description": "Race Control Center für Liga-Rennen, Ergebnisse, Stewards und Meisterschaften.",
+  "name": "RaceVora",
+  "short_name": "RaceVora",
+  "description": "RaceVora für Liga-Rennen, Ergebnisse, Stewarding und Meisterschaften.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0B0F1A",
-  "theme_color": "#0B0F1A",
+  "background_color": "#07111F",
+  "theme_color": "#07111F",
   "icons": [
     {
-      "src": "assets/icons/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "assets/images/logo.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any"
+      "src": "assets/images/racevora-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

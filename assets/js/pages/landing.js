@@ -175,12 +175,12 @@
 
     if (!session?.user) {
       setFormVisible(true);
-      if (intro) intro.textContent = 'Melde dich mit deinem RCC-Account an. Danach kannst du direkt deine Rennliga auswählen.';
+      if (intro) intro.textContent = 'Melde dich mit deinem RaceVora-Account an. Danach kannst du direkt deine Rennliga auswählen.';
       return;
     }
 
     setFormVisible(false);
-    if (intro) intro.textContent = `Angemeldet als ${session.user.email || 'RCC-Nutzer'}. Wähle die Liga, die du verwalten möchtest.`;
+    if (intro) intro.textContent = `Angemeldet als ${session.user.email || 'RaceVora-Nutzer'}. Wähle die Liga, die du verwalten möchtest.`;
     setFeedback('Ligen werden geladen …');
 
     try {
@@ -218,7 +218,7 @@
         clearLeaguePicker();
         setFeedback('');
         setFormVisible(true);
-        if (intro) intro.textContent = 'Melde dich mit deinem RCC-Account an. Danach kannst du direkt deine Rennliga auswählen.';
+        if (intro) intro.textContent = 'Melde dich mit deinem RaceVora-Account an. Danach kannst du direkt deine Rennliga auswählen.';
         emailInput?.focus?.();
       });
 
