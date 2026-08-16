@@ -86,5 +86,22 @@
   <script defer src="assets/js/app.js"></script>
   <script defer src="assets/js/pages/results.js"></script>
   <script defer src="assets/js/pages/results-enhancements.js"></script>
+  <script>
+    (() => {
+      if (location.hash !== '#wm-dynamics') return;
+      const focusDynamics = () => {
+        const target = document.getElementById('wm-dynamics');
+        if (!target) return;
+        const y = target.getBoundingClientRect().top + window.scrollY - 12;
+        window.scrollTo({ top: Math.max(0, y), behavior: 'auto' });
+      };
+      addEventListener('DOMContentLoaded', () => requestAnimationFrame(focusDynamics), { once: true });
+      addEventListener('load', () => {
+        focusDynamics();
+        setTimeout(focusDynamics, 350);
+        setTimeout(focusDynamics, 1200);
+      }, { once: true });
+    })();
+  </script>
 </body>
 </html>
