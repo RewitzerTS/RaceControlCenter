@@ -12,6 +12,14 @@ Produktiv: `https://racevora.com`
 - **Tenant-/Liga-Branding:** individuell pro Liga
 - **Produktive Bestandsliga:** `rcc` / Race Control Center — ihre Daten und ihr Liga-Branding dürfen bei Plattformänderungen nicht überschrieben oder zurückgesetzt werden.
 
+## Marke & Messaging
+
+RaceVora ist bewusst kein Akronym. **Race** verankert die Marke klar im Motorsport und Simracing; **Vora** ist ein Kunstwort mit der Assoziation *vor / vorne / vorwärts / Vorsprung*. Die zentrale Markenidee lautet: RaceVora bringt Rennligen organisatorisch und sportlich nach vorne.
+
+Primäre Plattform-Tagline: **Your League. Your Race. One Platform.**
+
+Die vollständige Brand Story, Messaging-Säulen, Claims und Sprachregeln stehen in [`docs/racevora-brand-story.md`](docs/racevora-brand-story.md).
+
 ## Wichtige Routen
 
 - `/` / `index.html` – öffentliche RaceVora-Landingpage
