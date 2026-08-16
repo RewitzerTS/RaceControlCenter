@@ -44,6 +44,56 @@ function ensureLeagueBrandingService(){
   document.head.appendChild(s);
 }
 
+let rccAdminBrandingOnboardingPromise=null;
+function waitForAdminBrandingPrerequisites(timeoutMs=5000){
+  if(window.supabaseClient&&window.RCCData&&window.RCCThemePresets)return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const started=Date.now();
+    const timer=window.setInterval(()=>{
+      if(window.supabaseClient&&window.RCCData&&window.RCCThemePresets){window.clearInterval(timer);resolve();return;}
+      if(Date.now()-started>=timeoutMs){window.clearInterval(timer);reject(new Error('Branding-Onboarding Voraussetzungen konnten nicht geladen werden.'));}
+    },50);
+  });
+}
+function loadAdminOnboardingScript(src,globalName){
+  if(window[globalName])return Promise.resolve(window[globalName]);
+  return new Promise((resolve,reject)=>{
+    const existing=[...document.scripts].find(script=>{
+      const value=script.getAttribute('src')||'';
+      return value===src||value.endsWith(`/${src}`);
+    });
+    const done=()=>{
+      if(window[globalName])resolve(window[globalName]);
+      else reject(new Error(`${globalName} wurde nicht initialisiert.`));
+    };
+    if(existing){
+      existing.addEventListener('load',done,{once:true});
+      existing.addEventListener('error',()=>reject(new Error(`${src} konnte nicht geladen werden.`)),{once:true});
+      window.setTimeout(()=>{if(window[globalName])resolve(window[globalName]);},0);
+      return;
+    }
+    const script=document.createElement('script');
+    script.src=src;
+    script.defer=true;
+    script.onload=done;
+    script.onerror=()=>reject(new Error(`${src} konnte nicht geladen werden.`));
+    document.head.appendChild(script);
+  });
+}
+async function ensureAdminLeagueBrandingOnboarding(){
+  const requested=document.body?.dataset?.page==='admin'&&new URLSearchParams(window.location.search).get('onboarding')==='1';
+  if(!requested)return null;
+  if(rccAdminBrandingOnboardingPromise)return rccAdminBrandingOnboardingPromise;
+  rccAdminBrandingOnboardingPromise=(async()=>{
+    await waitForAdminBrandingPrerequisites();
+    await loadAdminOnboardingScript('assets/js/components/rcc-wizard-dialog.js','RCCWizardDialog');
+    const onboarding=await loadAdminOnboardingScript('assets/js/pages/admin-league-branding-onboarding.js','RCCLeagueBrandingOnboarding');
+    await onboarding?.init?.();
+    return onboarding||null;
+  })().catch(error=>{console.warn('RCC Branding-Onboarding konnte nicht gestartet werden.',error);return null;}).finally(()=>{rccAdminBrandingOnboardingPromise=null;});
+  return rccAdminBrandingOnboardingPromise;
+}
+
 function getPreferredLanguage(){const v=localStorage.getItem(RCC_LANGUAGE_STORAGE_KEY);return RCC_SUPPORTED_LANGUAGES.includes(v)?v:'de';}
 function applyPreferredLanguage(){document.documentElement.lang=getPreferredLanguage();}
 function getPreferredTheme(){const v=localStorage.getItem(RCC_THEME_STORAGE_KEY);return RCC_SUPPORTED_THEMES.includes(v)?v:'dark';}
@@ -68,7 +118,7 @@ async function applyLanguageSelection(selectedLanguage,{forceReload=false}={}){d
 window.resolveCurrentPage=resolveCurrentPage;window.updateActiveNavigation=updateActiveNavigation;window.loadSiteLayout=loadSiteLayout;window.preserveLeagueContextInLinks=preserveLeagueContextInLinks;window.withLeagueContextHref=withLeagueContextHref;
 ensureUxPassStylesheet();
 ensureLeagueBrandingService();
-document.addEventListener('DOMContentLoaded',loadSiteLayout);document.addEventListener('DOMContentLoaded',applyPreferredLanguage);document.addEventListener('DOMContentLoaded',applyThemePreference);document.addEventListener('DOMContentLoaded',relabelAdminTabs);document.addEventListener('DOMContentLoaded',()=>{const p=getPreferredLanguage();if(p!==RCC_SOURCE_LANGUAGE)applyLanguageSelection(p);});
+document.addEventListener('DOMContentLoaded',loadSiteLayout);document.addEventListener('DOMContentLoaded',applyPreferredLanguage);document.addEventListener('DOMContentLoaded',applyThemePreference);document.addEventListener('DOMContentLoaded',relabelAdminTabs);document.addEventListener('DOMContentLoaded',()=>{const p=getPreferredLanguage();if(p!==RCC_SOURCE_LANGUAGE)applyLanguageSelection(p);});document.addEventListener('DOMContentLoaded',()=>{ensureAdminLeagueBrandingOnboarding();});window.addEventListener('rcc:league-context-ready',()=>{ensureAdminLeagueBrandingOnboarding();});
 function setupAdminShortcut(){const b=document.querySelector('.brand');if(!b||b.dataset.adminShortcutBound==='true')return;const home=b.getAttribute('href')||'index.html';let timer=null;b.addEventListener('click',e=>{e.preventDefault();if(timer)clearTimeout(timer);timer=window.setTimeout(()=>{window.location.href=withLeagueContextHref(home);},220);});b.addEventListener('dblclick',e=>{e.preventDefault();if(timer){clearTimeout(timer);timer=null;}window.location.href=withLeagueContextHref('admin.html');});b.dataset.adminShortcutBound='true';}
 document.addEventListener('layout:loaded',setupAdminShortcut);
 function setupThemeSelector(){const s=document.querySelector('#footer-theme-select');if(!s||s.dataset.initialized==='true')return;s.value=getPreferredTheme();s.addEventListener('change',e=>{const v=e.target.value;if(!RCC_SUPPORTED_THEMES.includes(v))return;localStorage.setItem(RCC_THEME_STORAGE_KEY,v);applyThemePreference();});const m=window.matchMedia('(prefers-color-scheme: light)');const change=()=>{if(getPreferredTheme()==='system')applyThemePreference();};if(typeof m.addEventListener==='function')m.addEventListener('change',change);else if(typeof m.addListener==='function')m.addListener(change);s.dataset.initialized='true';}
