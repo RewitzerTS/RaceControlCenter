@@ -7,6 +7,10 @@
   const META_NAME = 'rcc_pending_league_name';
   const META_SLUG = 'rcc_pending_league_slug';
   const META_PUBLIC = 'rcc_pending_league_public';
+  const RESERVED_SLUGS = new Set([
+    'admin', 'api', 'app', 'auth', 'login', 'logout', 'signup', 'register',
+    'support', 'help', 'www', 'racecontrolcenter', 'racevora'
+  ]);
 
   const status = document.getElementById('setup-status');
   const spinner = document.getElementById('setup-spinner');
@@ -175,18 +179,35 @@
     });
   }
 
+  async function sha256Key(value) {
+    if (!window.crypto?.subtle || typeof TextEncoder === 'undefined') {
+      throw new Error('Die sichere Liga-Prüfung wird von diesem Browser nicht unterstützt.');
+    }
+    const bytes = new TextEncoder().encode(String(value || ''));
+    const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  }
+
   async function checkAvailability(pending) {
-    const { data, error } = await window.supabaseClient.rpc('check_league_registration_availability', {
-      p_name: pending.leagueName,
-      p_slug: pending.leagueSlug
-    });
+    const normalizedName = String(pending?.leagueName || '').trim().toLowerCase();
+    const normalizedSlug = slugify(pending?.leagueSlug || '');
+    const slugReserved = RESERVED_SLUGS.has(normalizedSlug);
+    const [nameKey, slugKey] = await Promise.all([
+      sha256Key(normalizedName),
+      sha256Key(normalizedSlug)
+    ]);
+
+    const { data, error } = await window.supabaseClient
+      .from('league_registration_keys')
+      .select('name_key, slug_key')
+      .or(`name_key.eq.${nameKey},slug_key.eq.${slugKey}`);
+
     if (error) throw error;
 
-    const availability = Array.isArray(data) ? data[0] : data;
-    if (!availability) throw new Error('Die Liga-Verfügbarkeit konnte nicht geprüft werden.');
-    if (!availability.name_available) throw new Error('League name already exists');
-    if (availability.slug_reserved) throw new Error('This league slug is reserved');
-    if (!availability.slug_available) throw new Error('League slug already exists');
+    const rows = Array.isArray(data) ? data : [];
+    if (rows.some((row) => row?.name_key === nameKey)) throw new Error('League name already exists');
+    if (slugReserved) throw new Error('This league slug is reserved');
+    if (rows.some((row) => row?.slug_key === slugKey)) throw new Error('League slug already exists');
   }
 
   async function findExistingPendingLeague(session, pending) {
@@ -313,9 +334,6 @@
         throw new Error('Der angemeldete Account passt nicht zur begonnenen Registrierung.');
       }
 
-      // If the create RPC already succeeded but the browser was interrupted
-      // before cleanup/redirect, continue idempotently instead of creating a
-      // duplicate league or surfacing a false availability conflict.
       const existingPendingLeague = await findExistingPendingLeague(session, pending);
       if (existingPendingLeague) {
         await finish(existingPendingLeague);
