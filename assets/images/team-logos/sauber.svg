@@ -1,6 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" role="img" aria-label="SAU logo">
-  <rect width="320" height="180" rx="20" fill="#52E252"/>
-  <rect x="8" y="8" width="304" height="164" rx="14" fill="none" stroke="#111111" stroke-width="4" opacity="0.5"/>
-  <text x="160" y="94" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="700" fill="#111111">SAU</text>
-  <text x="160" y="128" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500" fill="#111111" opacity="0.9">Sauber</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Neon Hex</title>
+  <desc id="desc">Eigenständiges abstraktes Motorsport-Emblem ohne fremde Logos oder Wortmarken.</desc>
+  <path d="M256 58 L408 146 L408 322 L256 410 L104 322 L104 146 Z" fill="#B7FF00" stroke="#D8D8D8" stroke-width="14"/>
+  <path d="M256 92 L378 162 L378 306 L256 376 L134 306 L134 162 Z" fill="#090909"/>
+  <path d="M184 190 H328 L352 256 L328 322 H184 L160 256 Z" fill="#D8D8D8"/>
+  <circle cx="256" cy="256" r="46" fill="#B7FF00"/>
 </svg>
