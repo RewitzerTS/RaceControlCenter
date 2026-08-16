@@ -3,6 +3,16 @@
 
   const ONBOARDING_DRAFT_PREFIX = 'rcc_league_onboarding_draft_v1:';
 
+  if (document.body?.dataset.page === 'admin' && !window.RCCAdminLoginGuard) {
+    const existing = document.querySelector('script[data-rcc-admin-login-guard="true"]');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'assets/js/components/rcc-admin-login-guard.js';
+      script.dataset.rccAdminLoginGuard = 'true';
+      document.head.appendChild(script);
+    }
+  }
+
   function ensureStylesheet() {
     if (document.querySelector('link[data-rcc-wizard-dialog="true"]')) return;
     const link = document.createElement('link');
