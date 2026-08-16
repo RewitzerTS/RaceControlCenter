@@ -99,20 +99,8 @@ jobs:
               { name: 'rcc-admin-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#admin-login-form' },
               { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' },
               { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' },
-              {
-                name: 'landing3-desktop',
-                url: 'http://127.0.0.1:8080/landing3.html',
-                selector: '.l3-hero',
-                viewport: { width: 1440, height: 1000 },
-                landing3: true
-              },
-              {
-                name: 'landing3-iphone',
-                url: 'http://127.0.0.1:8080/landing3.html',
-                selector: '.l3-hero',
-                viewport: { width: 393, height: 852 },
-                landing3: true
-              }
+              { name: 'landing3-desktop', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 1440, height: 1000 }, landing3: true },
+              { name: 'landing3-iphone', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 393, height: 852 }, landing3: true }
             ];
 
             for (const testCase of cases) {
@@ -127,9 +115,6 @@ jobs:
                 const kind = classifyUrl(url);
                 const detail = `requestfailed: ${errorText} ${url}`;
                 diagnostics.push(detail);
-
-                // Browser navigation and query refreshes may intentionally abort an in-flight
-                // Supabase request. Only non-abort failures are considered fatal.
                 if (kind === 'supabase' && errorText !== 'net::ERR_ABORTED') fatalErrors.push(detail);
                 if (kind === 'local' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
@@ -139,34 +124,29 @@ jobs:
                 const kind = classifyUrl(url);
                 const detail = `response: HTTP ${response.status()} ${url}`;
                 diagnostics.push(detail);
-                if (kind === 'local' || kind === 'supabase' || kind === 'critical-external' || kind === 'unknown') {
-                  fatalErrors.push(detail);
-                }
+                if (kind === 'local' || kind === 'supabase' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
               page.on('console', (message) => {
                 if (message.type() === 'error') diagnostics.push(`console: ${message.text()}`);
               });
 
               const response = await page.goto(testCase.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-              if (!response || response.status() >= 400) {
-                throw new Error(`${testCase.name}: HTTP ${response?.status()}`);
-              }
+              if (!response || response.status() >= 400) throw new Error(`${testCase.name}: HTTP ${response?.status()}`);
               await page.waitForSelector(testCase.selector, { timeout: 15000 });
               await page.waitForTimeout(2500);
-
               if (testCase.landing3) await assertLanding3(page, testCase);
 
               diagnostics.forEach((line) => console.log(`[${testCase.name}] ${line}`));
-              if (fatalErrors.length) {
-                throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
-              }
+              if (fatalErrors.length) throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
               console.log(`PASS ${testCase.name}`);
               await page.close();
             }
 
             await browser.close();
           })().catch((error) => {
+            const message = String(error?.message || error || 'Unknown browser smoke failure').replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
             console.error(error);
+            console.error(`::error title=Browser smoke failed::${message}`);
             process.exit(1);
           });
           NODE
