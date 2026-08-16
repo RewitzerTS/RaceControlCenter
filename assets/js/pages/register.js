@@ -30,6 +30,10 @@
       .slice(0, 50);
   }
 
+  function confirmationRedirectUrl() {
+    return new URL('register.html?confirmed=1', window.location.href).toString();
+  }
+
   function setFeedback(message = '', level = 'info') {
     if (!feedback) return;
     feedback.hidden = !message;
@@ -118,6 +122,35 @@
     window.location.assign(target.toString());
   }
 
+  async function resendConfirmation(pending, button) {
+    if (busy || !window.supabaseClient?.auth || !pending?.email) return;
+    const originalLabel = button?.textContent || 'Bestätigungs-E-Mail erneut senden';
+    try {
+      busy = true;
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'E-Mail wird gesendet …';
+      }
+      setFeedback('Bestätigungs-E-Mail wird erneut gesendet …');
+      const { error } = await window.supabaseClient.auth.resend({
+        type: 'signup',
+        email: pending.email,
+        options: { emailRedirectTo: confirmationRedirectUrl() }
+      });
+      if (error) throw error;
+      setFeedback(`Eine neue Bestätigungs-E-Mail wurde an ${pending.email} gesendet.`, 'success');
+    } catch (error) {
+      console.error('Signup confirmation resend failed:', error);
+      setFeedback(error?.message || 'Die Bestätigungs-E-Mail konnte nicht erneut gesendet werden.', 'error');
+    } finally {
+      busy = false;
+      if (button) {
+        button.disabled = false;
+        button.textContent = originalLabel;
+      }
+    }
+  }
+
   function renderPendingState(pending) {
     if (!resume || !pending) return;
     resume.hidden = false;
@@ -125,15 +158,21 @@
 
     const text = document.createElement('span');
     text.textContent = `Registrierung für „${pending.leagueName}“ mit ${pending.email} wartet auf E-Mail-Bestätigung.`;
+
+    const resend = document.createElement('button');
+    resend.type = 'button';
+    resend.textContent = 'Bestätigungs-E-Mail erneut senden';
+    resend.addEventListener('click', () => resendConfirmation(pending, resend));
+
     const clear = document.createElement('button');
     clear.type = 'button';
     clear.textContent = 'Registrierung verwerfen';
     clear.addEventListener('click', () => {
       clearPending();
       resume.hidden = true;
-      setFeedback('Die begonnene Registrierung wurde verworfen.');
+      setFeedback('Die begonnene Registrierung wurde lokal verworfen. Ein bereits angelegter, noch unbestätigter Account bleibt bestehen und kann über „Bestätigungs-E-Mail erneut senden“ fortgesetzt werden.');
     });
-    resume.append(text, clear);
+    resume.append(text, resend, clear);
   }
 
   async function submitRegistration(event) {
@@ -147,11 +186,10 @@
       setBusy(true, 'Account wird erstellt …');
       setFeedback('Account wird erstellt …');
 
-      const redirectUrl = new URL('register.html?confirmed=1', window.location.href).toString();
       const { data, error } = await window.supabaseClient.auth.signUp({
         email: payload.email,
         password: String(passwordInput?.value || ''),
-        options: { emailRedirectTo: redirectUrl }
+        options: { emailRedirectTo: confirmationRedirectUrl() }
       });
       if (error) throw error;
 
@@ -163,7 +201,7 @@
         return;
       }
 
-      setFeedback('Fast geschafft: Bitte bestätige jetzt deine E-Mail-Adresse. Danach wird die Liga-Einrichtung fortgesetzt.', 'success');
+      setFeedback('Fast geschafft: Bitte bestätige jetzt deine E-Mail-Adresse. Falls keine Mail ankommt, kannst du sie oben erneut senden.', 'success');
     } catch (error) {
       console.error('Liga-Leitung registration failed:', error);
       setFeedback(error?.message || 'Die Registrierung konnte nicht abgeschlossen werden.', 'error');
