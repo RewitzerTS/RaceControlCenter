@@ -24,6 +24,55 @@
     steward: 'Steward'
   };
 
+  function installPasswordToggle(input) {
+    if (!input || input.dataset.passwordToggleReady === '1') return;
+    input.dataset.passwordToggleReady = '1';
+
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'relative';
+    wrapper.style.display = 'block';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+    input.style.paddingRight = '52px';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Passwort anzeigen');
+    button.setAttribute('aria-pressed', 'false');
+    button.title = 'Passwort anzeigen';
+    button.textContent = '◉';
+    Object.assign(button.style, {
+      position: 'absolute',
+      right: '8px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      width: '36px',
+      height: '36px',
+      border: '0',
+      borderRadius: '9px',
+      background: 'transparent',
+      color: '#9eafc2',
+      fontSize: '18px',
+      lineHeight: '1',
+      cursor: 'pointer',
+      zIndex: '2'
+    });
+
+    button.addEventListener('click', () => {
+      const visible = input.type === 'text';
+      input.type = visible ? 'password' : 'text';
+      button.setAttribute('aria-pressed', String(!visible));
+      button.setAttribute('aria-label', visible ? 'Passwort anzeigen' : 'Passwort verbergen');
+      button.title = visible ? 'Passwort anzeigen' : 'Passwort verbergen';
+      button.textContent = visible ? '◉' : '◌';
+      input.focus({ preventScroll: true });
+      const length = input.value.length;
+      input.setSelectionRange?.(length, length);
+    });
+
+    wrapper.appendChild(button);
+  }
+
   function setFeedback(message = '', level = 'info') {
     if (!feedback) return;
     feedback.hidden = !message;
@@ -256,6 +305,8 @@
   }
 
   function bindEvents() {
+    installPasswordToggle(passwordInput);
+
     document.querySelectorAll('[data-login-open]').forEach((button) => {
       button.addEventListener('click', () => openModal(button));
     });
