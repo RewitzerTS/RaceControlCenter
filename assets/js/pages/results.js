@@ -135,9 +135,6 @@ function buildMatrixData(drivers, races, raceResults, resolver) {
   const fastestByRace = new Map();
   completedRaces.forEach((race) => fastestByRace.set(race.id, window.RCCData.getFastestLapDriverId(resultsByRace.get(race.id) || [])));
 
-  // Results can be driven by a BOT/substitute while the championship points
-  // belong to the real season driver. Group the matrix by points owner, just
-  // like the Fahrer-WM calculation does.
   const rows = drivers.map((driver) => {
     const raceCells = completedRaces.map((race) => {
       const sourceRows = resultsByRace.get(race.id) || [];
@@ -274,6 +271,12 @@ function renderTrendChart(matrixData) {
   });
 }
 
+function renderNoActiveSeason(wrap, labelEl) {
+  labelEl.textContent = 'Keine aktive Saison';
+  wrap.innerHTML = '<div class="notice">Für diese Liga ist aktuell keine aktive Saison eingerichtet. Sobald eine Saison angelegt oder aktiviert wurde, erscheinen hier Ergebnisse und Punkteverläufe.</div>';
+  document.querySelectorAll('.results-chart-panel').forEach((panel) => { panel.hidden = true; });
+}
+
 async function loadResultsPage() {
   const wrap = document.getElementById('results-matrix-wrap');
   const labelEl = document.getElementById('results-matrix-label');
@@ -283,10 +286,15 @@ async function loadResultsPage() {
 
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
+    if (!currentSeason?.id) {
+      renderNoActiveSeason(wrap, labelEl);
+      return;
+    }
+
     const [drivers, races, assignments] = await Promise.all([
       window.RCCData.fetchDrivers(),
-      window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
-      window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason?.id })
+      window.RCCData.fetchRaces({ seasonId: currentSeason.id }),
+      window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: currentSeason.id })
     ]);
     const raceIds = (races || []).map((race) => race.id).filter(Boolean);
     const raceResults = raceIds.length ? await window.RCCData.fetchRaceResults({ raceIds }) : [];
