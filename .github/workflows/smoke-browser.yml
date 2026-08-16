@@ -58,17 +58,49 @@ jobs:
             }
           };
 
+          const assertLanding3 = async (page, testCase) => {
+            await page.waitForSelector('.l3-hero', { timeout: 15000 });
+            await page.waitForSelector('.l3-scroll-story', { timeout: 15000 });
+            await page.waitForSelector('[data-story-step="0"]', { timeout: 15000 });
+
+            const layout = await page.evaluate(() => ({
+              innerWidth: window.innerWidth,
+              scrollWidth: document.documentElement.scrollWidth,
+              htmlOverflowX: getComputedStyle(document.documentElement).overflowX,
+              bodyOverflowX: getComputedStyle(document.body).overflowX,
+              storySteps: document.querySelectorAll('[data-story-step]').length,
+              loginButtons: document.querySelectorAll('[data-login-open]').length
+            }));
+
+            const xOverflowClipped = ['hidden', 'clip'].includes(layout.htmlOverflowX) || ['hidden', 'clip'].includes(layout.bodyOverflowX);
+            if (layout.scrollWidth > layout.innerWidth + 2 && !xOverflowClipped) {
+              throw new Error(`${testCase.name}: visible horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
+            }
+            if (layout.storySteps !== 4) throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
+            if (layout.loginButtons < 1) throw new Error(`${testCase.name}: login CTA missing`);
+
+            await page.locator('[data-login-open]').first().click();
+            await page.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 5000 });
+            await page.locator('[data-login-close]').last().click();
+            await page.waitForFunction(() => document.querySelector('#landing-login-modal')?.hidden === true, { timeout: 5000 });
+
+            await page.locator('#experience').scrollIntoViewIfNeeded();
+            await page.waitForTimeout(300);
+          };
+
           (async () => {
             const browser = await chromium.launch({ headless: true });
             const cases = [
               { name: 'public-rcc-home', url: 'http://127.0.0.1:8080/index.html?league=rcc', selector: 'body' },
               { name: 'rcc-admin-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#admin-login-form' },
               { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' },
-              { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' }
+              { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' },
+              { name: 'landing3-desktop', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 1440, height: 1000 }, landing3: true },
+              { name: 'landing3-iphone', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 393, height: 852 }, landing3: true }
             ];
 
             for (const testCase of cases) {
-              const page = await browser.newPage();
+              const page = await browser.newPage({ viewport: testCase.viewport || { width: 1280, height: 800 } });
               const fatalErrors = [];
               const diagnostics = [];
 
@@ -79,9 +111,6 @@ jobs:
                 const kind = classifyUrl(url);
                 const detail = `requestfailed: ${errorText} ${url}`;
                 diagnostics.push(detail);
-
-                // Browser navigation and query refreshes may intentionally abort an in-flight
-                // Supabase request. Only non-abort failures are considered fatal.
                 if (kind === 'supabase' && errorText !== 'net::ERR_ABORTED') fatalErrors.push(detail);
                 if (kind === 'local' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
@@ -91,32 +120,29 @@ jobs:
                 const kind = classifyUrl(url);
                 const detail = `response: HTTP ${response.status()} ${url}`;
                 diagnostics.push(detail);
-                if (kind === 'local' || kind === 'supabase' || kind === 'critical-external' || kind === 'unknown') {
-                  fatalErrors.push(detail);
-                }
+                if (kind === 'local' || kind === 'supabase' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
               page.on('console', (message) => {
                 if (message.type() === 'error') diagnostics.push(`console: ${message.text()}`);
               });
 
               const response = await page.goto(testCase.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-              if (!response || response.status() >= 400) {
-                throw new Error(`${testCase.name}: HTTP ${response?.status()}`);
-              }
+              if (!response || response.status() >= 400) throw new Error(`${testCase.name}: HTTP ${response?.status()}`);
               await page.waitForSelector(testCase.selector, { timeout: 15000 });
               await page.waitForTimeout(2500);
+              if (testCase.landing3) await assertLanding3(page, testCase);
 
               diagnostics.forEach((line) => console.log(`[${testCase.name}] ${line}`));
-              if (fatalErrors.length) {
-                throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
-              }
+              if (fatalErrors.length) throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
               console.log(`PASS ${testCase.name}`);
               await page.close();
             }
 
             await browser.close();
           })().catch((error) => {
+            const message = String(error?.message || error || 'Unknown browser smoke failure').replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
             console.error(error);
+            console.error(`::error title=Browser smoke failed::${message}`);
             process.exit(1);
           });
           NODE
