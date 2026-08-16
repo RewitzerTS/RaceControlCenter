@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Race Control Center – registriere deine Rennliga und starte als Liga-Leitung.">
+  <meta name="theme-color" content="#07111f">
+  <title>RCC · Liga registrieren</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="assets/css/pages/register.css">
+</head>
+<body data-page="register">
+  <main class="register-shell">
+    <a class="register-brand" href="landing3.html" aria-label="Zurück zu Race Control Center">
+      <img src="assets/images/logo.png" alt="" width="72" height="72">
+      <span><strong>Race Control Center</strong><small>Race Management Platform</small></span>
+    </a>
+
+    <section class="register-layout">
+      <div class="register-copy">
+        <span class="register-kicker">LIGA-LEITUNG ONBOARDING</span>
+        <h1>Deine Liga.<br><em>Dein Kontrollzentrum.</em></h1>
+        <p>Erstelle deinen RCC-Zugang und richte anschließend deine Rennliga Schritt für Schritt ein. Du erhältst die Rolle <strong>Liga-Leitung</strong> für genau deine Liga.</p>
+
+        <div class="register-points" aria-label="Onboarding-Schritte">
+          <div><b>01</b><span><strong>Account erstellen</strong><small>E-Mail bestätigen und sicher anmelden.</small></span></div>
+          <div><b>02</b><span><strong>Rennliga anlegen</strong><small>Name, Kurzname und Sichtbarkeit festlegen.</small></span></div>
+          <div><b>03</b><span><strong>Liga einrichten</strong><small>Branding, Saison, Fahrer und Kalender konfigurieren.</small></span></div>
+        </div>
+
+        <p class="register-owner-note">Plattform-Owner-Rechte werden durch diese Registrierung niemals vergeben.</p>
+      </div>
+
+      <section class="register-card" aria-labelledby="register-title">
+        <div class="register-card__head">
+          <span>NEUE RENN LIGA</span>
+          <h2 id="register-title">Als Liga-Leitung starten</h2>
+          <p>Alle Felder kannst du später ändern – außer deiner Login-E-Mail über diesen Assistenten.</p>
+        </div>
+
+        <form id="league-registration-form" novalidate>
+          <fieldset>
+            <legend>Deine Rennliga</legend>
+            <label>
+              <span>Liganame</span>
+              <input id="register-league-name" name="leagueName" maxlength="80" autocomplete="organization" placeholder="z. B. German Racing League" required>
+            </label>
+            <label>
+              <span>Kurzname / URL</span>
+              <div class="register-slug-field"><small>?league=</small><input id="register-league-slug" name="leagueSlug" maxlength="50" autocapitalize="none" spellcheck="false" placeholder="german-racing-league" required></div>
+            </label>
+            <label>
+              <span>Sichtbarkeit zum Start</span>
+              <select id="register-league-visibility" name="visibility">
+                <option value="private" selected>Privat – nur eingeloggte Mitglieder</option>
+                <option value="public">Öffentlich – nach Veröffentlichung sichtbar</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Dein Liga-Leitung-Account</legend>
+            <label>
+              <span>E-Mail</span>
+              <input id="register-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="name@beispiel.de" required>
+            </label>
+            <label>
+              <span>Passwort</span>
+              <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="10" placeholder="Mindestens 10 Zeichen" required>
+            </label>
+            <label>
+              <span>Passwort wiederholen</span>
+              <input id="register-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="10" required>
+            </label>
+          </fieldset>
+
+          <label class="register-consent">
+            <input id="register-consent" type="checkbox" required>
+            <span>Ich möchte einen RCC-Account für die Verwaltung meiner Rennliga erstellen.</span>
+          </label>
+
+          <button id="register-submit" class="register-submit" type="submit">Liga-Leitung-Account erstellen <span aria-hidden="true">→</span></button>
+          <div id="register-feedback" class="register-feedback" role="status" aria-live="polite" hidden></div>
+        </form>
+
+        <div id="register-resume" class="register-resume" hidden></div>
+        <p class="register-login-link">Schon registriert? <a href="landing3.html">Zum Login</a></p>
+      </section>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/pages/register.js"></script>
+</body>
+</html>

@@ -100,7 +100,7 @@
     return !error && data === true;
   }
 
-  function ensurePanel(platformOwner) {
+  function ensurePanel() {
     if (document.getElementById('admin-section-create-league')) return;
     const layout = document.querySelector('.admin-layout');
     if (!layout) return;
@@ -111,12 +111,10 @@
     panel.innerHTML = `
       <summary><strong>Neue Liga erstellen</strong></summary>
       <section class="panel admin-panel-wide admin-panel-accent">
-        <h3>Eigene Rennliga anlegen</h3>
+        <h3>Rennliga anlegen</h3>
         <div class="notice">
-          ${platformOwner
-            ? 'Du erhältst als Plattform-Owner automatisch Owner-Zugriff auf die neue Liga.'
-            : 'Du wirst automatisch Ligaleitung der neuen Liga.'}
-          Nach dem Erstellen richtest du nur noch Name, Links, Farbschema und Logo ein. Rennkalender, Saison, Fahrer und Teams werden separat verwaltet.
+          Diese Funktion ist ausschließlich für den Plattform-Owner verfügbar. Neue Kunden werden über das Liga-Leitung-Onboarding angelegt und erhalten niemals Owner-Rechte.
+          Nach dem Erstellen richtest du Name, Links, Farbschema und Logo ein. Rennkalender, Saison, Fahrer und Teams werden separat verwaltet.
         </div>
         <div class="form-grid section-spacer-top">
           <div class="field">
@@ -221,17 +219,15 @@
     const { data } = await window.supabaseClient.auth.getSession();
     if (!data?.session?.user) return;
 
-    const context = await window.RCCData?.getLeagueContext?.().catch(() => null);
     const platformOwner = await isPlatformOwner();
-    const canCreate = platformOwner || ['owner', 'admin'].includes(context?.role);
 
-    if (!canCreate) {
+    if (!platformOwner) {
       document.getElementById('admin-section-create-league')?.remove();
       initialized = true;
       return;
     }
 
-    ensurePanel(platformOwner);
+    ensurePanel();
 
     const contextGuard = await loadOnboardingContextGuard().catch(console.warn);
     await contextGuard?.init?.();
