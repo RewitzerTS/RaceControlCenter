@@ -79,7 +79,7 @@ jobs:
             if (layout.storySteps !== 4) throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
             if (layout.loginButtons < 1) throw new Error(`${testCase.name}: login CTA missing`);
 
-            await page.locator('[data-login-open]').first().click();
+            await page.locator('[data-login-open]:visible').first().click();
             await page.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 5000 });
             await page.locator('[data-login-close]').last().click();
             await page.waitForFunction(() => document.querySelector('#landing-login-modal')?.hidden === true, { timeout: 5000 });
