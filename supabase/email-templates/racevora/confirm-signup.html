@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RaceVora Konto bestätigen</title>
+</head>
+<body style="margin:0;padding:0;background:#050b14;color:#f7fbff;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#050b14;padding:28px 12px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:620px;background:#0a1624;border:1px solid #18334b;border-radius:24px;overflow:hidden;">
+        <tr><td style="padding:30px 34px 12px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+            <td style="width:48px;height:48px;border-radius:14px;background:#101f31;border:1px solid #28465f;text-align:center;font-size:18px;font-weight:800;color:#56e3ca;">RV</td>
+            <td style="padding-left:14px;"><div style="font-size:22px;font-weight:800;letter-spacing:-.3px;color:#ffffff;">RaceVora</div><div style="font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#8ca3b8;">Race Management Platform</div></td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:20px 34px 8px;">
+          <div style="font-size:12px;font-weight:800;letter-spacing:1.5px;color:#56e3ca;text-transform:uppercase;">Account bestätigen</div>
+          <h1 style="margin:12px 0 12px;font-size:30px;line-height:1.15;color:#ffffff;">Deine Rennliga ist nur noch einen Klick entfernt.</h1>
+          <p style="margin:0;font-size:16px;line-height:1.65;color:#b9c8d6;">Bestätige deine E-Mail-Adresse <strong style="color:#ffffff;">{{ .Email }}</strong>. Danach richtet RaceVora deinen Account und deine Liga-Zuordnung automatisch ein.</p>
+        </td></tr>
+        <tr><td style="padding:24px 34px;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#6f5cff;color:#ffffff;text-decoration:none;font-weight:800;font-size:15px;padding:15px 22px;border-radius:12px;">RaceVora-Konto bestätigen →</a>
+        </td></tr>
+        <tr><td style="padding:0 34px 30px;">
+          <p style="margin:0 0 8px;font-size:13px;line-height:1.55;color:#7890a5;">Falls der Button nicht funktioniert, öffne diesen Link im Browser:</p>
+          <p style="margin:0;word-break:break-all;font-size:12px;line-height:1.5;color:#56e3ca;">{{ .ConfirmationURL }}</p>
+        </td></tr>
+        <tr><td style="padding:18px 34px;background:#07111d;border-top:1px solid #18334b;font-size:12px;line-height:1.55;color:#70869a;">Diese Nachricht wurde für eine Registrierung bei RaceVora ausgelöst. Wenn du keinen Account angelegt hast, kannst du diese E-Mail ignorieren.</td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
