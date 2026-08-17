@@ -1,0 +1,87 @@
+name: Production Health
+
+on:
+  workflow_dispatch:
+  pull_request:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-health-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  racevora-production-health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check critical RaceVora routes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          check_route() {
+            local name="$1"
+            local url="$2"
+            local marker="$3"
+            local body
+            local headers
+            local attempt
+
+            body="$(mktemp)"
+            headers="$(mktemp)"
+
+            for attempt in 1 2 3; do
+              echo "Checking ${name} (${attempt}/3): ${url}"
+              if curl \
+                --fail \
+                --silent \
+                --show-error \
+                --location \
+                --connect-timeout 10 \
+                --max-time 20 \
+                --retry 0 \
+                --user-agent 'RaceVora-Production-Health/1.0' \
+                --dump-header "$headers" \
+                --output "$body" \
+                "$url"; then
+                if grep -Fq "$marker" "$body"; then
+                  echo "PASS ${name}"
+                  rm -f "$body" "$headers"
+                  return 0
+                fi
+                echo "Expected marker not found: ${marker}" >&2
+              fi
+              sleep $((attempt * 3))
+            done
+
+            echo "FAIL ${name}: ${url}" >&2
+            echo '--- response headers ---' >&2
+            cat "$headers" >&2 || true
+            echo '--- first 40 response lines ---' >&2
+            sed -n '1,40p' "$body" >&2 || true
+            rm -f "$body" "$headers"
+            return 1
+          }
+
+          check_route 'Landing' 'https://racevora.com/' 'RaceVora'
+          check_route 'Registration' 'https://racevora.com/register.html' 'league-registration-form'
+          check_route 'Password recovery' 'https://racevora.com/forgot-password.html' 'RaceVora'
+          check_route 'Password setup' 'https://racevora.com/set-password.html' 'password-setup-status'
+          check_route 'Public RCC Race Hub' 'https://racevora.com/race-hub.html?league=rcc' 'site-header'
+
+      - name: Health summary
+        if: success()
+        run: |
+          echo '### RaceVora production health ✅' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Landing' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Registration' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Password recovery' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Password setup' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Public RCC Race Hub (read-only)' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'All critical public routes responded successfully and contained their expected application marker.' >> "$GITHUB_STEP_SUMMARY"
