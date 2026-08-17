@@ -111,7 +111,7 @@ jobs:
           check_route 'Password setup' 'https://racevora.com/set-password.html' 'password-setup-status'
           check_route 'Imprint' 'https://racevora.com/impressum.html' 'Richard Rewitzer'
           check_route 'Privacy policy' 'https://racevora.com/datenschutz.html' 'Datenschutzerklärung'
-          check_route 'Terms' 'https://racevora.com/agb.html' 'Allgemeine Geschäftsbedingungen'
+          check_route 'Terms' 'https://racevora.com/agb.html' 'Allgemeine Nutzungsbedingungen'
           check_route 'Electronic withdrawal' 'https://racevora.com/widerruf.html' 'Widerruf bestätigen'
           check_route 'Public RCC Race Hub' 'https://racevora.com/race-hub.html?league=rcc' 'site-header'
           check_edge_options 'Withdrawal Edge Function' 'https://kjccstcbqygxuqkvdaqw.supabase.co/functions/v1/submit-consumer-withdrawal'
