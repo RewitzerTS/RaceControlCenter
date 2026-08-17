@@ -1,0 +1,28 @@
+name: Admin Member Invite Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'admin.html'
+      - 'assets/js/pages/admin-members.js'
+      - '.github/workflows/admin-members-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  admin-member-invite-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify member management wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'assets/js/pages/admin-members.js' admin.html
+          grep -Fq 'RCCLeagueMembers?.init?.()' admin.html
+          grep -Fq 'Person hinzufügen / einladen' assets/js/pages/admin-members.js
+          grep -Fq "functions.invoke('manage-league-member'" assets/js/pages/admin-members.js
+          node --check assets/js/pages/admin-members.js
