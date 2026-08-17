@@ -1,0 +1,97 @@
+name: Electronic Withdrawal Flow
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  withdrawal-flow-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify withdrawal backend assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s database/2026-consumer-withdrawals.sql
+          test -s supabase/functions/submit-consumer-withdrawal/index.ts
+          grep -Fq 'consumer_withdrawals' database/2026-consumer-withdrawals.sql
+          grep -Fq 'revoke all on table public.consumer_withdrawals from public, anon, authenticated' database/2026-consumer-withdrawals.sql
+          grep -Fq 'RESEND_API_KEY' supabase/functions/submit-consumer-withdrawal/index.ts
+          grep -Fq 'Widerruf bestätigen' widerruf.html
+          grep -Fq 'withdrawal-form' widerruf.html
+          grep -Fq 'submit-consumer-withdrawal' assets/js/pages/withdrawal.js
+          grep -Fq 'Eingangsbeleg herunterladen' widerruf.html
+          grep -Fq 'Resend' datenschutz.html
+
+      - name: Syntax check browser script
+        run: node --check assets/js/pages/withdrawal.js
+
+      - name: Verify public withdrawal entry remains prominent
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '<strong>Vertrag widerrufen</strong>' components/footer.html
+          grep -Fq 'href="widerruf.html"' index.html
+          grep -Fq 'href="widerruf.html"' register.html
+
+      - name: Verify two-step labels required by flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '>Widerruf prüfen<' widerruf.html
+          grep -Fq '>Widerruf bestätigen<' widerruf.html
+          grep -Fq 'confirmed: true' assets/js/pages/withdrawal.js
+
+      - name: Verify live Supabase withdrawal storage and confirmation email
+        shell: bash
+        env:
+          WITHDRAWAL_ENDPOINT: https://kjccstcbqygxuqkvdaqw.supabase.co/functions/v1/submit-consumer-withdrawal
+        run: |
+          set -euo pipefail
+          contract_id="GITHUB-CI-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          payload="$(jq -nc \
+            --arg name 'RaceVora CI Test' \
+            --arg contract "$contract_id" \
+            --arg email 'support@racevora.com' \
+            '{consumer_name:$name,contract_identifier:$contract,confirmation_email:$email,confirmed:true,website:""}')"
+
+          response_file="$(mktemp)"
+          status="$(curl --silent --show-error --location \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --request POST "$WITHDRAWAL_ENDPOINT" \
+            --header 'Content-Type: application/json' \
+            --header 'Origin: https://racevora.com' \
+            --data "$payload")"
+
+          echo "HTTP ${status}"
+          cat "$response_file"
+          echo
+
+          test "$status" = '200' || {
+            echo 'Live withdrawal endpoint did not confirm successful email delivery.' >&2
+            exit 1
+          }
+
+          jq -e --arg contract "$contract_id" '
+            .ok == true and
+            .confirmation_sent == true and
+            (.reference | startswith("RV-WD-")) and
+            .receipt.contract_identifier == $contract and
+            .receipt.confirmation_email == "support@racevora.com"
+          ' "$response_file" >/dev/null
+
+          reference="$(jq -r '.reference' "$response_file")"
+          echo "WITHDRAWAL_TEST_CONTRACT=${contract_id}" >> "$GITHUB_ENV"
+          echo "WITHDRAWAL_TEST_REFERENCE=${reference}" >> "$GITHUB_ENV"
+          echo "### Electronic withdrawal live test ✅" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Contract marker: \`${contract_id}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Receipt reference: \`${reference}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Confirmation email accepted for delivery to \`support@racevora.com\`" >> "$GITHUB_STEP_SUMMARY"
