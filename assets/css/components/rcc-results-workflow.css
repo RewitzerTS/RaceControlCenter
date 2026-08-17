@@ -28,3 +28,70 @@
   .rcc-results-workflow__card { min-height: 0; }
   .rcc-file-import-choice__grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 700px) {
+  .rcc-results-workflow__card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .rcc-ai-results-import {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .rcc-ai-results-import .form-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .rcc-ai-file-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .rcc-ai-file-chip {
+    width: 100%;
+    min-width: 0;
+    justify-content: space-between;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .rcc-ai-file-chip strong {
+    flex: 0 0 auto;
+  }
+
+  .rcc-ai-file-chip button {
+    flex: 0 0 32px;
+    width: 32px;
+    height: 32px;
+  }
+
+  #rcc-ai-results-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  .rcc-ai-results-table {
+    width: max-content;
+    min-width: 760px;
+    max-width: none;
+  }
+
+  .rcc-ai-results-import > .card-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .rcc-ai-results-import > .card-actions > button {
+    width: 100%;
+    min-height: 46px;
+  }
+}
