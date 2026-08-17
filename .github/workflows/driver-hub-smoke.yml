@@ -7,6 +7,7 @@ on:
       - 'head-to-head.html'
       - 'fahrer-wm.html'
       - 'rennen-detail.html'
+      - 'assets/js/services/rcc-driver-context.js'
       - 'assets/js/services/rcc-driver-stats.js'
       - 'assets/js/pages/driver-profile.js'
       - 'assets/js/pages/head-to-head.js'
@@ -21,6 +22,7 @@ on:
       - 'head-to-head.html'
       - 'fahrer-wm.html'
       - 'rennen-detail.html'
+      - 'assets/js/services/rcc-driver-context.js'
       - 'assets/js/services/rcc-driver-stats.js'
       - 'assets/js/pages/driver-profile.js'
       - 'assets/js/pages/head-to-head.js'
@@ -44,10 +46,34 @@ jobs:
 
       - name: Check JavaScript syntax
         run: |
+          node --check assets/js/services/rcc-driver-context.js
           node --check assets/js/services/rcc-driver-stats.js
           node --check assets/js/pages/driver-profile.js
           node --check assets/js/pages/head-to-head.js
           node --check assets/js/pages/driver-profile-links.js
+
+      - name: Check season-scoped assignment resolution
+        shell: bash
+        run: |
+          node <<'NODE'
+          global.window = {};
+          require('./assets/js/services/rcc-driver-context.js');
+          const resolver = window.RCCDriverContext.createAssignmentResolver({
+            drivers: [{ id: 'driver-1', display_name: 'Test Driver', league_team: 'Fallback' }],
+            races: [
+              { id: 'race-s1', season_id: 'season-1', round_number: 1 },
+              { id: 'race-s2', season_id: 'season-2', round_number: 1 }
+            ],
+            assignments: [
+              { id: 'assign-s1', driver_id: 'driver-1', season_id: 'season-1', is_primary: true, league_team: 'Team One', created_at: '2026-01-01T00:00:00Z' },
+              { id: 'assign-s2', driver_id: 'driver-1', season_id: 'season-2', is_primary: true, league_team: 'Team Two', created_at: '2026-07-01T00:00:00Z' }
+            ]
+          });
+          const seasonOne = resolver.resolveDriverSnapshot('driver-1', 'race-s1');
+          const seasonTwo = resolver.resolveDriverSnapshot('driver-1', 'race-s2');
+          if (seasonOne?.league_team !== 'Team One') throw new Error(`season-1 leaked assignment: ${seasonOne?.league_team}`);
+          if (seasonTwo?.league_team !== 'Team Two') throw new Error(`season-2 leaked assignment: ${seasonTwo?.league_team}`);
+          NODE
 
       - name: Check public Driver Hub wiring
         shell: bash
@@ -65,6 +91,7 @@ jobs:
           grep -Fq 'assets/js/pages/driver-profile-links.js' rennen-detail.html
           grep -Fq 'calculateHeadToHead' assets/js/services/rcc-driver-stats.js
           grep -Fq 'points_owner_driver_id' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'row?.season_id' assets/js/services/rcc-driver-context.js
 
       - name: Guard tenant-scoped data access
         shell: bash
