@@ -105,6 +105,99 @@ jobs:
             return 1
           }
 
+          check_security_baseline() {
+            local http_headers
+            local https_headers
+            local security_body
+            local http_status
+
+            http_headers="$(mktemp)"
+            https_headers="$(mktemp)"
+            security_body="$(mktemp)"
+
+            echo 'Checking HTTP -> HTTPS redirect'
+            http_status="$(curl \
+              --silent \
+              --show-error \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --user-agent 'RaceVora-Production-Health/1.1' \
+              --dump-header "$http_headers" \
+              --output /dev/null \
+              --write-out '%{http_code}' \
+              'http://racevora.com/' || true)"
+
+            case "$http_status" in
+              301|302|307|308) ;;
+              *)
+                echo "Expected HTTP redirect, got ${http_status}" >&2
+                cat "$http_headers" >&2 || true
+                return 1
+                ;;
+            esac
+
+            if ! grep -Eiq '^location:[[:space:]]*https://racevora\.com/?' "$http_headers"; then
+              echo 'HTTP redirect does not point to https://racevora.com/' >&2
+              cat "$http_headers" >&2 || true
+              return 1
+            fi
+            echo 'PASS HTTPS redirect'
+
+            echo 'Checking HTTPS security headers'
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --user-agent 'RaceVora-Production-Health/1.1' \
+              --dump-header "$https_headers" \
+              --output /dev/null \
+              'https://racevora.com/'
+
+            if grep -Eiq '^strict-transport-security:[[:space:]]*max-age=[0-9]+' "$https_headers"; then
+              echo 'PASS HSTS'
+            else
+              echo 'INFO HSTS not live yet; this branch adds it via Workers static asset headers.'
+            fi
+
+            if ! grep -Eiq '^x-content-type-options:[[:space:]]*nosniff[[:space:]]*$' "$https_headers"; then
+              echo 'Missing X-Content-Type-Options: nosniff header' >&2
+              cat "$https_headers" >&2 || true
+              return 1
+            fi
+            echo 'PASS X-Content-Type-Options'
+
+            if grep -Eiq '^content-security-policy:' "$https_headers"; then
+              echo 'INFO Content-Security-Policy present'
+            else
+              echo 'INFO Content-Security-Policy not currently enforced; keep under review before adding because the app uses multiple external resources.'
+            fi
+
+            if grep -Eiq '^referrer-policy:' "$https_headers"; then
+              echo 'INFO Referrer-Policy present'
+            else
+              echo 'INFO Referrer-Policy not live yet; this branch adds it via Workers static asset headers.'
+            fi
+
+            echo 'Checking security.txt'
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --user-agent 'RaceVora-Production-Health/1.1' \
+              --output "$security_body" \
+              'https://racevora.com/.well-known/security.txt'
+
+            grep -Fq 'Contact: mailto:support@racevora.com' "$security_body"
+            grep -Fq 'Canonical: https://racevora.com/.well-known/security.txt' "$security_body"
+            echo 'PASS security.txt'
+
+            rm -f "$http_headers" "$https_headers" "$security_body"
+          }
+
           check_route 'Landing' 'https://racevora.com/' 'RaceVora'
           check_route 'Registration' 'https://racevora.com/register.html' 'league-registration-form'
           check_route 'Password recovery' 'https://racevora.com/forgot-password.html' 'RaceVora'
@@ -115,6 +208,7 @@ jobs:
           check_route 'Electronic withdrawal' 'https://racevora.com/widerruf.html' 'Widerruf bestätigen'
           check_route 'Public RCC Race Hub' 'https://racevora.com/race-hub.html?league=rcc' 'site-header'
           check_edge_options 'Withdrawal Edge Function' 'https://kjccstcbqygxuqkvdaqw.supabase.co/functions/v1/submit-consumer-withdrawal'
+          check_security_baseline
 
       - name: Health summary
         if: success()
@@ -129,5 +223,9 @@ jobs:
           echo '- Electronic withdrawal page' >> "$GITHUB_STEP_SUMMARY"
           echo '- Withdrawal Edge Function (non-mutating OPTIONS check)' >> "$GITHUB_STEP_SUMMARY"
           echo '- Public RCC Race Hub (read-only)' >> "$GITHUB_STEP_SUMMARY"
+          echo '- HTTP -> HTTPS redirect' >> "$GITHUB_STEP_SUMMARY"
+          echo '- HSTS (reported until deployment adds it)' >> "$GITHUB_STEP_SUMMARY"
+          echo '- X-Content-Type-Options: nosniff' >> "$GITHUB_STEP_SUMMARY"
+          echo '- security.txt' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo 'All critical public routes and the non-mutating withdrawal endpoint check responded successfully.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'All critical public routes, security baseline checks, and the non-mutating withdrawal endpoint check responded successfully.' >> "$GITHUB_STEP_SUMMARY"
