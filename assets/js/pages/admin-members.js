@@ -7,7 +7,44 @@
   function escapeHtml(value) { return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;'); }
   function getLeagueId() { return window.RCCLeagueContext?.getLeagueId?.() || null; }
   function showFeedback(message, isError=false) { const el=document.getElementById('league-members-feedback'); if(!el)return; el.hidden=!message; el.textContent=message||''; el.classList.toggle('notice-error',Boolean(isError)); }
-  function forcePanelVisible(panel) { if(!panel)return; panel.hidden=false; panel.style.setProperty('display','block','important'); }
+  function setMemberPanelVisible(panel, visible) { if(!panel)return; panel.hidden=!visible; panel.style.setProperty('display',visible?'block':'none','important'); if(visible) panel.open=true; }
+
+  function ensureTeamTab() {
+    const tabsRoot=document.getElementById('admin-mobile-tabs');
+    if(!tabsRoot)return;
+    let button=tabsRoot.querySelector('[data-admin-tab-target="admin-section-members"]');
+    if(!button){
+      button=document.createElement('button');
+      button.type='button';
+      button.className='admin-mobile-tab';
+      button.dataset.adminTabTarget='admin-section-members';
+      button.setAttribute('role','tab');
+      button.setAttribute('aria-selected','false');
+      button.textContent='Team';
+      tabsRoot.appendChild(button);
+    }
+    if(tabsRoot.dataset.rccMembersTabBound==='true')return;
+    tabsRoot.addEventListener('click',(event)=>{
+      const target=event.target.closest('[data-admin-tab-target]');
+      if(!target||!tabsRoot.contains(target))return;
+      const memberPanel=document.getElementById('admin-section-members');
+      const showMembers=target.dataset.adminTabTarget==='admin-section-members';
+      setMemberPanelVisible(memberPanel,showMembers);
+      if(showMembers){
+        tabsRoot.querySelectorAll('[data-admin-tab-target]').forEach((tab)=>{
+          const active=tab===target;
+          tab.classList.toggle('is-active',active);
+          tab.setAttribute('aria-selected',String(active));
+        });
+        document.querySelectorAll('.admin-layout > details').forEach((section)=>{
+          if(section.id==='admin-section-auth'||section.id==='admin-section-members')return;
+          section.hidden=true;
+        });
+        memberPanel?.scrollIntoView?.({behavior:'smooth',block:'start'});
+      }
+    });
+    tabsRoot.dataset.rccMembersTabBound='true';
+  }
 
   async function isPlatformOwner() {
     const { data, error } = await window.supabaseClient.rpc('is_platform_owner');
@@ -43,12 +80,13 @@
   async function ensurePanel(platformOwner) {
     const existingPanel = document.getElementById('admin-section-members');
     if (existingPanel) {
-      forcePanelVisible(existingPanel);
+      setMemberPanelVisible(existingPanel,false);
+      ensureTeamTab();
       return;
     }
     const layout=document.querySelector('.admin-layout'); if(!layout)return;
     const panel=document.createElement('details'); panel.className='panel admin-panel-wide'; panel.id='admin-section-members';
-    panel.innerHTML=`<summary><strong>Liga-Team & Zugänge</strong></summary><section class="panel admin-panel-wide admin-panel-accent"><h3>Mitglieder & Rollen</h3><div class="notice">Die Ligaleitung kann Member und weitere Ligaleitungen verwalten. Die Owner-Rolle ist geschützt.</div><div class="form-grid section-spacer-top"><div class="field"><label for="league-member-email">E-Mail</label><input id="league-member-email" type="email" placeholder="name@example.com"></div><div class="field"><label for="league-member-role">Rolle</label><select id="league-member-role"><option value="member">Member</option><option value="admin">Ligaleitung</option>${platformOwner?'<option value="owner">Owner</option>':''}</select></div></div><div class="card-actions"><button type="button" class="button-primary" id="league-member-add-btn">Person hinzufügen / einladen</button><button type="button" class="button-secondary" id="league-members-refresh-btn">Liste aktualisieren</button></div><div id="league-members-feedback" class="notice" hidden></div><div class="section-spacer-top"><h4>Aktuelle Mitglieder</h4><div id="league-members-list" class="stack-list"><div class="notice">Mitglieder werden geladen...</div></div></div></section>`; layout.appendChild(panel); forcePanelVisible(panel);
+    panel.innerHTML=`<summary><strong>Liga-Team & Zugänge</strong></summary><section class="panel admin-panel-wide admin-panel-accent"><h3>Mitglieder & Rollen</h3><div class="notice">Die Ligaleitung kann Member und weitere Ligaleitungen verwalten. Die Owner-Rolle ist geschützt.</div><div class="form-grid section-spacer-top"><div class="field"><label for="league-member-email">E-Mail</label><input id="league-member-email" type="email" placeholder="name@example.com"></div><div class="field"><label for="league-member-role">Rolle</label><select id="league-member-role"><option value="member">Member</option><option value="admin">Ligaleitung</option>${platformOwner?'<option value="owner">Owner</option>':''}</select></div></div><div class="card-actions"><button type="button" class="button-primary" id="league-member-add-btn">Person hinzufügen / einladen</button><button type="button" class="button-secondary" id="league-members-refresh-btn">Liste aktualisieren</button></div><div id="league-members-feedback" class="notice" hidden></div><div class="section-spacer-top"><h4>Aktuelle Mitglieder</h4><div id="league-members-list" class="stack-list"><div class="notice">Mitglieder werden geladen...</div></div></div></section>`; layout.appendChild(panel); setMemberPanelVisible(panel,false); ensureTeamTab();
     document.getElementById('league-member-add-btn')?.addEventListener('click', inviteMember);
     document.getElementById('league-members-refresh-btn')?.addEventListener('click', loadMembers);
     document.getElementById('league-members-list')?.addEventListener('change', onRoleChange);

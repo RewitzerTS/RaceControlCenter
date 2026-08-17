@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Verify member management wiring and visibility
+      - name: Verify member management wiring and navigation
         shell: bash
         run: |
           set -euo pipefail
@@ -25,7 +25,8 @@ jobs:
           grep -Fq 'RCCLeagueMembers?.init?.()' admin.html
           grep -Fq 'Person hinzufügen / einladen' assets/js/pages/admin-members.js
           grep -Fq "functions.invoke('manage-league-member'" assets/js/pages/admin-members.js
-          grep -Fq "style.setProperty('display','block','important')" assets/js/pages/admin-members.js
-          grep -Fq 'forcePanelVisible(existingPanel)' assets/js/pages/admin-members.js
-          grep -Fq 'forcePanelVisible(panel)' assets/js/pages/admin-members.js
+          grep -Fq "button.textContent='Team'" assets/js/pages/admin-members.js
+          grep -Fq "button.dataset.adminTabTarget='admin-section-members'" assets/js/pages/admin-members.js
+          grep -Fq "setMemberPanelVisible(memberPanel,showMembers)" assets/js/pages/admin-members.js
+          grep -Fq "style.setProperty('display',visible?'block':'none','important')" assets/js/pages/admin-members.js
           node --check assets/js/pages/admin-members.js
