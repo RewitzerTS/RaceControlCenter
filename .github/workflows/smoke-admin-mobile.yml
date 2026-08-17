@@ -1,0 +1,136 @@
+name: Admin iPhone Layout
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  admin-iphone-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify admin mobile stylesheet wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f assets/css/pages/admin-mobile.css
+          grep -q "admin-mobile.css" assets/css/components/rcc-results-workflow.css
+          grep -q 'body\[data-page="admin"\]' assets/css/pages/admin-mobile.css
+          grep -q 'overscroll-behavior-x: contain' assets/css/pages/admin-mobile.css
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/racevora-admin-mobile-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/admin.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/racevora-admin-mobile-http.log
+          exit 1
+
+      - name: Verify admin login and component containment
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const viewport = { width: 393, height: 852 };
+
+            const loginPage = await browser.newPage({ viewport });
+            await loginPage.goto('http://127.0.0.1:8080/admin.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await loginPage.waitForSelector('#admin-login-form', { timeout: 15000 });
+            const loginLayout = await loginPage.evaluate(() => ({
+              innerWidth: window.innerWidth,
+              scrollWidth: document.documentElement.scrollWidth,
+              formWidth: document.querySelector('#admin-login-form')?.getBoundingClientRect().width || 0,
+              buttonWidth: document.querySelector('#admin-login-btn')?.getBoundingClientRect().width || 0
+            }));
+            if (loginLayout.scrollWidth > loginLayout.innerWidth + 2) {
+              throw new Error(`Admin login overflows iPhone viewport: ${loginLayout.scrollWidth}px > ${loginLayout.innerWidth}px`);
+            }
+            if (loginLayout.formWidth > loginLayout.innerWidth) throw new Error('Admin login form exceeds viewport.');
+            if (loginLayout.buttonWidth > loginLayout.innerWidth) throw new Error('Admin login button exceeds viewport.');
+            console.log('PASS admin login iPhone containment');
+            await loginPage.close();
+
+            const page = await browser.newPage({ viewport });
+            await page.goto('http://127.0.0.1:8080/', { waitUntil: 'domcontentloaded' });
+            await page.setContent(`<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body data-page="admin">
+              <main class="section">
+                <div class="container admin-session-banner"><span>Eingeloggt als sehr-lange-admin-email-adresse@example-racing-league.de</span><button>Logout</button></div>
+                <div class="container admin-mobile-tabs">
+                  <button class="admin-mobile-tab">Ergebnisse</button><button class="admin-mobile-tab">Stewarding</button><button class="admin-mobile-tab">Fahrer</button><button class="admin-mobile-tab">Kalender</button><button class="admin-mobile-tab">Regeln</button>
+                </div>
+                <div class="container admin-layout">
+                  <details class="panel" open><summary><strong>Sehr lange Saison- und Ergebnisverwaltung</strong></summary>
+                    <section class="panel admin-panel-accent">
+                      <div class="form-grid"><div class="field"><label>Name<input value="Ein sehr langer Wert, der auf dem iPhone innerhalb des Feldes bleiben muss"></label></div><div class="field"><label>Team<select><option>Sehr langer Teamname für Layoutprüfung</option></select></label></div></div>
+                      <div class="card-actions"><button class="button-primary">Sehr lange Aktion zum Speichern und Veröffentlichen des Ergebnisses</button><button class="button-secondary">Abbrechen und zurück zur Übersicht</button></div>
+                      <div class="table-wrap"><table style="min-width:760px"><thead><tr><th>Fahrer</th><th>Team</th><th>Position</th><th>Rennzeit</th><th>Beste Runde</th></tr></thead><tbody><tr><td>Testfahrer</td><td>Test Team</td><td>1</td><td>42:15,827</td><td>01:23,456</td></tr></tbody></table></div>
+                    </section>
+                  </details>
+                </div>
+              </main>
+            </body></html>`);
+            await page.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/style.css' });
+            await page.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/components/rcc-results-workflow.css' });
+            await page.waitForTimeout(250);
+
+            const state = await page.evaluate(() => {
+              const container = document.querySelector('.admin-layout');
+              const panel = document.querySelector('.admin-layout > .panel');
+              const tableWrap = document.querySelector('.table-wrap');
+              const tabs = document.querySelector('.admin-mobile-tabs');
+              const actionButtons = [...document.querySelectorAll('.card-actions button')];
+              const controls = [...document.querySelectorAll('input,select')];
+              return {
+                innerWidth: window.innerWidth,
+                scrollWidth: document.documentElement.scrollWidth,
+                containerWidth: container.getBoundingClientRect().width,
+                panelWidth: panel.getBoundingClientRect().width,
+                tableClientWidth: tableWrap.clientWidth,
+                tableScrollWidth: tableWrap.scrollWidth,
+                tabsClientWidth: tabs.clientWidth,
+                tabsScrollWidth: tabs.scrollWidth,
+                actionWidths: actionButtons.map((node) => node.getBoundingClientRect().width),
+                controlWidths: controls.map((node) => node.getBoundingClientRect().width)
+              };
+            });
+
+            if (state.scrollWidth > state.innerWidth + 2) throw new Error(`Admin components leak page overflow: ${state.scrollWidth}px > ${state.innerWidth}px`);
+            if (state.panelWidth > state.containerWidth + 1) throw new Error(`Nested admin panel exceeds container: ${state.panelWidth}px > ${state.containerWidth}px`);
+            if (!(state.tableScrollWidth > state.tableClientWidth)) throw new Error('Wide admin table does not scroll internally.');
+            if (!(state.tabsScrollWidth > state.tabsClientWidth)) throw new Error('Admin tabs should use internal horizontal scrolling on iPhone.');
+            if (state.actionWidths.some((width) => width > state.containerWidth + 1)) throw new Error('Admin action exceeds container width.');
+            if (state.controlWidths.some((width) => width > state.containerWidth + 1)) throw new Error('Admin form control exceeds container width.');
+
+            console.log('PASS protected admin component iPhone containment');
+            await page.close();
+            await browser.close();
+          })().catch((error) => {
+            const message = String(error?.message || error || 'Unknown admin iPhone layout failure').replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+            console.error(error);
+            console.error(`::error title=Admin iPhone layout failed::${message}`);
+            process.exit(1);
+          });
+          NODE
