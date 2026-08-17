@@ -7,10 +7,6 @@
   const META_NAME = 'rcc_pending_league_name';
   const META_SLUG = 'rcc_pending_league_slug';
   const META_PUBLIC = 'rcc_pending_league_public';
-  const RESERVED_SLUGS = new Set([
-    'admin', 'api', 'app', 'auth', 'login', 'logout', 'signup', 'register',
-    'support', 'help', 'www', 'racecontrolcenter', 'racevora'
-  ]);
 
   const status = document.getElementById('setup-status');
   const spinner = document.getElementById('setup-spinner');
@@ -179,62 +175,6 @@
     });
   }
 
-  async function sha256Key(value) {
-    if (!window.crypto?.subtle || typeof TextEncoder === 'undefined') {
-      throw new Error('Die sichere Liga-Prüfung wird von diesem Browser nicht unterstützt.');
-    }
-    const bytes = new TextEncoder().encode(String(value || ''));
-    const digest = await window.crypto.subtle.digest('SHA-256', bytes);
-    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
-  }
-
-  async function checkAvailability(pending) {
-    const normalizedName = String(pending?.leagueName || '').trim().toLowerCase();
-    const normalizedSlug = slugify(pending?.leagueSlug || '');
-    const slugReserved = RESERVED_SLUGS.has(normalizedSlug);
-    const [nameKey, slugKey] = await Promise.all([
-      sha256Key(normalizedName),
-      sha256Key(normalizedSlug)
-    ]);
-
-    const { data, error } = await window.supabaseClient
-      .from('league_registration_keys')
-      .select('name_key, slug_key')
-      .or(`name_key.eq.${nameKey},slug_key.eq.${slugKey}`);
-
-    if (error) throw error;
-
-    const rows = Array.isArray(data) ? data : [];
-    if (rows.some((row) => row?.name_key === nameKey)) throw new Error('League name already exists');
-    if (slugReserved) throw new Error('This league slug is reserved');
-    if (rows.some((row) => row?.slug_key === slugKey)) throw new Error('League slug already exists');
-  }
-
-  async function findExistingPendingLeague(session, pending) {
-    if (!session?.user?.id || !pending?.leagueSlug) return null;
-
-    const { data: league, error: leagueError } = await window.supabaseClient
-      .from('leagues')
-      .select('id, name, slug, is_public, status, settings')
-      .eq('slug', pending.leagueSlug)
-      .maybeSingle();
-
-    if (leagueError && leagueError.code !== 'PGRST116') throw leagueError;
-    if (!league) return null;
-
-    const { data: membership, error: membershipError } = await window.supabaseClient
-      .from('league_members')
-      .select('league_id, user_id, role')
-      .eq('league_id', league.id)
-      .eq('user_id', session.user.id)
-      .maybeSingle();
-
-    if (membershipError && membershipError.code !== 'PGRST116') throw membershipError;
-    if (!membership || !['admin', 'owner'].includes(membership.role)) return null;
-
-    return { ...league, role: membership.role };
-  }
-
   async function findExistingLeague(session) {
     if (!session?.user?.id) return null;
 
@@ -260,39 +200,72 @@
     return { ...league, role: membership.role };
   }
 
-  async function createLeague(session, pending) {
-    const { data, error } = await window.supabaseClient.rpc('create_league', {
-      p_name: pending.leagueName,
-      p_slug: pending.leagueSlug,
-      p_is_public: Boolean(pending.isPublic)
-    });
-    if (error) throw error;
+  async function functionErrorMessage(error) {
+    try {
+      const response = error?.context;
+      if (response && typeof response.clone === 'function') {
+        const payload = await response.clone().json();
+        if (payload?.message) return String(payload.message);
+      }
+    } catch (_) {
+      // Fall back to the SDK error message below.
+    }
+    return String(error?.message || 'Die Registrierung konnte serverseitig nicht abgeschlossen werden.');
+  }
 
-    const league = Array.isArray(data) ? data[0] : data;
+  async function finalizeRegistration(session, pending) {
+    if (!session?.user?.id) throw new Error('Authentication required');
+    if (!pending) throw new Error('Die begonnenen Liga-Daten konnten nicht wiederhergestellt werden. Bitte starte die Registrierung erneut.');
+
+    const sessionEmail = String(session.user.email || '').trim().toLowerCase();
+    if (pending.email && sessionEmail !== pending.email) {
+      throw new Error('Der angemeldete Account passt nicht zur begonnenen Registrierung.');
+    }
+
+    setStep('league');
+    setStatus('Rennliga und Vertragsdaten werden sicher eingerichtet …');
+
+    const { data, error } = await window.supabaseClient.functions.invoke('finalize-consumer-registration', {
+      body: {
+        leagueName: pending.leagueName,
+        leagueSlug: pending.leagueSlug,
+        isPublic: Boolean(pending.isPublic)
+      }
+    });
+
+    if (error) throw new Error(await functionErrorMessage(error));
+    if (!data?.ok) throw new Error(data?.message || 'Die Registrierung konnte nicht abgeschlossen werden.');
+
+    const league = data.league;
     if (!league?.slug || !['admin', 'owner'].includes(league.role)) {
       throw new Error('Die Liga-Leitung konnte nicht korrekt angelegt werden.');
     }
-    return league;
+    if (!data?.confirmation?.sent_at) {
+      throw new Error('Die Vertragsbestätigung wurde noch nicht versendet. Bitte versuche es erneut.');
+    }
+
+    return { league, confirmation: data.confirmation };
   }
 
-  function persistLeagueContext(league) {
+  function persistLeagueContext(league, confirmation) {
     try {
       sessionStorage.setItem('rcc.activeLeagueSlug.v1', league.slug);
       sessionStorage.setItem('rcc.lastTenantSlug.v1', league.slug);
+      sessionStorage.setItem('racevora.contractConfirmationReference.v1', String(confirmation?.reference || ''));
     } catch (_) {
       // Session storage is optional.
     }
   }
 
-  async function finish(league) {
+  async function finish(league, confirmation = null) {
     setStep('permissions');
-    setStatus('Berechtigungen werden geladen …');
+    setStatus(confirmation?.sent_at ? 'Vertragsbestätigung gesendet. Berechtigungen werden geladen …' : 'Berechtigungen werden geladen …');
 
     if (!league?.slug || !['admin', 'owner'].includes(league.role)) {
       throw new Error('Die erforderliche Liga-Leitung-Berechtigung fehlt.');
     }
 
-    persistLeagueContext(league);
+    persistLeagueContext(league, confirmation);
     clearPending();
     await clearPendingMetadata();
 
@@ -316,9 +289,6 @@
       const session = await getSession();
       if (!session?.user?.id) throw new Error('Authentication required');
 
-      setStep('league');
-      setStatus('Rennliga und Konto werden geprüft …');
-
       const pending = pendingForSession(session);
       if (!pending) {
         const existing = await findExistingLeague(session);
@@ -329,23 +299,8 @@
         throw new Error('Die begonnenen Liga-Daten konnten nicht wiederhergestellt werden. Bitte starte die Registrierung erneut.');
       }
 
-      const sessionEmail = String(session.user.email || '').trim().toLowerCase();
-      if (pending.email && sessionEmail !== pending.email) {
-        throw new Error('Der angemeldete Account passt nicht zur begonnenen Registrierung.');
-      }
-
-      const existingPendingLeague = await findExistingPendingLeague(session, pending);
-      if (existingPendingLeague) {
-        await finish(existingPendingLeague);
-        return;
-      }
-
-      setStatus('Liga-Name und URL werden geprüft …');
-      await checkAvailability(pending);
-
-      setStatus('Deine Rennliga wird angelegt …');
-      const league = await createLeague(session, pending);
-      await finish(league);
+      const result = await finalizeRegistration(session, pending);
+      await finish(result.league, result.confirmation);
     })()
       .catch(showError)
       .finally(() => {
