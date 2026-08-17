@@ -22,11 +22,17 @@ jobs:
           config='supabase/config.toml'
           register_client='assets/js/pages/register.js'
           setup_client='assets/js/pages/account-setup.js'
+          cors_guard='assets/js/pages/registration-function-cors.js'
+          register_page='register.html'
+          setup_page='account-setup.html'
           test -s "$migration"
           test -s "$function"
           test -s "$config"
           test -s "$register_client"
           test -s "$setup_client"
+          test -s "$cors_guard"
+          test -s "$register_page"
+          test -s "$setup_page"
           grep -Fq 'create table if not exists public.contract_confirmations' "$migration"
           grep -Fq 'enable row level security' "$migration"
           grep -Fq 'revoke all on table public.contract_confirmations from public, anon, authenticated' "$migration"
@@ -57,4 +63,10 @@ jobs:
           grep -Fq 'contract-confirmation/${confirmation.reference}' "$function"
           grep -Fq 'Muster-Widerrufsformular' "$function"
           grep -Fq '0,00 EUR' "$function"
+          grep -Fq "x-rcc-league-slug" "$cors_guard"
+          grep -Fq "delete headers[key]" "$cors_guard"
+          for page in "$register_page" "$setup_page"; do
+            grep -Fq 'assets/js/supabase-client.js' "$page"
+            grep -Fq 'assets/js/pages/registration-function-cors.js' "$page"
+          done
           echo 'Contract confirmation smoke passed.'
