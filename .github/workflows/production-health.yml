@@ -44,7 +44,7 @@ jobs:
                 --connect-timeout 10 \
                 --max-time 20 \
                 --retry 0 \
-                --user-agent 'RaceVora-Production-Health/1.0' \
+                --user-agent 'RaceVora-Production-Health/1.1' \
                 --dump-header "$headers" \
                 --output "$body" \
                 "$url"; then
@@ -67,11 +67,54 @@ jobs:
             return 1
           }
 
+          check_edge_options() {
+            local name="$1"
+            local url="$2"
+            local body
+            local status
+            local attempt
+
+            body="$(mktemp)"
+            for attempt in 1 2 3; do
+              echo "Checking ${name} (${attempt}/3): ${url}"
+              status="$(curl \
+                --silent \
+                --show-error \
+                --connect-timeout 10 \
+                --max-time 20 \
+                --output "$body" \
+                --write-out '%{http_code}' \
+                --request OPTIONS \
+                --header 'Origin: https://racevora.com' \
+                --header 'Access-Control-Request-Method: POST' \
+                --user-agent 'RaceVora-Production-Health/1.1' \
+                "$url" || true)"
+
+              if [ "$status" = '200' ] && grep -Fq 'ok' "$body"; then
+                echo "PASS ${name}"
+                rm -f "$body"
+                return 0
+              fi
+
+              echo "Unexpected ${name} response: HTTP ${status}" >&2
+              cat "$body" >&2 || true
+              sleep $((attempt * 3))
+            done
+
+            rm -f "$body"
+            return 1
+          }
+
           check_route 'Landing' 'https://racevora.com/' 'RaceVora'
           check_route 'Registration' 'https://racevora.com/register.html' 'league-registration-form'
           check_route 'Password recovery' 'https://racevora.com/forgot-password.html' 'RaceVora'
           check_route 'Password setup' 'https://racevora.com/set-password.html' 'password-setup-status'
+          check_route 'Imprint' 'https://racevora.com/impressum.html' 'Richard Rewitzer'
+          check_route 'Privacy policy' 'https://racevora.com/datenschutz.html' 'Datenschutzerklärung'
+          check_route 'Terms' 'https://racevora.com/agb.html' 'Allgemeine Geschäftsbedingungen'
+          check_route 'Electronic withdrawal' 'https://racevora.com/widerruf.html' 'Widerruf bestätigen'
           check_route 'Public RCC Race Hub' 'https://racevora.com/race-hub.html?league=rcc' 'site-header'
+          check_edge_options 'Withdrawal Edge Function' 'https://kjccstcbqygxuqkvdaqw.supabase.co/functions/v1/submit-consumer-withdrawal'
 
       - name: Health summary
         if: success()
@@ -82,6 +125,9 @@ jobs:
           echo '- Registration' >> "$GITHUB_STEP_SUMMARY"
           echo '- Password recovery' >> "$GITHUB_STEP_SUMMARY"
           echo '- Password setup' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Impressum / Datenschutz / AGB' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Electronic withdrawal page' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Withdrawal Edge Function (non-mutating OPTIONS check)' >> "$GITHUB_STEP_SUMMARY"
           echo '- Public RCC Race Hub (read-only)' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
-          echo 'All critical public routes responded successfully and contained their expected application marker.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'All critical public routes and the non-mutating withdrawal endpoint check responded successfully.' >> "$GITHUB_STEP_SUMMARY"
