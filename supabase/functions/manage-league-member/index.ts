@@ -29,6 +29,19 @@ function safeRedirect(raw: unknown, req: Request) {
   }
 }
 
+async function findUserByEmail(adminClient: ReturnType<typeof createClient>, email: string) {
+  let page = 1;
+  const perPage = 1000;
+  while (page <= 100) {
+    const { data: usersPage, error: listError } = await adminClient.auth.admin.listUsers({ page, perPage });
+    if (listError) throw listError;
+    const user = usersPage.users.find((candidate) => String(candidate.email || "").toLowerCase() === email) || null;
+    if (user || usersPage.users.length < perPage) return user;
+    page += 1;
+  }
+  return null;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
@@ -55,11 +68,15 @@ Deno.serve(async (req: Request) => {
     const leagueId = String(payload?.leagueId || "").trim();
     const email = String(payload?.email || "").trim().toLowerCase();
     const role = String(payload?.role || "member").trim().toLowerCase();
+    const action = String(payload?.action || "add").trim().toLowerCase();
 
     if (!leagueId || !email || !email.includes("@")) {
       return json({ error: "invalid_input", message: "Bitte gültige Liga und E-Mail angeben." }, 400);
     }
-    if (!["owner", "admin", "member"].includes(role)) {
+    if (!["add", "check"].includes(action)) {
+      return json({ error: "invalid_action", message: "Ungültige Aktion." }, 400);
+    }
+    if (action === "add" && !["owner", "admin", "member"].includes(role)) {
       return json({ error: "invalid_role", message: "Ungültige Rolle." }, 400);
     }
 
@@ -81,22 +98,33 @@ Deno.serve(async (req: Request) => {
 
     const canManage = platformOwner || Boolean(actorMembership && ["owner", "admin"].includes(actorMembership.role));
     if (!canManage) return json({ error: "forbidden", message: "Keine Berechtigung für diese Liga." }, 403);
-    if (role === "owner" && !platformOwner) {
+    if (action === "add" && role === "owner" && !platformOwner) {
       return json({ error: "only_platform_owner_can_add_owner", message: "Nur der Plattform-Owner kann Owner vergeben." }, 403);
     }
 
-    let targetUser = null as { id: string; email?: string | null } | null;
-    let page = 1;
-    const perPage = 1000;
-    while (!targetUser && page <= 100) {
-      const { data: usersPage, error: listError } = await adminClient.auth.admin.listUsers({ page, perPage });
-      if (listError) throw listError;
-      targetUser = usersPage.users.find((user) => String(user.email || "").toLowerCase() === email) || null;
-      if (targetUser || usersPage.users.length < perPage) break;
-      page += 1;
+    let targetUser = await findUserByEmail(adminClient, email);
+
+    if (action === "check") {
+      if (!targetUser?.id) {
+        return json({ ok: true, accountExists: false, alreadyMember: false });
+      }
+      const { data: targetMembership, error: targetMembershipError } = await adminClient
+        .from("league_members")
+        .select("role")
+        .eq("league_id", leagueId)
+        .eq("user_id", targetUser.id)
+        .maybeSingle();
+      if (targetMembershipError) throw targetMembershipError;
+      return json({
+        ok: true,
+        accountExists: true,
+        alreadyMember: Boolean(targetMembership),
+        currentRole: targetMembership?.role || null,
+      });
     }
 
     let invited = false;
+    const accountExisted = Boolean(targetUser);
     if (!targetUser) {
       const redirectTo = safeRedirect(payload?.redirectTo, req);
       if (payload?.redirectTo && !redirectTo) {
@@ -146,7 +174,7 @@ Deno.serve(async (req: Request) => {
       .upsert({ league_id: leagueId, user_id: targetUser.id, role }, { onConflict: "league_id,user_id" });
     if (upsertError) throw upsertError;
 
-    return json({ ok: true, invited, member: { userId: targetUser.id, email, role } });
+    return json({ ok: true, invited, accountExisted, member: { userId: targetUser.id, email, role } });
   } catch (error) {
     console.error(error);
     return json({ error: "internal_error", message: error instanceof Error ? error.message : String(error) }, 500);
