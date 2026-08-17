@@ -268,6 +268,19 @@
     return availabilityPromise;
   }
 
+  async function functionErrorMessage(error) {
+    try {
+      const response = error?.context;
+      if (response && typeof response.clone === 'function') {
+        const payload = await response.clone().json();
+        if (payload?.message) return String(payload.message);
+      }
+    } catch (_) {
+      // Fall back to the SDK error message below.
+    }
+    return String(error?.message || 'Die Registrierung konnte serverseitig nicht abgeschlossen werden.');
+  }
+
   async function createLeagueForSession(session, pending) {
     if (!session?.user?.id) throw new Error('Bitte bestätige zuerst deine E-Mail und melde dich an.');
     if (!pending) throw new Error('Die begonnenen Liga-Daten konnten nicht wiederhergestellt werden. Bitte starte die Registrierung erneut.');
@@ -277,23 +290,26 @@
       throw new Error('Der angemeldete Account passt nicht zur begonnenen Registrierung.');
     }
 
-    setBusy(true, 'Rennliga wird geprüft …');
-    setFeedback('Account bestätigt. Name und Liga-URL werden geprüft …');
-    await checkLeagueAvailability(pending);
+    setBusy(true, 'Registrierung wird abgeschlossen …');
+    setFeedback('Account bestätigt. Rennliga und Vertragsbestätigung werden jetzt sicher eingerichtet …');
 
-    setBusy(true, 'Rennliga wird angelegt …');
-    setFeedback('Deine Rennliga wird jetzt angelegt …');
-
-    const { data, error } = await window.supabaseClient.rpc('create_league', {
-      p_name: pending.leagueName,
-      p_slug: pending.leagueSlug,
-      p_is_public: Boolean(pending.isPublic)
+    const { data, error } = await window.supabaseClient.functions.invoke('finalize-consumer-registration', {
+      body: {
+        leagueName: pending.leagueName,
+        leagueSlug: pending.leagueSlug,
+        isPublic: Boolean(pending.isPublic)
+      }
     });
-    if (error) throw error;
 
-    const league = Array.isArray(data) ? data[0] : data;
+    if (error) throw new Error(await functionErrorMessage(error));
+    if (!data?.ok) throw new Error(data?.message || 'Die Registrierung konnte nicht abgeschlossen werden.');
+
+    const league = data.league;
     if (!league?.slug || !['admin', 'owner'].includes(league.role)) {
       throw new Error('Die Liga-Leitung konnte nicht korrekt angelegt werden.');
+    }
+    if (!data?.confirmation?.sent_at) {
+      throw new Error('Die Vertragsbestätigung wurde noch nicht versendet. Bitte versuche es erneut.');
     }
 
     clearPending();
@@ -301,11 +317,12 @@
     try {
       sessionStorage.setItem('rcc.activeLeagueSlug.v1', league.slug);
       sessionStorage.setItem('rcc.lastTenantSlug.v1', league.slug);
+      sessionStorage.setItem('racevora.contractConfirmationReference.v1', String(data.confirmation.reference || ''));
     } catch (_) {
       // Session storage is optional.
     }
 
-    setFeedback('Deine Rennliga ist angelegt. Der Einrichtungsassistent wird geöffnet …', 'success');
+    setFeedback('Vertragsbestätigung gesendet. Deine Rennliga ist angelegt – der Einrichtungsassistent wird geöffnet …', 'success');
     const target = new URL('admin.html', window.location.href);
     target.searchParams.set('league', league.slug);
     target.searchParams.set('onboarding', '1');
@@ -363,18 +380,38 @@
     }
   }
 
+  async function resumePendingRegistration() {
+    if (busy || !window.supabaseClient?.auth) return;
+    try {
+      const { data, error } = await window.supabaseClient.auth.getSession();
+      if (error) throw error;
+      if (!data?.session?.user) {
+        setFeedback('Bitte bestätige zuerst deine E-Mail-Adresse. Danach kannst du die Registrierung hier fortsetzen.', 'info');
+        return;
+      }
+      await continueRegistration(data.session);
+    } catch (error) {
+      setFeedback(friendlyError(error), 'error');
+    }
+  }
+
   function renderPendingState(pending) {
     if (!resume || !pending) return;
     resume.hidden = false;
     resume.replaceChildren();
 
     const text = document.createElement('span');
-    text.textContent = `Registrierung für „${pending.leagueName}“ mit ${pending.email} wartet auf E-Mail-Bestätigung.`;
+    text.textContent = `Registrierung für „${pending.leagueName}“ mit ${pending.email} ist noch nicht vollständig abgeschlossen.`;
 
     const resend = document.createElement('button');
     resend.type = 'button';
     resend.textContent = 'Bestätigungs-E-Mail erneut senden';
     resend.addEventListener('click', () => resendConfirmation(pending, resend));
+
+    const resumeButton = document.createElement('button');
+    resumeButton.type = 'button';
+    resumeButton.textContent = 'Registrierung fortsetzen';
+    resumeButton.addEventListener('click', resumePendingRegistration);
 
     const clear = document.createElement('button');
     clear.type = 'button';
@@ -385,7 +422,7 @@
       setFeedback('Die lokale Registrierung wurde verworfen. Ein bereits angelegter Account bleibt bestehen.');
     });
 
-    resume.append(text, resend, clear);
+    resume.append(text, resend, resumeButton, clear);
   }
 
   async function submitRegistration(event) {
@@ -425,7 +462,7 @@
         return;
       }
 
-      setFeedback('Fast geschafft: Bitte bestätige jetzt deine E-Mail-Adresse. Danach richtet RaceVora deine Rennliga automatisch ein.', 'success');
+      setFeedback('Fast geschafft: Bitte bestätige jetzt deine E-Mail-Adresse. Danach richtet RaceVora deine Rennliga ein und sendet dir die Vertragsbestätigung per E-Mail.', 'success');
     } catch (error) {
       console.error('Liga-Leitung registration failed:', error);
       setFeedback(friendlyError(error), 'error');
