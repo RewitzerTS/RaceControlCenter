@@ -23,7 +23,13 @@
   }
 
   function populate() {
-    const teams = window.RCCTeamStats.listTeams(state.history, { seasonId: state.seasonId || null });
+    const options = { seasonId: state.seasonId || null };
+    const withHistory = window.RCCTeamStats.calculateAllTeamStats(state.history, options)
+      .filter((entry) => entry.races > 0)
+      .sort((a, b) => b.points - a.points || b.wins - a.wins || a.teamName.localeCompare(b.teamName, 'de'))
+      .map((entry) => entry.teamName);
+    const allTeams = window.RCCTeamStats.listTeams(state.history, options);
+    const teams = [...withHistory, ...allTeams.filter((team) => !withHistory.some((name) => name === team))];
     const select = byId('team-profile-select');
     select.innerHTML = teams.map((team) => `<option value="${esc(team)}">${esc(team)}</option>`).join('');
     if (!teams.some((team) => team === state.team)) state.team = teams[0] || '';
