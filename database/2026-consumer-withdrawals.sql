@@ -21,7 +21,9 @@ create table if not exists public.consumer_withdrawals (
 
 alter table public.consumer_withdrawals enable row level security;
 
-revoke all on table public.consumer_withdrawals from anon, authenticated;
+-- Deliberately no client RLS policies: the public withdrawal endpoint writes through
+-- the Edge Function's service role only. Explicitly remove all direct table access.
+revoke all on table public.consumer_withdrawals from public, anon, authenticated;
 grant all on table public.consumer_withdrawals to service_role;
 
 create index if not exists consumer_withdrawals_submitted_at_idx
