@@ -1,6 +1,6 @@
 # RaceVora Beta-Release-Readiness · 17.08.2026
 
-Status: **technisch beta-fähig; Verbraucher-Widerruf live verifiziert; vor breiter öffentlicher Beta bleiben nur wenige manuelle Betriebs-/Mailchecks offen.**
+Status: **technisch beta-fähig; Verbraucher-Widerruf und zentrale Auth-Mailflows live verifiziert; vor breiter öffentlicher Beta bleiben nur wenige manuelle Betriebs-/Templatechecks offen.**
 
 ## 1. Plattform / Deployment
 
@@ -35,11 +35,12 @@ Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 - [x] CI-Smoke prüft Branding und Template-Platzhalter.
 - [x] Custom SMTP über Resend für RaceVora eingerichtet und grundsätzlich versandfähig.
 - [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass die Repo-Versionen als aktive Auth-Mailtemplates hinterlegt sind.
-- [ ] Signup-Mail an kontrolliertes Testpostfach zustellen und Inhalt/Links prüfen.
-- [ ] Reset-Mail an kontrolliertes Testpostfach zustellen und Inhalt/Links prüfen.
-- [ ] Invite-Mail an kontrolliertes Testpostfach zustellen und Inhalt/Links prüfen.
+- [x] Signup-Mail an kontrolliertes Testpostfach erfolgreich zugestellt.
+- [x] Reset-Mail an kontrolliertes Testpostfach erfolgreich zugestellt.
+- [x] Invite-Mail erfolgreich zugestellt und Einladung live bestätigt.
+- [x] Rollenwechsel im Mitgliederflow live geprüft: Einladung als Ligaleitung, anschließend Wechsel auf `member` erfolgreich.
 
-Die vorhandenen Repo-Templates sind versioniert, aber der aktuell aktive Template-Inhalt im Supabase-Dashboard kann über den verfügbaren Connector nicht zuverlässig ausgelesen werden. Deshalb bleiben diese Punkte bewusst manuell.
+Signup und Reset wurden über Supabase Auth ausgelöst, von Resend als zugestellt gemeldet und tatsächlich im Zielpostfach gefunden. Der Invite-Flow wurde zusätzlich vollständig über die produktive Mitgliederverwaltung getestet; Supabase bestätigte Einladung, Account-Bestätigung und den anschließenden Rollenwechsel. Der aktuell aktive Template-Inhalt im Supabase-Dashboard kann über den verfügbaren Connector weiterhin nicht zuverlässig ausgelesen werden, deshalb bleibt nur der direkte Template-Abgleich manuell offen.
 
 ## 4. Betreiber / Kontakt
 
@@ -84,15 +85,13 @@ Der zuvor offene Verbraucher-Release-Blocker ist technisch geschlossen:
 ## 7. Vor breiter öffentlicher Beta noch offen
 
 1. Aktive Supabase Auth-Mailtemplates im Dashboard einmal gegen die Repo-Versionen abgleichen.
-2. Signup-, Reset- und Invite-Mail jeweils einmal an ein kontrolliertes Testpostfach senden und Links/Branding prüfen.
-3. Organisatorisch festlegen, wer fehlgeschlagene Production-Health/GitHub-Actions-Meldungen beobachtet.
-4. Rechtstexte und Vertragsfluss vor breiter Vermarktung fachanwaltlich/datenschutzrechtlich prüfen lassen.
+2. Organisatorisch festlegen, wer fehlgeschlagene Production-Health/GitHub-Actions-Meldungen beobachtet.
+3. Rechtstexte und Vertragsfluss vor breiter Vermarktung fachanwaltlich/datenschutzrechtlich prüfen lassen.
 
-Die Punkte 1–3 sind Betriebs-/Releasechecks und keine bekannten technischen Funktionsblocker der Plattform. Punkt 4 ist eine externe rechtliche Qualitätssicherung und keine Aussage, dass die vorhandenen Texte anwaltlich geprüft wären.
+Die Punkte 1–2 sind Betriebs-/Releasechecks und keine bekannten technischen Funktionsblocker der Plattform. Punkt 3 ist eine externe rechtliche Qualitätssicherung und keine Aussage, dass die vorhandenen Texte anwaltlich geprüft wären.
 
 ## 8. Nicht durch diesen Block verändert
 
 - keine Liga-, Fahrer-, Saison- oder Ergebnisdaten,
 - kein Branding oder Inhalt der produktiven Liga `rcc`,
-- keine Auth-User,
 - keine aktiven Supabase-Mailtemplates im Dashboard.
