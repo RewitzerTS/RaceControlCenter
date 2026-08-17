@@ -2,10 +2,61 @@
   if (window.RCCResultDraft) return;
 
   const WORKFLOW_REFRESH_TIMEOUT_MS = 8000;
+  const DRAFT_QUERY_TIMEOUT_MS = Math.max(
+    1000,
+    Number(window.__RCC_RESULT_DRAFT_QUERY_TIMEOUT_MS) || 20000
+  );
+  const SESSION_TIMEOUT_MS = 12000;
+
+  function timeoutError(label, ms) {
+    return new Error(`${label} hat nach ${Math.round(ms / 1000)} Sekunden nicht geantwortet. Bitte die Verbindung prüfen und erneut versuchen.`);
+  }
+
+  function withTimeout(promise, ms, label) {
+    let timeoutId = null;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = window.setTimeout(() => reject(timeoutError(label, ms)), ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    });
+  }
+
+  async function runQuery(query, label) {
+    if (!query) throw new Error(`${label} konnte nicht gestartet werden.`);
+    if (typeof AbortController !== 'function' || typeof query.abortSignal !== 'function') {
+      return withTimeout(Promise.resolve(query), DRAFT_QUERY_TIMEOUT_MS, label);
+    }
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), DRAFT_QUERY_TIMEOUT_MS);
+    try {
+      const response = await query.abortSignal(controller.signal);
+      if (controller.signal.aborted) throw timeoutError(label, DRAFT_QUERY_TIMEOUT_MS);
+      return response;
+    } catch (error) {
+      if (controller.signal.aborted || error?.name === 'AbortError') {
+        throw timeoutError(label, DRAFT_QUERY_TIMEOUT_MS);
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  }
 
   async function requireAdmin() {
-    if (typeof window.requireAdminSession === 'function') return window.requireAdminSession();
-    const { data, error } = await window.supabaseClient.auth.getSession();
+    if (typeof window.requireAdminSession === 'function') {
+      return withTimeout(
+        Promise.resolve().then(() => window.requireAdminSession()),
+        SESSION_TIMEOUT_MS,
+        'Die Admin-Sitzung'
+      );
+    }
+    const { data, error } = await withTimeout(
+      window.supabaseClient.auth.getSession(),
+      SESSION_TIMEOUT_MS,
+      'Die Admin-Sitzung'
+    );
     if (error) throw error;
     if (!data?.session) throw new Error('Bitte zuerst als Ligaleitung einloggen.');
     return data.session;
@@ -53,6 +104,18 @@
       });
   }
 
+  function schedulePostSaveUi({ raceId, importId, sourceFilename }) {
+    // Keep the actual save promise independent from secondary UI refreshes.
+    // On iOS/Safari this guarantees the save button/finally block can recover
+    // before the heavier draft overview refresh starts.
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('rcc:result-draft-saved', {
+        detail: { raceId, importId, sourceFilename }
+      }));
+      refreshWorkflowInBackground();
+    }, 0);
+  }
+
   async function save({ raceId, rows = [], sourceFilename = 'Ergebnisentwurf' } = {}) {
     const normalizedRaceId = String(raceId || '').trim();
     if (!normalizedRaceId) throw new Error('Kein Rennen für den Entwurf ausgewählt.');
@@ -62,66 +125,84 @@
     const payloadRows = rows.map(cleanRow);
     const now = new Date().toISOString();
 
-    const { data: existingImport, error: existingError } = await window.supabaseClient
-      .from('race_result_imports')
-      .select('id')
-      .eq('race_id', normalizedRaceId)
-      .maybeSingle();
+    const { data: existingImport, error: existingError } = await runQuery(
+      window.supabaseClient
+        .from('race_result_imports')
+        .select('id')
+        .eq('race_id', normalizedRaceId)
+        .maybeSingle(),
+      'Vorhandener Ergebnisentwurf'
+    );
     if (existingError) throw existingError;
 
     let importId = existingImport?.id || null;
     if (importId) {
-      const { error: deleteError } = await window.supabaseClient
-        .from('race_result_import_rows')
-        .delete()
-        .eq('import_id', importId);
+      const { error: deleteError } = await runQuery(
+        window.supabaseClient
+          .from('race_result_import_rows')
+          .delete()
+          .eq('import_id', importId),
+        'Alte Entwurfszeilen'
+      );
       if (deleteError) throw deleteError;
 
-      const { error: updateError } = await window.supabaseClient
-        .from('race_result_imports')
-        .update({
-          status: 'under_review',
-          source_filename: String(sourceFilename || 'Ergebnisentwurf'),
-          imported_by: session?.user?.id || null,
-          imported_at: now,
-          published_by: null,
-          published_at: null
-        })
-        .eq('id', importId);
+      const { error: updateError } = await runQuery(
+        window.supabaseClient
+          .from('race_result_imports')
+          .update({
+            status: 'under_review',
+            source_filename: String(sourceFilename || 'Ergebnisentwurf'),
+            imported_by: session?.user?.id || null,
+            imported_at: now,
+            published_by: null,
+            published_at: null
+          })
+          .eq('id', importId),
+        'Ergebnisentwurf'
+      );
       if (updateError) throw updateError;
     } else {
-      const { data: created, error: createError } = await window.supabaseClient
-        .from('race_result_imports')
-        .insert([{
-          race_id: normalizedRaceId,
-          status: 'under_review',
-          source_filename: String(sourceFilename || 'Ergebnisentwurf'),
-          imported_by: session?.user?.id || null,
-          imported_at: now
-        }])
-        .select('id')
-        .single();
+      const { data: created, error: createError } = await runQuery(
+        window.supabaseClient
+          .from('race_result_imports')
+          .insert([{
+            race_id: normalizedRaceId,
+            status: 'under_review',
+            source_filename: String(sourceFilename || 'Ergebnisentwurf'),
+            imported_by: session?.user?.id || null,
+            imported_at: now
+          }])
+          .select('id')
+          .single(),
+        'Neuer Ergebnisentwurf'
+      );
       if (createError) throw createError;
       importId = created.id;
     }
 
     const insertPayload = payloadRows.map((row) => ({ import_id: importId, ...row }));
-    const { error: insertError } = await window.supabaseClient
-      .from('race_result_import_rows')
-      .insert(insertPayload);
+    const { error: insertError } = await runQuery(
+      window.supabaseClient
+        .from('race_result_import_rows')
+        .insert(insertPayload),
+      'Entwurfszeilen'
+    );
     if (insertError) throw insertError;
 
-    const { error: raceError } = await window.supabaseClient
-      .from('races')
-      .update({ status: 'upcoming' })
-      .eq('id', normalizedRaceId);
+    const { error: raceError } = await runQuery(
+      window.supabaseClient
+        .from('races')
+        .update({ status: 'upcoming' })
+        .eq('id', normalizedRaceId),
+      'Rennstatus'
+    );
     if (raceError) throw raceError;
 
-    window.dispatchEvent(new CustomEvent('rcc:result-draft-saved', {
-      detail: { raceId: normalizedRaceId, importId, sourceFilename: String(sourceFilename || '') }
-    }));
-
-    refreshWorkflowInBackground();
+    schedulePostSaveUi({
+      raceId: normalizedRaceId,
+      importId,
+      sourceFilename: String(sourceFilename || '')
+    });
 
     return { importId, rows: payloadRows };
   }
