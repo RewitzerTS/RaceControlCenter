@@ -40,6 +40,8 @@ jobs:
           grep -Fq 'contract_confirmations' "$function"
           grep -Fq 'confirmation_sent_at' "$function"
           grep -Fq 'RESEND_API_KEY' "$function"
+          grep -Fq 'Idempotency-Key' "$function"
+          grep -Fq 'contract-confirmation/${confirmation.reference}' "$function"
           grep -Fq 'Muster-Widerrufsformular' "$function"
           grep -Fq '0,00 EUR' "$function"
           echo 'Contract confirmation smoke passed.'
