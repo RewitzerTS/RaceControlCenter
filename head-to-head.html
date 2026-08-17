@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="assets/js/theme-prepaint.js"></script>
+  <title>RaceVora · Head-to-Head</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/driver-profile.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body data-page="head-to-head">
+  <div id="site-header"></div>
+
+  <main class="section driver-profile-page">
+    <div class="container driver-profile-toolbar">
+      <div>
+        <div class="eyebrow">RaceVora Duel Center</div>
+        <h1 class="page-title page-title-compact">Head-to-Head</h1>
+        <p class="page-subtitle">Direkter Vergleich ausschließlich in Rennen, an denen beide Fahrer teilgenommen haben.</p>
+      </div>
+      <div class="driver-profile-controls driver-profile-controls--h2h" aria-label="Head-to-Head auswählen">
+        <label><span>Fahrer 1</span><select id="h2h-driver-a"></select></label>
+        <label><span>Fahrer 2</span><select id="h2h-driver-b"></select></label>
+        <label><span>Zeitraum</span><select id="h2h-season"><option value="">Alle Saisons</option></select></label>
+      </div>
+    </div>
+
+    <div class="container">
+      <section id="h2h-loading" class="driver-profile-state">Head-to-Head wird geladen …</section>
+      <section id="h2h-error" class="driver-profile-state driver-profile-state--error" hidden></section>
+
+      <section id="h2h-content" hidden>
+        <article class="h2h-hero">
+          <a class="h2h-driver-card" id="h2h-profile-a" href="fahrer-profil.html">
+            <div class="h2h-avatar" id="h2h-avatar-a"></div>
+            <div><span>Fahrer 1</span><strong id="h2h-name-a">—</strong><small id="h2h-team-a">—</small></div>
+          </a>
+          <div class="h2h-scoreboard">
+            <span id="h2h-common-races">0 gemeinsame Rennen</span>
+            <div class="h2h-main-score"><strong id="h2h-score-a">0</strong><b>:</b><strong id="h2h-score-b">0</strong></div>
+            <small>Rennen vor dem Gegner beendet</small>
+          </div>
+          <a class="h2h-driver-card h2h-driver-card--right" id="h2h-profile-b" href="fahrer-profil.html">
+            <div><span>Fahrer 2</span><strong id="h2h-name-b">—</strong><small id="h2h-team-b">—</small></div>
+            <div class="h2h-avatar" id="h2h-avatar-b"></div>
+          </a>
+        </article>
+
+        <section class="h2h-metric-grid" id="h2h-metrics"></section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading">
+            <div><span class="eyebrow">Rivalry Timeline</span><h3>Gemeinsame Rennen</h3></div>
+            <span class="muted" id="h2h-ties"></span>
+          </div>
+          <div id="h2h-timeline" class="h2h-timeline"></div>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading"><div><span class="eyebrow">Duell-Historie</span><h3>Race by Race</h3></div></div>
+          <div class="table-wrap">
+            <table class="driver-history-table h2h-history-table">
+              <thead><tr><th>Rennen</th><th>Saison</th><th id="h2h-th-a">Fahrer 1</th><th id="h2h-th-b">Fahrer 2</th><th>Qualifying</th><th>Sieger</th></tr></thead>
+              <tbody id="h2h-races"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="assets/js/supabase-client.js"></script>
+  <script defer src="assets/js/data/tracks.js"></script>
+  <script defer src="assets/js/services/rcc-data.js"></script>
+  <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
+  <script defer src="assets/js/services/rcc-driver-context.js"></script>
+  <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/layout.js"></script>
+  <script defer src="assets/js/utils.js"></script>
+  <script defer src="assets/js/components/racevora-team-logo-resilience.js"></script>
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/pages/head-to-head.js"></script>
+</body>
+</html>

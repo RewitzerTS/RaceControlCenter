@@ -1,0 +1,220 @@
+name: Driver Hub Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'fahrer-profil.html'
+      - 'head-to-head.html'
+      - 'fahrer-wm.html'
+      - 'rennen-detail.html'
+      - 'assets/js/services/rcc-driver-context.js'
+      - 'assets/js/services/rcc-driver-stats.js'
+      - 'assets/js/pages/driver-profile.js'
+      - 'assets/js/pages/head-to-head.js'
+      - 'assets/js/pages/driver-profile-links.js'
+      - 'assets/css/driver-profile.css'
+      - '.github/workflows/driver-hub-smoke.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'fahrer-profil.html'
+      - 'head-to-head.html'
+      - 'fahrer-wm.html'
+      - 'rennen-detail.html'
+      - 'assets/js/services/rcc-driver-context.js'
+      - 'assets/js/services/rcc-driver-stats.js'
+      - 'assets/js/pages/driver-profile.js'
+      - 'assets/js/pages/head-to-head.js'
+      - 'assets/js/pages/driver-profile-links.js'
+      - 'assets/css/driver-profile.css'
+      - '.github/workflows/driver-hub-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  driver-hub-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/js/services/rcc-driver-context.js
+          node --check assets/js/services/rcc-driver-stats.js
+          node --check assets/js/pages/driver-profile.js
+          node --check assets/js/pages/head-to-head.js
+          node --check assets/js/pages/driver-profile-links.js
+
+      - name: Check season-scoped assignment resolution
+        shell: bash
+        run: |
+          node <<'NODE'
+          global.window = {};
+          require('./assets/js/services/rcc-driver-context.js');
+          const resolver = window.RCCDriverContext.createAssignmentResolver({
+            drivers: [{ id: 'driver-1', display_name: 'Test Driver', league_team: 'Fallback' }],
+            races: [
+              { id: 'race-s1', season_id: 'season-1', round_number: 1 },
+              { id: 'race-s2', season_id: 'season-2', round_number: 1 }
+            ],
+            assignments: [
+              { id: 'assign-s1', driver_id: 'driver-1', season_id: 'season-1', is_primary: true, league_team: 'Team One', created_at: '2026-01-01T00:00:00Z' },
+              { id: 'assign-s2', driver_id: 'driver-1', season_id: 'season-2', is_primary: true, league_team: 'Team Two', created_at: '2026-07-01T00:00:00Z' }
+            ]
+          });
+          const seasonOne = resolver.resolveDriverSnapshot('driver-1', 'race-s1');
+          const seasonTwo = resolver.resolveDriverSnapshot('driver-1', 'race-s2');
+          if (seasonOne?.league_team !== 'Team One') throw new Error(`season-1 leaked assignment: ${seasonOne?.league_team}`);
+          if (seasonTwo?.league_team !== 'Team Two') throw new Error(`season-2 leaked assignment: ${seasonTwo?.league_team}`);
+          NODE
+
+      - name: Check public Driver Hub wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'data-page="fahrer-profil"' fahrer-profil.html
+          grep -Fq 'assets/js/services/rcc-driver-stats.js' fahrer-profil.html
+          grep -Fq 'assets/js/pages/driver-profile.js' fahrer-profil.html
+          grep -Fq 'id="driver-profile-h2h"' fahrer-profil.html
+          grep -Fq 'data-page="head-to-head"' head-to-head.html
+          grep -Fq 'assets/js/pages/head-to-head.js' head-to-head.html
+          grep -Fq 'id="h2h-driver-a"' head-to-head.html
+          grep -Fq 'id="h2h-driver-b"' head-to-head.html
+          grep -Fq 'assets/js/pages/driver-profile-links.js' fahrer-wm.html
+          grep -Fq 'assets/js/pages/driver-profile-links.js' rennen-detail.html
+          grep -Fq 'calculateHeadToHead' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'points_owner_driver_id' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'row?.season_id' assets/js/services/rcc-driver-context.js
+
+      - name: Guard tenant-scoped data access
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq "\.from\(['\"](drivers|races|race_results|seasons)['\"]\)" assets/js/pages/driver-profile.js assets/js/pages/head-to-head.js; then
+            echo 'Driver Hub pages must use RCCData/RCCDriverStats rather than direct unscoped table reads.' >&2
+            exit 1
+          fi
+          grep -Fq 'window.RCCData.fetchSeasons' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'window.RCCData.fetchDrivers' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'window.RCCData.fetchRaces' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'window.RCCData.fetchRaceResults' assets/js/services/rcc-driver-stats.js
+
+  driver-hub-browser:
+    needs: driver-hub-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/driver-hub-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/fahrer-profil.html >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/driver-hub-http.log
+          exit 1
+
+      - name: Exercise public Driver Hub
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          async function assertNoDocumentOverflow(page, label) {
+            const state = await page.evaluate(() => ({
+              width: window.innerWidth,
+              scrollWidth: document.documentElement.scrollWidth,
+              htmlOverflow: getComputedStyle(document.documentElement).overflowX,
+              bodyOverflow: getComputedStyle(document.body).overflowX
+            }));
+            const clipped = ['hidden', 'clip'].includes(state.htmlOverflow) || ['hidden', 'clip'].includes(state.bodyOverflow);
+            if (state.scrollWidth > state.width + 2 && !clipped) {
+              throw new Error(`${label}: document overflow ${state.scrollWidth}px > ${state.width}px`);
+            }
+          }
+
+          async function openChecked(browser, path, selector, viewport) {
+            const page = await browser.newPage({ viewport });
+            const pageErrors = [];
+            page.on('pageerror', (error) => pageErrors.push(error.message));
+            const response = await page.goto(`http://127.0.0.1:8080/${path}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            if (!response || response.status() >= 400) throw new Error(`${path}: HTTP ${response?.status()}`);
+            await page.waitForSelector(selector, { state: 'visible', timeout: 30000 });
+            await page.waitForTimeout(500);
+            if (pageErrors.length) throw new Error(`${path}: ${pageErrors.join(' | ')}`);
+            return page;
+          }
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+
+            const profile = await openChecked(browser, 'fahrer-profil.html?league=rcc', '#driver-profile-content:not([hidden])', { width: 1280, height: 900 });
+            const profileState = await profile.evaluate(() => ({
+              drivers: document.querySelectorAll('#driver-profile-select option').length,
+              stats: document.querySelectorAll('.driver-stat-card').length,
+              starts: Number(document.querySelector('#driver-stat-starts')?.textContent || 0),
+              h2hHref: document.querySelector('#driver-profile-h2h')?.getAttribute('href') || ''
+            }));
+            if (profileState.drivers < 2) throw new Error(`driver profile: expected at least two drivers, got ${profileState.drivers}`);
+            if (profileState.stats !== 6) throw new Error(`driver profile: expected six stat cards, got ${profileState.stats}`);
+            if (profileState.starts < 1) throw new Error('driver profile: selected public RCC driver has no rendered starts');
+            if (!profileState.h2hHref.includes('head-to-head.html')) throw new Error('driver profile: H2H link missing');
+            await profile.close();
+
+            const h2h = await openChecked(browser, 'head-to-head.html?league=rcc', '#h2h-content:not([hidden])', { width: 1280, height: 900 });
+            const h2hState = await h2h.evaluate(() => ({
+              driversA: document.querySelectorAll('#h2h-driver-a option').length,
+              driversB: document.querySelectorAll('#h2h-driver-b option').length,
+              metrics: document.querySelectorAll('.h2h-metric-card').length,
+              profileA: document.querySelector('#h2h-profile-a')?.getAttribute('href') || '',
+              profileB: document.querySelector('#h2h-profile-b')?.getAttribute('href') || ''
+            }));
+            if (h2hState.driversA < 2 || h2hState.driversB < 2) throw new Error('H2H: driver selectors are incomplete');
+            if (h2hState.metrics !== 8) throw new Error(`H2H: expected eight metrics, got ${h2hState.metrics}`);
+            if (!h2hState.profileA.includes('fahrer-profil.html') || !h2hState.profileB.includes('fahrer-profil.html')) throw new Error('H2H: profile links missing');
+            await h2h.close();
+
+            const standings = await openChecked(browser, 'fahrer-wm.html?league=rcc', '#drivers-standings-body a[data-driver-profile-link]', { width: 1280, height: 900 });
+            const linkCount = await standings.locator('#drivers-standings-body a[data-driver-profile-link]').count();
+            if (linkCount < 2) throw new Error(`standings: expected driver profile links, got ${linkCount}`);
+            await standings.close();
+
+            const raceDetail = await openChecked(browser, 'rennen-detail.html?league=rcc&round=1', '#results-body a[data-driver-profile-link]', { width: 1280, height: 900 });
+            const resultLinks = await raceDetail.locator('#results-body a[data-driver-profile-link]').count();
+            if (resultLinks < 2) throw new Error(`race detail: expected driver profile links, got ${resultLinks}`);
+            await raceDetail.close();
+
+            const mobileProfile = await openChecked(browser, 'fahrer-profil.html?league=rcc', '#driver-profile-content:not([hidden])', { width: 393, height: 852 });
+            await assertNoDocumentOverflow(mobileProfile, 'driver profile iPhone');
+            await mobileProfile.close();
+
+            const mobileH2H = await openChecked(browser, 'head-to-head.html?league=rcc', '#h2h-content:not([hidden])', { width: 393, height: 852 });
+            await assertNoDocumentOverflow(mobileH2H, 'H2H iPhone');
+            await mobileH2H.close();
+
+            await browser.close();
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE

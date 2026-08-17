@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="assets/js/theme-prepaint.js"></script>
+  <title>RaceVora · Fahrerprofil</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/driver-profile.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body data-page="fahrer-profil">
+  <div id="site-header"></div>
+
+  <main class="section driver-profile-page">
+    <div class="container driver-profile-toolbar">
+      <div>
+        <div class="eyebrow">RaceVora Driver Hub</div>
+        <h1 class="page-title page-title-compact">Fahrerprofil</h1>
+        <p class="page-subtitle">Karriere, Saisonform und Rennhistorie aus den veröffentlichten Ergebnissen dieser Liga.</p>
+      </div>
+      <div class="driver-profile-controls" aria-label="Fahrerprofil auswählen">
+        <label>
+          <span>Fahrer</span>
+          <select id="driver-profile-select" aria-label="Fahrer auswählen"></select>
+        </label>
+        <label>
+          <span>Zeitraum</span>
+          <select id="driver-profile-season" aria-label="Saison auswählen">
+            <option value="">Karriere</option>
+          </select>
+        </label>
+        <a id="driver-profile-h2h" class="btn primary" href="head-to-head.html">Head-to-Head</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <section id="driver-profile-loading" class="driver-profile-state">Fahrerprofil wird geladen …</section>
+      <section id="driver-profile-error" class="driver-profile-state driver-profile-state--error" hidden></section>
+
+      <section id="driver-profile-content" hidden>
+        <article class="driver-hero-card">
+          <div class="driver-hero-avatar" id="driver-profile-avatar" aria-hidden="true"></div>
+          <div class="driver-hero-copy">
+            <div class="driver-hero-meta" id="driver-profile-meta"></div>
+            <h2 id="driver-profile-name">—</h2>
+            <p id="driver-profile-team">—</p>
+            <div class="driver-hero-tags" id="driver-profile-tags"></div>
+          </div>
+          <div class="driver-hero-number" id="driver-profile-number">#—</div>
+        </article>
+
+        <section class="driver-stat-grid" aria-label="Fahrerstatistiken">
+          <article class="driver-stat-card"><span>Starts</span><strong id="driver-stat-starts">0</strong></article>
+          <article class="driver-stat-card"><span>Siege</span><strong id="driver-stat-wins">0</strong></article>
+          <article class="driver-stat-card"><span>Podien</span><strong id="driver-stat-podiums">0</strong></article>
+          <article class="driver-stat-card"><span>Poles</span><strong id="driver-stat-poles">0</strong></article>
+          <article class="driver-stat-card"><span>Schnellste Runden</span><strong id="driver-stat-fastest">0</strong></article>
+          <article class="driver-stat-card driver-stat-card--accent"><span>Punkte</span><strong id="driver-stat-points">0</strong></article>
+        </section>
+
+        <section class="driver-performance-grid">
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Performance</span><h3>Racecraft</h3></div></div>
+            <div class="driver-kpi-list">
+              <div><span>Ø Startposition</span><strong id="driver-stat-avg-start">—</strong></div>
+              <div><span>Ø Zielposition</span><strong id="driver-stat-avg-finish">—</strong></div>
+              <div><span>Positionen netto</span><strong id="driver-stat-gain">—</strong></div>
+              <div><span>Bestes Ergebnis</span><strong id="driver-stat-best-finish">—</strong></div>
+              <div><span>Zielankunftsquote</span><strong id="driver-stat-finish-rate">—</strong></div>
+              <div><span>DNF / ohne Klassierung</span><strong id="driver-stat-dnf">0</strong></div>
+            </div>
+          </article>
+
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Form</span><h3>Letzte 5 Starts</h3></div></div>
+            <div id="driver-profile-form" class="driver-form-strip"></div>
+            <p class="muted driver-form-caption" id="driver-profile-form-caption"></p>
+          </article>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading">
+            <div><span class="eyebrow">Historie</span><h3>Saisons</h3></div>
+          </div>
+          <div class="table-wrap">
+            <table class="driver-history-table">
+              <thead><tr><th>Saison</th><th>Starts</th><th>Siege</th><th>Podien</th><th>Poles</th><th>SR</th><th>Punkte</th><th>Bestes Ergebnis</th></tr></thead>
+              <tbody id="driver-profile-seasons"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="driver-profile-split">
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Strecken</span><h3>Beste Strecken</h3></div></div>
+            <div id="driver-profile-tracks" class="driver-track-list"></div>
+          </article>
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Teams</span><h3>Team-Historie</h3></div></div>
+            <div id="driver-profile-teams" class="driver-team-history"></div>
+          </article>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading"><div><span class="eyebrow">Ergebnisse</span><h3>Letzte Rennen</h3></div></div>
+          <div class="table-wrap">
+            <table class="driver-history-table">
+              <thead><tr><th>Rennen</th><th>Saison</th><th>Start</th><th>Ziel</th><th>Δ</th><th>Punkte</th></tr></thead>
+              <tbody id="driver-profile-recent"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="assets/js/supabase-client.js"></script>
+  <script defer src="assets/js/data/tracks.js"></script>
+  <script defer src="assets/js/services/rcc-data.js"></script>
+  <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
+  <script defer src="assets/js/services/rcc-driver-context.js"></script>
+  <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/layout.js"></script>
+  <script defer src="assets/js/utils.js"></script>
+  <script defer src="assets/js/components/racevora-team-logo-resilience.js"></script>
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/pages/driver-profile.js"></script>
+</body>
+</html>
