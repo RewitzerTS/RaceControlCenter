@@ -52,6 +52,7 @@ jobs:
           grep -Fq 'supabase/setup-cli@v3' "$workflow"
           grep -Fq 'racevora-backups' "$workflow"
           grep -Fq '.eu.r2.cloudflarestorage.com' "$workflow"
+          grep -Fq 'awscli.amazonaws.com' "$workflow"
 
           artifact_action='actions/upload''-artifact'
           elevated_service_key='SUPABASE_SERVICE''_ROLE_KEY'
@@ -113,7 +114,29 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client gnupg awscli
+          sudo apt-get install -y --no-install-recommends postgresql-client gnupg curl unzip ca-certificates
+
+          if ! command -v aws >/dev/null 2>&1; then
+            case "$(uname -m)" in
+              x86_64) aws_arch='x86_64' ;;
+              aarch64|arm64) aws_arch='aarch64' ;;
+              *)
+                echo "Unsupported runner architecture for AWS CLI: $(uname -m)" >&2
+                exit 1
+                ;;
+            esac
+
+            aws_zip="${RUNNER_TEMP}/awscliv2.zip"
+            aws_dir="${RUNNER_TEMP}/awscli-installer"
+            mkdir -p "$aws_dir"
+            curl --fail --silent --show-error --location --retry 3 \
+              "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" \
+              --output "$aws_zip"
+            unzip -q "$aws_zip" -d "$aws_dir"
+            sudo "$aws_dir/aws/install" --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
+          fi
+
+          aws --version
 
       - name: Create database backup
         shell: bash
