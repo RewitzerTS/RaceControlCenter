@@ -1,0 +1,148 @@
+name: Team Hub and Records Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'team-profil.html'
+      - 'team-wm.html'
+      - 'rennen-detail.html'
+      - 'hall-of-fame.html'
+      - 'assets/css/team-profile.css'
+      - 'assets/js/services/rcc-team-stats.js'
+      - 'assets/js/pages/team-profile.js'
+      - 'assets/js/pages/team-profile-links.js'
+      - 'assets/js/pages/hall-of-fame-records.js'
+      - '.github/workflows/team-hub-records-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'team-profil.html'
+      - 'team-wm.html'
+      - 'rennen-detail.html'
+      - 'hall-of-fame.html'
+      - 'assets/css/team-profile.css'
+      - 'assets/js/services/rcc-team-stats.js'
+      - 'assets/js/pages/team-profile.js'
+      - 'assets/js/pages/team-profile-links.js'
+      - 'assets/js/pages/hall-of-fame-records.js'
+      - '.github/workflows/team-hub-records-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/js/services/rcc-team-stats.js
+          node --check assets/js/pages/team-profile.js
+          node --check assets/js/pages/team-profile-links.js
+          node --check assets/js/pages/hall-of-fame-records.js
+      - name: Check Team Hub wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'data-page="team-profil"' team-profil.html
+          grep -Fq 'assets/js/services/rcc-team-stats.js' team-profil.html
+          grep -Fq 'assets/js/pages/team-profile.js' team-profil.html
+          grep -Fq 'assets/js/pages/team-profile-links.js' team-wm.html
+          grep -Fq 'assets/js/pages/team-profile-links.js' rennen-detail.html
+          grep -Fq 'id="hof-driver-records"' hall-of-fame.html
+          grep -Fq 'id="hof-team-records"' hall-of-fame.html
+          grep -Fq 'assets/js/pages/hall-of-fame-records.js' hall-of-fame.html
+          grep -Fq 'window.RCCDriverStats' assets/js/services/rcc-team-stats.js
+          if grep -Eq "\.from\(['\"](drivers|races|race_results|seasons|teams)['\"]\)" assets/js/pages/team-profile.js assets/js/pages/hall-of-fame-records.js; then
+            echo 'Team/record pages must use the scoped stats services rather than direct table reads.' >&2
+            exit 1
+          fi
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/team-hub-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/team-profil.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/team-hub-http.log
+          exit 1
+      - name: Exercise Team Hub and records
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          async function page(browser, path, selector, viewport = { width: 1280, height: 900 }) {
+            const p = await browser.newPage({ viewport });
+            const errors = [];
+            p.on('pageerror', (error) => errors.push(error.message));
+            const response = await p.goto(`http://127.0.0.1:8080/${path}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            if (!response || response.status() >= 400) throw new Error(`${path}: HTTP ${response?.status()}`);
+            await p.waitForSelector(selector, { state: 'visible', timeout: 30000 });
+            await p.waitForTimeout(500);
+            if (errors.length) throw new Error(`${path}: ${errors.join(' | ')}`);
+            return p;
+          }
+          async function noOverflow(p, label) {
+            const size = await p.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
+            if (size.scroll > size.width + 2) throw new Error(`${label}: horizontal overflow ${size.scroll} > ${size.width}`);
+          }
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+
+            const team = await page(browser, 'team-profil.html?league=rcc', '#team-profile-content:not([hidden])');
+            const teamState = await team.evaluate(() => ({
+              teams: document.querySelectorAll('#team-profile-select option').length,
+              stats: document.querySelectorAll('.team-stat-grid .driver-stat-card').length,
+              drivers: document.querySelectorAll('#team-profile-drivers a').length,
+              races: Number(document.querySelector('#team-stat-races')?.textContent || 0)
+            }));
+            if (teamState.teams < 2) throw new Error(`team profile: expected multiple teams, got ${teamState.teams}`);
+            if (teamState.stats !== 6) throw new Error(`team profile: expected six stats, got ${teamState.stats}`);
+            if (teamState.drivers < 1 || teamState.races < 1) throw new Error('team profile: missing real RCC history');
+            await team.close();
+
+            const standings = await page(browser, 'team-wm.html?league=rcc', '#teams-standings-body a[data-team-profile-link]');
+            if (await standings.locator('#teams-standings-body a[data-team-profile-link]').count() < 2) throw new Error('team standings: profile links missing');
+            await standings.close();
+
+            const race = await page(browser, 'rennen-detail.html?league=rcc&round=1', '#results-body a[data-team-profile-link]');
+            if (await race.locator('#results-body a[data-team-profile-link]').count() < 2) throw new Error('race detail: team profile links missing');
+            await race.close();
+
+            const hof = await page(browser, 'hall-of-fame.html?league=rcc', '#hof-driver-records .platform-record-card');
+            const recordState = await hof.evaluate(() => ({
+              drivers: document.querySelectorAll('#hof-driver-records .platform-record-card').length,
+              teams: document.querySelectorAll('#hof-team-records .platform-record-card').length,
+              driverLinks: document.querySelectorAll('#hof-driver-records a[href*="fahrer-profil.html"]').length,
+              teamLinks: document.querySelectorAll('#hof-team-records a[href*="team-profil.html"]').length
+            }));
+            if (recordState.drivers !== 6 || recordState.teams !== 6) throw new Error(`Hall records incomplete: ${JSON.stringify(recordState)}`);
+            if (recordState.driverLinks < 6 || recordState.teamLinks < 6) throw new Error('Hall records: profile links missing');
+            await hof.close();
+
+            const mobileTeam = await page(browser, 'team-profil.html?league=rcc', '#team-profile-content:not([hidden])', { width: 393, height: 852 });
+            await noOverflow(mobileTeam, 'team profile iPhone');
+            await mobileTeam.close();
+
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
