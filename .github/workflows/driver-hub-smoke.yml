@@ -6,6 +6,7 @@ on:
       - 'fahrer-profil.html'
       - 'head-to-head.html'
       - 'fahrer-wm.html'
+      - 'rennen-detail.html'
       - 'assets/js/services/rcc-driver-stats.js'
       - 'assets/js/pages/driver-profile.js'
       - 'assets/js/pages/head-to-head.js'
@@ -19,6 +20,7 @@ on:
       - 'fahrer-profil.html'
       - 'head-to-head.html'
       - 'fahrer-wm.html'
+      - 'rennen-detail.html'
       - 'assets/js/services/rcc-driver-stats.js'
       - 'assets/js/pages/driver-profile.js'
       - 'assets/js/pages/head-to-head.js'
@@ -60,6 +62,7 @@ jobs:
           grep -Fq 'id="h2h-driver-a"' head-to-head.html
           grep -Fq 'id="h2h-driver-b"' head-to-head.html
           grep -Fq 'assets/js/pages/driver-profile-links.js' fahrer-wm.html
+          grep -Fq 'assets/js/pages/driver-profile-links.js' rennen-detail.html
           grep -Fq 'calculateHeadToHead' assets/js/services/rcc-driver-stats.js
           grep -Fq 'points_owner_driver_id' assets/js/services/rcc-driver-stats.js
 
@@ -168,6 +171,11 @@ jobs:
             const linkCount = await standings.locator('#drivers-standings-body a[data-driver-profile-link]').count();
             if (linkCount < 2) throw new Error(`standings: expected driver profile links, got ${linkCount}`);
             await standings.close();
+
+            const raceDetail = await openChecked(browser, 'rennen-detail.html?league=rcc&round=1', '#results-body a[data-driver-profile-link]', { width: 1280, height: 900 });
+            const resultLinks = await raceDetail.locator('#results-body a[data-driver-profile-link]').count();
+            if (resultLinks < 2) throw new Error(`race detail: expected driver profile links, got ${resultLinks}`);
+            await raceDetail.close();
 
             const mobileProfile = await openChecked(browser, 'fahrer-profil.html?league=rcc', '#driver-profile-content:not([hidden])', { width: 393, height: 852 });
             await assertNoDocumentOverflow(mobileProfile, 'driver profile iPhone');
