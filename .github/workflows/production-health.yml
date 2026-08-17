@@ -155,11 +155,12 @@ jobs:
               --output /dev/null \
               'https://racevora.com/'
 
-            if grep -Eiq '^strict-transport-security:[[:space:]]*max-age=[0-9]+' "$https_headers"; then
-              echo 'PASS HSTS'
-            else
-              echo 'INFO HSTS not live yet; this branch adds it via Workers static asset headers.'
+            if ! grep -Eiq '^strict-transport-security:[[:space:]]*max-age=[0-9]+' "$https_headers"; then
+              echo 'Missing or invalid Strict-Transport-Security header' >&2
+              cat "$https_headers" >&2 || true
+              return 1
             fi
+            echo 'PASS HSTS'
 
             if ! grep -Eiq '^x-content-type-options:[[:space:]]*nosniff[[:space:]]*$' "$https_headers"; then
               echo 'Missing X-Content-Type-Options: nosniff header' >&2
@@ -168,16 +169,24 @@ jobs:
             fi
             echo 'PASS X-Content-Type-Options'
 
+            if ! grep -Eiq '^x-frame-options:[[:space:]]*sameorigin[[:space:]]*$' "$https_headers"; then
+              echo 'Missing X-Frame-Options: SAMEORIGIN header' >&2
+              cat "$https_headers" >&2 || true
+              return 1
+            fi
+            echo 'PASS X-Frame-Options'
+
+            if ! grep -Eiq '^referrer-policy:[[:space:]]*strict-origin-when-cross-origin[[:space:]]*$' "$https_headers"; then
+              echo 'Missing Referrer-Policy: strict-origin-when-cross-origin header' >&2
+              cat "$https_headers" >&2 || true
+              return 1
+            fi
+            echo 'PASS Referrer-Policy'
+
             if grep -Eiq '^content-security-policy:' "$https_headers"; then
               echo 'INFO Content-Security-Policy present'
             else
               echo 'INFO Content-Security-Policy not currently enforced; keep under review before adding because the app uses multiple external resources.'
-            fi
-
-            if grep -Eiq '^referrer-policy:' "$https_headers"; then
-              echo 'INFO Referrer-Policy present'
-            else
-              echo 'INFO Referrer-Policy not live yet; this branch adds it via Workers static asset headers.'
             fi
 
             echo 'Checking security.txt'
@@ -224,8 +233,10 @@ jobs:
           echo '- Withdrawal Edge Function (non-mutating OPTIONS check)' >> "$GITHUB_STEP_SUMMARY"
           echo '- Public RCC Race Hub (read-only)' >> "$GITHUB_STEP_SUMMARY"
           echo '- HTTP -> HTTPS redirect' >> "$GITHUB_STEP_SUMMARY"
-          echo '- HSTS (reported until deployment adds it)' >> "$GITHUB_STEP_SUMMARY"
+          echo '- HSTS' >> "$GITHUB_STEP_SUMMARY"
           echo '- X-Content-Type-Options: nosniff' >> "$GITHUB_STEP_SUMMARY"
+          echo '- X-Frame-Options: SAMEORIGIN' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Referrer-Policy: strict-origin-when-cross-origin' >> "$GITHUB_STEP_SUMMARY"
           echo '- security.txt' >> "$GITHUB_STEP_SUMMARY"
           echo '' >> "$GITHUB_STEP_SUMMARY"
           echo 'All critical public routes, security baseline checks, and the non-mutating withdrawal endpoint check responded successfully.' >> "$GITHUB_STEP_SUMMARY"
