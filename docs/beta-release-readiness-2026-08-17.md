@@ -1,31 +1,27 @@
 # RaceVora Beta-Release-Readiness · 17.08.2026
 
-Status: **technisch weitgehend beta-fähig, rechtlich noch nicht freigabefähig**.
-
-Diese Checkliste trennt bewusst automatisierbare technische Nachweise von Punkten, die Betreiberangaben oder eine manuelle Prüfung im Supabase-Dashboard erfordern.
+Status: **technisch weitgehend beta-fähig; Rechtstexte vorhanden; Verbraucher-Widerrufsfunktion noch als Release-Blocker offen.**
 
 ## 1. Plattform / Deployment
 
-- [x] `https://racevora.com/` ist die produktive Plattformdomain.
-- [x] Öffentliche Landingpage, Registrierung, Passwort-Recovery und Passwort-Setup sind im Repository vorhanden.
+- [x] Produktivdomain `https://racevora.com/`.
+- [x] Landingpage, Registrierung, Passwort-Recovery und Passwort-Setup vorhanden.
 - [x] Öffentlicher Read-only Race-Hub der bestehenden Liga `rcc` bleibt als Smoke-Ziel erhalten.
-- [x] Multi-Tenant-/Rollen-Security wurde in `docs/security-audit-2026-08-16.md` separat auditiert.
-- [x] JavaScript-, Browser-, Branding-, Tenant-Security-, Results-/Team-Asset-, AI-Mobile- und Admin-iPhone-Smokes bestehen auf `main`.
+- [x] Multi-Tenant-/Rollen-Security separat auditiert (`docs/security-audit-2026-08-16.md`).
+- [x] JavaScript-, Browser-, Branding-, Tenant-Security-, Results-/Team-Asset-, AI-Mobile- und Admin-iPhone-Smokes vorhanden.
 
 ## 2. Produktionsmonitoring
 
-- [x] Workflow `.github/workflows/production-health.yml` ergänzt.
-- [x] Prüft Landing, Registrierung, Passwort-Recovery, Passwort-Setup und den öffentlichen `rcc` Race Hub.
-- [x] Nutzt HTTP-Fehlerprüfung, Inhaltsmarker, Timeouts und drei Versuche.
+- [x] Stündlicher Workflow `.github/workflows/production-health.yml`.
+- [x] HTTP-Fehlerprüfung, Inhaltsmarker, Timeouts und Retries.
 - [x] Keine eigene Besucher-/Session-/PII-Telemetrie.
-- [x] Stündliche Prüfung über GitHub Actions geplant.
-- [ ] Benachrichtigungskanal für fehlgeschlagene GitHub Actions organisatorisch festlegen (GitHub Notifications/E-Mail oder später dediziertes Monitoring).
+- [ ] Benachrichtigungskanal für fehlgeschlagene GitHub Actions organisatorisch festlegen.
 
-Hinweis: Der aktuelle Supabase-Connector erlaubt in dieser Sitzung keinen Zugriff auf Auth-, API- oder Edge-Function-Logs. Diese Logs konnten daher nicht als Bestandteil dieses Audits bewertet werden.
+Der aktuelle Supabase-Connector erlaubt in dieser Sitzung keinen Zugriff auf Auth-, API- oder Edge-Function-Logs. Diese Logs konnten daher nicht als Bestandteil dieses Audits bewertet werden.
 
 ## 3. Supabase Auth-E-Mails
 
-Versionierte RaceVora-Templates liegen unter `supabase/email-templates/racevora/` für:
+Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 
 - [x] Confirm Signup
 - [x] Reset Password
@@ -33,90 +29,54 @@ Versionierte RaceVora-Templates liegen unter `supabase/email-templates/racevora/
 - [x] Magic Link
 - [x] Change Email Address
 - [x] CI-Smoke prüft Branding und Template-Platzhalter.
-- [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass die versionierten RaceVora-HTML-Templates tatsächlich als aktive Auth-Mailtemplates hinterlegt sind.
-- [ ] Testzustellung an ein kontrolliertes Testpostfach für Signup, Reset und Invite durchführen.
+- [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass diese Versionen als aktive Auth-Mailtemplates hinterlegt sind.
+- [ ] Testzustellung für Signup, Reset und Invite an ein kontrolliertes Testpostfach durchführen.
 
-Der verwendete Supabase-Connector stellt keine Aktion zum Lesen oder Ändern der aktiven Auth-Mailtemplates bereit. Deshalb darf dieser Punkt nicht automatisch als erledigt markiert werden.
+## 4. Betreiber / Kontakt
 
-## 4. Rechtstexte – RELEASE BLOCKER
+- [x] Betreiber: Richard Rewitzer.
+- [x] Anschrift: Hohenzollernstr. 9, 72622 Nürtingen, Deutschland.
+- [x] Allgemeiner Kontakt: `kontakt@racevora.com`.
+- [x] Support: `support@racevora.com`.
+- [x] Betrieb zunächst als Privatperson.
+- [x] Beta kostenlos.
+- [x] Nutzung auch für private/Hobby-Ligen und Verbraucher möglich.
 
-Aktueller Befund:
+## 5. Rechtstexte
 
-- [ ] `impressum.html` fehlt.
-- [ ] `datenschutz.html` fehlt.
-- [ ] `agb.html` fehlt.
-- [ ] Öffentliche Landingpage enthält keine Rechtstext-Links.
-- [ ] Gemeinsamer App-Footer enthält keine Rechtstext-Links.
-- [ ] Registrierung enthält noch den sichtbaren Platzhalter: „die Dokumente werden vor dem Marktstart verlinkt“.
+- [x] `impressum.html`.
+- [x] `datenschutz.html`.
+- [x] `agb.html` für die kostenlose Beta.
+- [x] `widerruf.html` mit Verbraucher-Widerrufsbelehrung.
+- [x] Rechtstext-Links auf der Landingpage.
+- [x] Rechtstext-Links im gemeinsamen App-Footer.
+- [x] Registrierung enthält echte Links statt des früheren Platzhalters.
+- [x] Registrierung kennzeichnet die Beta als kostenlos.
+- [x] Datenschutzerklärung beschreibt Cloudflare, Supabase, jsDelivr, Browser-Speicher und optionalen OpenAI-KI-Import.
+- [x] Neuer CI-Workflow `Legal Release Smoke` schützt Seiten, Betreiberangaben und Verlinkungen gegen Regressionen.
 
-### Benötigte Betreiberangaben für das Impressum
+## 6. Verbraucher-Widerruf – RELEASE BLOCKER
 
-Vor Erstellung einer veröffentlichbaren Fassung müssen mindestens die tatsächlich zutreffenden Betreiberangaben vorliegen:
+Seit 19.06.2026 verlangt § 356a BGB bei online geschlossenen Fernabsatzverträgen eine hervorgehobene elektronische Widerrufsfunktion. Sie muss mindestens Name, Vertragsidentifikation und das elektronische Kommunikationsmittel für die Eingangsbestätigung erfassen; anschließend ist eine gesonderte Bestätigungsfunktion erforderlich. Nach Absenden muss unverzüglich eine Eingangsbestätigung auf einem dauerhaften Datenträger übermittelt werden, die Inhalt sowie Datum und Uhrzeit enthält.
 
-- vollständiger Name / Firma des Diensteanbieters,
-- ladungsfähige Anschrift,
-- geschäftliche E-Mail-Adresse,
-- weitere schnelle Kontaktmöglichkeit, soweit erforderlich bzw. vorgesehen,
-- Rechtsform und Vertretungsberechtigte, falls juristische Person,
-- Handels-/Unternehmensregister und Registernummer, falls vorhanden,
-- Umsatzsteuer-ID bzw. Wirtschafts-ID, falls vorhanden,
-- ggf. zuständige Aufsichtsbehörde / berufsrechtliche Angaben, sofern einschlägig.
+Aktueller Stand:
 
-Rechtsgrundlage für die allgemeine Anbieterkennzeichnung: § 5 Digitale-Dienste-Gesetz (DDG):
-https://www.gesetze-im-internet.de/ddg/__5.html
+- [x] Widerrufsbelehrung öffentlich vorhanden.
+- [x] `Vertrag widerrufen` ist auf Landingpage und App-Footer hervorgehoben verlinkt.
+- [ ] Elektronisches Widerrufsformular mit zweistufiger Bestätigung implementieren.
+- [ ] Widerruf serverseitig revisionsfest mit Zeitstempel erfassen.
+- [ ] Automatische Eingangsbestätigung an das vom Verbraucher angegebene elektronische Kommunikationsmittel versenden.
 
-### Benötigte Angaben für die Datenschutzerklärung
+Bis diese drei offenen Punkte umgesetzt sind, sollte RaceVora **nicht als vollständig für einen allgemeinen Verbraucher-Marktstart freigegeben** werden.
 
-Die Datenschutzerklärung muss anhand der tatsächlich eingesetzten Verarbeitungsvorgänge erstellt werden. Für RaceVora sind mindestens zu prüfen und korrekt zu beschreiben:
+## 7. Vor öffentlicher Verbraucher-Beta noch zwingend
 
-- Verantwortlicher und Kontaktdaten,
-- Account-/Authentifizierungsdaten,
-- Liga-, Fahrer- und Rollen-/Berechtigungsdaten,
-- Supabase als Backend-/Auth-Infrastruktur,
-- Cloudflare/Hosting und technisch erforderliche Server-Logs,
-- KI-Ergebnisimport und die dabei verarbeiteten Bild-/Ergebnisdaten,
-- OpenAI-Aufruf innerhalb des KI-Imports einschließlich Datenfluss und Aufbewahrung,
-- E-Mail-Versand/Auth-Mails,
-- lokale Browser-Speicher/technisch erforderliche Cookies bzw. Storage,
-- Zwecke, Rechtsgrundlagen, Empfänger, Speicherfristen und Betroffenenrechte,
-- etwaige Drittlandübermittlungen und hierfür verwendete Garantien.
+1. Elektronische Widerrufsfunktion inkl. automatischer Eingangsbestätigung fertigstellen.
+2. Supabase Auth-Mailtemplates im Dashboard mit den Repo-Versionen abgleichen.
+3. Signup-, Reset- und Invite-Mail je einmal an ein kontrolliertes Testpostfach zustellen.
+4. Rechtstexte und Vertragsfluss vor breiter Vermarktung fachanwaltlich/datenschutzrechtlich prüfen lassen.
 
-DSGVO Art. 13 verlangt bei Datenerhebung u. a. Informationen über Verantwortlichen/Kontaktdaten, Zwecke und Rechtsgrundlagen:
-https://eur-lex.europa.eu/legal-content/DE/TXT/?uri=CELEX:32016R0679
-
-### AGB
-
-Die AGB dürfen erst finalisiert werden, wenn das konkrete Beta-/Geschäftsmodell feststeht. Vorher zu entscheiden:
-
-- Vertragspartner: Rennliga/Organisation, Verbraucher oder ausschließlich Unternehmer?
-- kostenloser Beta-Zugang oder kostenpflichtiger Tarif,
-- Leistungsumfang und Verfügbarkeit,
-- Laufzeit/Kündigung,
-- Preise, Zahlungsweise und Steuern,
-- Regeln zu Nutzer-/Liga-Inhalten und Bild-Uploads,
-- Rechte an hochgeladenen Inhalten,
-- KI-Funktion: Entwurfscharakter und Prüfpflicht der Ligaleitung,
-- Haftung/Gewährleistung im gesetzlich zulässigen Rahmen,
-- Sperrung/Löschung und Datenexport nach Vertragsende,
-- Änderung von Leistungsumfang/AGB,
-- ggf. Verbraucherinformationen/Widerruf, falls B2C angeboten wird.
-
-Bei einem B2C-Angebot ist außerdem zu prüfen, welche Informationspflichten nach dem Verbraucherstreitbeilegungsgesetz tatsächlich einschlägig sind. § 36 VSBG:
-https://www.gesetze-im-internet.de/vsbg/__36.html
-
-## 5. Vor öffentlicher Beta zwingend
-
-1. Betreiberangaben liefern und Impressum final erstellen.
-2. Tatsächliche Datenflüsse/Dienstleister bestätigen und Datenschutzerklärung final erstellen.
-3. Beta-Geschäftsmodell festlegen und daraus AGB ableiten.
-4. Rechtstexte auf Landing, Registrierung und App-Footer verlinken.
-5. Registrierungs-Checkbox mit echten Links statt Platzhalter ausliefern.
-6. Supabase Auth-Mailtemplates im Dashboard manuell mit den Repo-Versionen abgleichen.
-7. Signup-, Reset- und Invite-Mail je einmal an ein kontrolliertes Testpostfach zustellen.
-8. Production-Health-Workflow nach Merge einmal erfolgreich gegen die Live-Domain laufen lassen.
-9. Vor kommerziellem Marktstart Rechtstexte und Vertragsfluss fachanwaltlich/datenschutzrechtlich prüfen lassen.
-
-## 6. Nicht durch diesen Release-Check verändert
+## 8. Nicht durch diesen Block verändert
 
 - keine Liga-, Fahrer-, Saison- oder Ergebnisdaten,
 - kein Branding der produktiven Liga `rcc`,
