@@ -1,0 +1,43 @@
+name: AI Analysis Quota Smoke
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ai-analysis-quota-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify paid AI endpoint is quota guarded
+        shell: bash
+        run: |
+          set -euo pipefail
+          migration='database/2026-ai-analysis-quota.sql'
+          edge='supabase/functions/analyze-race-result-images/index.ts'
+          test -s "$migration"
+          test -s "$edge"
+          grep -Fq 'create table if not exists public.ai_analysis_usage' "$migration"
+          grep -Fq 'alter table public.ai_analysis_usage enable row level security' "$migration"
+          grep -Fq 'revoke all on table public.ai_analysis_usage from public, anon, authenticated' "$migration"
+          grep -Fq 'consume_ai_analysis_quota' "$migration"
+          grep -Fq 'v_user_10m + p_image_count > 48' "$migration"
+          grep -Fq 'v_user_24h + p_image_count > 160' "$migration"
+          grep -Fq 'v_global_24h + p_image_count > 800' "$migration"
+          grep -Fq 'userClient.rpc("consume_ai_analysis_quota"' "$edge"
+          grep -Fq 'error: "rate_limited"' "$edge"
+          grep -Fq '}, 429);' "$edge"
+
+      - name: Ensure quota happens before OpenAI request
+        shell: bash
+        run: |
+          set -euo pipefail
+          edge='supabase/functions/analyze-race-result-images/index.ts'
+          quota_line="$(grep -n 'userClient.rpc("consume_ai_analysis_quota"' "$edge" | head -1 | cut -d: -f1)"
+          openai_line="$(grep -n 'fetch("https://api.openai.com/v1/responses"' "$edge" | head -1 | cut -d: -f1)"
+          test -n "$quota_line"
+          test -n "$openai_line"
+          test "$quota_line" -lt "$openai_line"
