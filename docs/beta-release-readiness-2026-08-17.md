@@ -1,6 +1,6 @@
 # RaceVora Beta-Release-Readiness · 17.08.2026
 
-Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleiben wenige Betriebs-, Bot-Schutz- und externe Legal-Checks offen.**
+Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleiben wenige Betriebs-, Auth- und externe Legal-Checks offen.**
 
 ## 1. A · Beta-Blocker
 
@@ -44,7 +44,10 @@ Supabase Security Advisor meldet einige `SECURITY DEFINER`-RPCs weiterhin als Wa
 - [x] Landing, Registrierung, Passwort-Flows, Rechtstexte und öffentlicher `rcc` Race-Hub werden geprüft.
 - [x] HTTP→HTTPS, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` und `security.txt` werden geprüft.
 - [x] Widerrufs-Edge-Function wird nicht-mutierend per `OPTIONS` geprüft.
-- [ ] Benachrichtigungskanal und verantwortliche Person für fehlgeschlagene Production-Health-/Deployment-Läufe organisatorisch festlegen.
+- [x] Operative Verantwortung: Richard Rewitzer.
+- [x] Technischer Incident-Kanal: GitHub Issues mit Label `production-health`; `.github/workflows/production-health-incident.yml` eröffnet/aktualisiert bei geplanten oder manuellen Fehlerläufen automatisch ein Incident-Issue und schließt es nach erfolgreicher Erholung.
+
+Betriebsablauf: `docs/operations-runbook.md`.
 
 ## 5. Supabase Auth / E-Mails / Bot-Schutz
 
@@ -61,15 +64,15 @@ Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 
 ### Cloudflare Turnstile
 
-- [x] Frontend-Integration für Turnstile technisch vorbereitet.
-- [x] Geschützte Supabase-Auth-Aufrufe vorbereitet: Signup, Passwort-Login, Passwort-Reset und Signup-Resend.
+- [x] Produktives Cloudflare-Turnstile-Widget für `racevora.com` angelegt.
+- [x] Öffentlicher Site Key in `assets/js/auth-turnstile-config.js` eingetragen und produktiv deployed.
+- [x] Turnstile Secret Key ausschließlich in Supabase Auth hinterlegt und CAPTCHA Protection aktiviert.
+- [x] Geschützte Supabase-Auth-Aufrufe: Signup, Passwort-Login, Passwort-Reset und Signup-Resend.
 - [x] `captchaToken` wird zentral an die jeweiligen Supabase-Auth-Methoden übergeben.
 - [x] Turnstile Secret Key darf durch CI nicht in Browser-/Repo-Code gelangen.
-- [x] Bei leerem Site Key bleibt die Integration ein No-op; bestehende Auth-Flows funktionieren unverändert.
-- [ ] Produktives Cloudflare-Turnstile-Widget für `racevora.com` anlegen.
-- [ ] Öffentlichen Site Key in `assets/js/auth-turnstile-config.js` eintragen und deployen.
-- [ ] Turnstile Secret Key ausschließlich in Supabase Authentication → Bot and Abuse Protection hinterlegen und CAPTCHA Protection aktivieren.
-- [ ] Danach Signup, Login, Recovery und Signup-Resend produktiv testen.
+- [x] Produktiver Passwort-Login nach Aktivierung erfolgreich durch Supabase Auth (`grant_type=password`, HTTP 200) verifiziert.
+- [x] Signup und Passwort-Recovery nach Aktivierung produktiv erfolgreich getestet.
+- [ ] Signup-Resend nach aktivierter CAPTCHA Protection separat als Resend-Vorgang testen.
 
 Aktivierungs-Runbook: `docs/turnstile-activation.md`.
 
@@ -113,20 +116,23 @@ Die technischen Maßnahmen sind keine Aussage, dass RaceVora „100 % rechtssich
 
 ## 9. Backup / Recovery
 
-- [x] Supabase-Projektstatus im Abschlussaudit: `ACTIVE_HEALTHY`, Region `eu-west-1`, PostgreSQL 17.
-- [ ] Aktuellen Supabase-Tarif und die tatsächlich verfügbare Backup-Retention im Dashboard verifizieren.
-- [ ] Restore-Verantwortung und Ablauf dokumentieren.
-- [ ] Separat berücksichtigen, dass Datenbankbackups nicht automatisch die eigentlichen Storage-Objekte wiederherstellen; Brand-/Upload-Assets benötigen bei geschäftskritischer Nutzung eine eigene Recovery-Strategie.
+- [x] Supabase-Projektstatus verifiziert: `ACTIVE_HEALTHY`, Region `eu-west-1`, PostgreSQL 17.
+- [x] Aktueller Supabase-Organisationsplan am 17.08.2026 über die Projektverwaltung verifiziert: **Free**.
+- [x] Free-Plan-Risiko dokumentiert: keine garantierten automatischen Backups/PITR; Supabase empfiehlt regelmäßige eigene CLI-Dumps und Off-Site-Aufbewahrung.
+- [x] Restore-Verantwortung und Ablauf in `docs/operations-runbook.md` dokumentiert.
+- [x] Dokumentiert, dass Datenbankbackups nicht die eigentlichen Storage-Objekte wiederherstellen; Storage benötigt einen separaten Export-/Recovery-Pfad.
+- [ ] Regelmäßige verschlüsselte Off-Site-Backup-Ausführung für reale externe Beta-Daten organisatorisch/technisch etablieren.
 - [ ] Optional vor größerem Launch einen kontrollierten Restore-/Disaster-Recovery-Drill auf nichtproduktiver Umgebung durchführen.
 
 ## 10. B · Sinnvoll vor breiter öffentlicher Beta
 
-1. Cloudflare Turnstile produktiv aktivieren und Signup/Login/Recovery/Resend testen.
-2. Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgleichen.
-3. Verantwortlichen/Benachrichtigungskanal für rote Production-Health- und Deployment-Checks festlegen.
-4. Backup-Tarif/Retention bestätigen und Restore-/Storage-Recovery-Runbook festlegen.
-5. Content-Security-Policy zunächst im Report-Only-Modus testen und anschließend kontrolliert erzwingen, sobald alle externen Ressourcen inventarisiert sind.
-6. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+1. Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgleichen.
+2. Signup-Resend einmal nach aktivierter Turnstile/CAPTCHA Protection live testen.
+3. Regelmäßige verschlüsselte Off-Site-Backups für Datenbank und geschäftskritische Storage-Objekte tatsächlich etablieren.
+4. Content-Security-Policy zunächst im Report-Only-Modus testen und anschließend kontrolliert erzwingen, sobald alle externen Ressourcen inventarisiert sind.
+5. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+
+**Erledigt:** Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert.
 
 **Nicht Teil des Free-Plan-B-Minimums:** Leaked Password Protection, da diese Funktion im verwendeten Supabase-Free-Plan nicht verfügbar ist.
 
@@ -147,7 +153,7 @@ Die technischen Maßnahmen sind keine Aussage, dass RaceVora „100 % rechtssich
 
 ### Breit beworbene offene Self-Service-Beta
 
-**GO nach Free-Plan-B-Minimum:** Turnstile/CAPTCHA aktivieren und live testen, Auth-Mailtemplates live abgleichen sowie Monitoring- und Backup/Restore-Verantwortung klären. Externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
+**GO nach verbleibendem Free-Plan-B-Minimum:** aktive Auth-Mailtemplates live abgleichen, Signup-Resend mit CAPTCHA prüfen und eine tatsächliche regelmäßige verschlüsselte Off-Site-Backup-Routine für reale Nutzerdaten etablieren. CSP-Härtung und externe Legal-/Privacy-Prüfung bleiben vor breiter Vermarktung empfohlen.
 
 ## 13. Nicht durch den Abschlussaudit verändert
 

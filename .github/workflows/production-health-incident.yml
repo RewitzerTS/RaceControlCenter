@@ -1,0 +1,110 @@
+name: Production Health Incident
+
+on:
+  workflow_run:
+    workflows:
+      - Production Health
+    types:
+      - completed
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: production-health-incident
+  cancel-in-progress: false
+
+jobs:
+  open-or-update-incident:
+    if: >-
+      github.event.workflow_run.event != 'pull_request' &&
+      github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Open or update production incident
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          gh label create production-health \
+            --repo "$GITHUB_REPOSITORY" \
+            --description 'Automated RaceVora production-health incident' \
+            --color 'D73A4A' \
+            --force
+
+          issue_number="$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --label production-health \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          timestamp="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          body=$(cat <<EOF
+          The hourly RaceVora production-health workflow reported **${RUN_CONCLUSION}**.
+
+          - Time: ${timestamp}
+          - Workflow run: ${RUN_URL}
+          - Run ID: ${RUN_ID}
+          - Production: https://racevora.com/
+
+          Operational owner: Richard Rewitzer.
+
+          Triage according to `docs/operations-runbook.md`. Do not perform destructive recovery actions against the protected `rcc` tenant.
+          EOF
+          )
+
+          if [ -n "$issue_number" ]; then
+            gh issue comment "$issue_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --body "$body"
+            echo "Updated incident issue #${issue_number}."
+          else
+            gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title 'RaceVora production health check failed' \
+              --label production-health \
+              --body "$body"
+          fi
+
+  close-recovered-incident:
+    if: >-
+      github.event.workflow_run.event != 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Close recovered production incidents
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          issue_numbers="$(gh issue list \
+            --repo "$GITHUB_REPOSITORY" \
+            --state open \
+            --label production-health \
+            --json number \
+            --jq '.[].number')"
+
+          if [ -z "$issue_numbers" ]; then
+            echo 'No open production-health incident.'
+            exit 0
+          fi
+
+          timestamp="$(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          while IFS= read -r issue_number; do
+            [ -n "$issue_number" ] || continue
+            gh issue close "$issue_number" \
+              --repo "$GITHUB_REPOSITORY" \
+              --comment "Production health recovered at ${timestamp}. Successful run: ${RUN_URL}"
+          done <<< "$issue_numbers"
