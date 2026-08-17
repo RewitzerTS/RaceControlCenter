@@ -1,6 +1,6 @@
 # RaceVora Beta-Release-Readiness · 17.08.2026
 
-Status: **technisch weitgehend beta-fähig; Rechtstexte vorhanden; Verbraucher-Widerrufsfunktion noch als Release-Blocker offen.**
+Status: **technisch beta-fähig; Verbraucher-Widerruf live verifiziert; vor breiter öffentlicher Beta bleiben nur wenige manuelle Betriebs-/Mailchecks offen.**
 
 ## 1. Plattform / Deployment
 
@@ -9,15 +9,19 @@ Status: **technisch weitgehend beta-fähig; Rechtstexte vorhanden; Verbraucher-W
 - [x] Öffentlicher Read-only Race-Hub der bestehenden Liga `rcc` bleibt als Smoke-Ziel erhalten.
 - [x] Multi-Tenant-/Rollen-Security separat auditiert (`docs/security-audit-2026-08-16.md`).
 - [x] JavaScript-, Browser-, Branding-, Tenant-Security-, Results-/Team-Asset-, AI-Mobile- und Admin-iPhone-Smokes vorhanden.
+- [x] Legal Release Smoke und Electronic Withdrawal Flow als zusätzliche Release-Gates vorhanden.
 
 ## 2. Produktionsmonitoring
 
 - [x] Stündlicher Workflow `.github/workflows/production-health.yml`.
 - [x] HTTP-Fehlerprüfung, Inhaltsmarker, Timeouts und Retries.
+- [x] Landing, Registrierung, Passwort-Flows und öffentlicher `rcc` Race-Hub werden read-only geprüft.
+- [x] Rechtliche Seiten werden im Production Health überwacht.
+- [x] Widerrufs-Edge-Function wird nicht-mutierend per `OPTIONS` geprüft.
 - [x] Keine eigene Besucher-/Session-/PII-Telemetrie.
 - [ ] Benachrichtigungskanal für fehlgeschlagene GitHub Actions organisatorisch festlegen.
 
-Der aktuelle Supabase-Connector erlaubt in dieser Sitzung keinen Zugriff auf Auth-, API- oder Edge-Function-Logs. Diese Logs konnten daher nicht als Bestandteil dieses Audits bewertet werden.
+Supabase-Auth-Logs sind inzwischen über den verbundenen Connector abrufbar. Die aktuelle Stichprobe enthält erfolgreiche Auth-/Session-Requests und keine sichtbaren Auth-Fehler. Das ersetzt kein dauerhaftes Alerting.
 
 ## 3. Supabase Auth-E-Mails
 
@@ -29,8 +33,13 @@ Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 - [x] Magic Link
 - [x] Change Email Address
 - [x] CI-Smoke prüft Branding und Template-Platzhalter.
-- [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass diese Versionen als aktive Auth-Mailtemplates hinterlegt sind.
-- [ ] Testzustellung für Signup, Reset und Invite an ein kontrolliertes Testpostfach durchführen.
+- [x] Custom SMTP über Resend für RaceVora eingerichtet und grundsätzlich versandfähig.
+- [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass die Repo-Versionen als aktive Auth-Mailtemplates hinterlegt sind.
+- [ ] Signup-Mail an kontrolliertes Testpostfach zustellen und Inhalt/Links prüfen.
+- [ ] Reset-Mail an kontrolliertes Testpostfach zustellen und Inhalt/Links prüfen.
+- [ ] Invite-Mail an kontrolliertes Testpostfach zustellen und Inhalt/Links prüfen.
+
+Die vorhandenen Repo-Templates sind versioniert, aber der aktuell aktive Template-Inhalt im Supabase-Dashboard kann über den verfügbaren Connector nicht zuverlässig ausgelesen werden. Deshalb bleiben diese Punkte bewusst manuell.
 
 ## 4. Betreiber / Kontakt
 
@@ -47,39 +56,43 @@ Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 - [x] `impressum.html`.
 - [x] `datenschutz.html`.
 - [x] `agb.html` für die kostenlose Beta.
-- [x] `widerruf.html` mit Verbraucher-Widerrufsbelehrung.
+- [x] `widerruf.html` mit Verbraucher-Widerrufsbelehrung und elektronischer Widerrufsfunktion.
 - [x] Rechtstext-Links auf der Landingpage.
 - [x] Rechtstext-Links im gemeinsamen App-Footer.
 - [x] Registrierung enthält echte Links statt des früheren Platzhalters.
 - [x] Registrierung kennzeichnet die Beta als kostenlos.
-- [x] Datenschutzerklärung beschreibt Cloudflare, Supabase, jsDelivr, Browser-Speicher und optionalen OpenAI-KI-Import.
-- [x] Neuer CI-Workflow `Legal Release Smoke` schützt Seiten, Betreiberangaben und Verlinkungen gegen Regressionen.
+- [x] Datenschutzerklärung beschreibt Cloudflare, Supabase, Resend, jsDelivr, Browser-Speicher und optionalen OpenAI-KI-Import.
+- [x] `Legal Release Smoke` schützt Seiten, Betreiberangaben und Verlinkungen gegen Regressionen.
 
-## 6. Verbraucher-Widerruf – RELEASE BLOCKER
+## 6. Verbraucher-Widerruf
 
-Seit 19.06.2026 verlangt § 356a BGB bei online geschlossenen Fernabsatzverträgen eine hervorgehobene elektronische Widerrufsfunktion. Sie muss mindestens Name, Vertragsidentifikation und das elektronische Kommunikationsmittel für die Eingangsbestätigung erfassen; anschließend ist eine gesonderte Bestätigungsfunktion erforderlich. Nach Absenden muss unverzüglich eine Eingangsbestätigung auf einem dauerhaften Datenträger übermittelt werden, die Inhalt sowie Datum und Uhrzeit enthält.
+Der zuvor offene Verbraucher-Release-Blocker ist technisch geschlossen:
 
-Aktueller Stand:
+- [x] Hervorgehobener öffentlicher Einstieg `Vertrag widerrufen`.
+- [x] Zweistufiges Formular: Angaben prüfen → `Widerruf bestätigen`.
+- [x] Server-seitige Speicherung in separater `consumer_withdrawals`-Tabelle.
+- [x] RLS aktiv; direkte Tabellenrechte für `PUBLIC`, `anon` und `authenticated` entzogen.
+- [x] Eindeutige Referenz und UTC-Zeitstempel.
+- [x] Automatische Eingangsbestätigung über Resend.
+- [x] Bestätigung enthält Referenz, Name, Vertrags-/Accountkennung, Inhalt, Datum und Uhrzeit.
+- [x] `confirmation_sent_at` und Resend Provider-ID werden serverseitig dokumentiert.
+- [x] Betreiberkopie an `kontakt@racevora.com`.
+- [x] Zusätzlicher herunterladbarer Eingangsbeleg im Browser.
+- [x] Echter Live-CI-Test gegen Supabase + Resend erfolgreich.
+- [x] Testmail tatsächlich zugestellt; Testdatensätze anschließend entfernt.
 
-- [x] Widerrufsbelehrung öffentlich vorhanden.
-- [x] `Vertrag widerrufen` ist auf Landingpage und App-Footer hervorgehoben verlinkt.
-- [ ] Elektronisches Widerrufsformular mit zweistufiger Bestätigung implementieren.
-- [ ] Widerruf serverseitig revisionsfest mit Zeitstempel erfassen.
-- [ ] Automatische Eingangsbestätigung an das vom Verbraucher angegebene elektronische Kommunikationsmittel versenden.
+## 7. Vor breiter öffentlicher Beta noch offen
 
-Bis diese drei offenen Punkte umgesetzt sind, sollte RaceVora **nicht als vollständig für einen allgemeinen Verbraucher-Marktstart freigegeben** werden.
-
-## 7. Vor öffentlicher Verbraucher-Beta noch zwingend
-
-1. Elektronische Widerrufsfunktion inkl. automatischer Eingangsbestätigung fertigstellen.
-2. Supabase Auth-Mailtemplates im Dashboard mit den Repo-Versionen abgleichen.
-3. Signup-, Reset- und Invite-Mail je einmal an ein kontrolliertes Testpostfach zustellen.
+1. Aktive Supabase Auth-Mailtemplates im Dashboard einmal gegen die Repo-Versionen abgleichen.
+2. Signup-, Reset- und Invite-Mail jeweils einmal an ein kontrolliertes Testpostfach senden und Links/Branding prüfen.
+3. Organisatorisch festlegen, wer fehlgeschlagene Production-Health/GitHub-Actions-Meldungen beobachtet.
 4. Rechtstexte und Vertragsfluss vor breiter Vermarktung fachanwaltlich/datenschutzrechtlich prüfen lassen.
+
+Die Punkte 1–3 sind Betriebs-/Releasechecks und keine bekannten technischen Funktionsblocker der Plattform. Punkt 4 ist eine externe rechtliche Qualitätssicherung und keine Aussage, dass die vorhandenen Texte anwaltlich geprüft wären.
 
 ## 8. Nicht durch diesen Block verändert
 
 - keine Liga-, Fahrer-, Saison- oder Ergebnisdaten,
-- kein Branding der produktiven Liga `rcc`,
-- keine RLS-/Schema-Regeln,
+- kein Branding oder Inhalt der produktiven Liga `rcc`,
 - keine Auth-User,
-- keine Supabase-Mailtemplates im Live-Dashboard.
+- keine aktiven Supabase-Mailtemplates im Dashboard.
