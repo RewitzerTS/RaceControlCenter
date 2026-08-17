@@ -1,0 +1,7 @@
+# Edge Function auth configuration.
+# This function validates the bearer session inside the handler with
+# supabase.auth.getUser(). The legacy gateway JWT check is disabled because
+# it can reject sessions signed with newer/asymmetric Supabase signing keys
+# before the function code (and its CORS handling) can run.
+[functions.finalize-consumer-registration]
+verify_jwt = false
