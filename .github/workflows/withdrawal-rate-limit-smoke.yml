@@ -1,0 +1,30 @@
+name: Withdrawal Rate Limit Smoke
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  withdrawal-rate-limit-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify server-side withdrawal abuse guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='database/2026-consumer-withdrawal-rate-limit.sql'
+          test -s "$file"
+          grep -Fq 'enforce_consumer_withdrawal_rate_limit' "$file"
+          grep -Fq 'pg_advisory_xact_lock' "$file"
+          grep -Fq "interval '15 minutes'" "$file"
+          grep -Fq 'v_global_count >= 20' "$file"
+          grep -Fq 'v_email_count >= 3' "$file"
+          grep -Fq 'consumer_withdrawal_rate_limited_global' "$file"
+          grep -Fq 'consumer_withdrawal_rate_limited_email' "$file"
+          grep -Fq 'before insert on public.consumer_withdrawals' "$file"
+          grep -Fq 'revoke all on function public.enforce_consumer_withdrawal_rate_limit() from public, anon, authenticated' "$file"
+          grep -Fq 'grant execute on function public.enforce_consumer_withdrawal_rate_limit() to service_role' "$file"
