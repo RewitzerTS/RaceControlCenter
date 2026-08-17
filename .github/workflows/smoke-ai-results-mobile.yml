@@ -122,9 +122,10 @@ jobs:
             console.log(`PASS stalled draft exits after ${Math.round(timeoutState.elapsed)}ms`);
             await timeoutPage.close();
 
-            // 2) The AI results surface must stay inside an iPhone viewport while the wide table scrolls internally.
+            // 2) The AI results surface must stay inside an isolated iPhone viewport while the wide table scrolls internally.
             const mobilePage = await browser.newPage({ viewport: { width: 393, height: 852 } });
             await mobilePage.goto('http://127.0.0.1:8080/', { waitUntil: 'domcontentloaded' });
+            await mobilePage.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body></body></html>');
             await mobilePage.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/style.css' });
             await mobilePage.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/components/rcc-wizard-dialog.css' });
             await mobilePage.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/components/rcc-results-workflow.css' });
