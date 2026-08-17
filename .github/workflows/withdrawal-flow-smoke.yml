@@ -20,7 +20,7 @@ jobs:
           test -s database/2026-consumer-withdrawals.sql
           test -s supabase/functions/submit-consumer-withdrawal/index.ts
           grep -Fq 'consumer_withdrawals' database/2026-consumer-withdrawals.sql
-          grep -Fq 'revoke all on table public.consumer_withdrawals from anon, authenticated' database/2026-consumer-withdrawals.sql
+          grep -Fq 'revoke all on table public.consumer_withdrawals from public, anon, authenticated' database/2026-consumer-withdrawals.sql
           grep -Fq 'RESEND_API_KEY' supabase/functions/submit-consumer-withdrawal/index.ts
           grep -Fq 'Widerruf bestätigen' widerruf.html
           grep -Fq 'withdrawal-form' widerruf.html
