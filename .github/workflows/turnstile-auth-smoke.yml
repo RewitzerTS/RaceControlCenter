@@ -1,0 +1,53 @@
+name: Turnstile Auth Protection
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  turnstile-auth-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Turnstile integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          helper='assets/js/auth-turnstile.js'
+          config='assets/js/auth-turnstile-config.js'
+
+          test -s "$helper"
+          test -s "$config"
+          node --check "$helper"
+          node --check "$config"
+
+          grep -Fq 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit' "$helper"
+          grep -Fq 'client.auth.signUp' "$helper"
+          grep -Fq 'client.auth.signInWithPassword' "$helper"
+          grep -Fq 'client.auth.resetPasswordForEmail' "$helper"
+          grep -Fq 'client.auth.resend' "$helper"
+          grep -Fq 'captchaToken' "$helper"
+          grep -Fq "appearance: 'interaction-only'" "$helper"
+          grep -Fq "size: 'flexible'" "$helper"
+
+          grep -Fq 'auth-turnstile-config.js' register.html
+          grep -Fq 'auth-turnstile.js' register.html
+          grep -Fq 'auth-turnstile-config.js' index.html
+          grep -Fq 'auth-turnstile.js' index.html
+          grep -Fq 'auth-turnstile-config.js' forgot-password.html
+          grep -Fq 'auth-turnstile.js' forgot-password.html
+
+      - name: Ensure Turnstile secret never enters browser code
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RniE 'TURNSTILE_(SECRET|SECRET_KEY)|cf-turnstile-secret' \
+            assets/js index.html register.html forgot-password.html; then
+            echo 'Turnstile secret material must never be committed to browser code.' >&2
+            exit 1
+          fi
+
+          grep -Fq "window.RACEVORA_TURNSTILE_SITE_KEY" assets/js/auth-turnstile-config.js
