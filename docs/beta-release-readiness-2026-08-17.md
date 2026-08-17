@@ -26,6 +26,7 @@ Geschlossene technische Blocker und zentrale Schutzmaßnahmen:
 - [x] Legal Release Smoke, Contract Confirmation Smoke und Electronic Withdrawal Flow als Release-Gates vorhanden.
 - [x] CI-Gates für Withdrawal Rate Limit und AI Analysis Quota vorhanden.
 - [x] Turnstile Auth Protection als eigenes CI-Gate ergänzt.
+- [x] `Content-Security-Policy-Report-Only` produktiv ausgerollt; der deploy-aware CSP-Smoke wartet auf den passenden Cloudflare-Build und prüft anschließend den echten Header auf `racevora.com`.
 
 ## 3. Tenant-Isolation / Datenbank-Security
 
@@ -61,6 +62,8 @@ Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 - [x] Custom SMTP über Resend grundsätzlich versandfähig.
 - [x] Signup-, Reset- und Invite-Flows wurden bereits live getestet.
 - [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass die Repo-Versionen als aktive Auth-Mailtemplates hinterlegt sind.
+
+Empfohlene Betreffzeilen sind in `supabase/email-templates/racevora/README.md` versioniert.
 
 ### Cloudflare Turnstile
 
@@ -121,31 +124,46 @@ Die technischen Maßnahmen sind keine Aussage, dass RaceVora „100 % rechtssich
 - [x] Free-Plan-Risiko dokumentiert: keine garantierten automatischen Backups/PITR; Supabase empfiehlt regelmäßige eigene CLI-Dumps und Off-Site-Aufbewahrung.
 - [x] Restore-Verantwortung und Ablauf in `docs/operations-runbook.md` dokumentiert.
 - [x] Dokumentiert, dass Datenbankbackups nicht die eigentlichen Storage-Objekte wiederherstellen; Storage benötigt einen separaten Export-/Recovery-Pfad.
-- [ ] Regelmäßige verschlüsselte Off-Site-Backup-Ausführung für reale externe Beta-Daten organisatorisch/technisch etablieren.
+- [x] Produktive Storage-Inventur am 17.08.2026: aktuell ein öffentlicher Bucket `league-brand-assets` mit 4 Objekten.
+- [x] Gated Workflow `.github/workflows/encrypted-offsite-backup.yml` vorbereitet: logischer DB-Dump + aktuelle öffentliche Storage-Objekte, lokale AES-256/GnuPG-Verschlüsselung und Upload ausschließlich als verschlüsseltes Objekt in einen privaten EU-R2-Bucket.
+- [x] Workflow ist bis zur bewussten Aktivierung fail-safe deaktiviert und verweigert unbemerkt unvollständige Storage-Backups, sobald ein privater Supabase-Bucket auftaucht.
+- [ ] EU-R2-Bucket und erforderliche GitHub Actions Secrets einrichten, einen erzwungenen manuellen Backup-Lauf erfolgreich verifizieren und danach `RACEVORA_BACKUPS_ENABLED=true` setzen.
 - [ ] Optional vor größerem Launch einen kontrollierten Restore-/Disaster-Recovery-Drill auf nichtproduktiver Umgebung durchführen.
 
-## 10. B · Sinnvoll vor breiter öffentlicher Beta
+Aktivierungsanleitung: `docs/offsite-backup-activation.md`.
+
+## 10. Content Security Policy
+
+- [x] Report-Only-Baseline mit `default-src 'self'`, eingeschränkten Script/Connect/Frame-Origins sowie `object-src 'none'` produktiv ausgerollt.
+- [x] Turnstile, jsDelivr und das RaceVora-Supabase-Projekt sind explizit berücksichtigt.
+- [x] Produktiver Header nach erfolgreichem Cloudflare-Deploy automatisiert verifiziert.
+- [ ] Nach Beobachtung realer Flows externe Bild-/Asset-Origins weiter verengen und Inline-JS/-CSS schrittweise auf externe Dateien bzw. Nonces/Hashes umstellen.
+- [ ] Erst danach Report-Only kontrolliert in eine enforced `Content-Security-Policy` überführen.
+
+Rollout-Plan: `docs/csp-rollout.md`.
+
+## 11. B · Sinnvoll vor breiter öffentlicher Beta
 
 1. Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgleichen.
 2. Signup-Resend einmal nach aktivierter Turnstile/CAPTCHA Protection live testen.
-3. Regelmäßige verschlüsselte Off-Site-Backups für Datenbank und geschäftskritische Storage-Objekte tatsächlich etablieren.
-4. Content-Security-Policy zunächst im Report-Only-Modus testen und anschließend kontrolliert erzwingen, sobald alle externen Ressourcen inventarisiert sind.
-5. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+3. Vorbereitete verschlüsselte Off-Site-Backup-Automation tatsächlich aktivieren: privaten EU-R2-Bucket erstellen, GitHub-Secrets setzen, manuellen Testlauf erfolgreich verifizieren und danach den täglichen Schedule freigeben.
+4. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
 
-**Erledigt:** Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert.
+**Erledigt:** Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation technisch vorbereitet.
 
 **Nicht Teil des Free-Plan-B-Minimums:** Leaked Password Protection, da diese Funktion im verwendeten Supabase-Free-Plan nicht verfügbar ist.
 
-## 11. C · Kann nach Start einer kontrollierten Beta erfolgen
+## 12. C · Kann nach Start einer kontrollierten Beta erfolgen
 
 - Performance-Advisor-Hinweise wie unindexierte Foreign Keys, RLS-Initplan-Optimierungen, mehrfach permissive Read-Policies und ungenutzte Indizes anhand echter Last priorisieren.
 - Boolean-Helper-RPCs mit frei übergebbarer User-ID weiter minimieren bzw. in private interne Helfer aufteilen.
 - Retry-/Backoff-Strategie für serverseitige Provider-Ausfälle weiter verfeinern.
 - Lasttests und optional Supabase Branching/Staging vor größerem öffentlichen Launch etablieren.
-- Monitoring später um externe Benachrichtigung/Incident-Prozess und gegebenenfalls Log-Drain ergänzen.
+- CSP nach realer Report-Only-Beobachtung weiter verengen und später erzwingen.
+- Backup-Restore-Drill in einer getrennten nichtproduktiven Umgebung durchführen.
 - Leaked Password Protection bei einem späteren Supabase-Plan-Upgrade erneut bewerten.
 
-## 12. Release-Entscheidung
+## 13. Release-Entscheidung
 
 ### Kontrollierte Beta mit ausgewählten Rennligen
 
@@ -153,9 +171,9 @@ Die technischen Maßnahmen sind keine Aussage, dass RaceVora „100 % rechtssich
 
 ### Breit beworbene offene Self-Service-Beta
 
-**GO nach verbleibendem Free-Plan-B-Minimum:** aktive Auth-Mailtemplates live abgleichen, Signup-Resend mit CAPTCHA prüfen und eine tatsächliche regelmäßige verschlüsselte Off-Site-Backup-Routine für reale Nutzerdaten etablieren. CSP-Härtung und externe Legal-/Privacy-Prüfung bleiben vor breiter Vermarktung empfohlen.
+**GO nach verbleibendem Free-Plan-B-Minimum:** aktive Auth-Mailtemplates live abgleichen, Signup-Resend mit CAPTCHA prüfen und die vorbereitete regelmäßige verschlüsselte Off-Site-Backup-Routine für reale Nutzerdaten tatsächlich aktivieren und mit einem erfolgreichen Lauf nachweisen. CSP-Enforcement kann nach der jetzt aktiven Report-Only-Beobachtungsphase kontrolliert folgen; externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
 
-## 13. Nicht durch den Abschlussaudit verändert
+## 14. Nicht durch den Abschlussaudit verändert
 
 - keine Fahrer-, Saison- oder Rennergebnisdaten der produktiven Liga `rcc`,
 - kein Branding oder Inhalt der produktiven Liga `rcc`,
