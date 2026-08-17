@@ -8,23 +8,11 @@
     return `${url.pathname.split('/').pop()}${url.search}`;
   }
 
-  async function init() {
-    const tbody = document.getElementById('drivers-standings-body');
-    if (!tbody || !window.RCCData) return;
-
-    let drivers = [];
-    try {
-      drivers = await window.RCCData.fetchDrivers();
-    } catch (error) {
-      console.warn('RaceVora Fahrerprofil-Links konnten nicht vorbereitet werden.', error);
-      return;
-    }
-
-    const idsByName = new Map((drivers || []).map((driver) => [normalize(driver.display_name), driver.id]));
-
+  function decorateTable(tbody, driverCellIndex, idsByName) {
+    if (!tbody) return null;
     const applyLinks = () => {
       tbody.querySelectorAll('tr').forEach((row) => {
-        const cell = row.children?.[2];
+        const cell = row.children?.[driverCellIndex];
         if (!cell || cell.querySelector('a[data-driver-profile-link]')) return;
         const driverId = idsByName.get(normalize(cell.textContent));
         if (!driverId) return;
@@ -42,6 +30,25 @@
     applyLinks();
     const observer = new MutationObserver(applyLinks);
     observer.observe(tbody, { childList: true, subtree: true });
+    return observer;
+  }
+
+  async function init() {
+    const standingsBody = document.getElementById('drivers-standings-body');
+    const raceResultsBody = document.getElementById('results-body');
+    if ((!standingsBody && !raceResultsBody) || !window.RCCData) return;
+
+    let drivers = [];
+    try {
+      drivers = await window.RCCData.fetchDrivers();
+    } catch (error) {
+      console.warn('RaceVora Fahrerprofil-Links konnten nicht vorbereitet werden.', error);
+      return;
+    }
+
+    const idsByName = new Map((drivers || []).map((driver) => [normalize(driver.display_name), driver.id]));
+    decorateTable(standingsBody, 2, idsByName);
+    decorateTable(raceResultsBody, 1, idsByName);
   }
 
   document.addEventListener('DOMContentLoaded', init);
