@@ -30,7 +30,7 @@ create table if not exists public.contract_confirmations (
   constraint contract_confirmations_currency_len check (char_length(currency) = 3),
   constraint contract_confirmations_status_check check (status in ('pending', 'sent', 'failed')),
   constraint contract_confirmations_attempts_nonnegative check (send_attempts >= 0),
-  constraint contract_confirmations_user_contract_unique unique (user_id, contract_version)
+  constraint contract_confirmations_user_league_contract_unique unique (user_id, league_id, contract_version)
 );
 
 alter table public.contract_confirmations enable row level security;
