@@ -118,6 +118,23 @@ Deno.serve(async (req: Request) => {
     const images = Array.isArray(body?.images) ? body.images.filter((x: unknown) => typeof x === "string") : [];
     if (!images.length || images.length > 8) return json({ error: "Bitte 1 bis 8 Ergebnisbilder senden." }, 400);
 
+    // Every successful quota reservation is counted before the paid OpenAI call.
+    // This intentionally also counts downstream failures so repeated retries cannot
+    // be used to bypass the cost cap.
+    const { data: quota, error: quotaError } = await userClient.rpc("consume_ai_analysis_quota", {
+      p_league_id: league.id,
+      p_image_count: images.length,
+    });
+    if (quotaError) throw quotaError;
+    if (!quota?.allowed) {
+      return json({
+        error: "rate_limited",
+        message: "Das KI-Analyse-Limit ist erreicht. Bitte versuche es später erneut.",
+        scope: quota?.scope || "unknown",
+        retry_after_seconds: Number(quota?.retry_after_seconds || 600),
+      }, 429);
+    }
+
     const knownDrivers = Array.isArray(body?.drivers) ? body.drivers.slice(0, 40) : [];
     const raceName = typeof body?.race_name === "string" ? body.race_name : "";
     const model = "gpt-4.1-mini";
@@ -186,6 +203,7 @@ Deno.serve(async (req: Request) => {
       league_slug: requestedSlug,
       actor_id: actor.id,
       images: images.length,
+      quota_remaining_image_units: Number(quota?.remaining_image_units ?? -1),
       openai_ms: openAiMs,
       total_ms: Date.now() - startedAt,
       status: response.status,
