@@ -19,20 +19,24 @@ jobs:
           set -euo pipefail
           migration='database/2026-consumer-contract-confirmations.sql'
           function='supabase/functions/finalize-consumer-registration/index.ts'
-          client='assets/js/pages/register.js'
+          register_client='assets/js/pages/register.js'
+          setup_client='assets/js/pages/account-setup.js'
           test -s "$migration"
           test -s "$function"
-          test -s "$client"
+          test -s "$register_client"
+          test -s "$setup_client"
           grep -Fq 'create table if not exists public.contract_confirmations' "$migration"
           grep -Fq 'enable row level security' "$migration"
           grep -Fq 'revoke all on table public.contract_confirmations from public, anon, authenticated' "$migration"
           grep -Fq 'contract_confirmations_user_league_contract_unique' "$migration"
-          grep -Fq 'finalize-consumer-registration' "$client"
-          grep -Fq 'confirmation?.sent_at' "$client"
-          if grep -Fq ".rpc('create_league'" "$client"; then
-            echo 'Registration client bypasses contract finalization.' >&2
-            exit 1
-          fi
+          for client in "$register_client" "$setup_client"; do
+            grep -Fq 'finalize-consumer-registration' "$client"
+            grep -Fq 'confirmation?.sent_at' "$client"
+            if grep -Fq ".rpc('create_league'" "$client"; then
+              echo "Registration path bypasses contract finalization: $client" >&2
+              exit 1
+            fi
+          done
           grep -Fq 'userClient.auth.getUser()' "$function"
           grep -Fq 'actor.email_confirmed_at' "$function"
           grep -Fq 'registration_metadata_mismatch' "$function"
