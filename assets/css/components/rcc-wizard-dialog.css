@@ -55,6 +55,13 @@ body.rcc-wizard-dialog-open { overflow: hidden; }
 }
 
 @media (max-width: 700px) {
+  .rcc-wizard-dialog,
+  .rcc-wizard-dialog__surface,
+  .rcc-wizard-dialog__header,
+  .rcc-wizard-dialog__content {
+    box-sizing: border-box;
+  }
+
   .rcc-wizard-dialog {
     width: 100vw;
     height: 100dvh;
@@ -75,6 +82,7 @@ body.rcc-wizard-dialog-open { overflow: hidden; }
   }
 
   .rcc-wizard-dialog__header {
+    width: 100%;
     min-width: 0;
     align-items: flex-start;
     gap: 10px;
@@ -126,6 +134,7 @@ body.rcc-wizard-dialog-open { overflow: hidden; }
   .rcc-wizard-dialog__panel :is(.table-wrap,.table-scroll,.manual-results-wrap,[class*="table-wrap"],[class*="table-scroll"]) {
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
