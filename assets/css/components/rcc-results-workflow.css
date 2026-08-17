@@ -1,3 +1,5 @@
+@import url('../pages/admin-mobile.css');
+
 .rcc-results-workflow { padding: 2px 0 6px; }
 .rcc-results-workflow__intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
 .rcc-results-workflow__intro h3 { margin: 4px 0 6px; }
