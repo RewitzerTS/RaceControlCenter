@@ -1,0 +1,48 @@
+name: Electronic Withdrawal Flow
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  withdrawal-flow-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify withdrawal backend assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s database/2026-consumer-withdrawals.sql
+          test -s supabase/functions/submit-consumer-withdrawal/index.ts
+          grep -Fq 'consumer_withdrawals' database/2026-consumer-withdrawals.sql
+          grep -Fq 'revoke all on table public.consumer_withdrawals from anon, authenticated' database/2026-consumer-withdrawals.sql
+          grep -Fq 'RESEND_API_KEY' supabase/functions/submit-consumer-withdrawal/index.ts
+          grep -Fq 'Widerruf bestätigen' widerruf.html
+          grep -Fq 'withdrawal-form' widerruf.html
+          grep -Fq 'submit-consumer-withdrawal' assets/js/pages/withdrawal.js
+          grep -Fq 'Eingangsbeleg herunterladen' widerruf.html
+          grep -Fq 'Resend' datenschutz.html
+
+      - name: Syntax check browser script
+        run: node --check assets/js/pages/withdrawal.js
+
+      - name: Verify public withdrawal entry remains prominent
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '<strong>Vertrag widerrufen</strong>' components/footer.html
+          grep -Fq 'href="widerruf.html"' index.html
+          grep -Fq 'href="widerruf.html"' register.html
+
+      - name: Verify two-step labels required by flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq '>Widerruf prüfen<' widerruf.html
+          grep -Fq '>Widerruf bestätigen<' widerruf.html
+          grep -Fq 'confirmed: true' assets/js/pages/withdrawal.js
