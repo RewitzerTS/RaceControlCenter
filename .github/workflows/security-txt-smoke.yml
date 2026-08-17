@@ -1,0 +1,22 @@
+name: Security.txt Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  security-txt-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify security.txt
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .well-known/security.txt
+          grep -Fq 'Contact: mailto:support@racevora.com' .well-known/security.txt
+          grep -Fq 'Preferred-Languages: de, en' .well-known/security.txt
+          grep -Fq 'Canonical: https://racevora.com/.well-known/security.txt' .well-known/security.txt
+          grep -Eq '^Expires: 20[0-9]{2}-[0-9]{2}-[0-9]{2}T' .well-known/security.txt
