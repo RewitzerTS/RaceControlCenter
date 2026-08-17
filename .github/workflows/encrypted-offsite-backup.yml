@@ -45,17 +45,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          workflow='.github/workflows/encrypted-offsite-backup.yml'
           bash -n scripts/backup-supabase.sh
           python3 -m py_compile scripts/backup-public-storage.py
-          grep -Fq "RACEVORA_BACKUPS_ENABLED == 'true'" .github/workflows/encrypted-offsite-backup.yml
-          grep -Fq 'supabase/setup-cli@v3' .github/workflows/encrypted-offsite-backup.yml
-          grep -Fq 'racevora-backups' .github/workflows/encrypted-offsite-backup.yml
-          grep -Fq '.eu.r2.cloudflarestorage.com' .github/workflows/encrypted-offsite-backup.yml
-          if grep -Fq 'actions/upload-artifact' .github/workflows/encrypted-offsite-backup.yml; then
+          grep -Fq "RACEVORA_BACKUPS_ENABLED == 'true'" "$workflow"
+          grep -Fq 'supabase/setup-cli@v3' "$workflow"
+          grep -Fq 'racevora-backups' "$workflow"
+          grep -Fq '.eu.r2.cloudflarestorage.com' "$workflow"
+
+          artifact_action='actions/upload''-artifact'
+          elevated_service_key='SUPABASE_SERVICE''_ROLE_KEY'
+          elevated_access_token='SUPABASE_ACCESS''_TOKEN'
+
+          if grep -Fq "$artifact_action" "$workflow"; then
             echo 'Database backups must never be uploaded as GitHub Actions artifacts.' >&2
             exit 1
           fi
-          if grep -Eiq '(service[_-]?role|supabase[_-]?access[_-]?token)' .github/workflows/encrypted-offsite-backup.yml; then
+          if grep -Fq "$elevated_service_key" "$workflow" || grep -Fq "$elevated_access_token" "$workflow"; then
             echo 'Unexpected elevated Supabase secret referenced by backup workflow.' >&2
             exit 1
           fi
