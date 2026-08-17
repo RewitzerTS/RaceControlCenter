@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-const FROM_EMAIL = Deno.env.get("RACEVORA_WITHDRAWAL_FROM") || "RaceVora <widerruf@racevora.com>";
+const FROM_EMAIL = Deno.env.get("RACEVORA_WITHDRAWAL_FROM") || "RaceVora <noreply@racevora.com>";
 const OPERATOR_EMAIL = Deno.env.get("RACEVORA_CONTACT_EMAIL") || "kontakt@racevora.com";
 
 const allowedOrigins = new Set([
@@ -54,6 +54,14 @@ function referenceFor(date: Date) {
   const random = crypto.getRandomValues(new Uint8Array(6));
   const suffix = Array.from(random, (byte) => byte.toString(16).padStart(2, "0")).join("").toUpperCase();
   return `RV-WD-${day}-${suffix}`;
+}
+
+function classifyMailError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.includes("RESEND_API_KEY is not configured")) return "resend_secret_missing";
+  if (message.includes("Resend 401") || message.includes("Resend 403")) return "resend_auth_rejected";
+  if (message.includes("Resend 422")) return "resend_sender_rejected";
+  return "resend_delivery_failed";
 }
 
 async function sendResendEmail(payload: Record<string, unknown>) {
@@ -176,7 +184,7 @@ Deno.serve(async (req: Request) => {
 
   let confirmationSent = false;
   let providerId = "";
-  let emailError = "";
+  let confirmationErrorCode: string | null = null;
 
   try {
     const emailResult = await sendResendEmail({
@@ -194,8 +202,8 @@ Deno.serve(async (req: Request) => {
       confirmation_provider_id: providerId || null,
     }).eq("id", record.id);
   } catch (error) {
-    emailError = error instanceof Error ? error.message : String(error);
-    console.error("withdrawal confirmation email failed", emailError);
+    confirmationErrorCode = classifyMailError(error);
+    console.error("withdrawal confirmation email failed", confirmationErrorCode, error);
   }
 
   // Operator copy is operational only. A failure must never invalidate the consumer's withdrawal.
@@ -222,6 +230,7 @@ Deno.serve(async (req: Request) => {
     statement,
     confirmation_email: confirmationEmail,
     confirmation_sent: confirmationSent,
+    confirmation_error_code: confirmationErrorCode,
     confirmation_error: confirmationSent ? null : "Die Widerrufserklärung wurde gespeichert, aber die E-Mail-Bestätigung konnte noch nicht versendet werden.",
     receipt: {
       operator: "Richard Rewitzer / RaceVora",
