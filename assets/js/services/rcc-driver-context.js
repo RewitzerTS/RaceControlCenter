@@ -74,7 +74,11 @@
     function getAssignmentForRace(driverId, raceId) {
       const race = racesById.get(raceId);
       const currentRound = Number(race?.round_number || 0);
-      const rows = assignmentsByDriver.get(driverId) || [];
+      const currentSeasonId = race?.season_id == null ? null : String(race.season_id);
+      const rows = (assignmentsByDriver.get(driverId) || []).filter((row) => {
+        if (!currentSeasonId) return true;
+        return String(row?.season_id || '') === currentSeasonId;
+      });
       let winner = null;
 
       for (const row of rows) {
