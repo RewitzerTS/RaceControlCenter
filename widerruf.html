@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="description" content="Widerrufsinformationen für Verbraucher bei RaceVora.">
-  <title>RaceVora · Widerruf</title>
+  <meta name="description" content="Widerrufsinformationen und elektronische Widerrufsfunktion für Verbraucher bei RaceVora.">
+  <title>RaceVora · Vertrag widerrufen</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/racevora-mark.svg">
   <link rel="stylesheet" href="assets/css/pages/legal.css">
 </head>
@@ -13,39 +13,91 @@
     <a class="legal-brand" href="index.html"><img src="assets/images/racevora-mark.svg" alt="" width="54" height="54"><span><strong>RaceVora</strong><span>Race Management Platform</span></span></a>
     <article class="legal-card">
       <div class="legal-kicker">Für Verbraucher</div>
-      <h1>Widerrufsbelehrung</h1>
-      <p class="legal-meta">Stand: 17. August 2026</p>
+      <h1>Vertrag widerrufen</h1>
+      <p class="legal-meta">Elektronische Widerrufsfunktion · Stand: 17. August 2026</p>
+
+      <div class="legal-note"><strong>Direkt online widerrufen:</strong> Mit dem Formular unten kannst du deine Widerrufserklärung elektronisch an RaceVora übermitteln. Vor der endgültigen Übermittlung werden dir alle Angaben noch einmal angezeigt und du bestätigst den Widerruf in einem zweiten Schritt.</div>
+
+      <section class="withdrawal-panel" aria-labelledby="withdrawal-form-title">
+        <h2 id="withdrawal-form-title">Elektronischer Widerruf</h2>
+        <p>Für die Zuordnung benötigen wir deinen Namen, eine Kennung des Vertrags bzw. Accounts und die E-Mail-Adresse, an die deine Eingangsbestätigung gesendet werden soll.</p>
+
+        <form id="withdrawal-form" class="withdrawal-form" novalidate>
+          <label>
+            <span>Vollständiger Name</span>
+            <input name="consumer_name" autocomplete="name" maxlength="160" required>
+          </label>
+          <label>
+            <span>RaceVora-Account / Liga / Vertragskennung</span>
+            <input name="contract_identifier" autocomplete="email" maxlength="240" placeholder="z. B. deine Account-E-Mail oder Liga-URL" required>
+            <small>Die Angabe muss uns ermöglichen, dein Nutzungsverhältnis eindeutig zuzuordnen.</small>
+          </label>
+          <label>
+            <span>E-Mail für die Eingangsbestätigung</span>
+            <input name="confirmation_email" type="email" autocomplete="email" inputmode="email" maxlength="320" required>
+            <small>An diese Adresse senden wir den Inhalt deiner Widerrufserklärung sowie Datum und Uhrzeit des Eingangs.</small>
+          </label>
+          <label class="withdrawal-honeypot" aria-hidden="true">
+            <span>Website</span>
+            <input name="website" tabindex="-1" autocomplete="off">
+          </label>
+          <div class="legal-actions">
+            <button id="withdrawal-prepare" class="legal-button" type="submit">Widerruf prüfen</button>
+          </div>
+        </form>
+
+        <section id="withdrawal-review" class="withdrawal-review" hidden aria-labelledby="withdrawal-review-title">
+          <h3 id="withdrawal-review-title">Bitte prüfe deine Widerrufserklärung</h3>
+          <dl>
+            <dt>Name</dt><dd id="withdrawal-review-name"></dd>
+            <dt>Vertrags-/Accountkennung</dt><dd id="withdrawal-review-contract"></dd>
+            <dt>Bestätigung an</dt><dd id="withdrawal-review-email"></dd>
+            <dt>Erklärung</dt><dd id="withdrawal-review-statement"></dd>
+          </dl>
+          <div class="legal-actions">
+            <button id="withdrawal-confirm" class="legal-button" type="button">Widerruf bestätigen</button>
+            <button id="withdrawal-edit" class="legal-button legal-button--secondary" type="button">Angaben ändern</button>
+          </div>
+        </section>
+
+        <div id="withdrawal-status" class="withdrawal-status" role="status" aria-live="polite" hidden></div>
+
+        <section id="withdrawal-receipt" class="withdrawal-receipt" hidden aria-labelledby="withdrawal-receipt-title">
+          <h3 id="withdrawal-receipt-title">Widerruf eingegangen</h3>
+          <p id="withdrawal-mail-state"></p>
+          <dl>
+            <dt>Referenz</dt><dd id="withdrawal-receipt-reference"></dd>
+            <dt>Eingang</dt><dd id="withdrawal-receipt-time"></dd>
+            <dt>Bestätigung an</dt><dd id="withdrawal-receipt-email"></dd>
+            <dt>Erklärung</dt><dd id="withdrawal-receipt-statement"></dd>
+          </dl>
+          <div class="legal-actions">
+            <button id="withdrawal-download" class="legal-button legal-button--secondary" type="button">Eingangsbeleg herunterladen</button>
+          </div>
+        </section>
+      </section>
 
       <h2>Widerrufsrecht</h2>
       <p>Wenn du Verbraucher bist und das Nutzungsverhältnis im Fernabsatz abschließt, hast du grundsätzlich das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen.</p>
       <p>Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses.</p>
-      <p>Um dein Widerrufsrecht auszuüben, musst du uns</p>
+      <p>Du kannst die elektronische Widerrufsfunktion oben nutzen oder uns eine andere eindeutige Widerrufserklärung senden:</p>
       <address class="legal-address">Richard Rewitzer<br>Hohenzollernstr. 9<br>72622 Nürtingen<br>Deutschland<br>E-Mail: <a href="mailto:kontakt@racevora.com">kontakt@racevora.com</a></address>
-      <p>mittels einer eindeutigen Erklärung über deinen Entschluss informieren, den Vertrag zu widerrufen. Zur Wahrung der Widerrufsfrist reicht es aus, dass du die Mitteilung vor Ablauf der Widerrufsfrist absendest.</p>
+      <p>Zur Wahrung der Widerrufsfrist reicht es aus, dass du deine Erklärung vor Ablauf der Widerrufsfrist absendest.</p>
 
       <h2>Folgen des Widerrufs</h2>
       <p>Da die aktuelle RaceVora-Beta kostenlos angeboten wird, sind grundsätzlich keine Nutzungsentgelte zurückzuzahlen. Nach wirksamem Widerruf wird das Nutzungsverhältnis beendet. Personenbezogene Daten werden anschließend nach Maßgabe der Datenschutzerklärung und der gesetzlichen Vorgaben behandelt.</p>
-
-      <h2>Muster-Widerrufserklärung</h2>
-      <p>Wenn du den Vertrag widerrufen willst, kannst du beispielsweise folgende Angaben an <a href="mailto:kontakt@racevora.com">kontakt@racevora.com</a> senden:</p>
-      <div class="legal-note">
-        Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über die Nutzung von RaceVora.<br><br>
-        E-Mail-Adresse des RaceVora-Accounts:<br>
-        Name:<br>
-        Datum:<br>
-      </div>
-
-      <h2>Elektronische Widerrufsfunktion</h2>
-      <p>RaceVora bereitet zusätzlich eine unmittelbar auf der Plattform nutzbare elektronische Widerrufsfunktion vor. Bis diese technisch mit der gesetzlich vorgesehenen Eingangsbestätigung umgesetzt ist, wird die kostenlose Beta nicht als vollständig für einen allgemeinen Verbraucher-Marktstart freigegeben.</p>
 
       <nav class="legal-nav" aria-label="Rechtliche Seiten">
         <a href="impressum.html">Impressum</a>
         <a href="datenschutz.html">Datenschutz</a>
         <a href="agb.html">AGB</a>
-        <a href="widerruf.html" aria-current="page">Widerruf</a>
+        <a href="widerruf.html" aria-current="page">Vertrag widerrufen</a>
       </nav>
     </article>
     <p class="legal-footer">© 2026 RaceVora · Richard Rewitzer</p>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/pages/withdrawal.js"></script>
 </body>
 </html>
