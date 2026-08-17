@@ -1,0 +1,77 @@
+name: Driver Hub Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'fahrer-profil.html'
+      - 'head-to-head.html'
+      - 'fahrer-wm.html'
+      - 'assets/js/services/rcc-driver-stats.js'
+      - 'assets/js/pages/driver-profile.js'
+      - 'assets/js/pages/head-to-head.js'
+      - 'assets/js/pages/driver-profile-links.js'
+      - 'assets/css/driver-profile.css'
+      - '.github/workflows/driver-hub-smoke.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'fahrer-profil.html'
+      - 'head-to-head.html'
+      - 'fahrer-wm.html'
+      - 'assets/js/services/rcc-driver-stats.js'
+      - 'assets/js/pages/driver-profile.js'
+      - 'assets/js/pages/head-to-head.js'
+      - 'assets/js/pages/driver-profile-links.js'
+      - 'assets/css/driver-profile.css'
+      - '.github/workflows/driver-hub-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  driver-hub-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check assets/js/services/rcc-driver-stats.js
+          node --check assets/js/pages/driver-profile.js
+          node --check assets/js/pages/head-to-head.js
+          node --check assets/js/pages/driver-profile-links.js
+
+      - name: Check public Driver Hub wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'data-page="fahrer-profil"' fahrer-profil.html
+          grep -Fq 'assets/js/services/rcc-driver-stats.js' fahrer-profil.html
+          grep -Fq 'assets/js/pages/driver-profile.js' fahrer-profil.html
+          grep -Fq 'id="driver-profile-h2h"' fahrer-profil.html
+          grep -Fq 'data-page="head-to-head"' head-to-head.html
+          grep -Fq 'assets/js/pages/head-to-head.js' head-to-head.html
+          grep -Fq 'id="h2h-driver-a"' head-to-head.html
+          grep -Fq 'id="h2h-driver-b"' head-to-head.html
+          grep -Fq 'assets/js/pages/driver-profile-links.js' fahrer-wm.html
+          grep -Fq 'calculateHeadToHead' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'points_owner_driver_id' assets/js/services/rcc-driver-stats.js
+
+      - name: Guard tenant-scoped data access
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq "\.from\(['\"](drivers|races|race_results|seasons)['\"]\)" assets/js/pages/driver-profile.js assets/js/pages/head-to-head.js; then
+            echo 'Driver Hub pages must use RCCData/RCCDriverStats rather than direct unscoped table reads.' >&2
+            exit 1
+          fi
+          grep -Fq 'window.RCCData.fetchSeasons' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'window.RCCData.fetchDrivers' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'window.RCCData.fetchRaces' assets/js/services/rcc-driver-stats.js
+          grep -Fq 'window.RCCData.fetchRaceResults' assets/js/services/rcc-driver-stats.js
