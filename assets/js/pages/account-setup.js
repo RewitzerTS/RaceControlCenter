@@ -175,31 +175,6 @@
     });
   }
 
-  async function findExistingLeague(session) {
-    if (!session?.user?.id) return null;
-
-    const { data: memberships, error } = await window.supabaseClient
-      .from('league_members')
-      .select('league_id, role, created_at')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    if (error) throw error;
-    const membership = Array.isArray(memberships) ? memberships[0] : null;
-    if (!membership?.league_id) return null;
-
-    const { data: league, error: leagueError } = await window.supabaseClient
-      .from('leagues')
-      .select('id, name, slug, is_public, status, settings')
-      .eq('id', membership.league_id)
-      .maybeSingle();
-
-    if (leagueError && leagueError.code !== 'PGRST116') throw leagueError;
-    if (!league) return null;
-    return { ...league, role: membership.role };
-  }
-
   async function functionErrorMessage(error) {
     try {
       const response = error?.context;
@@ -257,9 +232,13 @@
     }
   }
 
-  async function finish(league, confirmation = null) {
+  async function finish(league, confirmation) {
+    if (!confirmation?.sent_at) {
+      throw new Error('Die Vertragsbestätigung wurde noch nicht versendet. Bitte versuche es erneut.');
+    }
+
     setStep('permissions');
-    setStatus(confirmation?.sent_at ? 'Vertragsbestätigung gesendet. Berechtigungen werden geladen …' : 'Berechtigungen werden geladen …');
+    setStatus('Vertragsbestätigung gesendet. Berechtigungen werden geladen …');
 
     if (!league?.slug || !['admin', 'owner'].includes(league.role)) {
       throw new Error('Die erforderliche Liga-Leitung-Berechtigung fehlt.');
@@ -291,11 +270,6 @@
 
       const pending = pendingForSession(session);
       if (!pending) {
-        const existing = await findExistingLeague(session);
-        if (existing?.slug && ['admin', 'owner'].includes(existing.role)) {
-          await finish(existing);
-          return;
-        }
         throw new Error('Die begonnenen Liga-Daten konnten nicht wiederhergestellt werden. Bitte starte die Registrierung erneut.');
       }
 
