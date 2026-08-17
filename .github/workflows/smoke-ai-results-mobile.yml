@@ -1,0 +1,196 @@
+name: AI Results Mobile Stability
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - feature/**
+
+permissions:
+  contents: read
+
+jobs:
+  ai-results-mobile-stability:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify mobile stability guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'abortSignal' assets/js/components/rcc-result-draft.js
+          grep -q 'DRAFT_QUERY_TIMEOUT_MS' assets/js/components/rcc-result-draft.js
+          grep -q 'schedulePostSaveUi' assets/js/components/rcc-result-draft.js
+          grep -q 'overscroll-behavior-x: contain' assets/css/components/rcc-results-workflow.css
+          grep -q 'min-width: 760px' assets/css/components/rcc-results-workflow.css
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/racevora-ai-mobile-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/assets/js/components/rcc-result-draft.js >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/racevora-ai-mobile-http.log
+          exit 1
+
+      - name: Verify draft timeout and iPhone wizard containment
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+
+            // 1) A stalled draft request must never leave the save promise open forever.
+            const timeoutPage = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await timeoutPage.goto('http://127.0.0.1:8080/', { waitUntil: 'domcontentloaded' });
+            await timeoutPage.evaluate(() => {
+              window.__RCC_RESULT_DRAFT_QUERY_TIMEOUT_MS = 1000;
+              window.requireAdminSession = async () => ({ user: { id: 'test-user' } });
+
+              const hangingBuilder = () => {
+                const builder = {
+                  select: () => builder,
+                  insert: () => builder,
+                  update: () => builder,
+                  delete: () => builder,
+                  eq: () => builder,
+                  maybeSingle: () => builder,
+                  single: () => builder,
+                  abortSignal: (signal) => new Promise((resolve, reject) => {
+                    if (signal.aborted) {
+                      const error = new Error('Aborted');
+                      error.name = 'AbortError';
+                      reject(error);
+                      return;
+                    }
+                    signal.addEventListener('abort', () => {
+                      const error = new Error('Aborted');
+                      error.name = 'AbortError';
+                      reject(error);
+                    }, { once: true });
+                  })
+                };
+                return builder;
+              };
+
+              window.supabaseClient = {
+                auth: { getSession: async () => ({ data: { session: { user: { id: 'test-user' } } }, error: null }) },
+                from: () => hangingBuilder()
+              };
+            });
+            await timeoutPage.addScriptTag({ url: 'http://127.0.0.1:8080/assets/js/components/rcc-result-draft.js' });
+
+            const timeoutState = await timeoutPage.evaluate(async () => {
+              const startedAt = performance.now();
+              try {
+                await window.RCCResultDraft.save({
+                  raceId: 'race-test',
+                  rows: [{ driver_id: 'driver-test', finish_position: 1 }],
+                  sourceFilename: 'CI mobile timeout test'
+                });
+                return { resolved: true, elapsed: performance.now() - startedAt, message: '' };
+              } catch (error) {
+                return {
+                  resolved: false,
+                  elapsed: performance.now() - startedAt,
+                  message: String(error?.message || error || '')
+                };
+              }
+            });
+
+            if (timeoutState.resolved) throw new Error('Draft timeout test unexpectedly resolved.');
+            if (timeoutState.elapsed > 4000) throw new Error(`Draft timeout took too long: ${Math.round(timeoutState.elapsed)}ms`);
+            if (!/nicht geantwortet|Verbindung prüfen/i.test(timeoutState.message)) {
+              throw new Error(`Draft timeout returned unclear message: ${timeoutState.message}`);
+            }
+            console.log(`PASS stalled draft exits after ${Math.round(timeoutState.elapsed)}ms`);
+            await timeoutPage.close();
+
+            // 2) The AI results surface must stay inside an isolated iPhone viewport while the wide table scrolls internally.
+            const mobilePage = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await mobilePage.goto('http://127.0.0.1:8080/', { waitUntil: 'domcontentloaded' });
+            await mobilePage.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body></body></html>');
+            await mobilePage.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/style.css' });
+            await mobilePage.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/components/rcc-wizard-dialog.css' });
+            await mobilePage.addStyleTag({ url: 'http://127.0.0.1:8080/assets/css/components/rcc-results-workflow.css' });
+            await mobilePage.addScriptTag({ url: 'http://127.0.0.1:8080/assets/js/components/rcc-wizard-dialog.js' });
+
+            await mobilePage.evaluate(() => {
+              const panel = document.createElement('section');
+              panel.className = 'panel rcc-results-workflow-panel';
+              panel.innerHTML = `
+                <div class="rcc-ai-results-import">
+                  <div class="form-grid"><div class="field"><label>Rennen<select><option>Test GP</option></select></label></div></div>
+                  <div class="rcc-ai-file-list"><span class="rcc-ai-file-chip"><strong>1.</strong> Ergebnis-Screenshot-vom-iPhone.png <button type="button">×</button></span></div>
+                  <div id="rcc-ai-results-table-wrap" class="table-wrap section-spacer-top">
+                    <table class="manual-results-table rcc-ai-results-table"><thead><tr><th>Pos.</th><th>Fahrer</th><th>Team</th><th>Grid</th><th>Stopps</th><th>Beste</th><th>Zeit</th></tr></thead><tbody><tr><td>1</td><td><select><option>Testfahrer</option></select></td><td>Test Team</td><td>2</td><td>1</td><td><input value="01:23,456"></td><td><input value="42:15,827"></td></tr></tbody></table>
+                  </div>
+                  <div class="card-actions"><button type="button" class="button-primary">Als Entwurf speichern</button></div>
+                </div>`;
+              document.body.appendChild(panel);
+              window.RCCWizardDialog.open(panel, {
+                title: 'KI-Bilder importieren',
+                headerActionLabel: 'Schließen',
+                onHeaderAction: () => window.RCCWizardDialog.close()
+              });
+            });
+
+            await mobilePage.waitForSelector('#rcc-wizard-dialog:not([hidden])');
+            const layout = await mobilePage.evaluate(() => {
+              const shell = document.getElementById('rcc-wizard-dialog');
+              const surface = shell.querySelector('.rcc-wizard-dialog__surface');
+              const wrap = shell.querySelector('#rcc-ai-results-table-wrap');
+              const close = shell.querySelector('[data-rcc-wizard-header-action]');
+              return {
+                innerWidth: window.innerWidth,
+                documentScrollWidth: document.documentElement.scrollWidth,
+                surfaceWidth: surface.getBoundingClientRect().width,
+                wrapClientWidth: wrap.clientWidth,
+                wrapScrollWidth: wrap.scrollWidth,
+                closeVisible: !close.hidden && getComputedStyle(close).display !== 'none'
+              };
+            });
+
+            if (layout.documentScrollWidth > layout.innerWidth + 2) {
+              throw new Error(`Wizard leaks horizontal page overflow: ${layout.documentScrollWidth}px > ${layout.innerWidth}px`);
+            }
+            if (layout.surfaceWidth > layout.innerWidth + 1) {
+              throw new Error(`Wizard surface exceeds viewport: ${layout.surfaceWidth}px > ${layout.innerWidth}px`);
+            }
+            if (!(layout.wrapScrollWidth > layout.wrapClientWidth)) {
+              throw new Error(`AI table should scroll internally: ${layout.wrapScrollWidth}px <= ${layout.wrapClientWidth}px`);
+            }
+            if (!layout.closeVisible) throw new Error('Wizard close action is not visible on iPhone viewport.');
+
+            await mobilePage.locator('[data-rcc-wizard-header-action]').click();
+            await mobilePage.waitForFunction(() => {
+              const shell = document.getElementById('rcc-wizard-dialog');
+              return shell?.hidden === true && !document.body.classList.contains('rcc-wizard-dialog-open');
+            });
+            console.log('PASS iPhone AI wizard containment and close action');
+
+            await mobilePage.close();
+            await browser.close();
+          })().catch((error) => {
+            const message = String(error?.message || error || 'Unknown AI results mobile stability failure').replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+            console.error(error);
+            console.error(`::error title=AI results mobile stability failed::${message}`);
+            process.exit(1);
+          });
+          NODE
