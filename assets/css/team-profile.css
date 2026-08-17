@@ -1,0 +1,102 @@
+.team-hero-card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 22px;
+  align-items: center;
+  min-height: 210px;
+  padding: 30px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.team-hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 8% 10%, rgba(44, 143, 166, .24), transparent 34%),
+    radial-gradient(circle at 90% 20%, rgba(90, 50, 163, .28), transparent 30%);
+}
+
+.team-hero-card > * { position: relative; z-index: 1; }
+.team-hero-logo { display: grid; place-items: center; width: 132px; height: 132px; }
+.team-hero-logo .team-logo-badge { transform: scale(1.45); }
+.team-hero-copy h2 { margin: 4px 0 8px; font-size: clamp(2rem, 5vw, 4.1rem); line-height: 1; letter-spacing: -.045em; }
+.team-hero-copy p { margin: 0; color: var(--text-muted); }
+.team-hero-record { align-self: stretch; display: grid; place-content: center; min-width: 170px; padding-left: 24px; border-left: 1px solid var(--line); text-align: center; }
+.team-hero-record span { color: var(--text-muted); font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.team-hero-record strong { margin-top: 8px; font-size: clamp(2rem, 4vw, 3.5rem); }
+.team-stat-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+
+.team-driver-list, .team-car-list { display: grid; gap: 10px; }
+.team-driver-item, .team-car-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .025);
+}
+.team-driver-item strong, .team-car-item strong { display: block; }
+.team-driver-item small, .team-car-item small { color: var(--text-muted); }
+.team-driver-item > span, .team-car-item > span { color: var(--accent); font-weight: 900; }
+.team-driver-item a:hover { color: var(--accent); }
+
+.platform-records-section { margin-top: 28px; }
+.platform-records-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.platform-record-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 150px;
+  padding: 18px;
+  border: 1px solid rgba(211, 171, 69, .28);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(116, 76, 18, .16), rgba(10, 31, 55, .92));
+}
+.platform-record-card::after {
+  content: '';
+  position: absolute;
+  right: -34px;
+  top: -34px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(244, 193, 77, .10);
+}
+.platform-record-card span { position: relative; z-index: 1; display: block; color: #d8b65d; font-size: .7rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+.platform-record-card strong { position: relative; z-index: 1; display: block; margin: 14px 0 8px; font-size: clamp(1.5rem, 2.6vw, 2.2rem); line-height: 1.05; }
+.platform-record-card small { position: relative; z-index: 1; color: var(--text-muted); }
+.platform-record-card a:hover strong { color: #f4c14d; }
+.platform-record-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.platform-record-group h3 { margin: 0 0 12px; }
+.platform-record-status { color: var(--text-muted); padding: 14px 0; }
+
+.team-profile-link { font-weight: 800; }
+.team-profile-link:hover { color: var(--accent); }
+
+@media (max-width: 980px) {
+  .team-stat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .platform-records-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .team-hero-card { grid-template-columns: auto minmax(0, 1fr); min-height: 0; padding: 20px; }
+  .team-hero-logo { width: 92px; height: 92px; }
+  .team-hero-record { grid-column: 1 / -1; min-width: 0; padding: 15px 0 0; border-left: 0; border-top: 1px solid var(--line); text-align: left; place-content: start; }
+  .team-hero-record strong { font-size: 2rem; }
+  .team-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .platform-record-groups { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 460px) {
+  .team-hero-card { grid-template-columns: 1fr; }
+  .team-hero-logo { width: 78px; height: 78px; }
+  .platform-records-grid { grid-template-columns: 1fr; }
+}
