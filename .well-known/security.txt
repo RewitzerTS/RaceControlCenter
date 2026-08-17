@@ -1,0 +1,4 @@
+Contact: mailto:support@racevora.com
+Expires: 2027-02-17T00:00:00.000Z
+Preferred-Languages: de, en
+Canonical: https://racevora.com/.well-known/security.txt
