@@ -30,9 +30,14 @@ jobs:
           grep -Fq 'Supabase' datenschutz.html
           grep -Fq 'OpenAI API' datenschutz.html
           grep -Fq 'jsDelivr' datenschutz.html
+          grep -Fq 'Vertragsbestätigung' datenschutz.html
+          grep -Fq 'Resend' datenschutz.html
 
           grep -Fq 'kostenlose Beta' agb.html
+          grep -Fq 'Vertragsbestätigung' agb.html
+          grep -Fq 'aktueller Webbrowser' agb.html
           grep -Fq 'vierzehn Tage' widerruf.html
+          grep -Fq 'Muster-Widerrufsformular' widerruf.html
 
           for target in index.html register.html components/footer.html; do
             grep -Fq 'impressum.html' "$target"
@@ -48,6 +53,9 @@ jobs:
 
           grep -Fq 'AGB</strong></a>' register.html
           grep -Fq 'Datenschutzerklärung</strong></a>' register.html
-          grep -Fq 'Widerrufsbelehrung</strong></a>' register.html
+          grep -Fq 'Muster-Widerrufsformular</strong></a>' register.html
+          grep -Fq '0,00 EUR' register.html
+          grep -Fq 'Vertragssprache ist Deutsch' register.html
+          grep -Fq 'Vertragsbestätigung' register.html
 
           echo 'Legal release smoke passed.'
