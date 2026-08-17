@@ -19,10 +19,12 @@ jobs:
           set -euo pipefail
           migration='database/2026-consumer-contract-confirmations.sql'
           function='supabase/functions/finalize-consumer-registration/index.ts'
+          config='supabase/config.toml'
           register_client='assets/js/pages/register.js'
           setup_client='assets/js/pages/account-setup.js'
           test -s "$migration"
           test -s "$function"
+          test -s "$config"
           test -s "$register_client"
           test -s "$setup_client"
           grep -Fq 'create table if not exists public.contract_confirmations' "$migration"
@@ -41,6 +43,9 @@ jobs:
             echo 'Account setup can bypass contract finalization through an existing-league fallback.' >&2
             exit 1
           fi
+          grep -Fq '[functions.finalize-consumer-registration]' "$config"
+          grep -Fq 'verify_jwt = false' "$config"
+          grep -Fq 'authHeader.startsWith("Bearer ")' "$function"
           grep -Fq 'userClient.auth.getUser()' "$function"
           grep -Fq 'actor.email_confirmed_at' "$function"
           grep -Fq 'registration_metadata_mismatch' "$function"
