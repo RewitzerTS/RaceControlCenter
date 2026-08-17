@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="assets/js/theme-prepaint.js"></script>
+  <title>RaceVora · Teamprofil</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/driver-profile.css">
+  <link rel="stylesheet" href="assets/css/team-profile.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body data-page="team-profil">
+  <div id="site-header"></div>
+
+  <main class="section driver-profile-page">
+    <div class="container driver-profile-toolbar">
+      <div>
+        <div class="eyebrow">RaceVora Team Hub</div>
+        <h1 class="page-title page-title-compact">Teamprofil</h1>
+        <p class="page-subtitle">Teamhistorie, Fahrer, Fahrzeuge und Rennbilanz aus den veröffentlichten Ligadaten.</p>
+      </div>
+      <div class="driver-profile-controls">
+        <label><span>Team</span><select id="team-profile-select" aria-label="Team auswählen"></select></label>
+        <label><span>Zeitraum</span><select id="team-profile-season" aria-label="Saison auswählen"><option value="">Historie</option></select></label>
+      </div>
+    </div>
+
+    <div class="container">
+      <section id="team-profile-loading" class="driver-profile-state">Teamprofil wird geladen …</section>
+      <section id="team-profile-error" class="driver-profile-state driver-profile-state--error" hidden></section>
+
+      <section id="team-profile-content" hidden>
+        <article class="team-hero-card">
+          <div class="team-hero-logo" id="team-profile-logo"></div>
+          <div class="team-hero-copy">
+            <div class="driver-hero-meta">Teamprofil</div>
+            <h2 id="team-profile-name">—</h2>
+            <p id="team-profile-cars">—</p>
+          </div>
+          <div class="team-hero-record"><span>Bestes Resultat</span><strong id="team-profile-best">—</strong></div>
+        </article>
+
+        <section class="driver-stat-grid team-stat-grid">
+          <article class="driver-stat-card"><span>Rennen</span><strong id="team-stat-races">0</strong></article>
+          <article class="driver-stat-card"><span>Fahrer-Starts</span><strong id="team-stat-starts">0</strong></article>
+          <article class="driver-stat-card"><span>Siege</span><strong id="team-stat-wins">0</strong></article>
+          <article class="driver-stat-card"><span>Podien</span><strong id="team-stat-podiums">0</strong></article>
+          <article class="driver-stat-card"><span>Poles</span><strong id="team-stat-poles">0</strong></article>
+          <article class="driver-stat-card driver-stat-card--accent"><span>Punkte</span><strong id="team-stat-points">0</strong></article>
+        </section>
+
+        <section class="driver-profile-split">
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Lineup</span><h3>Fahrer-Historie</h3></div></div>
+            <div id="team-profile-drivers" class="team-driver-list"></div>
+          </article>
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Garage</span><h3>Eingesetzte Fahrzeuge</h3></div></div>
+            <div id="team-profile-cars-list" class="team-car-list"></div>
+          </article>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading"><div><span class="eyebrow">Historie</span><h3>Saisonbilanz</h3></div></div>
+          <div class="table-wrap">
+            <table class="driver-history-table">
+              <thead><tr><th>Saison</th><th>Rennen</th><th>Starts</th><th>Siege</th><th>Podien</th><th>Poles</th><th>SR</th><th>Punkte</th><th>Bestes Ergebnis</th></tr></thead>
+              <tbody id="team-profile-seasons"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading"><div><span class="eyebrow">Form</span><h3>Letzte Teamrennen</h3></div></div>
+          <div class="table-wrap">
+            <table class="driver-history-table">
+              <thead><tr><th>Rennen</th><th>Saison</th><th>Bestes Ergebnis</th><th>Fahrer</th><th>Punkte</th></tr></thead>
+              <tbody id="team-profile-recent"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="assets/js/supabase-client.js"></script>
+  <script defer src="assets/js/data/tracks.js"></script>
+  <script defer src="assets/js/services/rcc-data.js"></script>
+  <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
+  <script defer src="assets/js/services/rcc-driver-context.js"></script>
+  <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/services/rcc-team-stats.js"></script>
+  <script defer src="assets/js/layout.js"></script>
+  <script defer src="assets/js/utils.js"></script>
+  <script defer src="assets/js/components/racevora-team-logo-resilience.js"></script>
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/pages/team-profile.js"></script>
+</body>
+</html>
