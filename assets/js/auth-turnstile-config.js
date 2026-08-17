@@ -1,4 +1,3 @@
 // Public RaceVora auth-bot-protection configuration.
 // The Turnstile site key is public by design. Never place the Turnstile secret key here.
-// After creating the production widget in Cloudflare, replace the empty value below.
-window.RACEVORA_TURNSTILE_SITE_KEY = window.RACEVORA_TURNSTILE_SITE_KEY || '';
+window.RACEVORA_TURNSTILE_SITE_KEY = window.RACEVORA_TURNSTILE_SITE_KEY || '0x4AAAAAAETIVWWbQKe_2CaL';
