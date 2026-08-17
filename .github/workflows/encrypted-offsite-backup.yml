@@ -1,0 +1,222 @@
+name: Encrypted Off-site Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Run one backup even before scheduled backups are enabled
+        required: false
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - '.github/workflows/encrypted-offsite-backup.yml'
+      - 'scripts/backup-supabase.sh'
+      - 'scripts/backup-public-storage.py'
+      - 'docs/operations-runbook.md'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/encrypted-offsite-backup.yml'
+      - 'scripts/backup-supabase.sh'
+      - 'scripts/backup-public-storage.py'
+  schedule:
+    - cron: '17 2 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: racevora-encrypted-offsite-backup
+  cancel-in-progress: false
+
+env:
+  R2_BUCKET: racevora-backups
+  R2_ENDPOINT: https://d6a0b4e37ee0e3c967648473dbe190e1.eu.r2.cloudflarestorage.com
+
+jobs:
+  validate-backup-definition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate backup helpers and safety gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/backup-supabase.sh
+          python3 -m py_compile scripts/backup-public-storage.py
+          grep -Fq "RACEVORA_BACKUPS_ENABLED == 'true'" .github/workflows/encrypted-offsite-backup.yml
+          grep -Fq 'supabase/setup-cli@v3' .github/workflows/encrypted-offsite-backup.yml
+          grep -Fq 'racevora-backups' .github/workflows/encrypted-offsite-backup.yml
+          grep -Fq '.eu.r2.cloudflarestorage.com' .github/workflows/encrypted-offsite-backup.yml
+          if grep -Fq 'actions/upload-artifact' .github/workflows/encrypted-offsite-backup.yml; then
+            echo 'Database backups must never be uploaded as GitHub Actions artifacts.' >&2
+            exit 1
+          fi
+          if grep -Eiq '(service[_-]?role|supabase[_-]?access[_-]?token)' .github/workflows/encrypted-offsite-backup.yml; then
+            echo 'Unexpected elevated Supabase secret referenced by backup workflow.' >&2
+            exit 1
+          fi
+
+  encrypted-backup:
+    needs: validate-backup-definition
+    if: >-
+      (github.event_name == 'schedule' && vars.RACEVORA_BACKUPS_ENABLED == 'true') ||
+      (github.event_name == 'workflow_dispatch' && (vars.RACEVORA_BACKUPS_ENABLED == 'true' || inputs.force == true))
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in SUPABASE_DB_URL R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSPHRASE; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required GitHub Actions secret: ${name}"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+          if [ "${#BACKUP_ENCRYPTION_PASSPHRASE}" -lt 24 ]; then
+            echo '::error::BACKUP_ENCRYPTION_PASSPHRASE must contain at least 24 characters.'
+            exit 1
+          fi
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.111.0
+
+      - name: Install backup clients
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client gnupg awscli
+
+      - name: Create database backup
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export RACEVORA_BACKUP_DIR="${RUNNER_TEMP}/racevora-backups"
+          bash scripts/backup-supabase.sh
+          backup_dir="$(find "$RACEVORA_BACKUP_DIR" -mindepth 1 -maxdepth 1 -type d | sort | tail -n 1)"
+          if [ -z "$backup_dir" ] || [ ! -d "$backup_dir" ]; then
+            echo 'Database backup directory was not created.' >&2
+            exit 1
+          fi
+          echo "BACKUP_DIR=${backup_dir}" >> "$GITHUB_ENV"
+
+      - name: Back up Supabase Storage objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          export RACEVORA_STORAGE_BACKUP_DIR="${BACKUP_DIR}/storage"
+          python3 scripts/backup-public-storage.py
+          printf '%s\n' "$GITHUB_SHA" > "${BACKUP_DIR}/repository-commit.txt"
+
+      - name: Package and encrypt backup
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
+          archive="${RUNNER_TEMP}/racevora-backup-${timestamp}.tar.gz"
+          encrypted="${archive}.gpg"
+          passfile="$(mktemp "${RUNNER_TEMP}/racevora-backup-passphrase.XXXXXX")"
+          chmod 600 "$passfile"
+          printf '%s' "$BACKUP_ENCRYPTION_PASSPHRASE" > "$passfile"
+
+          tar -C "$(dirname "$BACKUP_DIR")" -czf "$archive" "$(basename "$BACKUP_DIR")"
+          gpg \
+            --batch \
+            --yes \
+            --pinentry-mode loopback \
+            --passphrase-file "$passfile" \
+            --symmetric \
+            --cipher-algo AES256 \
+            --output "$encrypted" \
+            "$archive"
+
+          rm -f "$passfile" "$archive"
+          checksum="$(sha256sum "$encrypted" | awk '{print $1}')"
+          printf '%s  %s\n' "$checksum" "$(basename "$encrypted")" > "${encrypted}.sha256"
+
+          key="daily/$(date -u +'%Y/%m/%d')/$(basename "$encrypted")"
+          echo "encrypted=${encrypted}" >> "$GITHUB_OUTPUT"
+          echo "checksum_file=${encrypted}.sha256" >> "$GITHUB_OUTPUT"
+          echo "key=${key}" >> "$GITHUB_OUTPUT"
+          echo "checksum=${checksum}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload encrypted backup to EU R2
+        env:
+          ENCRYPTED_FILE: ${{ steps.package.outputs.encrypted }}
+          CHECKSUM_FILE: ${{ steps.package.outputs.checksum_file }}
+          OBJECT_KEY: ${{ steps.package.outputs.key }}
+          ENCRYPTED_SHA256: ${{ steps.package.outputs.checksum }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          aws s3 cp \
+            "$ENCRYPTED_FILE" \
+            "s3://${R2_BUCKET}/${OBJECT_KEY}" \
+            --endpoint-url "$R2_ENDPOINT" \
+            --metadata "sha256=${ENCRYPTED_SHA256}" \
+            --no-progress \
+            --only-show-errors
+
+          aws s3 cp \
+            "$CHECKSUM_FILE" \
+            "s3://${R2_BUCKET}/${OBJECT_KEY}.sha256" \
+            --endpoint-url "$R2_ENDPOINT" \
+            --no-progress \
+            --only-show-errors
+
+      - name: Verify uploaded backup object
+        env:
+          OBJECT_KEY: ${{ steps.package.outputs.key }}
+          LOCAL_ENCRYPTED_FILE: ${{ steps.package.outputs.encrypted }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          local_size="$(stat -c '%s' "$LOCAL_ENCRYPTED_FILE")"
+          remote_size="$(aws s3api head-object \
+            --bucket "$R2_BUCKET" \
+            --key "$OBJECT_KEY" \
+            --endpoint-url "$R2_ENDPOINT" \
+            --query 'ContentLength' \
+            --output text)"
+          if [ "$local_size" != "$remote_size" ]; then
+            echo "Uploaded backup size mismatch: local=${local_size}, remote=${remote_size}." >&2
+            exit 1
+          fi
+          echo "PASS encrypted off-site backup uploaded and verified (${remote_size} bytes)."
+
+      - name: Remove local backup material
+        if: always()
+        shell: bash
+        run: |
+          rm -rf \
+            "${RUNNER_TEMP}/racevora-backups" \
+            "${RUNNER_TEMP}"/racevora-backup-*.tar.gz \
+            "${RUNNER_TEMP}"/racevora-backup-*.tar.gz.gpg \
+            "${RUNNER_TEMP}"/racevora-backup-*.tar.gz.gpg.sha256 \
+            "${RUNNER_TEMP}"/racevora-backup-passphrase.*
