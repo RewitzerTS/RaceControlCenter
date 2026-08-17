@@ -8,6 +8,14 @@
   function getLeagueId() { return window.RCCLeagueContext?.getLeagueId?.() || null; }
   function showFeedback(message, isError=false) { const el=document.getElementById('league-members-feedback'); if(!el)return; el.hidden=!message; el.textContent=message||''; el.classList.toggle('notice-error',Boolean(isError)); }
 
+  function ensurePanelVisibilityStyle() {
+    if (document.getElementById('rcc-admin-members-visibility-style')) return;
+    const style = document.createElement('style');
+    style.id = 'rcc-admin-members-visibility-style';
+    style.textContent = 'body[data-page="admin"] .admin-layout > #admin-section-members { display: block !important; }';
+    document.head.appendChild(style);
+  }
+
   async function isPlatformOwner() {
     const { data, error } = await window.supabaseClient.rpc('is_platform_owner');
     if (error) return false;
@@ -40,9 +48,14 @@
   }
 
   async function ensurePanel(platformOwner) {
-    if (document.getElementById('admin-section-members')) return;
+    ensurePanelVisibilityStyle();
+    const existingPanel = document.getElementById('admin-section-members');
+    if (existingPanel) {
+      existingPanel.hidden = false;
+      return;
+    }
     const layout=document.querySelector('.admin-layout'); if(!layout)return;
-    const panel=document.createElement('details'); panel.className='panel admin-panel-wide'; panel.id='admin-section-members';
+    const panel=document.createElement('details'); panel.className='panel admin-panel-wide'; panel.id='admin-section-members'; panel.hidden=false;
     panel.innerHTML=`<summary><strong>Liga-Team & Zugänge</strong></summary><section class="panel admin-panel-wide admin-panel-accent"><h3>Mitglieder & Rollen</h3><div class="notice">Die Ligaleitung kann Member und weitere Ligaleitungen verwalten. Die Owner-Rolle ist geschützt.</div><div class="form-grid section-spacer-top"><div class="field"><label for="league-member-email">E-Mail</label><input id="league-member-email" type="email" placeholder="name@example.com"></div><div class="field"><label for="league-member-role">Rolle</label><select id="league-member-role"><option value="member">Member</option><option value="admin">Ligaleitung</option>${platformOwner?'<option value="owner">Owner</option>':''}</select></div></div><div class="card-actions"><button type="button" class="button-primary" id="league-member-add-btn">Person hinzufügen / einladen</button><button type="button" class="button-secondary" id="league-members-refresh-btn">Liste aktualisieren</button></div><div id="league-members-feedback" class="notice" hidden></div><div class="section-spacer-top"><h4>Aktuelle Mitglieder</h4><div id="league-members-list" class="stack-list"><div class="notice">Mitglieder werden geladen...</div></div></div></section>`; layout.appendChild(panel);
     document.getElementById('league-member-add-btn')?.addEventListener('click', inviteMember);
     document.getElementById('league-members-refresh-btn')?.addEventListener('click', loadMembers);
