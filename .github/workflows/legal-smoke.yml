@@ -1,0 +1,53 @@
+name: Legal Release Smoke
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legal-release-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify required legal pages and links
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for file in impressum.html datenschutz.html agb.html widerruf.html; do
+            test -s "$file" || { echo "Missing legal page: $file" >&2; exit 1; }
+          done
+
+          grep -Fq 'Richard Rewitzer' impressum.html
+          grep -Fq 'Hohenzollernstr. 9' impressum.html
+          grep -Fq 'kontakt@racevora.com' impressum.html
+          grep -Fq 'support@racevora.com' impressum.html
+
+          grep -Fq 'Cloudflare' datenschutz.html
+          grep -Fq 'Supabase' datenschutz.html
+          grep -Fq 'OpenAI API' datenschutz.html
+          grep -Fq 'jsDelivr' datenschutz.html
+
+          grep -Fq 'kostenlose Beta' agb.html
+          grep -Fq 'vierzehn Tage' widerruf.html
+
+          for target in index.html register.html components/footer.html; do
+            grep -Fq 'impressum.html' "$target"
+            grep -Fq 'datenschutz.html' "$target"
+            grep -Fq 'agb.html' "$target"
+            grep -Fq 'widerruf.html' "$target"
+          done
+
+          if grep -Fq 'Platzhalter – die Dokumente werden vor dem Marktstart verlinkt' register.html; then
+            echo 'Legacy legal placeholder is still present in registration.' >&2
+            exit 1
+          fi
+
+          grep -Fq 'AGB</strong></a>' register.html
+          grep -Fq 'Datenschutzerklärung</strong></a>' register.html
+          grep -Fq 'Widerrufsbelehrung</strong></a>' register.html
+
+          echo 'Legal release smoke passed.'
