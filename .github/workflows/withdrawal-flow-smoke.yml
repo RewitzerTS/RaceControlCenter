@@ -54,10 +54,11 @@ jobs:
         run: |
           set -euo pipefail
           contract_id="GITHUB-CI-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          confirmation_email="support+ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}@racevora.com"
           payload="$(jq -nc \
             --arg name 'RaceVora CI Test' \
             --arg contract "$contract_id" \
-            --arg email 'support@racevora.com' \
+            --arg email "$confirmation_email" \
             '{consumer_name:$name,contract_identifier:$contract,confirmation_email:$email,confirmed:true,website:""}')"
 
           response_file="$(mktemp)"
@@ -80,12 +81,12 @@ jobs:
             exit 1
           }
 
-          jq -e --arg contract "$contract_id" '
+          jq -e --arg contract "$contract_id" --arg email "$confirmation_email" '
             .ok == true and
             .confirmation_sent == true and
             (.reference | startswith("RV-WD-")) and
             .receipt.contract_identifier == $contract and
-            .receipt.confirmation_email == "support@racevora.com"
+            .receipt.confirmation_email == $email
           ' "$response_file" >/dev/null
 
           reference="$(jq -r '.reference' "$response_file")"
@@ -94,4 +95,4 @@ jobs:
           echo "### Electronic withdrawal live test ✅" >> "$GITHUB_STEP_SUMMARY"
           echo "- Contract marker: \`${contract_id}\`" >> "$GITHUB_STEP_SUMMARY"
           echo "- Receipt reference: \`${reference}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Confirmation email accepted for delivery to \`support@racevora.com\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Confirmation email accepted for delivery to a unique CI alias" >> "$GITHUB_STEP_SUMMARY"
