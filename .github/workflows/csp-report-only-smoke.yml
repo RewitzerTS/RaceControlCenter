@@ -1,0 +1,73 @@
+name: CSP Report-Only Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '41 3 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  static-csp-baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate report-only policy source
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'Content-Security-Policy-Report-Only:' _headers
+          grep -Fq "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com" _headers
+          grep -Fq 'https://kjccstcbqygxuqkvdaqw.supabase.co' _headers
+          grep -Fq 'wss://kjccstcbqygxuqkvdaqw.supabase.co' _headers
+          grep -Fq "frame-src 'self' https://challenges.cloudflare.com" _headers
+          grep -Fq "object-src 'none'" _headers
+          if grep -Eiq '(service[_-]?role|secret[_-]?key|turnstile[_-]?secret)' _headers; then
+            echo 'Secret-like identifier found in public CSP headers.' >&2
+            exit 1
+          fi
+
+  production-csp-header:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Verify production report-only header
+        shell: bash
+        run: |
+          set -euo pipefail
+          headers="$(mktemp)"
+          trap 'rm -f "$headers"' EXIT
+
+          for attempt in 1 2 3 4 5 6; do
+            echo "Checking RaceVora CSP header (${attempt}/6)"
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              --connect-timeout 10 \
+              --max-time 20 \
+              --user-agent 'RaceVora-CSP-Smoke/1.0' \
+              --dump-header "$headers" \
+              --output /dev/null \
+              'https://racevora.com/'; then
+              if grep -Eiq '^content-security-policy-report-only:' "$headers" \
+                && grep -Fq 'https://challenges.cloudflare.com' "$headers" \
+                && grep -Fq 'https://cdn.jsdelivr.net' "$headers" \
+                && grep -Fq 'https://kjccstcbqygxuqkvdaqw.supabase.co' "$headers"; then
+                echo 'PASS production CSP Report-Only header'
+                exit 0
+              fi
+            fi
+            cat "$headers" || true
+            sleep 10
+          done
+
+          echo 'RaceVora production CSP Report-Only header is missing or incomplete.' >&2
+          exit 1
