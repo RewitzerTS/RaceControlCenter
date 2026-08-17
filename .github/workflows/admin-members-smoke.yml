@@ -5,6 +5,7 @@ on:
     paths:
       - 'admin.html'
       - 'assets/js/pages/admin-members.js'
+      - 'supabase/functions/manage-league-member/index.ts'
       - '.github/workflows/admin-members-smoke.yml'
   workflow_dispatch:
 
@@ -25,6 +26,11 @@ jobs:
           grep -Fq 'RCCLeagueMembers?.init?.()' admin.html
           grep -Fq 'Person hinzufügen / einladen' assets/js/pages/admin-members.js
           grep -Fq "functions.invoke('manage-league-member'" assets/js/pages/admin-members.js
+          grep -Fq "action:'check'" assets/js/pages/admin-members.js
+          grep -Fq 'Diese E-Mail besitzt bereits ein gültiges RaceVora Konto.' assets/js/pages/admin-members.js
+          grep -Fq 'accountExists' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'alreadyMember' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'action === "check"' supabase/functions/manage-league-member/index.ts
           grep -Fq "button.textContent='Team'" assets/js/pages/admin-members.js
           grep -Fq "button.dataset.adminTabTarget='admin-section-members'" assets/js/pages/admin-members.js
           grep -Fq "setMemberPanelVisible(memberPanel,showMembers)" assets/js/pages/admin-members.js
