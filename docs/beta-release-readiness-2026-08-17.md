@@ -1,6 +1,6 @@
-# RaceVora Beta-Release-Readiness · 17.08.2026
+# RaceVora Beta-Release-Readiness · Stand 18.08.2026
 
-Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleiben wenige Betriebs-, Auth- und externe Legal-Checks offen.**
+Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleiben wenige Auth- und externe Legal-Checks offen.**
 
 ## 1. A · Beta-Blocker
 
@@ -126,8 +126,10 @@ Die technischen Maßnahmen sind keine Aussage, dass RaceVora „100 % rechtssich
 - [x] Dokumentiert, dass Datenbankbackups nicht die eigentlichen Storage-Objekte wiederherstellen; Storage benötigt einen separaten Export-/Recovery-Pfad.
 - [x] Produktive Storage-Inventur am 17.08.2026: aktuell ein öffentlicher Bucket `league-brand-assets` mit 4 Objekten.
 - [x] Gated Workflow `.github/workflows/encrypted-offsite-backup.yml` vorbereitet: logischer DB-Dump + aktuelle öffentliche Storage-Objekte, lokale AES-256/GnuPG-Verschlüsselung und Upload ausschließlich als verschlüsseltes Objekt in einen privaten EU-R2-Bucket.
-- [x] Workflow ist bis zur bewussten Aktivierung fail-safe deaktiviert und verweigert unbemerkt unvollständige Storage-Backups, sobald ein privater Supabase-Bucket auftaucht.
-- [ ] EU-R2-Bucket und erforderliche GitHub Actions Secrets einrichten, einen erzwungenen manuellen Backup-Lauf erfolgreich verifizieren und danach `RACEVORA_BACKUPS_ENABLED=true` setzen.
+- [x] Workflow verweigert unbemerkt unvollständige Storage-Backups, sobald ein privater Supabase-Bucket auftaucht.
+- [x] Privater EU-R2-Bucket `racevora-backups` eingerichtet und GitHub Actions Secrets hinterlegt.
+- [x] Erzwungener manueller Real-Backup-Lauf nach Korrektur des Supabase-DB-Passworts erfolgreich abgeschlossen; verschlüsselter Off-Site-Backup-Pfad damit praktisch verifiziert.
+- [x] `RACEVORA_BACKUPS_ENABLED=true` am 18.08.2026 aktiviert; täglicher Schedule ist damit freigegeben.
 - [ ] Optional vor größerem Launch einen kontrollierten Restore-/Disaster-Recovery-Drill auf nichtproduktiver Umgebung durchführen.
 
 Aktivierungsanleitung: `docs/offsite-backup-activation.md`.
@@ -146,10 +148,9 @@ Rollout-Plan: `docs/csp-rollout.md`.
 
 1. Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgleichen.
 2. Signup-Resend einmal nach aktivierter Turnstile/CAPTCHA Protection live testen.
-3. Vorbereitete verschlüsselte Off-Site-Backup-Automation tatsächlich aktivieren: privaten EU-R2-Bucket erstellen, GitHub-Secrets setzen, manuellen Testlauf erfolgreich verifizieren und danach den täglichen Schedule freigeben.
-4. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+3. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
 
-**Erledigt:** Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation technisch vorbereitet.
+**Erledigt:** Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation real erfolgreich getestet und täglicher Schedule aktiviert.
 
 **Nicht Teil des Free-Plan-B-Minimums:** Leaked Password Protection, da diese Funktion im verwendeten Supabase-Free-Plan nicht verfügbar ist.
 
@@ -171,7 +172,7 @@ Rollout-Plan: `docs/csp-rollout.md`.
 
 ### Breit beworbene offene Self-Service-Beta
 
-**GO nach verbleibendem Free-Plan-B-Minimum:** aktive Auth-Mailtemplates live abgleichen, Signup-Resend mit CAPTCHA prüfen und die vorbereitete regelmäßige verschlüsselte Off-Site-Backup-Routine für reale Nutzerdaten tatsächlich aktivieren und mit einem erfolgreichen Lauf nachweisen. CSP-Enforcement kann nach der jetzt aktiven Report-Only-Beobachtungsphase kontrolliert folgen; externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
+**Technisches Free-Plan-B-Minimum fast erfüllt:** Die regelmäßige verschlüsselte Off-Site-Backup-Routine ist real getestet und aktiviert. Offen bleiben technisch nur der Live-Abgleich der aktiven Supabase Auth-Mailtemplates sowie ein Signup-Resend-Test mit aktivierter CAPTCHA Protection. CSP-Enforcement kann nach der aktiven Report-Only-Beobachtungsphase kontrolliert folgen; externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
 
 ## 14. Nicht durch den Abschlussaudit verändert
 
