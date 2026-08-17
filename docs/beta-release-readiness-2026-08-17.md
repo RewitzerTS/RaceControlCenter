@@ -1,6 +1,6 @@
 # RaceVora Beta-Release-Readiness · Stand 18.08.2026
 
-Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleibt technisch noch ein Auth-Live-Test sowie die externe Legal-/Privacy-Prüfung offen.**
+Status: **Das technische Free-Plan-B-Minimum für eine breit beworbene offene Self-Service-Beta ist erfüllt. Aktuell sind keine bekannten technischen A- oder B-Blocker offen. Die externe Legal-/Privacy-Prüfung vor breiter Vermarktung bleibt separat empfohlen.**
 
 ## 1. A · Beta-Blocker
 
@@ -75,7 +75,7 @@ Empfohlene Betreffzeilen sind in `supabase/email-templates/racevora/README.md` v
 - [x] Turnstile Secret Key darf durch CI nicht in Browser-/Repo-Code gelangen.
 - [x] Produktiver Passwort-Login nach Aktivierung erfolgreich durch Supabase Auth (`grant_type=password`, HTTP 200) verifiziert.
 - [x] Signup und Passwort-Recovery nach Aktivierung produktiv erfolgreich getestet.
-- [ ] Signup-Resend nach aktivierter CAPTCHA Protection separat als Resend-Vorgang testen.
+- [x] Signup-Resend nach aktivierter CAPTCHA Protection live getestet: Erstversand und erneuter Versand nach dem 60-Sekunden-Cooldown erfolgreich; beide Bestätigungsmails angekommen.
 
 Aktivierungs-Runbook: `docs/turnstile-activation.md`.
 
@@ -146,10 +146,17 @@ Rollout-Plan: `docs/csp-rollout.md`.
 
 ## 11. B · Sinnvoll vor breiter öffentlicher Beta
 
-1. Signup-Resend einmal nach aktivierter Turnstile/CAPTCHA Protection live testen.
-2. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+Technische Free-Plan-B-Mindestchecks:
 
-**Erledigt:** Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgeglichen; Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation real erfolgreich getestet und täglicher Schedule aktiviert.
+- [x] Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgeglichen.
+- [x] Signup-Resend nach aktivierter Turnstile/CAPTCHA Protection live getestet.
+- [x] Verschlüsselte Off-Site-Backup-Automation real erfolgreich getestet und täglicher Schedule aktiviert.
+
+Separat weiterhin empfohlen:
+
+- [ ] Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+
+**Erledigt:** Auth-Mailtemplates verifiziert; Turnstile/CAPTCHA produktiv für Login, Signup, Recovery und Signup-Resend live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation real erfolgreich getestet und täglicher Schedule aktiviert.
 
 **Nicht Teil des Free-Plan-B-Minimums:** Leaked Password Protection, da diese Funktion im verwendeten Supabase-Free-Plan nicht verfügbar ist.
 
@@ -171,7 +178,7 @@ Rollout-Plan: `docs/csp-rollout.md`.
 
 ### Breit beworbene offene Self-Service-Beta
 
-**Technisches Free-Plan-B-Minimum bis auf einen Live-Test erfüllt:** Backup-Routine, Bot-Schutz und aktive Auth-Mailtemplates sind eingerichtet und verifiziert. Technisch offen bleibt nur ein Signup-Resend-Test mit aktivierter CAPTCHA Protection. CSP-Enforcement kann nach der aktiven Report-Only-Beobachtungsphase kontrolliert folgen; externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
+**TECHNISCHES GO im aktuellen Free-Plan-Setup.** Das definierte technische Free-Plan-B-Minimum ist erfüllt: Auth-Mailtemplates, Turnstile/CAPTCHA inklusive Signup-Resend sowie die regelmäßige verschlüsselte Off-Site-Backup-Routine wurden live bzw. real verifiziert. CSP-Enforcement kann nach der aktiven Report-Only-Beobachtungsphase kontrolliert folgen. Die externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung ausdrücklich empfohlen und ist keine technische Freigabeaussage.
 
 ## 14. Nicht durch den Abschlussaudit verändert
 
