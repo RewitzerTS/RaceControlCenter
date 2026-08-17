@@ -1,6 +1,6 @@
 # RaceVora Beta-Release-Readiness · Stand 18.08.2026
 
-Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleiben wenige Auth- und externe Legal-Checks offen.**
+Status: **kontrollierte Beta technisch freigabefähig; aktuell keine bekannten technischen A-Blocker. Vor einer breit beworbenen, vollständig offenen Self-Service-Beta bleibt technisch noch ein Auth-Live-Test sowie die externe Legal-/Privacy-Prüfung offen.**
 
 ## 1. A · Beta-Blocker
 
@@ -61,7 +61,7 @@ Versionierte RaceVora-Templates unter `supabase/email-templates/racevora/`:
 - [x] Change Email Address
 - [x] Custom SMTP über Resend grundsätzlich versandfähig.
 - [x] Signup-, Reset- und Invite-Flows wurden bereits live getestet.
-- [ ] **MANUELLER LIVE-CHECK:** Im Supabase-Dashboard bestätigen, dass die Repo-Versionen als aktive Auth-Mailtemplates hinterlegt sind.
+- [x] Aktive Auth-Mailtemplates im Supabase-Dashboard bereits gegen die Repo-Versionen abgeglichen und hinterlegt.
 
 Empfohlene Betreffzeilen sind in `supabase/email-templates/racevora/README.md` versioniert.
 
@@ -146,11 +146,10 @@ Rollout-Plan: `docs/csp-rollout.md`.
 
 ## 11. B · Sinnvoll vor breiter öffentlicher Beta
 
-1. Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgleichen.
-2. Signup-Resend einmal nach aktivierter Turnstile/CAPTCHA Protection live testen.
-3. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
+1. Signup-Resend einmal nach aktivierter Turnstile/CAPTCHA Protection live testen.
+2. Rechtstexte und Verbraucherfluss vor breiter Vermarktung extern fachlich prüfen lassen.
 
-**Erledigt:** Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation real erfolgreich getestet und täglicher Schedule aktiviert.
+**Erledigt:** Aktive Supabase Auth-Mailtemplates im Dashboard gegen die Repo-Versionen abgeglichen; Turnstile/CAPTCHA produktiv aktiviert und für Login, Signup und Recovery live getestet; Production-Health-Verantwortung und GitHub-Incident-Kanal festgelegt; Free-Plan-Backup-/Restore-Risiko und Recovery-Ablauf dokumentiert; CSP Report-Only produktiv ausgerollt und live verifiziert; verschlüsselte EU-Off-Site-Backup-Automation real erfolgreich getestet und täglicher Schedule aktiviert.
 
 **Nicht Teil des Free-Plan-B-Minimums:** Leaked Password Protection, da diese Funktion im verwendeten Supabase-Free-Plan nicht verfügbar ist.
 
@@ -172,11 +171,11 @@ Rollout-Plan: `docs/csp-rollout.md`.
 
 ### Breit beworbene offene Self-Service-Beta
 
-**Technisches Free-Plan-B-Minimum fast erfüllt:** Die regelmäßige verschlüsselte Off-Site-Backup-Routine ist real getestet und aktiviert. Offen bleiben technisch nur der Live-Abgleich der aktiven Supabase Auth-Mailtemplates sowie ein Signup-Resend-Test mit aktivierter CAPTCHA Protection. CSP-Enforcement kann nach der aktiven Report-Only-Beobachtungsphase kontrolliert folgen; externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
+**Technisches Free-Plan-B-Minimum bis auf einen Live-Test erfüllt:** Backup-Routine, Bot-Schutz und aktive Auth-Mailtemplates sind eingerichtet und verifiziert. Technisch offen bleibt nur ein Signup-Resend-Test mit aktivierter CAPTCHA Protection. CSP-Enforcement kann nach der aktiven Report-Only-Beobachtungsphase kontrolliert folgen; externe Legal-/Privacy-Prüfung bleibt vor breiter Vermarktung empfohlen.
 
 ## 14. Nicht durch den Abschlussaudit verändert
 
 - keine Fahrer-, Saison- oder Rennergebnisdaten der produktiven Liga `rcc`,
 - kein Branding oder Inhalt der produktiven Liga `rcc`,
-- keine aktiven Supabase-Mailtemplates im Dashboard,
+- keine aktiven Supabase-Mailtemplates im Dashboard durch diesen Dokumentationsabgleich verändert,
 - keine Supabase-Auth-Passwörter.
