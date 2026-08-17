@@ -78,11 +78,12 @@ function classifyMailError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   if (message.includes("RESEND_API_KEY is not configured")) return "resend_secret_missing";
   if (message.includes("Resend 401") || message.includes("Resend 403")) return "resend_auth_rejected";
+  if (message.includes("Resend 409")) return "resend_idempotency_conflict";
   if (message.includes("Resend 422")) return "resend_sender_rejected";
   return "resend_delivery_failed";
 }
 
-async function sendResendEmail(payload: Record<string, unknown>) {
+async function sendResendEmail(payload: Record<string, unknown>, idempotencyKey: string) {
   if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
 
   let lastError = "Unknown email error";
@@ -93,6 +94,7 @@ async function sendResendEmail(payload: Record<string, unknown>) {
         headers: {
           Authorization: `Bearer ${RESEND_API_KEY}`,
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify(payload),
       });
@@ -350,7 +352,7 @@ Deno.serve(async (req: Request) => {
         subject: `RaceVora · Vertragsbestätigung ${confirmation.reference}`,
         html: mail.html,
         text: mail.text,
-      });
+      }, `contract-confirmation/${confirmation.reference}`);
     } catch (error) {
       const errorCode = classifyMailError(error);
       await adminClient.from("contract_confirmations").update({
