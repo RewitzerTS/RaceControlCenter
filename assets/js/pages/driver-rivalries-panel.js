@@ -23,10 +23,10 @@
       <article class="driver-rival-card">
         <div class="driver-rival-main">
           <a class="driver-rival-name" href="${scopedHref('fahrer-profil.html', { driver: opponentId, season: seasonId || null })}">${esc(name)}</a>
-          <span>${races} gemeinsame ${races === 1 ? 'Rennen' : 'Rennen'}</span>
+          <span>${races} ${races === 1 ? 'gemeinsames Rennen' : 'gemeinsame Rennen'}</span>
         </div>
         <div class="driver-rival-score"><span>${teammate ? 'Teamduell' : 'Race H2H'}</span><strong>${esc(result)}</strong></div>
-        <a class="driver-rival-action" href="${scopedHref('head-to-head.html', { a: driverId, b: opponentId, season: seasonId || null })}">Vergleichen</a>
+        <a class="driver-rival-action" href="${scopedHref('head-to-head.html', { driver: driverId, opponent: opponentId, season: seasonId || null })}">Vergleichen</a>
       </article>`;
   }
 
