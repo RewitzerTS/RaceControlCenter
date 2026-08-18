@@ -119,9 +119,19 @@ jobs:
             if (mobile.bodyWidth > mobile.width + 2 || mobile.communityLeft < -2 || mobile.communityRight > mobile.width + 2) throw new Error(`visible mobile content overflow ${JSON.stringify(mobile)}`);
             if (mobile.navDisplay !== 'none') throw new Error(`closed mobile drawer still participates in layout ${JSON.stringify(mobile)}`);
 
+            await page.waitForFunction(() => {
+              const loader = document.querySelector('.f1-loader-overlay');
+              return !loader || getComputedStyle(loader).pointerEvents === 'none' || getComputedStyle(loader).display === 'none' || getComputedStyle(loader).visibility === 'hidden';
+            }, null, { timeout: 15000 });
+            const championOverlay = page.locator('#season-champion-overlay.is-visible');
+            if (await championOverlay.count()) {
+              await page.locator('#season-champion-close').click({ timeout: 10000 });
+              await page.waitForFunction(() => !document.querySelector('#season-champion-overlay')?.classList.contains('is-visible'), null, { timeout: 5000 });
+            }
+
             const toggle = page.locator('.mobile-toggle');
             await toggle.waitFor({ state: 'visible', timeout: 10000 });
-            await toggle.click();
+            await toggle.click({ timeout: 10000 });
             await page.waitForFunction(() => document.body.classList.contains('nav-drawer-open'), null, { timeout: 5000 });
             const openDrawer = await page.evaluate(() => {
               const nav = document.querySelector('.main-nav');
@@ -134,7 +144,7 @@ jobs:
               };
             });
             if (openDrawer.display === 'none' || openDrawer.left >= openDrawer.viewport || openDrawer.right <= 0) throw new Error(`mobile drawer did not open in viewport ${JSON.stringify(openDrawer)}`);
-            await toggle.click();
+            await toggle.click({ timeout: 10000 });
             await page.waitForFunction(() => !document.body.classList.contains('nav-drawer-open'), null, { timeout: 5000 });
             const closedDisplay = await page.evaluate(() => getComputedStyle(document.querySelector('.main-nav')).display);
             if (closedDisplay !== 'none') throw new Error(`mobile drawer did not close cleanly: ${closedDisplay}`);
