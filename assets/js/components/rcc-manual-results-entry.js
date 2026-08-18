@@ -5,7 +5,8 @@
     mounted: false,
     saving: false,
     drivers: [],
-    races: []
+    races: [],
+    rowCount: 20
   };
 
   function escape(value) {
@@ -90,11 +91,48 @@
       </tr>`;
   }
 
-  function renderRows(count = Math.max(20, state.drivers.length || 0)) {
+  function defaultRowCount() {
+    return Math.max(20, Math.min(30, state.drivers.length || 20));
+  }
+
+  function updateRowState() {
+    const rows = [...document.querySelectorAll('[data-manual-entry-row]')];
+    state.rowCount = rows.length;
+    const filled = rows.filter((row) => row.querySelector('[data-field="driver_identity"]')?.value).length;
+    const summary = document.getElementById('rcc-manual-row-summary');
+    if (summary) summary.textContent = `${state.rowCount} Zeilen · ${filled} Fahrer eingetragen`;
+    const addButton = document.getElementById('rcc-manual-add-row');
+    const removeButton = document.getElementById('rcc-manual-remove-row');
+    if (addButton) addButton.disabled = state.rowCount >= 30;
+    if (removeButton) removeButton.disabled = state.rowCount <= 1;
+  }
+
+  function renderRows(count = defaultRowCount()) {
     const body = document.querySelector('#rcc-manual-results-table tbody');
     if (!body) return;
     const size = Math.max(1, Math.min(30, count));
     body.innerHTML = Array.from({ length: size }, (_, index) => rowTemplate(index + 1)).join('');
+    state.rowCount = size;
+    updateRowState();
+  }
+
+  function addRow() {
+    const body = document.querySelector('#rcc-manual-results-table tbody');
+    if (!body || state.rowCount >= 30) return;
+    body.insertAdjacentHTML('beforeend', rowTemplate(state.rowCount + 1));
+    updateRowState();
+  }
+
+  function removeLastRow() {
+    const body = document.querySelector('#rcc-manual-results-table tbody');
+    if (!body || state.rowCount <= 1) return;
+    body.lastElementChild?.remove();
+    updateRowState();
+  }
+
+  function clearRows() {
+    renderRows(state.rowCount || defaultRowCount());
+    setFeedback('Tabelle wurde geleert. Das ausgewählte Rennen bleibt erhalten.');
   }
 
   function updateRowTeam(row) {
@@ -103,6 +141,7 @@
     const driver = state.drivers.find((entry) => String(entry.id) === identity.driverId);
     const teamCell = row.querySelector('[data-field="team"]');
     if (teamCell) teamCell.textContent = driver ? driverTeam(driver) : '—';
+    updateRowState();
   }
 
   function readRows() {
@@ -181,7 +220,7 @@
         rows,
         sourceFilename: 'Manuelle Eingabe'
       });
-      setFeedback('Manuelles Rennergebnis wurde als Entwurf gespeichert. Es liegt jetzt zusammen mit KI-Entwürfen unter „Entwürfe & Freigabe“.');
+      setFeedback('Manuelles Rennergebnis wurde als Entwurf gespeichert. Es liegt jetzt zusammen mit KI- und CSV-Entwürfen unter „Entwürfe & Freigabe“.');
     } catch (error) {
       console.error(error);
       setFeedback(`Entwurf konnte nicht gespeichert werden: ${error.message || 'Unbekannter Fehler'}`, true);
@@ -199,7 +238,7 @@
     panel.dataset.rccManualEntryMounted = 'true';
     panel.innerHTML = `
       <summary><strong>Ergebnis manuell eingeben</strong></summary>
-      <div class="rcc-manual-entry">
+      <div class="rcc-manual-entry" id="manual-results-panel">
         <div class="notice">Wähle zuerst das Rennen. Danach erhältst du eine leere Ergebnistabelle. Spieler und zugeordnete KI-Fahrer werden direkt im Fahrerfeld unterschieden; Punkte berechnet RCC erst bei der finalen Freigabe.</div>
         <div class="form-grid section-spacer-top">
           <div class="field">
@@ -208,9 +247,17 @@
           </div>
         </div>
         <div id="rcc-manual-entry-editor" hidden>
-          <div class="table-wrap section-spacer-top">
+          <div class="manual-results-entry-toolbar section-spacer-top">
+            <div id="rcc-manual-row-summary" class="muted" aria-live="polite"></div>
+            <div class="card-actions">
+              <button type="button" class="button-secondary" id="rcc-manual-add-row">Zeile hinzufügen</button>
+              <button type="button" class="button-secondary" id="rcc-manual-remove-row">Letzte Zeile entfernen</button>
+              <button type="button" class="button-secondary" id="rcc-manual-clear-table">Tabelle leeren</button>
+            </div>
+          </div>
+          <div class="table-wrap section-spacer-top manual-results-entry-table-wrap">
             <table class="manual-results-table" id="rcc-manual-results-table">
-              <thead><tr><th>Pos.</th><th>Fahrer</th><th>Team</th><th>Grid</th><th>Stopps</th><th>Beste</th><th>Zeit</th></tr></thead>
+              <thead><tr><th>Pos.</th><th>Fahrer</th><th>Team</th><th>Startplatz</th><th>Stopps</th><th>Schnellste Runde</th><th>Renndauer</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -231,7 +278,7 @@
         const editor = document.getElementById('rcc-manual-entry-editor');
         if (editor) editor.hidden = !select.value;
         if (select.value) {
-          renderRows();
+          renderRows(defaultRowCount());
           setFeedback('');
         }
       });
@@ -244,6 +291,9 @@
 
     panel.addEventListener('click', (event) => {
       if (event.target.closest('#rcc-save-manual-draft')) saveDraft();
+      if (event.target.closest('#rcc-manual-add-row')) addRow();
+      if (event.target.closest('#rcc-manual-remove-row')) removeLastRow();
+      if (event.target.closest('#rcc-manual-clear-table')) clearRows();
     });
 
     state.mounted = true;
