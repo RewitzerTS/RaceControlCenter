@@ -1,0 +1,104 @@
+name: Publish Receipt Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/components/rcc-result-publish-receipt.js'
+      - 'assets/css/components/rcc-result-publish-receipt.css'
+      - 'assets/js/components/rcc-results-workflow.js'
+      - '.github/workflows/publish-receipt-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/js/components/rcc-result-publish-receipt.js'
+      - 'assets/css/components/rcc-result-publish-receipt.css'
+      - 'assets/js/components/rcc-results-workflow.js'
+      - '.github/workflows/publish-receipt-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate publish receipt wiring
+        run: |
+          node --check assets/js/components/rcc-result-publish-receipt.js
+          node --check assets/js/components/rcc-results-workflow.js
+          grep -Fq 'RCCResultPublishReceipt' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'rcc-result-publish-receipt.js' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'Öffentliches Rennen öffnen' assets/js/components/rcc-result-publish-receipt.js
+          grep -Fq 'Fahrer-WM öffnen' assets/js/components/rcc-result-publish-receipt.js
+          grep -Fq 'Team-WM öffnen' assets/js/components/rcc-result-publish-receipt.js
+          grep -Fq 'round_number, season_id' assets/js/components/rcc-result-publish-receipt.js
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/publish-receipt-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/assets/js/components/rcc-result-publish-receipt.js >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/publish-receipt-http.log
+          exit 1
+      - name: Exercise publish receipt
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await page.setContent(`<!doctype html><html><head><style>:root{--surface:#fff;--surface-2:#f5f5f5;--line:#ddd;--text:#111;--text-muted:#666;--accent:#555}</style></head><body><div><button class="publish-results-btn" data-import-id="import-1" data-race-id="race-1">Ergebnis veröffentlichen</button><div id="publish-feedback"></div></div></body></html>`);
+            await page.evaluate(() => {
+              window.escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, '');
+              window.withLeagueContextHref = (href) => `${href}${href.includes('?') ? '&' : '?'}league=test-league`;
+              window.RCCResultReviewHardening = { explicitSource: () => ({ key:'manual',label:'Manuell',icon:'✎',display:'Manuelle Eingabe' }) };
+              const imports = [{ id:'import-1',race_id:'race-1',source_filename:'Manuelle Eingabe',races:{grand_prix_name:'Monaco GP',round_number:7,season_id:'season-1'},race_result_import_rows:[{id:'1',participation_status:'PLAYER',raw_payload:{source:'manual'}},{id:'2',participation_status:'BOT',raw_payload:{source:'manual'}}] }];
+              const penalties = [{ id:'p1',time_delta_ms:5000,points_delta:0 }];
+              window.supabaseClient = {
+                from(table){
+                  const chain = {
+                    select(){ return chain; }, eq(){ return chain; }, maybeSingle(){ return Promise.resolve({data:imports[0],error:null}); },
+                    then(resolve,reject){ return Promise.resolve({data:table==='race_penalties'?penalties:imports,error:null}).then(resolve,reject); }
+                  };
+                  return chain;
+                }
+              };
+            });
+            await page.addScriptTag({ url:'http://127.0.0.1:8080/assets/js/components/rcc-result-publish-receipt.js' });
+            await page.click('.publish-results-btn');
+            await page.evaluate(() => { document.getElementById('publish-feedback').textContent = 'Ergebnis für Monaco GP wurde final veröffentlicht.'; });
+            await page.waitForSelector('#rcc-result-publish-receipt:not([hidden])', { timeout: 10000 });
+            const state = await page.evaluate(() => {
+              const root = document.getElementById('rcc-result-publish-receipt');
+              const links = [...root.querySelectorAll('a')].map((a) => ({text:a.textContent,href:a.getAttribute('href')}));
+              const rect = root.getBoundingClientRect();
+              return { text:root.textContent, links, left:rect.left, right:rect.right, width:innerWidth };
+            });
+            if (!state.text.includes('Monaco GP ist öffentlich')) throw new Error(JSON.stringify(state));
+            if (!state.text.includes('Manuell') || !state.text.includes('Steward-Korrekturen')) throw new Error(JSON.stringify(state));
+            const race = state.links.find((link) => link.text.includes('Öffentliches Rennen'));
+            if (!race || !race.href.includes('rennen-detail.html?round=7') || !race.href.includes('season=season-1') || !race.href.includes('league=test-league')) throw new Error(JSON.stringify(state));
+            if (state.left < -2 || state.right > state.width + 2) throw new Error(`mobile overflow ${JSON.stringify(state)}`);
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
