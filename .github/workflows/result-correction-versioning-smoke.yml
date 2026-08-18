@@ -1,0 +1,139 @@
+name: Result Correction Versioning Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'database/result-correction-versioning.sql'
+      - 'assets/js/components/rcc-result-draft.js'
+      - 'assets/js/components/rcc-result-correction.js'
+      - 'assets/js/components/rcc-admin-published-recalc-guard.js'
+      - 'assets/js/pages/steward-published-result-guard.js'
+      - 'assets/css/components/rcc-result-correction.css'
+      - 'stewards.html'
+      - '.github/workflows/result-correction-versioning-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'database/result-correction-versioning.sql'
+      - 'assets/js/components/rcc-result-draft.js'
+      - 'assets/js/components/rcc-result-correction.js'
+      - 'assets/js/components/rcc-admin-published-recalc-guard.js'
+      - 'assets/js/pages/steward-published-result-guard.js'
+      - 'assets/css/components/rcc-result-correction.css'
+      - 'stewards.html'
+      - '.github/workflows/result-correction-versioning-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate correction versioning guards
+        run: |
+          node --check assets/js/components/rcc-result-draft.js
+          node --check assets/js/components/rcc-result-correction.js
+          node --check assets/js/components/rcc-admin-published-recalc-guard.js
+          node --check assets/js/pages/steward-published-result-guard.js
+          grep -Fq "drop constraint if exists race_result_imports_race_unique" database/result-correction-versioning.sql
+          grep -Fq "race_result_imports_one_open_per_race" database/result-correction-versioning.sql
+          grep -Fq "where status in ('draft', 'under_review')" database/result-correction-versioning.sql
+          grep -Fq ".in('status', ['draft', 'under_review'])" assets/js/components/rcc-result-draft.js
+          grep -Fq "Korrektur als Entwurf speichern" assets/js/components/rcc-result-correction.js
+          grep -Fq "correction_of_import_id" assets/js/components/rcc-result-correction.js
+          grep -Fq "query.eq('status', 'published')" assets/js/components/rcc-admin-published-recalc-guard.js
+          grep -Fq "query.eq('status', 'published')" assets/js/pages/steward-published-result-guard.js
+          grep -Fq "steward-published-result-guard.js" stewards.html
+          if grep -Fq ".update({ status: 'upcoming' })" assets/js/components/rcc-result-draft.js; then
+            echo 'Draft saving must not reset a published race to upcoming.' >&2
+            exit 1
+          fi
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/racevora-correction-server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/assets/js/components/rcc-result-correction.js >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/racevora-correction-server.log
+          exit 1
+      - name: Exercise correction editor without production writes
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await page.goto('http://127.0.0.1:4173/', { waitUntil: 'domcontentloaded' });
+            await page.setContent(`
+              <!doctype html><html><head></head><body>
+                <div class="panel"><div id="publish-workflow-list"></div></div>
+                <script>
+                  window.escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));
+                  window.__savedCorrection = null;
+                  window.RCCResultDraft = { save: async payload => { window.__savedCorrection = payload; return { importId: 'draft-correction' }; } };
+                  const imports = [{
+                    id:'published-1', race_id:'race-1', status:'published', source_filename:'Mexico.csv',
+                    imported_at:'2026-08-01T10:00:00Z', published_at:'2026-08-01T11:00:00Z', updated_at:'2026-08-01T11:00:00Z',
+                    races:{ grand_prix_name:'Mexico GP', round_number:7, season_id:'season-1' },
+                    race_result_import_rows:[
+                      { id:'row-1', driver_id:'driver-1', driver_name_raw:'Alpha', finish_position:1, grid_position:2, pit_stops:1, fastest_lap_time:'01:20,000', race_time:'40:00,000', participation_status:'PLAYER', raw_payload:{source:'csv'} },
+                      { id:'row-2', driver_id:'driver-2', driver_name_raw:'Bravo', finish_position:2, grid_position:1, pit_stops:1, fastest_lap_time:'01:20,500', race_time:'+00:05,000', participation_status:'PLAYER', raw_payload:{source:'csv'} }
+                    ]
+                  }];
+                  const drivers = [
+                    {id:'driver-1',display_name:'Alpha',gamertag:'Alpha',ai_driver_reference:'',league_team:'Team A',car_name:'Car A',is_active:true},
+                    {id:'driver-2',display_name:'Bravo',gamertag:'Bravo',ai_driver_reference:'',league_team:'Team B',car_name:'Car B',is_active:true}
+                  ];
+                  window.supabaseClient = {
+                    from(table) {
+                      const response = table === 'race_result_imports' ? {data:imports,error:null} : table === 'drivers' ? {data:drivers,error:null} : {data:[],error:null};
+                      const builder = {
+                        select(){return builder}, in(){return builder}, order(){return builder}, limit(){return builder},
+                        then(resolve,reject){return Promise.resolve(response).then(resolve,reject)}
+                      };
+                      return builder;
+                    }
+                  };
+                <\/script>
+              </body></html>`);
+            await page.addScriptTag({ url: 'http://127.0.0.1:4173/assets/js/components/rcc-result-correction.js' });
+            await page.waitForSelector('[data-start-correction="race-1"]');
+            await page.click('[data-start-correction="race-1"]');
+            await page.waitForSelector('#rcc-result-correction-editor:not([hidden])');
+            const rowCount = await page.locator('[data-correction-row]').count();
+            if (rowCount !== 2) throw new Error(`Expected 2 correction rows, got ${rowCount}`);
+            const firstDriver = await page.locator('[data-correction-row]').first().locator('[data-field="driver_identity"]').inputValue();
+            if (firstDriver !== 'driver-1::PLAYER') throw new Error(`Published driver was not prefilled: ${firstDriver}`);
+            await page.click('#rcc-save-correction');
+            await page.waitForFunction(() => window.__savedCorrection !== null);
+            const saved = await page.evaluate(() => window.__savedCorrection);
+            if (saved.raceId !== 'race-1') throw new Error('Correction draft race mismatch');
+            if (!String(saved.sourceFilename).startsWith('Korrektur · Mexico GP')) throw new Error(`Unexpected source filename: ${saved.sourceFilename}`);
+            if (saved.rows.length !== 2 || saved.rows.some(row => row.raw_payload?.source !== 'correction')) throw new Error('Correction provenance missing');
+            if (saved.rows.some(row => row.raw_payload?.correction_of_import_id !== 'published-1')) throw new Error('Published version reference missing');
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+            if (overflow > 2) throw new Error(`Visible mobile overflow: ${overflow}px`);
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE

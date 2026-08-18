@@ -70,6 +70,9 @@ jobs:
                   update: () => builder,
                   delete: () => builder,
                   eq: () => builder,
+                  in: () => builder,
+                  order: () => builder,
+                  limit: () => builder,
                   maybeSingle: () => builder,
                   single: () => builder,
                   abortSignal: (signal) => new Promise((resolve, reject) => {

@@ -105,15 +105,40 @@
   }
 
   function schedulePostSaveUi({ raceId, importId, sourceFilename }) {
-    // Keep the actual save promise independent from secondary UI refreshes.
-    // On iOS/Safari this guarantees the save button/finally block can recover
-    // before the heavier draft overview refresh starts.
     window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('rcc:result-draft-saved', {
         detail: { raceId, importId, sourceFilename }
       }));
       refreshWorkflowInBackground();
     }, 0);
+  }
+
+  function ensureScript(globalName, selector, src, errorMessage) {
+    if (window[globalName] || document.querySelector(selector)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    const marker = selector.match(/data-([a-z0-9-]+)=/i)?.[1];
+    if (marker) script.setAttribute(`data-${marker}`, 'true');
+    script.onerror = () => console.warn(errorMessage);
+    document.head.appendChild(script);
+  }
+
+  function ensureCorrectionModules() {
+    ensureScript(
+      'RCCResultCorrection',
+      'script[data-rcc-result-correction="true"]',
+      'assets/js/components/rcc-result-correction.js',
+      'Ergebnis-Korrekturmodul konnte nicht geladen werden.'
+    );
+    if (document.body?.dataset?.page === 'admin') {
+      ensureScript(
+        '__RCC_ADMIN_PUBLISHED_RECALC_GUARD',
+        'script[data-rcc-admin-published-recalc-guard="true"]',
+        'assets/js/components/rcc-admin-published-recalc-guard.js',
+        'Admin-Recalculate-Guard konnte nicht geladen werden.'
+      );
+    }
   }
 
   async function save({ raceId, rows = [], sourceFilename = 'Ergebnisentwurf' } = {}) {
@@ -125,17 +150,19 @@
     const payloadRows = rows.map(cleanRow);
     const now = new Date().toISOString();
 
-    const { data: existingImport, error: existingError } = await runQuery(
+    const { data: existingImports, error: existingError } = await runQuery(
       window.supabaseClient
         .from('race_result_imports')
-        .select('id')
+        .select('id, status')
         .eq('race_id', normalizedRaceId)
-        .maybeSingle(),
+        .in('status', ['draft', 'under_review'])
+        .order('imported_at', { ascending: false })
+        .limit(1),
       'Vorhandener Ergebnisentwurf'
     );
     if (existingError) throw existingError;
 
-    let importId = existingImport?.id || null;
+    let importId = existingImports?.[0]?.id || null;
     if (importId) {
       const { error: deleteError } = await runQuery(
         window.supabaseClient
@@ -153,11 +180,10 @@
             status: 'under_review',
             source_filename: String(sourceFilename || 'Ergebnisentwurf'),
             imported_by: session?.user?.id || null,
-            imported_at: now,
-            published_by: null,
-            published_at: null
+            imported_at: now
           })
-          .eq('id', importId),
+          .eq('id', importId)
+          .in('status', ['draft', 'under_review']),
         'Ergebnisentwurf'
       );
       if (updateError) throw updateError;
@@ -189,15 +215,6 @@
     );
     if (insertError) throw insertError;
 
-    const { error: raceError } = await runQuery(
-      window.supabaseClient
-        .from('races')
-        .update({ status: 'upcoming' })
-        .eq('id', normalizedRaceId),
-      'Rennstatus'
-    );
-    if (raceError) throw raceError;
-
     schedulePostSaveUi({
       raceId: normalizedRaceId,
       importId,
@@ -208,4 +225,5 @@
   }
 
   window.RCCResultDraft = { save };
+  ensureCorrectionModules();
 })();
