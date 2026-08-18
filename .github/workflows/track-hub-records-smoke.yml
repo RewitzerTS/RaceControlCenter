@@ -95,8 +95,31 @@ jobs:
           }
 
           async function noOverflow(page, label) {
-            const size = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
-            if (size.scroll > size.width + 2) throw new Error(`${label}: horizontal overflow ${size.scroll} > ${size.width}`);
+            const state = await page.evaluate(() => {
+              const width = innerWidth;
+              const offenders = [...document.querySelectorAll('body *')]
+                .map((el) => {
+                  const rect = el.getBoundingClientRect();
+                  const style = getComputedStyle(el);
+                  return {
+                    tag: el.tagName,
+                    id: el.id || '',
+                    cls: typeof el.className === 'string' ? el.className : '',
+                    left: Math.round(rect.left),
+                    right: Math.round(rect.right),
+                    width: Math.round(rect.width),
+                    minWidth: style.minWidth,
+                    overflowX: style.overflowX
+                  };
+                })
+                .filter((item) => item.right > width + 2 || item.left < -2)
+                .sort((a, b) => b.right - a.right)
+                .slice(0, 12);
+              return { width, scroll: document.documentElement.scrollWidth, offenders };
+            });
+            if (state.scroll > state.width + 2) {
+              throw new Error(`${label}: horizontal overflow ${state.scroll} > ${state.width}; offenders=${JSON.stringify(state.offenders)}`);
+            }
           }
 
           (async () => {
