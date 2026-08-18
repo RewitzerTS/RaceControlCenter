@@ -25,7 +25,7 @@
   }
 
   async function loadItems() {
-    if (memoryItems.length && (Date.now() - memoryFetchedAt) < MEMORY_TTL_MS) return memoryItems;
+    if (memoryFetchedAt && (Date.now() - memoryFetchedAt) < MEMORY_TTL_MS) return memoryItems;
     if (inFlight) return inFlight;
 
     inFlight = (async () => {
@@ -38,7 +38,10 @@
             Authorization: `Bearer ${anonKey}`
           }
         });
-        if (!response.ok) return [];
+        if (!response.ok) {
+          memoryItems = [];
+          return memoryItems;
+        }
         const payload = await response.json();
         const items = Array.isArray(payload?.items) ? payload.items : [];
         memoryItems = items
@@ -50,12 +53,13 @@
             source: String(entry.source || '').trim()
           }))
           .filter((entry) => entry.headline && /^https?:\/\//i.test(entry.link));
-        memoryFetchedAt = Date.now();
         return memoryItems;
       } catch (error) {
+        memoryItems = [];
         console.debug('RaceVora F1-News Backend nicht erreichbar', error);
-        return [];
+        return memoryItems;
       } finally {
+        memoryFetchedAt = Date.now();
         inFlight = null;
       }
     })();
