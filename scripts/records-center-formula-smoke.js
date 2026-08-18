@@ -12,7 +12,7 @@ window.RCCDriverStats = {
   calculateDriverStats(id) {
     return id === 'd1'
       ? { driver: driver1, starts: 5, wins: 3, podiums: 4, poles: 1, fastestLaps: 1, points: 90, avgFinish: 2.2, finishRate: 1, positionsGained: 12 }
-      : { driver: driver2, starts: 5, wins: 1, podiums: 2, poles: 2, fastestLaps: 2, points: 65, avgFinish: 4.4, finishRate: 1, positionsGained: 2 };
+      : { driver: driver2, starts: 5, wins: 1, podiums: 1, poles: 2, fastestLaps: 2, points: 45, avgFinish: 5.0, finishRate: 1, positionsGained: 2 };
   }
 };
 window.RCCTeamStats = {
@@ -36,7 +36,7 @@ for (let i = 1; i <= 5; i += 1) {
   const d1Grid = i === 1 ? 10 : Math.min(8, d1Finish + 2);
   resultsByRace.set(race.id, [
     { driver_id: 'd1', grid_position: d1Grid, finish_position: d1Finish, points: d1Finish === 1 ? 25 : 12 },
-    { driver_id: 'd2', grid_position: 2, finish_position: i === 4 ? 1 : 3, points: 15 }
+    { driver_id: 'd2', grid_position: 2, finish_position: i === 4 ? 1 : 6, points: i === 4 ? 25 : 4 }
   ]);
   fastestByRace.set(race.id, i % 2 ? 'd1' : 'd2');
 }
