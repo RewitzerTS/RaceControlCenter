@@ -1,0 +1,100 @@
+name: Driver Rivalries Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'fahrer-profil.html'
+      - 'assets/js/services/rcc-driver-rivalries.js'
+      - 'assets/js/pages/driver-rivalries-panel.js'
+      - 'assets/css/driver-rivalries.css'
+      - '.github/workflows/driver-rivalries-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'fahrer-profil.html'
+      - 'assets/js/services/rcc-driver-rivalries.js'
+      - 'assets/js/pages/driver-rivalries-panel.js'
+      - 'assets/css/driver-rivalries.css'
+      - '.github/workflows/driver-rivalries-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax and wiring
+        run: |
+          node --check assets/js/services/rcc-driver-rivalries.js
+          node --check assets/js/pages/driver-rivalries-panel.js
+          grep -Fq 'id="driver-profile-rivals"' fahrer-profil.html
+          grep -Fq 'id="driver-profile-teammates"' fahrer-profil.html
+          grep -Fq 'rcc-driver-rivalries.js' fahrer-profil.html
+          grep -Fq 'driver-rivalries-panel.js' fahrer-profil.html
+          grep -Fq "opponent: opponentId" assets/js/pages/driver-rivalries-panel.js
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/rivalries-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/fahrer-profil.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/rivalries-http.log
+          exit 1
+      - name: Exercise rivalries with public RCC data
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+            const errors = [];
+            page.on('pageerror', error => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8080/fahrer-profil.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('#driver-profile-content:not([hidden])', { timeout: 30000 });
+            await page.waitForFunction(() => document.querySelectorAll('#driver-profile-rivals .driver-rival-card').length > 0, { timeout: 30000 });
+            const state = await page.evaluate(() => ({
+              rivals: document.querySelectorAll('#driver-profile-rivals .driver-rival-card').length,
+              compareHref: document.querySelector('#driver-profile-rivals .driver-rival-action')?.getAttribute('href') || '',
+              drivers: document.querySelectorAll('#driver-profile-select option').length
+            }));
+            if (state.rivals < 1) throw new Error('No rivalry cards rendered.');
+            if (!state.compareHref.includes('head-to-head.html') || !state.compareHref.includes('driver=') || !state.compareHref.includes('opponent=')) throw new Error(`Invalid H2H rivalry link: ${state.compareHref}`);
+            if (state.drivers < 2) throw new Error('Driver selector incomplete.');
+
+            await page.selectOption('#driver-profile-select', { index: 1 });
+            await page.waitForTimeout(300);
+            if (errors.length) throw new Error(errors.join(' | '));
+            await page.close();
+
+            const mobile = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await mobile.goto('http://127.0.0.1:8080/fahrer-profil.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await mobile.waitForSelector('#driver-profile-content:not([hidden])', { timeout: 30000 });
+            await mobile.waitForFunction(() => document.querySelectorAll('#driver-profile-rivals .driver-rival-card').length > 0, { timeout: 30000 });
+            const size = await mobile.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
+            if (size.scroll > size.width + 2) throw new Error(`Rivalry mobile overflow ${size.scroll} > ${size.width}`);
+            await mobile.close();
+            await browser.close();
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
