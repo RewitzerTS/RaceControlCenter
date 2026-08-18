@@ -4,7 +4,7 @@
   const originalCreateBadge = window.createTeamLogoBadge;
   const getMeta = window.getTeamLogoMeta;
   const escape = window.escapeHtml || ((value) => String(value ?? ''));
-  const version = '2026-08-18-2';
+  const version = '2026-08-16-1';
 
   if (typeof originalCreateBadge !== 'function' || typeof getMeta !== 'function') return;
 
