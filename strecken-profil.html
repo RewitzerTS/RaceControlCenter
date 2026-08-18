@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="assets/js/theme-prepaint.js"></script>
+  <title>RaceVora · Streckenprofil</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/driver-profile.css">
+  <link rel="stylesheet" href="assets/css/track-profile.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body data-page="strecken-profil">
+  <div id="site-header"></div>
+
+  <main class="section driver-profile-page">
+    <div class="container driver-profile-toolbar">
+      <div>
+        <div class="eyebrow">RaceVora Track Hub</div>
+        <h1 class="page-title page-title-compact">Streckenprofil</h1>
+        <p class="page-subtitle">Streckeninfos und Ligarekorde aus allen veröffentlichten Rennen.</p>
+      </div>
+      <div class="driver-profile-controls">
+        <label><span>Strecke</span><select id="track-profile-select" aria-label="Strecke auswählen"></select></label>
+        <label><span>Zeitraum</span><select id="track-profile-season" aria-label="Saison auswählen"><option value="">Historie</option></select></label>
+        <a class="btn" href="strecken.html">Alle Strecken</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <section id="track-profile-loading" class="driver-profile-state">Streckenprofil wird geladen …</section>
+      <section id="track-profile-error" class="driver-profile-state driver-profile-state--error" hidden></section>
+
+      <section id="track-profile-content" hidden>
+        <article class="track-hero-card">
+          <div id="track-profile-map" class="track-hero-map"></div>
+          <div class="track-hero-copy">
+            <div id="track-profile-country" class="driver-hero-meta">—</div>
+            <h2 id="track-profile-name">—</h2>
+            <p id="track-profile-circuit">—</p>
+            <div id="track-profile-tags" class="driver-hero-tags"></div>
+          </div>
+          <div class="track-hero-record"><span>RaceVora Rekord</span><strong id="track-profile-lap">—</strong><small id="track-profile-lap-driver">Noch keine Rundenzeit</small></div>
+        </article>
+
+        <section class="driver-stat-grid track-stat-grid" aria-label="Streckenstatistiken">
+          <article class="driver-stat-card"><span>Rennen</span><strong id="track-stat-races">0</strong></article>
+          <article class="driver-stat-card"><span>Fahrer-Starts</span><strong id="track-stat-starts">0</strong></article>
+          <article class="driver-stat-card"><span>Fahrer</span><strong id="track-stat-drivers">0</strong></article>
+          <article class="driver-stat-card"><span>Kurven</span><strong id="track-stat-corners">—</strong></article>
+          <article class="driver-stat-card"><span>Länge</span><strong id="track-stat-length">—</strong></article>
+          <article class="driver-stat-card driver-stat-card--accent"><span>F1-Rundenrekord</span><strong id="track-stat-f1-record">—</strong></article>
+        </section>
+
+        <section class="driver-profile-split">
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Strecke</span><h3>Steckbrief</h3></div></div>
+            <div id="track-profile-facts" class="driver-kpi-list"></div>
+          </article>
+          <article class="driver-panel">
+            <div class="driver-panel-heading"><div><span class="eyebrow">RaceVora</span><h3>Rekordhalter</h3></div></div>
+            <div id="track-profile-leaders" class="track-leader-list"></div>
+          </article>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading"><div><span class="eyebrow">All-Time</span><h3>Fahrerbilanz auf dieser Strecke</h3></div></div>
+          <div class="table-wrap">
+            <table class="driver-history-table">
+              <thead><tr><th>Fahrer</th><th>Starts</th><th>Siege</th><th>Podien</th><th>Poles</th><th>SR</th><th>Punkte</th><th>Bestes Ergebnis</th><th>Beste Runde</th></tr></thead>
+              <tbody id="track-profile-drivers"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="driver-panel">
+          <div class="driver-panel-heading"><div><span class="eyebrow">Historie</span><h3>Rennen auf dieser Strecke</h3></div></div>
+          <div class="table-wrap">
+            <table class="driver-history-table">
+              <thead><tr><th>Saison</th><th>Rennen</th><th>Sieger</th><th>Schnellste Runde</th></tr></thead>
+              <tbody id="track-profile-races"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="assets/js/supabase-client.js"></script>
+  <script defer src="assets/js/data/tracks.js"></script>
+  <script defer src="assets/js/data/track-info.js"></script>
+  <script defer src="assets/js/services/rcc-data.js"></script>
+  <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
+  <script defer src="assets/js/services/rcc-driver-context.js"></script>
+  <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/services/rcc-track-stats.js"></script>
+  <script defer src="assets/js/layout.js"></script>
+  <script defer src="assets/js/utils.js"></script>
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/pages/track-profile.js"></script>
+</body>
+</html>
