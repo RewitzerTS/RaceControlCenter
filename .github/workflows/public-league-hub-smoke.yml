@@ -82,15 +82,17 @@ jobs:
               recordLink: document.querySelector('.race-hub-explore-link[href*="rekorde.html"]')?.getAttribute('href') || '',
               profileLinks: document.querySelectorAll('.race-hub-form-driver[href*="fahrer-profil.html"]').length,
               latestTitle: document.querySelector('#race-hub-latest-title')?.textContent?.trim() || '',
-              driverPodium: document.querySelectorAll('#driver-podium-list > *').length,
-              teamPodium: document.querySelectorAll('#team-podium-list > *').length
+              driverPodiumExists: Boolean(document.querySelector('#driver-podium')),
+              teamPodiumExists: Boolean(document.querySelector('#team-podium')),
+              nextRaceExists: Boolean(document.querySelector('#hero-next-race')),
+              progressExists: Boolean(document.querySelector('#race-hub-progress-bar'))
             }));
             if (state.formDrivers < 2) throw new Error(`expected form drivers, got ${JSON.stringify(state)}`);
             if (state.highlights < 2) throw new Error(`expected record highlights, got ${JSON.stringify(state)}`);
             if (state.explore !== 6 || !state.recordLink.includes('rekorde.html')) throw new Error(`explore incomplete ${JSON.stringify(state)}`);
             if (state.profileLinks !== state.formDrivers) throw new Error(`form profile links incomplete ${JSON.stringify(state)}`);
             if (state.ratingValues.some((value) => !Number.isFinite(value) || value < 0 || value > 100)) throw new Error(`invalid form rating ${JSON.stringify(state)}`);
-            if (!state.latestTitle || state.driverPodium < 1 || state.teamPodium < 1) throw new Error(`existing Race Hub content regressed ${JSON.stringify(state)}`);
+            if (!state.latestTitle || !state.driverPodiumExists || !state.teamPodiumExists || !state.nextRaceExists || !state.progressExists) throw new Error(`existing Race Hub shell regressed ${JSON.stringify(state)}`);
             if (errors.length) throw new Error(errors.join(' | '));
 
             await page.setViewportSize({ width: 393, height: 852 });
