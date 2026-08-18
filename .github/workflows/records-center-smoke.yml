@@ -1,0 +1,100 @@
+name: Records Center Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'rekorde.html'
+      - 'hall-of-fame.html'
+      - 'assets/js/services/rcc-records.js'
+      - 'assets/js/pages/records.js'
+      - 'assets/css/records.css'
+      - '.github/workflows/records-center-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'rekorde.html'
+      - 'hall-of-fame.html'
+      - 'assets/js/services/rcc-records.js'
+      - 'assets/js/pages/records.js'
+      - 'assets/css/records.css'
+      - '.github/workflows/records-center-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and wiring
+        run: |
+          node --check assets/js/services/rcc-records.js
+          node --check assets/js/pages/records.js
+          grep -Fq 'data-page="rekorde"' rekorde.html
+          grep -Fq 'assets/js/services/rcc-records.js' rekorde.html
+          grep -Fq 'assets/js/pages/records.js' rekorde.html
+          grep -Fq 'href="rekorde.html"' hall-of-fame.html
+          grep -Fq 'Größte Aufholjagd' assets/js/pages/records.js
+          grep -Fq 'longestStreak' assets/js/services/rcc-records.js
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/records-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/rekorde.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/records-http.log
+          exit 1
+      - name: Exercise Records Center with public RCC data
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8080/rekorde.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('#records-content:not([hidden])', { state: 'visible', timeout: 30000 });
+            const state = await page.evaluate(() => ({
+              races: Number(document.querySelector('#records-races')?.textContent || 0),
+              drivers: Number(document.querySelector('#records-drivers')?.textContent || 0),
+              teams: Number(document.querySelector('#records-teams')?.textContent || 0),
+              specials: document.querySelectorAll('.records-special-card').length,
+              boards: document.querySelectorAll('.records-board').length,
+              driverLinks: document.querySelectorAll('.records-special-card a[href*="fahrer-profil.html"],.records-board a[href*="fahrer-profil.html"]').length,
+              teamLinks: document.querySelectorAll('.records-board a[href*="team-profil.html"]').length
+            }));
+            if (state.races < 1 || state.drivers < 2 || state.teams < 1) throw new Error(`records data incomplete ${JSON.stringify(state)}`);
+            if (state.specials !== 8 || state.boards !== 8) throw new Error(`records UI incomplete ${JSON.stringify(state)}`);
+            if (state.driverLinks < 4 || state.teamLinks < 2) throw new Error(`records drill-down links incomplete ${JSON.stringify(state)}`);
+            if (errors.length) throw new Error(errors.join(' | '));
+            await page.setViewportSize({ width: 393, height: 852 });
+            await page.waitForTimeout(250);
+            const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+            if (mobile.scrollWidth > mobile.width + 2) throw new Error(`records mobile overflow ${mobile.scrollWidth} > ${mobile.width}`);
+            await page.goto('http://127.0.0.1:8080/hall-of-fame.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('a[href*="rekorde.html"]', { state: 'visible', timeout: 30000 });
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
