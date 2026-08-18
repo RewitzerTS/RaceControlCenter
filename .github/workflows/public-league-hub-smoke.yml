@@ -97,8 +97,29 @@ jobs:
 
             await page.setViewportSize({ width: 393, height: 852 });
             await page.waitForTimeout(300);
-            const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
-            if (mobile.scrollWidth > mobile.width + 2) throw new Error(`public league hub mobile overflow ${mobile.scrollWidth} > ${mobile.width}`);
+            const mobile = await page.evaluate(() => {
+              const width = innerWidth;
+              const offenders = [...document.querySelectorAll('body *')].map((el) => {
+                const rect = el.getBoundingClientRect();
+                const style = getComputedStyle(el);
+                return {
+                  tag: el.tagName.toLowerCase(),
+                  id: el.id || '',
+                  cls: String(el.className || '').slice(0, 140),
+                  left: Math.round(rect.left),
+                  right: Math.round(rect.right),
+                  width: Math.round(rect.width),
+                  clientWidth: el.clientWidth,
+                  scrollWidth: el.scrollWidth,
+                  position: style.position,
+                  overflowX: style.overflowX
+                };
+              }).filter((item) => item.right > width + 2 || item.left < -2 || item.scrollWidth > item.clientWidth + 2)
+                .sort((a, b) => Math.max(b.right - width, b.scrollWidth - b.clientWidth) - Math.max(a.right - width, a.scrollWidth - a.clientWidth))
+                .slice(0, 20);
+              return { width, scrollWidth: document.documentElement.scrollWidth, offenders };
+            });
+            if (mobile.scrollWidth > mobile.width + 2) throw new Error(`public league hub mobile overflow ${mobile.scrollWidth} > ${mobile.width}; offenders=${JSON.stringify(mobile.offenders)}`);
             await browser.close();
           })().catch((error) => { console.error(error); process.exit(1); });
           NODE
