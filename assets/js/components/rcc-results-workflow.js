@@ -6,6 +6,7 @@
   let timeFormatModulePromise = null;
   let resultDraftModulePromise = null;
   let resultReleaseModulePromise = null;
+  let resultReviewOverviewPromise = null;
   let adminSectionHubsPromise = null;
   let adminHomePromise = null;
 
@@ -118,6 +119,19 @@
     );
   }
 
+  function loadResultReviewOverview() {
+    return loadScriptModule(
+      'RCCResultReviewOverview',
+      'assets/js/components/rcc-result-review-overview.js',
+      'Review Center konnte nicht geladen werden.',
+      () => resultReviewOverviewPromise,
+      (value) => { resultReviewOverviewPromise = value; }
+    ).then((module) => {
+      module?.init?.();
+      return module;
+    });
+  }
+
   function loadResultReleaseModule() {
     const NativeMutationObserver = window.MutationObserver;
     let guardInstalled = false;
@@ -151,8 +165,9 @@
       if (guardInstalled && window.MutationObserver !== NativeMutationObserver) {
         window.MutationObserver = NativeMutationObserver;
       }
-    }).then((module) => {
+    }).then(async (module) => {
       module?.init?.();
+      await loadResultReviewOverview().catch((error) => console.warn(error));
       return module;
     });
   }
