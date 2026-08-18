@@ -6,7 +6,10 @@ on:
       - 'database/result-correction-versioning.sql'
       - 'assets/js/components/rcc-result-draft.js'
       - 'assets/js/components/rcc-result-correction.js'
+      - 'assets/js/components/rcc-admin-published-recalc-guard.js'
+      - 'assets/js/pages/steward-published-result-guard.js'
       - 'assets/css/components/rcc-result-correction.css'
+      - 'stewards.html'
       - '.github/workflows/result-correction-versioning-smoke.yml'
   push:
     branches: [main]
@@ -14,7 +17,10 @@ on:
       - 'database/result-correction-versioning.sql'
       - 'assets/js/components/rcc-result-draft.js'
       - 'assets/js/components/rcc-result-correction.js'
+      - 'assets/js/components/rcc-admin-published-recalc-guard.js'
+      - 'assets/js/pages/steward-published-result-guard.js'
       - 'assets/css/components/rcc-result-correction.css'
+      - 'stewards.html'
       - '.github/workflows/result-correction-versioning-smoke.yml'
 
 permissions:
@@ -33,12 +39,17 @@ jobs:
         run: |
           node --check assets/js/components/rcc-result-draft.js
           node --check assets/js/components/rcc-result-correction.js
+          node --check assets/js/components/rcc-admin-published-recalc-guard.js
+          node --check assets/js/pages/steward-published-result-guard.js
           grep -Fq "drop constraint if exists race_result_imports_race_unique" database/result-correction-versioning.sql
           grep -Fq "race_result_imports_one_open_per_race" database/result-correction-versioning.sql
           grep -Fq "where status in ('draft', 'under_review')" database/result-correction-versioning.sql
           grep -Fq ".in('status', ['draft', 'under_review'])" assets/js/components/rcc-result-draft.js
           grep -Fq "Korrektur als Entwurf speichern" assets/js/components/rcc-result-correction.js
           grep -Fq "correction_of_import_id" assets/js/components/rcc-result-correction.js
+          grep -Fq "query.eq('status', 'published')" assets/js/components/rcc-admin-published-recalc-guard.js
+          grep -Fq "query.eq('status', 'published')" assets/js/pages/steward-published-result-guard.js
+          grep -Fq "steward-published-result-guard.js" stewards.html
           if grep -Fq ".update({ status: 'upcoming' })" assets/js/components/rcc-result-draft.js; then
             echo 'Draft saving must not reset a published race to upcoming.' >&2
             exit 1
