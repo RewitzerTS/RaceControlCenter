@@ -133,7 +133,7 @@ jobs:
             if (!raceTrackHref || !raceTrackHref.includes('strecken-profil.html') || !raceTrackHref.includes('track=')) throw new Error('Race detail: track profile link missing');
             await race.close();
 
-            const calendar = await openChecked(browser, 'kalender.html?league=rcc', 'a[href="strecken.html"]');
+            const calendar = await openChecked(browser, 'kalender.html?league=rcc', 'a[href*="strecken.html"]');
             await calendar.close();
 
             const mobileHub = await openChecked(browser, 'strecken.html?league=rcc', '#track-hub-content:not([hidden])', { width: 393, height: 852 });
