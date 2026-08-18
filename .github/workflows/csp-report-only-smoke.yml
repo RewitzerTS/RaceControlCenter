@@ -1,4 +1,4 @@
-name: CSP Report-Only Smoke
+name: CSP Enforcement Smoke
 
 on:
   workflow_dispatch:
@@ -19,16 +19,22 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Validate report-only policy source
+      - name: Validate enforced policy source
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'Content-Security-Policy-Report-Only:' _headers
+          grep -Fq 'Content-Security-Policy:' _headers
+          if grep -Fq 'Content-Security-Policy-Report-Only:' _headers; then
+            echo 'CSP is still configured as Report-Only.' >&2
+            exit 1
+          fi
           grep -Fq "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com" _headers
           grep -Fq 'https://kjccstcbqygxuqkvdaqw.supabase.co' _headers
           grep -Fq 'wss://kjccstcbqygxuqkvdaqw.supabase.co' _headers
           grep -Fq "frame-src 'self' https://challenges.cloudflare.com" _headers
           grep -Fq "object-src 'none'" _headers
+          grep -Fq "base-uri 'self'" _headers
+          grep -Fq "form-action 'self'" _headers
           if grep -Eiq '(service[_-]?role|secret[_-]?key|turnstile[_-]?secret)' _headers; then
             echo 'Secret-like identifier found in public CSP headers.' >&2
             exit 1
@@ -79,7 +85,7 @@ jobs:
           echo 'Timed out waiting for the matching Cloudflare production build.' >&2
           exit 1
 
-      - name: Verify production report-only header
+      - name: Verify production enforced CSP header
         shell: bash
         run: |
           set -euo pipefail
@@ -97,15 +103,16 @@ jobs:
               --connect-timeout 10 \
               --max-time 20 \
               --header 'Cache-Control: no-cache' \
-              --user-agent 'RaceVora-CSP-Smoke/1.1' \
+              --user-agent 'RaceVora-CSP-Smoke/2.0' \
               --dump-header "$headers" \
               --output /dev/null \
               "https://racevora.com/?csp-check=${cache_bust}-${attempt}"; then
-              if grep -Eiq '^content-security-policy-report-only:' "$headers" \
+              if grep -Eiq '^content-security-policy:' "$headers" \
+                && ! grep -Eiq '^content-security-policy-report-only:' "$headers" \
                 && grep -Fq 'https://challenges.cloudflare.com' "$headers" \
                 && grep -Fq 'https://cdn.jsdelivr.net' "$headers" \
                 && grep -Fq 'https://kjccstcbqygxuqkvdaqw.supabase.co' "$headers"; then
-                echo 'PASS production CSP Report-Only header'
+                echo 'PASS production enforced CSP header'
                 exit 0
               fi
             fi
@@ -113,5 +120,5 @@ jobs:
             sleep 10
           done
 
-          echo 'RaceVora production CSP Report-Only header is missing or incomplete.' >&2
+          echo 'RaceVora production enforced CSP header is missing or incomplete.' >&2
           exit 1
