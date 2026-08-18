@@ -1,0 +1,82 @@
+.driver-rival-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.driver-rival-list {
+  display: grid;
+  gap: 10px;
+}
+
+.driver-rival-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255,255,255,0.035);
+}
+
+.driver-rival-main {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.driver-rival-name {
+  font-weight: 800;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.driver-rival-main > span,
+.driver-rival-score > span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.driver-rival-score {
+  min-width: 76px;
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.driver-rival-score strong {
+  font-size: 1rem;
+}
+
+.driver-rival-action {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: rgba(44,143,166,0.08);
+}
+
+.driver-rival-action:hover,
+.driver-rival-name:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 860px) {
+  .driver-rival-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .driver-rival-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+  .driver-rival-action {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+}
