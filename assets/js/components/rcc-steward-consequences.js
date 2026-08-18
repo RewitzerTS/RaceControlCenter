@@ -7,8 +7,6 @@
   let busy = false;
   let resultReleasePromise = null;
 
-  const esc = (value) => window.escapeHtml ? window.escapeHtml(String(value ?? '')) : String(value ?? '');
-
   function pageConfig() {
     const page = document.body?.dataset?.page;
     if (page === 'admin') {
@@ -248,14 +246,19 @@
 
   async function rebuildPublishedIfSafe(raceId) {
     if (!raceId) return false;
-    const { data: open, error: openError } = await window.supabaseClient
-      .from('race_result_imports')
-      .select('id')
-      .eq('race_id', raceId)
-      .in('status', ['draft', 'under_review'])
-      .limit(1);
+
+    const [{ data: canManage, error: roleError }, { data: open, error: openError }] = await Promise.all([
+      window.supabaseClient.rpc('can_manage_race_workflow', { p_race_id: raceId }),
+      window.supabaseClient
+        .from('race_result_imports')
+        .select('id')
+        .eq('race_id', raceId)
+        .in('status', ['draft', 'under_review'])
+        .limit(1)
+    ]);
+    if (roleError) throw roleError;
     if (openError) throw openError;
-    if (open?.length) return false;
+    if (canManage !== true || open?.length) return false;
 
     const release = await ensureResultRelease();
     const rebuilt = await release?.rebuildPublishedRace?.(raceId);
@@ -315,7 +318,8 @@
       const rebuilt = await rebuildPublishedIfSafe(sourceRaceId);
       window.resetStewardIncidentForm?.();
       if (config.page === 'stewards') {
-        document.getElementById(config.caseId).value = '';
+        const caseIdInput = document.getElementById(config.caseId);
+        if (caseIdInput) caseIdInput.value = '';
         window.loadStewardCases?.();
       } else {
         await Promise.allSettled([
@@ -326,12 +330,13 @@
       }
 
       if (config.page === 'admin') configureConsequenceSelect(config);
-      document.getElementById(config.consequence).value = 'Keine';
+      const consequenceSelect = document.getElementById(config.consequence);
+      if (consequenceSelect) consequenceSelect.value = 'Keine';
       renderDetailState(config);
       const targetSuffix = penalty?.targetLabel ? ` Zielrennen: ${penalty.targetLabel}.` : '';
       feedback(config, rebuilt
         ? `Steward-Fall gespeichert und veröffentlichtes Ergebnis neu berechnet.${targetSuffix}`
-        : `Steward-Fall gespeichert. Bei einem offenen Ergebnisentwurf wirkt die Konsequenz erst mit der finalen Veröffentlichung.${targetSuffix}`);
+        : `Steward-Fall gespeichert. Die Konsequenz ist hinterlegt und wird bei einem offenen Entwurf bzw. durch die Ligaleitung mit der nächsten sicheren Ergebnisfreigabe übernommen.${targetSuffix}`);
     } catch (error) {
       console.error('RaceVora Steward consequence save:', error);
       feedback(config, `Speichern fehlgeschlagen: ${error.message || 'Unbekannter Fehler'}`, true);
@@ -361,11 +366,13 @@
       }
 
       select.value = 'Ja';
-      document.getElementById(ids.type).value = penalty.penalty_type || 'time_penalty';
+      const typeSelect = document.getElementById(ids.type);
+      const amountInput = document.getElementById(ids.amount);
+      if (typeSelect) typeSelect.value = penalty.penalty_type || 'time_penalty';
       const amount = penalty.penalty_type === 'grid_penalty'
         ? Number(penalty.grid_positions || 1)
         : Math.max(1, Math.round(Math.abs(Number(penalty.time_delta_ms || 0)) / 1000));
-      document.getElementById(ids.amount).value = String(amount);
+      if (amountInput) amountInput.value = String(amount);
       renderDetailState(config);
     } catch (error) {
       console.warn('Steward-Konsequenz konnte nicht geladen werden.', error);
