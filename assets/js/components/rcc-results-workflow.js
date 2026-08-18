@@ -7,6 +7,7 @@
   let resultDraftModulePromise = null;
   let resultReleaseModulePromise = null;
   let resultReviewOverviewPromise = null;
+  let resultReviewHardeningPromise = null;
   let adminSectionHubsPromise = null;
   let adminHomePromise = null;
 
@@ -132,6 +133,19 @@
     });
   }
 
+  function loadResultReviewHardening() {
+    return loadScriptModule(
+      'RCCResultReviewHardening',
+      'assets/js/components/rcc-result-review-hardening.js',
+      'Review-Hardening konnte nicht geladen werden.',
+      () => resultReviewHardeningPromise,
+      (value) => { resultReviewHardeningPromise = value; }
+    ).then((module) => {
+      module?.init?.();
+      return module;
+    });
+  }
+
   function loadResultReleaseModule() {
     const NativeMutationObserver = window.MutationObserver;
     let guardInstalled = false;
@@ -168,6 +182,7 @@
     }).then(async (module) => {
       module?.init?.();
       await loadResultReviewOverview().catch((error) => console.warn(error));
+      await loadResultReviewHardening().catch((error) => console.warn(error));
       return module;
     });
   }
