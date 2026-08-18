@@ -60,8 +60,7 @@ function clearTenantUiCaches() {
 const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
 
 // RaceVora is the platform brand. Tenant branding replaces these fallbacks once
-// the requested league has loaded; the productive `rcc` league data is never
-// rewritten here.
+// the requested league has loaded; productive tenant data is never rewritten here.
 (() => {
   const PLATFORM_NAME = 'RaceVora';
   const PLATFORM_MARK = 'assets/images/racevora-mark.svg';
@@ -162,8 +161,6 @@ const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
 try {
   const previousTenant = window.sessionStorage?.getItem(RCC_TENANT_CACHE_KEY);
   if (previousTenant && previousTenant !== RCC_REQUEST_LEAGUE_SLUG) {
-    // Never render cached HTML or UI state from another tenant while the new
-    // tenant data is still loading. This avoids even a brief cross-league flash.
     clearTenantUiCaches();
   }
   window.sessionStorage?.setItem(RCC_LEAGUE_SESSION_KEY, RCC_REQUEST_LEAGUE_SLUG);
@@ -172,8 +169,6 @@ try {
   // Session storage can be blocked by browser privacy settings.
 }
 
-// JS redirects can accidentally drop ?league=. Restore the non-default tenant
-// immediately so every subsequent link and request sees the same context.
 if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG) {
   const currentUrl = new URL(window.location.href);
   if (!currentUrl.searchParams.get('league')) {
@@ -196,10 +191,8 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
-// These helper RPCs intentionally require an authenticated role in Supabase.
-// Older UI modules may probe them while the login page is still anonymous.
-// Short-circuit those probes locally instead of weakening the database grants or
-// producing avoidable 401 responses before a user has signed in.
+// Authenticated helper RPCs are short-circuited locally while anonymous. This
+// avoids avoidable 401 traffic without weakening the database-side grants.
 (() => {
   const client = window.supabaseClient;
   if (!client?.rpc || client.__rccAuthenticatedRoleRpcGuard) return;
@@ -228,7 +221,6 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 })();
 
 // The bundled Hall-of-Fame JSON is legacy data for the original RCC league.
-// Other tenants must show an empty history until they archive their own season.
 if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch === 'function') {
   const nativeFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
@@ -250,18 +242,20 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
   };
 }
 
-// Make the tenant context available before admin-tenant-bootstrap.js executes.
-// Without this early context, the bootstrap can incorrectly fall back to the
-// default `rcc` league before rcc-league-context.js has been dynamically loaded.
+// Canonical tenant/session context. This is the only implementation. It uses the
+// locally persisted Supabase session instead of auth.getUser() for every UI probe,
+// deduplicates concurrent loads, and only refreshes when explicitly invalidated.
 (() => {
   if (window.RCCLeagueContext?.initialize) return;
 
-  const DEFAULT_LEAGUE_SLUG = RCC_DEFAULT_LEAGUE_SLUG;
+  const client = window.supabaseClient;
   const state = {
     league: null,
     membership: null,
     initializedSlug: null,
-    initPromise: null
+    loadedUserId: null,
+    initPromise: null,
+    initPromiseSlug: null
   };
 
   function normalizeSlug(value) {
@@ -269,28 +263,25 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
   }
 
   function getRequestedLeagueSlug() {
-    return RCC_REQUEST_LEAGUE_SLUG || DEFAULT_LEAGUE_SLUG;
+    return RCC_REQUEST_LEAGUE_SLUG || RCC_DEFAULT_LEAGUE_SLUG;
   }
 
-  async function fetchMembership(client, leagueId) {
-    try {
-      const { data: authData } = await client.auth.getUser();
-      const userId = authData?.user?.id;
-      if (!userId) return null;
+  async function getSessionUserId() {
+    const { data, error } = await client.auth.getSession();
+    if (error) throw error;
+    return data?.session?.user?.id || null;
+  }
 
-      const { data, error } = await client
-        .from('league_members')
-        .select('league_id, user_id, role')
-        .eq('league_id', leagueId)
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') throw error;
-      return data || null;
-    } catch (error) {
-      console.warn('RCC LeagueContext: membership could not be loaded.', error);
-      return null;
-    }
+  async function fetchMembership(leagueId, userId) {
+    if (!userId) return null;
+    const { data, error } = await client
+      .from('league_members')
+      .select('league_id, user_id, role')
+      .eq('league_id', leagueId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data || null;
   }
 
   function snapshot() {
@@ -303,32 +294,58 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
     };
   }
 
-  async function initialize(options = {}) {
-    const client = window.supabaseClient;
-    if (!client) throw new Error('Supabase client is not available.');
+  function invalidate(options = {}) {
+    const invalidateLeague = options.league === true;
+    const invalidateMembership = options.membership !== false;
+    if (invalidateLeague) {
+      state.league = null;
+      state.initializedSlug = null;
+    }
+    if (invalidateMembership) {
+      state.membership = null;
+      state.loadedUserId = null;
+    }
+  }
 
+  async function initialize(options = {}) {
     const slug = normalizeSlug(options.slug || getRequestedLeagueSlug());
-    if (!options.forceRefresh && state.league && state.initializedSlug === slug) return snapshot();
-    if (!options.forceRefresh && state.initPromise && state.initializedSlug === slug) return state.initPromise;
+    const forceRefresh = options.forceRefresh === true;
+    const userId = await getSessionUserId();
+
+    if (state.initPromise && state.initPromiseSlug === slug) {
+      return state.initPromise;
+    }
+
+    const leagueReusable = Boolean(state.league && state.initializedSlug === slug);
+    const membershipReusable = state.loadedUserId === userId;
+    if (!forceRefresh && leagueReusable && membershipReusable) return snapshot();
 
     state.initializedSlug = slug;
+    state.initPromiseSlug = slug;
     state.initPromise = (async () => {
-      const { data, error } = await client
-        .from('leagues')
-        .select('id, name, slug, logo_url, status, is_public, settings')
-        .eq('slug', slug)
-        .maybeSingle();
+      let league = leagueReusable && !forceRefresh ? state.league : null;
+      if (!league) {
+        const { data, error } = await client
+          .from('leagues')
+          .select('id, name, slug, logo_url, status, is_public, settings')
+          .eq('slug', slug)
+          .maybeSingle();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (!data) throw new Error(`League not found: ${slug}`);
+        if (data.status !== 'active') throw new Error(`League is not active: ${slug}`);
+        league = data;
+      }
 
-      if (error && error.code !== 'PGRST116') throw error;
-      if (!data) throw new Error(`League not found: ${slug}`);
-      if (data.status !== 'active') throw new Error(`League is not active: ${slug}`);
+      state.league = league;
+      state.membership = await fetchMembership(league.id, userId);
+      state.loadedUserId = userId;
 
-      state.league = data;
-      state.membership = await fetchMembership(client, data.id);
-      window.dispatchEvent(new CustomEvent('rcc:league-context-ready', { detail: snapshot() }));
-      return snapshot();
+      const current = snapshot();
+      window.dispatchEvent(new CustomEvent('rcc:league-context-ready', { detail: current }));
+      return current;
     })().finally(() => {
       state.initPromise = null;
+      state.initPromiseSlug = null;
     });
 
     return state.initPromise;
@@ -338,13 +355,14 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
   function getSlug() { return state.league?.slug || state.initializedSlug || getRequestedLeagueSlug(); }
   function getRole() { return state.membership?.role || null; }
   function hasRole(...roles) { return roles.includes(getRole()); }
-  function isAdmin() { return hasRole('owner', 'admin', 'steward'); }
+  function isAdmin() { return hasRole('owner', 'admin'); }
   function isStaff() { return hasRole('owner', 'admin', 'steward'); }
 
   window.RCCLeagueContext = {
-    DEFAULT_LEAGUE_SLUG,
+    DEFAULT_LEAGUE_SLUG: RCC_DEFAULT_LEAGUE_SLUG,
     initialize,
     snapshot,
+    invalidate,
     getRequestedLeagueSlug,
     getLeagueId,
     getSlug,
@@ -353,15 +371,28 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
     isAdmin,
     isStaff
   };
+
+  if (client?.auth?.onAuthStateChange) {
+    client.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        invalidate({ membership: true });
+        return;
+      }
+      if (['SIGNED_IN', 'USER_UPDATED'].includes(event)) {
+        const nextUserId = session?.user?.id || null;
+        if (nextUserId !== state.loadedUserId) invalidate({ membership: true });
+      }
+    });
+  }
 })();
 
-// Shared public navigation access. The Admin entry stays hidden until the
-// authenticated user's role for the requested tenant is known. Platform owners
-// can also enter the Admin Center even if they are not a member of that league.
+// Shared navigation access. The context-ready event only updates UI from the
+// supplied snapshot; it never triggers another forced context load.
 (() => {
   const client = window.supabaseClient;
   let refreshPromise = null;
   let authListenerBound = false;
+  let platformOwnerCache = { userId: null, value: false, promise: null };
 
   function scopedAdminHref(slug) {
     const target = new URL('admin.html', window.location.href);
@@ -384,7 +415,40 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
     link.removeAttribute('aria-current');
   }
 
-  async function refreshAdminEntry() {
+  function resetPlatformOwnerCache() {
+    platformOwnerCache = { userId: null, value: false, promise: null };
+  }
+
+  async function isPlatformOwner(userId) {
+    if (!userId) return false;
+    if (platformOwnerCache.userId === userId && platformOwnerCache.promise) {
+      return platformOwnerCache.promise;
+    }
+    if (platformOwnerCache.userId === userId) return platformOwnerCache.value;
+
+    const promise = client.rpc('is_platform_owner')
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn('Admin-Navigation: Plattform-Owner-Status konnte nicht geprüft werden.', error);
+          return false;
+        }
+        return data === true;
+      })
+      .then((value) => {
+        platformOwnerCache = { userId, value, promise: null };
+        return value;
+      })
+      .catch((error) => {
+        console.warn('Admin-Navigation: Plattform-Owner-Status konnte nicht geprüft werden.', error);
+        platformOwnerCache = { userId, value: false, promise: null };
+        return false;
+      });
+
+    platformOwnerCache = { userId, value: false, promise };
+    return promise;
+  }
+
+  async function refreshAdminEntry(options = {}) {
     if (refreshPromise) return refreshPromise;
     refreshPromise = (async () => {
       const link = document.querySelector('[data-admin-nav-link]');
@@ -392,26 +456,25 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
       hideAdminEntry();
 
       const { data, error } = await client.auth.getSession();
-      if (error || !data?.session?.user?.id) return;
+      const userId = data?.session?.user?.id || null;
+      if (error || !userId) return;
 
-      let context = null;
+      let context = options.context || null;
       try {
-        context = await window.RCCLeagueContext?.initialize?.({
-          slug: RCC_REQUEST_LEAGUE_SLUG,
-          forceRefresh: true
-        });
+        if (!context) {
+          context = await window.RCCLeagueContext?.initialize?.({
+            slug: RCC_REQUEST_LEAGUE_SLUG,
+            forceRefresh: options.forceContextRefresh === true
+          });
+        }
       } catch (errorContext) {
         console.warn('Admin-Navigation: Liga-Kontext konnte nicht geladen werden.', errorContext);
       }
 
-      let allowed = ['owner', 'admin'].includes(context?.role);
-      if (!allowed) {
-        const { data: platformOwner, error: ownerError } = await client.rpc('is_platform_owner');
-        if (ownerError) console.warn('Admin-Navigation: Plattform-Owner-Status konnte nicht geprüft werden.', ownerError);
-        allowed = platformOwner === true;
-      }
-
+      let allowed = ['owner', 'admin', 'steward'].includes(String(context?.role || '').toLowerCase());
+      if (!allowed) allowed = await isPlatformOwner(userId);
       if (!allowed) return;
+
       link.href = scopedAdminHref(context?.slug || RCC_REQUEST_LEAGUE_SLUG);
       link.hidden = false;
     })().finally(() => {
@@ -421,24 +484,28 @@ if (RCC_REQUEST_LEAGUE_SLUG !== RCC_DEFAULT_LEAGUE_SLUG && typeof window.fetch =
   }
 
   document.addEventListener('layout:loaded', () => {
-    // layout.js still binds the historical logo double-click shortcut during the
-    // same event. Clone the brand after all synchronous listeners have run so the
-    // old click/double-click handlers are removed and the logo behaves as a normal link.
     window.setTimeout(removeLegacyBrandShortcut, 0);
     refreshAdminEntry().catch(() => {});
 
     if (!authListenerBound && client?.auth?.onAuthStateChange) {
       authListenerBound = true;
       client.auth.onAuthStateChange((event) => {
-        if (['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'].includes(event)) {
-          window.setTimeout(() => refreshAdminEntry().catch(() => {}), 0);
+        if (event === 'SIGNED_OUT') {
+          resetPlatformOwnerCache();
+          hideAdminEntry();
+          return;
+        }
+        if (['SIGNED_IN', 'USER_UPDATED'].includes(event)) {
+          resetPlatformOwnerCache();
+          window.RCCLeagueContext?.invalidate?.({ membership: true });
+          window.setTimeout(() => refreshAdminEntry({ forceContextRefresh: true }).catch(() => {}), 0);
         }
       });
     }
   });
 
-  window.addEventListener('rcc:league-context-ready', () => {
-    refreshAdminEntry().catch(() => {});
+  window.addEventListener('rcc:league-context-ready', (event) => {
+    refreshAdminEntry({ context: event?.detail || null }).catch(() => {});
   });
 
   window.RCCNavigationAccess = { refresh: refreshAdminEntry };
