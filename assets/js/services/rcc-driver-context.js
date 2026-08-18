@@ -93,6 +93,7 @@
     knownUserId = nextUserId;
   });
 
+  leagueContext.__rccAdminContextCoalesced = true;
   global.RCCContextRequestCoalescer = Object.freeze({
     installed: true,
     bootstrapWindowMs: BOOTSTRAP_COALESCE_MS
