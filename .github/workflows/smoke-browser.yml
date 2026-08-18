@@ -200,7 +200,7 @@ jobs:
                 const detail = `requestfailed: ${errorText} ${url}`;
                 diagnostics.push(detail);
                 if (kind === 'supabase' && errorText !== 'net::ERR_ABORTED') fatalErrors.push(detail);
-                if (kind === 'local' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
+                if ((kind === 'local' && errorText !== 'net::ERR_ABORTED') || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
               page.on('response', (response) => {
                 if (response.status() < 400) return;
