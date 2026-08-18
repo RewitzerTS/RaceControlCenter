@@ -8,6 +8,7 @@
   let resultReleaseModulePromise = null;
   let resultReviewOverviewPromise = null;
   let resultReviewHardeningPromise = null;
+  let resultPublishReceiptPromise = null;
   let adminSectionHubsPromise = null;
   let adminHomePromise = null;
 
@@ -146,6 +147,19 @@
     });
   }
 
+  function loadResultPublishReceipt() {
+    return loadScriptModule(
+      'RCCResultPublishReceipt',
+      'assets/js/components/rcc-result-publish-receipt.js',
+      'Publish-Abschluss konnte nicht geladen werden.',
+      () => resultPublishReceiptPromise,
+      (value) => { resultPublishReceiptPromise = value; }
+    ).then((module) => {
+      module?.init?.();
+      return module;
+    });
+  }
+
   function loadResultReleaseModule() {
     const NativeMutationObserver = window.MutationObserver;
     let guardInstalled = false;
@@ -183,6 +197,7 @@
       module?.init?.();
       await loadResultReviewOverview().catch((error) => console.warn(error));
       await loadResultReviewHardening().catch((error) => console.warn(error));
+      await loadResultPublishReceipt().catch((error) => console.warn(error));
       return module;
     });
   }
