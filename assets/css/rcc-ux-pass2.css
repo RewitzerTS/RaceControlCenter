@@ -1,0 +1,191 @@
+/* RaceVora UX pass 2: compact context controls, stable branding and layout fixes. */
+
+html[data-league-branding-pending="true"] .site-header .brand-logo,
+html[data-league-branding-pending="true"] .site-header .brand-title,
+html[data-league-branding-pending="true"] .site-header .brand-subtitle,
+html[data-league-branding-pending="true"] .league-brand-footer {
+  visibility: hidden !important;
+}
+
+body[data-page="admin"] .admin-context-compact {
+  width: min(var(--max), calc(100% - 28px));
+  min-height: 0;
+  margin: 8px auto !important;
+  padding: 8px 12px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  font-size: .78rem;
+}
+
+body[data-page="admin"] .admin-context-compact strong,
+body[data-page="admin"] .admin-context-compact label,
+body[data-page="admin"] .admin-context-compact span {
+  font-size: inherit;
+}
+
+body[data-page="admin"] .admin-context-compact select,
+body[data-page="admin"] .admin-context-compact button {
+  min-height: 34px !important;
+  padding: 6px 9px !important;
+  font-size: .76rem !important;
+  border-radius: 9px !important;
+}
+
+body[data-page="admin"] #admin-session-banner.admin-context-compact,
+body[data-page="admin"] #admin-league-switcher.admin-context-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+body[data-page="admin"] #admin-section-create-league.rcc-create-league-source-only {
+  display: none !important;
+}
+
+body[data-page="admin"] .rcc-admin-home__status-grid {
+  gap: 8px;
+}
+
+body[data-page="admin"] .rcc-admin-home__status-card {
+  padding: 10px 12px;
+  border-radius: 13px;
+}
+
+body[data-page="admin"] .rcc-admin-home__status-card > span {
+  margin-bottom: 4px;
+  font-size: .62rem;
+}
+
+body[data-page="admin"] .rcc-admin-home__status-card > strong {
+  font-size: .9rem;
+}
+
+body[data-page="admin"] .rcc-admin-home__status-card > small {
+  margin-top: 3px;
+  font-size: .72rem;
+}
+
+body[data-page="kalender"] .calendar-toggle-row .calendar-track-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+body[data-page="ergebnisse"] .results-chart-frame {
+  height: clamp(340px, 42vw, 520px);
+  min-height: 340px;
+}
+
+body[data-page="ergebnisse"] .results-chart-frame canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: none !important;
+}
+
+.footer-account-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-left: auto;
+  font-size: .76rem;
+  color: var(--text-muted);
+}
+
+.footer-account-controls__identity {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer-account-controls__league {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-account-controls__league select,
+.footer-account-controls__logout {
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  border-radius: 9px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface-2) 74%, var(--surface));
+  font: inherit;
+}
+
+.footer-account-controls__logout {
+  cursor: pointer;
+}
+
+@media (max-width: 860px) {
+  body[data-page="admin"] .admin-context-compact {
+    width: min(100% - 20px, var(--max));
+    margin: 6px auto !important;
+    padding: 7px 9px !important;
+  }
+
+  body[data-page="admin"] .rcc-admin-home {
+    gap: 14px;
+  }
+
+  body[data-page="admin"] .rcc-admin-home__status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-page="admin"] .rcc-admin-home__status-card {
+    padding: 8px 9px;
+  }
+
+  body[data-page="admin"] .rcc-admin-home__status-card > small {
+    display: none;
+  }
+
+  body[data-page="admin"] .rcc-admin-home__action-grid {
+    gap: 9px;
+  }
+
+  .footer-account-controls {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
+    padding-top: 8px;
+    border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+  }
+
+  .footer-account-controls__identity {
+    width: 100%;
+    max-width: none;
+  }
+
+  body[data-page="ergebnisse"] .results-chart-frame {
+    height: 310px;
+    min-height: 310px;
+  }
+}
+
+@media (max-width: 520px) {
+  body[data-page="admin"] .rcc-admin-home__status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body[data-page="admin"] .rcc-admin-home__status-card > strong {
+    font-size: .8rem;
+  }
+
+  .footer-account-controls__league {
+    flex: 1 1 100%;
+  }
+
+  .footer-account-controls__league select {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
