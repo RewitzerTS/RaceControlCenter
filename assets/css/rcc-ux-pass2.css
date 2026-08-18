@@ -7,6 +7,13 @@ html[data-league-branding-pending="true"] .league-brand-footer {
   visibility: hidden !important;
 }
 
+/* Override the legacy admin exception that deliberately exposed the neutral
+   RaceVora mark while tenant branding was still loading. */
+html[data-league-branding-pending="true"] body[data-page="admin"] .site-header .brand-logo {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
 body[data-page="admin"] .admin-context-compact {
   width: min(var(--max), calc(100% - 28px));
   min-height: 0;
