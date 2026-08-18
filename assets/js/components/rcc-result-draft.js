@@ -113,15 +113,32 @@
     }, 0);
   }
 
-  function ensureCorrectionModule() {
-    if (window.RCCResultCorrection || document.querySelector('script[data-rcc-result-correction="true"]')) return;
+  function ensureScript(globalName, selector, src, errorMessage) {
+    if (window[globalName] || document.querySelector(selector)) return;
     const script = document.createElement('script');
-    script.src = 'assets/js/components/rcc-result-correction.js';
+    script.src = src;
     script.defer = true;
-    script.dataset.rccResultCorrection = 'true';
-    script.onload = () => window.RCCResultCorrection?.init?.();
-    script.onerror = () => console.warn('Ergebnis-Korrekturmodul konnte nicht geladen werden.');
+    const marker = selector.match(/data-([a-z0-9-]+)=/i)?.[1];
+    if (marker) script.setAttribute(`data-${marker}`, 'true');
+    script.onerror = () => console.warn(errorMessage);
     document.head.appendChild(script);
+  }
+
+  function ensureCorrectionModules() {
+    ensureScript(
+      'RCCResultCorrection',
+      'script[data-rcc-result-correction="true"]',
+      'assets/js/components/rcc-result-correction.js',
+      'Ergebnis-Korrekturmodul konnte nicht geladen werden.'
+    );
+    if (document.body?.dataset?.page === 'admin') {
+      ensureScript(
+        '__RCC_ADMIN_PUBLISHED_RECALC_GUARD',
+        'script[data-rcc-admin-published-recalc-guard="true"]',
+        'assets/js/components/rcc-admin-published-recalc-guard.js',
+        'Admin-Recalculate-Guard konnte nicht geladen werden.'
+      );
+    }
   }
 
   async function save({ raceId, rows = [], sourceFilename = 'Ergebnisentwurf' } = {}) {
@@ -208,5 +225,5 @@
   }
 
   window.RCCResultDraft = { save };
-  ensureCorrectionModule();
+  ensureCorrectionModules();
 })();
