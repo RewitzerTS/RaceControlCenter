@@ -9,8 +9,7 @@
 .rcc-results-workflow__card--secondary { background: color-mix(in srgb, var(--surface-2) 64%, var(--surface)); }
 .rcc-results-workflow__card h4 { margin: 0 0 6px; }
 .rcc-results-workflow__card p { margin: 0; color: var(--text-muted); line-height: 1.5; }
-.rcc-results-workflow__icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 13px; border: 1px solid color-mix(in srgb, var(--primary) 72%, var(--text)); color: var(--text-on-primary, #fff); background: var(--primary); box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 22%, transparent); font-size: 1.2rem; font-weight: 700; }
-.rcc-results-workflow__icon:has(> span), .rcc-results-workflow__icon { overflow: hidden; }
+.rcc-results-workflow__icon { width: 44px; height: 44px; display: grid; place-items: center; overflow: hidden; border-radius: 13px; border: 1px solid color-mix(in srgb, var(--primary) 72%, var(--text)); color: var(--text-on-primary, #fff); background: var(--primary); box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 22%, transparent); font-size: 1.2rem; font-weight: 700; }
 .rcc-results-workflow-panel > summary { display: none !important; }
 .rcc-results-workflow-panel { margin: 0 !important; }
 .rcc-file-import-choice__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -25,6 +24,14 @@
 .rcc-ai-match-source { margin-top: 3px; font-size: .78rem; }
 .rcc-ai-row-needs-mapping { outline: 1px solid color-mix(in srgb, var(--warning) 72%, transparent); outline-offset: -1px; }
 .rcc-ai-results-import .notice ul { margin: 8px 0 0; padding-left: 20px; }
+.manual-results-entry-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.manual-results-entry-toolbar .card-actions { margin: 0; }
+.manual-results-entry-table-wrap { width: 100%; max-width: 100%; overflow-x: auto; overflow-y: visible; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+#rcc-manual-results-table { min-width: 820px; }
+#rcc-manual-results-table th, #rcc-manual-results-table td { vertical-align: middle; }
+#rcc-manual-results-table td:nth-child(2) { min-width: 180px; }
+#rcc-manual-results-table td:nth-child(3) { min-width: 150px; }
+#rcc-manual-results-table .manual-results-time { min-width: 118px; }
 
 @media (max-width: 900px) {
   .rcc-results-workflow__grid { grid-template-columns: 1fr; }
@@ -38,12 +45,14 @@
     border-radius: 16px;
   }
 
-  .rcc-ai-results-import {
+  .rcc-ai-results-import,
+  .rcc-manual-entry {
     min-width: 0;
     max-width: 100%;
   }
 
-  .rcc-ai-results-import .form-grid {
+  .rcc-ai-results-import .form-grid,
+  .rcc-manual-entry .form-grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
@@ -87,13 +96,18 @@
     max-width: none;
   }
 
-  .rcc-ai-results-import > .card-actions {
+  .rcc-ai-results-import > .card-actions,
+  .manual-results-entry-toolbar .card-actions,
+  .rcc-manual-entry > #rcc-manual-entry-editor > .card-actions {
     display: grid;
+    width: 100%;
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
   }
 
-  .rcc-ai-results-import > .card-actions > button {
+  .rcc-ai-results-import > .card-actions > button,
+  .manual-results-entry-toolbar .card-actions > button,
+  .rcc-manual-entry > #rcc-manual-entry-editor > .card-actions > button {
     width: 100%;
     min-height: 46px;
   }
