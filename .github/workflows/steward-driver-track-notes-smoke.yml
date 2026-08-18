@@ -1,0 +1,158 @@
+name: Steward Driver Track Notes Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'database/2026-steward-consequences-and-track-notes.sql'
+      - 'assets/js/components/rcc-steward-consequences.js'
+      - 'assets/js/components/rcc-admin-driver-wizard.js'
+      - 'assets/js/components/rcc-track-notes.js'
+      - 'assets/js/components/rcc-grid-penalty-info.js'
+      - 'assets/js/components/racevora-app-ux-polish.js'
+      - 'assets/css/components/rcc-driver-wizard.css'
+      - '.github/workflows/steward-driver-track-notes-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JavaScript
+        run: |
+          node --check assets/js/components/rcc-steward-consequences.js
+          node --check assets/js/components/rcc-admin-driver-wizard.js
+          node --check assets/js/components/rcc-track-notes.js
+          node --check assets/js/components/rcc-grid-penalty-info.js
+          node --check assets/js/components/racevora-app-ux-polish.js
+
+      - name: Verify steward consequence model
+        shell: bash
+        run: |
+          set -euo pipefail
+          js='assets/js/components/rcc-steward-consequences.js'
+          sql='database/2026-steward-consequences-and-track-notes.sql'
+          grep -Fq '<option value="Keine" selected>Keine</option>' "$js"
+          grep -Fq '<option value="Ja">Ja</option>' "$js"
+          grep -Fq '<option value="Nein">Nein</option>' "$js"
+          grep -Fq '<option value="time_penalty">Zeitstrafe</option>' "$js"
+          grep -Fq '<option value="time_credit">Gutschrift</option>' "$js"
+          grep -Fq '<option value="grid_penalty">Grid-Strafe</option>' "$js"
+          grep -Fq '<option value="dsq">DSQ</option>' "$js"
+          grep -Fq ".neq('status', 'completed')" "$js"
+          grep -Fq "DSQ_SORT_DELTA_MS = 2147480000" "$js"
+          grep -Fq ".in('status', ['draft', 'under_review'])" "$js"
+          grep -Fq 'rebuildPublishedRace' "$js"
+          grep -Fq "'grid_penalty'::text" "$sql"
+          grep -Fq "'dsq'::text" "$sql"
+          grep -Fq 'grid_positions integer not null default 0' "$sql"
+          grep -Fq "participation_status = 'DSQ'" "$sql"
+          grep -Fq "race_time = 'DSQ'" "$sql"
+          grep -Fq 'awarded_points = 0' "$sql"
+          grep -Fq "ri.status in ('draft','under_review')" "$sql"
+          grep -Fq 'race_result_imports_apply_dsq_after_publish' "$sql"
+
+      - name: Verify private track notes RLS
+        shell: bash
+        run: |
+          set -euo pipefail
+          sql='database/2026-steward-consequences-and-track-notes.sql'
+          js='assets/js/components/rcc-track-notes.js'
+          grep -Fq 'create table if not exists public.driver_track_notes' "$sql"
+          grep -Fq 'alter table public.driver_track_notes enable row level security' "$sql"
+          grep -Fq 'user_id = auth.uid()' "$sql"
+          grep -Fq 'public.matches_requested_league(league_id)' "$sql"
+          grep -Fq 'public.league_members lm' "$sql"
+          grep -Fq 'char_length(note) <= 5000' "$sql"
+          grep -Fq "onConflict: 'user_id,league_id,track_key'" "$js"
+          grep -Fq 'Nur für dich sichtbar' "$js"
+
+      - name: Verify driver wizard and upcoming grid info
+        shell: bash
+        run: |
+          set -euo pipefail
+          wizard='assets/js/components/rcc-admin-driver-wizard.js'
+          grid='assets/js/components/rcc-grid-penalty-info.js'
+          loader='assets/js/components/racevora-app-ux-polish.js'
+          grep -Fq 'Fahrer anlegen' "$wizard"
+          grep -Fq 'Fahrer speichern' "$wizard"
+          grep -Fq "event.target.closest('.edit-driver-btn')" "$wizard"
+          grep -Fq "penalty_type', 'grid_penalty'" "$grid"
+          grep -Fq 'INFO · Grid-Strafe' "$grid"
+          grep -Fq "page === 'admin'" "$loader"
+          grep -Fq "page === 'stewards'" "$loader"
+          grep -Fq "page === 'strecken-profil'" "$loader"
+          grep -Fq "page === 'kalender' || page === 'rennen-detail'" "$loader"
+
+      - name: Confirm email pause remains active
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'EMAIL_SENDING_PAUSED = true' assets/js/auth-turnstile-config.js
+          grep -Fq 'email_sending_paused' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/submit-consumer-withdrawal/index.ts
+
+  ui-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.54.2
+          npx playwright install --with-deps chromium
+      - name: Exercise consequence and driver wizard UI without network writes
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await page.setContent(`<!doctype html><html><body data-page="admin">
+              <details id="admin-section-stewarding" open><section>
+                <input id="incident-edit-id"><select id="incident-race"><option value="race-1">Rennen</option></select>
+                <input id="incident-title" value="Test"><textarea id="incident-description"></textarea><textarea id="incident-decision"></textarea>
+                <div class="field"><label>Konsequenz</label><select id="incident-consequence"><option>Keine</option></select></div>
+                <select id="incident-driver-1"></select><select id="incident-driver-2"><option value="driver-1">Driver</option></select>
+                <button id="save-incident-btn">Alt speichern</button><div id="incident-feedback" hidden></div>
+              </section></details>
+              <details id="admin-section-drivers" open><section class="panel"><h3>Fahrer-Stammdaten</h3>
+                <input id="driver-id" type="hidden"><div class="form-grid"><input id="driver-display-name"><input id="driver-gamertag"></div>
+                <div class="card-actions"><button id="save-driver-btn">Fahrer speichern</button><button id="reset-driver-btn">Formular leeren</button></div>
+                <div id="driver-feedback" hidden></div><h3 class="section-spacer-top">Fahrer verwalten</h3><div id="driver-list"></div>
+              </section></details>
+            </body></html>`);
+            await page.evaluate(() => {
+              window.supabaseClient = { auth: { getSession: async () => ({ data: { session: null } }) } };
+              window.RCCWizardDialog = { open: (node) => { node.hidden = false; window.__wizardOpened = true; }, close: () => {} };
+            });
+            await page.addScriptTag({ content: fs.readFileSync('assets/js/components/rcc-steward-consequences.js', 'utf8') });
+            await page.addScriptTag({ content: fs.readFileSync('assets/js/components/rcc-admin-driver-wizard.js', 'utf8') });
+            await page.waitForTimeout(50);
+
+            const options = await page.locator('#incident-consequence option').allTextContents();
+            if (options.join('|') !== 'Keine|Ja|Nein') throw new Error(`Unexpected consequence choices: ${options}`);
+            await page.selectOption('#incident-consequence', 'Ja');
+            if (await page.locator('#incident-consequence-details').isHidden()) throw new Error('Consequence details did not open for Ja.');
+            await page.selectOption('#incident-consequence-type', 'grid_penalty');
+            const label = await page.locator('#incident-consequence-amount-label').textContent();
+            if (label !== 'Startplätze') throw new Error(`Grid amount label mismatch: ${label}`);
+
+            if ((await page.locator('#rcc-driver-create-btn').textContent()).trim() !== 'Fahrer anlegen') throw new Error('Driver create launcher missing.');
+            await page.click('#rcc-driver-create-btn');
+            if (!await page.evaluate(() => window.__wizardOpened === true)) throw new Error('Driver wizard did not open.');
+            if ((await page.locator('#save-driver-btn').textContent()).trim() !== 'Fahrer speichern') throw new Error('Driver save wording changed.');
+
+            const width = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+            if (width > 2) throw new Error(`Mobile overflow: ${width}px`);
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE

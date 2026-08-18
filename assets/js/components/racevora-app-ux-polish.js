@@ -6,6 +6,7 @@
 
   const SESSION_KEY = 'rcc.activeLeagueSlug.v1';
   const TENANT_KEY = 'rcc.lastTenantSlug.v1';
+  const featureLoads = new Map();
 
   function currentLeagueSlug() {
     const params = new URLSearchParams(window.location.search);
@@ -241,12 +242,51 @@
     observer.observe(document.querySelector('.admin-layout') || document.body, { childList: true, subtree: true });
   }
 
+  function loadFeature(globalName, src) {
+    if (window[globalName]) {
+      window[globalName]?.init?.();
+      return Promise.resolve(window[globalName]);
+    }
+    if (featureLoads.has(src)) return featureLoads.get(src);
+    const promise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.dataset.rccFeatureModule = src;
+      script.onload = () => {
+        window[globalName]?.init?.();
+        resolve(window[globalName] || null);
+      };
+      script.onerror = () => reject(new Error(`${src} konnte nicht geladen werden.`));
+      document.head.appendChild(script);
+    }).finally(() => featureLoads.delete(src));
+    featureLoads.set(src, promise);
+    return promise;
+  }
+
+  function loadPageFeatures() {
+    const page = document.body?.dataset.page || '';
+    const jobs = [];
+    if (page === 'admin') {
+      jobs.push(loadFeature('RCCStewardConsequences', 'assets/js/components/rcc-steward-consequences.js'));
+      jobs.push(loadFeature('RCCAdminDriverWizard', 'assets/js/components/rcc-admin-driver-wizard.js'));
+    }
+    if (page === 'stewards') jobs.push(loadFeature('RCCStewardConsequences', 'assets/js/components/rcc-steward-consequences.js'));
+    if (page === 'strecken-profil') jobs.push(loadFeature('RCCTrackNotes', 'assets/js/components/rcc-track-notes.js'));
+    if (page === 'kalender' || page === 'rennen-detail') jobs.push(loadFeature('RCCGridPenaltyInfo', 'assets/js/components/rcc-grid-penalty-info.js'));
+    Promise.allSettled(jobs).then((results) => {
+      results.forEach((result) => {
+        if (result.status === 'rejected') console.warn(result.reason);
+      });
+    });
+  }
+
   function init() {
     setupGridDriverProfiles();
     relocateCalendarTrackLink();
     setupAdminPolish();
     setupFooterAccountControls().catch((error) => console.warn('Footer Account-Steuerung konnte nicht initialisiert werden.', error));
     fixResultsChart();
+    loadPageFeatures();
     document.addEventListener('rcc:page-content-ready', fixResultsChart);
   }
 
@@ -256,5 +296,6 @@
     setupFooterAccountControls().catch(() => null);
     relocateCalendarTrackLink();
     setupAdminPolish();
+    loadPageFeatures();
   });
 })();
