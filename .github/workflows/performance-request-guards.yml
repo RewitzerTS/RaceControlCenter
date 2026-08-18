@@ -26,6 +26,7 @@ jobs:
           node --check assets/js/supabase-client.js
           node --check assets/js/services/rcc-data.js
           node --check assets/js/services/rcc-league-context.js
+          node --check assets/js/pages/admin-onboarding-context-guard.js
 
           if grep -Eq "client\.auth\.getUser[[:space:]]*\(" assets/js/supabase-client.js; then
             echo "Shared tenant context must not call client.auth.getUser() during UI initialization."
@@ -45,9 +46,12 @@ jobs:
           grep -Fq "backgroundRefresh = false" assets/js/services/rcc-data.js
           grep -Fq "DATA_LIMITS" assets/js/services/rcc-data.js
           grep -Fq "raceResultsPage: 1000" assets/js/services/rcc-data.js
+          grep -Fq "CONTEXT_FORCE_COALESCE_MS" assets/js/pages/admin-onboarding-context-guard.js
+          grep -Fq "bypassCoalescing: true" assets/js/pages/admin-onboarding-context-guard.js
 
           node <<'NODE'
           const fs = require('fs');
+
           const source = fs.readFileSync('assets/js/supabase-client.js', 'utf8');
           const listenerStart = source.indexOf("window.addEventListener('rcc:league-context-ready'");
           if (listenerStart < 0) throw new Error('league-context-ready listener missing');
@@ -58,5 +62,19 @@ jobs:
           if (!/context:\s*event\?\.detail/.test(listenerTail)) {
             throw new Error('league-context-ready listener must consume the supplied context snapshot');
           }
-          console.log('PASS request-loop and shared-cache guards');
+
+          const onboarding = fs.readFileSync('assets/js/pages/admin-onboarding-context-guard.js', 'utf8');
+          const onboardingListenerStart = onboarding.indexOf("window.addEventListener('rcc:league-context-ready'");
+          if (onboardingListenerStart < 0) throw new Error('admin onboarding context listener missing');
+          const onboardingListenerTail = onboarding.slice(onboardingListenerStart, onboardingListenerStart + 650);
+          if (/forceRefresh\s*:\s*true/.test(onboardingListenerTail)) {
+            throw new Error('admin onboarding context listener must consume the supplied snapshot without forcing a refresh');
+          }
+          if (!/event\?\.detail/.test(onboardingListenerTail)) {
+            throw new Error('admin onboarding context listener must use the supplied snapshot');
+          }
+          if (/from\(['"]leagues['"]\)[\s\S]{0,160}select\(['"]id, slug, settings['"]\)/.test(onboarding)) {
+            throw new Error('admin onboarding reconciliation must reuse canonical league settings instead of issuing a duplicate leagues query');
+          }
+          console.log('PASS request-loop, admin-context and shared-cache guards');
           NODE
