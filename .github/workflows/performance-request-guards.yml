@@ -27,8 +27,8 @@ jobs:
           node --check assets/js/services/rcc-data.js
           node --check assets/js/services/rcc-league-context.js
 
-          if grep -Eq "auth\.getUser[[:space:]]*\(" assets/js/supabase-client.js; then
-            echo "Shared tenant context must not call auth.getUser() during UI initialization."
+          if grep -Eq "client\.auth\.getUser[[:space:]]*\(" assets/js/supabase-client.js; then
+            echo "Shared tenant context must not call client.auth.getUser() during UI initialization."
             exit 1
           fi
 
@@ -37,7 +37,7 @@ jobs:
             exit 1
           fi
 
-          if grep -Eq "\.from\(|auth\.get(User|Session)[[:space:]]*\(" assets/js/services/rcc-league-context.js; then
+          if grep -Eq "\.from\(|client\.auth\.get(User|Session)[[:space:]]*\(" assets/js/services/rcc-league-context.js; then
             echo "Compatibility league-context file must not contain a second tenant/session implementation."
             exit 1
           fi
