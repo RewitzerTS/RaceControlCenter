@@ -35,7 +35,7 @@
     </div>
 
     <div class="container admin-session-banner" id="admin-session-banner" hidden>
-      <span id="admin-session-banner-label">Eingeloggt als Admin</span>
+      <span id="admin-session-banner-label">RaceVora Session aktiv</span>
       <button type="button" class="button-secondary admin-session-banner-logout" id="admin-banner-logout-btn">Logout</button>
     </div>
 
@@ -48,24 +48,12 @@
     </div>
 
     <div class="container admin-layout">
-      <details class="panel" id="admin-section-auth" open>
-        <summary><strong>1) Login & Session</strong></summary>
-      <section class="panel admin-panel-accent">
-        <h3>Admin Login</h3>
-        <div class="admin-session-inline" id="admin-session-inline">
-          <span id="admin-session-inline-label">Nicht eingeloggt</span>
-          <button type="button" class="button-secondary" id="admin-quick-logout-btn" hidden>Logout</button>
-        </div>
-        <div class="form-grid" id="admin-login-form">
-          <div class="field"><label for="admin-email">E-Mail</label><input id="admin-email" type="email" placeholder="deine-mail@example.com"></div>
-          <div class="field"><label for="admin-password">Passwort</label><input id="admin-password" type="password" placeholder="Passwort"></div>
-        </div>
-        <div class="card-actions" id="admin-login-actions">
-          <button type="button" class="button-primary" id="admin-login-btn">Einloggen</button>
-        </div>
-        <div class="notice" id="admin-session-status">Session wird geprüft...</div>
-        <div id="admin-auth-feedback" class="notice" hidden></div>
-      </section>
+      <details class="panel" id="admin-section-auth" hidden>
+        <summary><strong>Session</strong></summary>
+        <section class="panel admin-panel-accent">
+          <div class="notice" id="admin-session-status">RaceVora-Session wird geprüft...</div>
+          <div id="admin-auth-feedback" class="notice" hidden></div>
+        </section>
       </details>
 
       <details class="panel" id="admin-section-calendar">
@@ -187,7 +175,7 @@
 
       <details class="panel admin-panel-wide admin-panel-accent section-spacer-top">
         <summary><strong>Ergebnisse manuell bearbeiten</strong></summary>
-        <div class="notice" id="manual-results-status">Nur nach erfolgreichem Login sichtbar und nutzbar.</div>
+        <div class="notice" id="manual-results-status">Nur mit Owner- oder Ligaleitungs-Berechtigung sichtbar und nutzbar.</div>
         <div id="manual-results-panel" class="hidden">
           <div class="form-grid">
             <div class="field"><label for="manual-race-select">Rennen</label><select id="manual-race-select"><option value="">Rennen wählen</option></select></div>

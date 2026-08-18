@@ -25,6 +25,32 @@
     member: 'Mitglied'
   };
 
+  function landingParams() {
+    return new URLSearchParams(window.location.search);
+  }
+
+  function requestedNextUrl() {
+    const raw = String(landingParams().get('next') || '').trim();
+    if (!raw || raw.startsWith('//') || /^[a-z][a-z0-9+.-]*:/i.test(raw)) return null;
+    try {
+      const resolved = new URL(raw, window.location.href);
+      if (resolved.origin !== window.location.origin) return null;
+      return resolved;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function nextHrefForLeague(league) {
+    const next = requestedNextUrl();
+    if (!next) return '';
+    const slug = String(league?.slug || '').trim() || 'rcc';
+    const requestedSlug = String(next.searchParams.get('league') || '').trim();
+    if (requestedSlug && requestedSlug !== slug) return '';
+    if (!requestedSlug) next.searchParams.set('league', slug);
+    return `${next.pathname.split('/').pop()}${next.search}${next.hash}`;
+  }
+
   function forceLandingTop() {
     if (window.location.hash) return;
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -123,6 +149,8 @@
   }
 
   function leagueOverviewHref(league) {
+    const next = nextHrefForLeague(league);
+    if (next) return next;
     const url = new URL('race-hub.html', window.location.href);
     url.searchParams.set('league', String(league.slug || 'rcc'));
     return `${url.pathname.split('/').pop()}${url.search}`;
@@ -363,6 +391,10 @@
       setLoginButtons(await getSession());
     } catch (_) {
       setLoginButtons(null);
+    }
+
+    if (landingParams().get('login') === '1') {
+      await openModal(null);
     }
   }
 

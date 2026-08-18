@@ -2,8 +2,10 @@
   if (document.body?.dataset.page !== 'admin') return;
 
   const FALLBACK_LEAGUE_SLUG = 'rcc';
-  const ADMIN_UI_HINT_PREFIX = 'rcc.adminUiHint.v1:';
+  const ADMIN_UI_HINT_PREFIX = 'rcc.adminUiHint.v2:';
   const ADMIN_UI_HINT_MAX_AGE_MS = 1000 * 60 * 60 * 12;
+  const ADMIN_ROLES = new Set(['owner', 'admin']);
+  const PRIVILEGED_ROLES = new Set(['owner', 'admin', 'steward']);
   let prepared = false;
   let preparing = null;
   let authReloadBound = false;
@@ -12,13 +14,25 @@
   let adminResultsUiPromise = null;
   let switcherRenderPromise = null;
 
-  // Do not expose the static "Session wird geprüft" placeholder while the
-  // persisted Supabase session and tenant context are restored.
-  document.getElementById('admin-session-status')?.setAttribute('hidden', 'hidden');
+  // The Admin Center uses the same RaceVora account/session as every other page.
+  // Remove the legacy second login UI as soon as the deferred bootstrap executes.
+  document.getElementById('admin-section-auth')?.remove();
 
   function requestedLeagueSlug() {
     const querySlug = String(new URLSearchParams(window.location.search).get('league') || '').trim();
     return querySlug || window.RCCLeagueContext?.getRequestedLeagueSlug?.() || FALLBACK_LEAGUE_SLUG;
+  }
+
+  function currentRole(context = null) {
+    return String(context?.role || window.RCCLeagueContext?.getRole?.() || '').trim().toLowerCase();
+  }
+
+  function hasPrivilegedRole(role) {
+    return PRIVILEGED_ROLES.has(String(role || '').trim().toLowerCase());
+  }
+
+  function hasAdminRole(role) {
+    return ADMIN_ROLES.has(String(role || '').trim().toLowerCase());
   }
 
   function adminUiHintKey() {
@@ -44,7 +58,7 @@
         clearAdminUiHint();
         return null;
       }
-      if (!['owner', 'admin', 'steward'].includes(String(hint.role || ''))) {
+      if (!hasPrivilegedRole(hint.role)) {
         clearAdminUiHint();
         return null;
       }
@@ -56,7 +70,8 @@
   }
 
   function writeAdminUiHint(session, context) {
-    if (!session?.user?.id || !context?.leagueId || !['owner', 'admin', 'steward'].includes(String(context.role || ''))) {
+    const role = currentRole(context);
+    if (!session?.user?.id || !context?.leagueId || !hasPrivilegedRole(role)) {
       clearAdminUiHint();
       return;
     }
@@ -66,7 +81,7 @@
         email: session.user.email || '',
         leagueId: context.leagueId,
         slug: context.slug || requestedLeagueSlug(),
-        role: context.role,
+        role,
         savedAt: Date.now()
       }));
     } catch (_) {
@@ -74,24 +89,63 @@
     }
   }
 
+  function loginHref() {
+    const next = `${window.location.pathname.split('/').pop() || 'admin.html'}${window.location.search || ''}`;
+    const url = new URL('index.html', window.location.href);
+    url.searchParams.set('login', '1');
+    url.searchParams.set('next', next);
+    return `${url.pathname.split('/').pop()}${url.search}`;
+  }
+
+  function leagueHomeHref(slug = requestedLeagueSlug()) {
+    const url = new URL('race-hub.html', window.location.href);
+    url.searchParams.set('league', slug || FALLBACK_LEAGUE_SLUG);
+    return `${url.pathname.split('/').pop()}${url.search}`;
+  }
+
+  function redirectToLogin() {
+    window.location.replace(loginHref());
+  }
+
+  function redirectToLeague(slug = requestedLeagueSlug()) {
+    window.location.replace(leagueHomeHref(slug));
+  }
+
   function setAdminSurfaceVisibility(session, options = {}) {
-    const adminActive = Boolean(
-      session?.user && (options.assumeAdmin === true || window.RCCLeagueContext?.isAdmin?.())
-    );
-    const authPanel = document.getElementById('admin-section-auth');
-    if (authPanel) {
-      authPanel.hidden = adminActive;
-      authPanel.open = !adminActive;
-    }
+    const role = String(options.role || currentRole() || '').toLowerCase();
+    const privilegedActive = Boolean(session?.user && (options.assumePrivileged === true || hasPrivilegedRole(role)));
+    const stewardMode = privilegedActive && role === 'steward';
+
+    document.body.dataset.adminAccessReady = 'true';
+    document.body.dataset.adminAccessRole = privilegedActive ? role : 'none';
+
     document.querySelectorAll('.admin-layout > details').forEach((panel) => {
-      if (panel.id === 'admin-section-auth') return;
-      panel.hidden = !adminActive;
+      const allowed = privilegedActive && (!stewardMode || panel.id === 'admin-section-stewarding');
+      panel.hidden = !allowed;
+      if (allowed && stewardMode && panel.tagName === 'DETAILS') panel.open = true;
     });
+
     const sectionHeader = document.querySelector('.section-header');
-    if (sectionHeader) sectionHeader.hidden = !adminActive;
+    if (sectionHeader) sectionHeader.hidden = !privilegedActive;
+
     const tabs = document.getElementById('admin-mobile-tabs');
-    if (tabs) tabs.hidden = !adminActive;
-    if (adminActive && typeof window.syncAdminTabVisibility === 'function') {
+    if (tabs) {
+      tabs.hidden = !privilegedActive;
+      tabs.querySelectorAll('[data-admin-tab-target]').forEach((button) => {
+        const allowed = !stewardMode || button.dataset.adminTabTarget === 'admin-section-stewarding';
+        button.hidden = !allowed;
+        if (stewardMode) {
+          const active = allowed;
+          button.classList.toggle('is-active', active);
+          button.setAttribute('aria-selected', String(active));
+        }
+      });
+    }
+
+    if (privilegedActive && stewardMode) {
+      const stewardButton = tabs?.querySelector('[data-admin-tab-target="admin-section-stewarding"]');
+      stewardButton?.click?.();
+    } else if (privilegedActive && typeof window.syncAdminTabVisibility === 'function') {
       window.syncAdminTabVisibility();
     }
   }
@@ -100,30 +154,6 @@
     const switchers = [...document.querySelectorAll('#admin-league-switcher')];
     switchers.slice(1).forEach((node) => node.remove());
     return switchers[0] || null;
-  }
-
-  async function hasSwitcherAccess(session) {
-    if (!session?.user?.id) return false;
-    if (window.RCCLeagueContext?.isAdmin?.()) return true;
-    try {
-      const { data, error } = await window.supabaseClient.rpc('is_platform_owner');
-      return !error && data === true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  function addLeagueId(payload, leagueId, table) {
-    const enhanceRow = (row) => {
-      if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
-      const next = { ...row, league_id: leagueId };
-      if (table === 'seasons' && !String(next.slug || '').trim()) {
-        const base = String(next.name || 'season').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'season';
-        next.slug = base;
-      }
-      return next;
-    };
-    return Array.isArray(payload) ? payload.map(enhanceRow) : enhanceRow(payload);
   }
 
   async function getSession() {
@@ -135,14 +165,34 @@
   async function fetchAccessibleLeagues() {
     const session = await getSession();
     if (!session?.user?.id) return [];
-    const { data: memberships, error: membershipError } = await window.supabaseClient.from('league_members').select('league_id, role').eq('user_id', session.user.id);
+    const { data: memberships, error: membershipError } = await window.supabaseClient
+      .from('league_members')
+      .select('league_id, role')
+      .eq('user_id', session.user.id);
     if (membershipError) throw membershipError;
-    if (!memberships?.length) return [];
-    const roleByLeagueId = new Map(memberships.map((row) => [row.league_id, row.role]));
-    const leagueIds = memberships.map((row) => row.league_id);
-    const { data: leagues, error: leagueError } = await window.supabaseClient.from('leagues').select('id, name, slug, status, is_public').in('id', leagueIds).eq('status', 'active').order('name', { ascending: true });
+    const privilegedMemberships = (memberships || []).filter((row) => hasPrivilegedRole(row.role));
+    if (!privilegedMemberships.length) return [];
+    const roleByLeagueId = new Map(privilegedMemberships.map((row) => [row.league_id, row.role]));
+    const leagueIds = privilegedMemberships.map((row) => row.league_id);
+    const { data: leagues, error: leagueError } = await window.supabaseClient
+      .from('leagues')
+      .select('id, name, slug, status, is_public')
+      .in('id', leagueIds)
+      .eq('status', 'active')
+      .order('name', { ascending: true });
     if (leagueError) throw leagueError;
     return (leagues || []).map((league) => ({ ...league, role: roleByLeagueId.get(league.id) || 'member' }));
+  }
+
+  async function hasSwitcherAccess(session) {
+    if (!session?.user?.id) return false;
+    if (hasPrivilegedRole(currentRole())) return true;
+    try {
+      const { data, error } = await window.supabaseClient.rpc('is_platform_owner');
+      return !error && data === true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function roleLabel(role) {
@@ -177,8 +227,7 @@
       const leagues = await fetchAccessibleLeagues();
       const currentSlug = window.RCCLeagueContext?.getSlug?.() || requestedLeagueSlug();
       if (!leagues.length) {
-        switcher.innerHTML = '<span>Deinem Account ist noch keine Liga zugeordnet.</span>';
-        switcher.hidden = false;
+        switcher?.remove();
         return;
       }
       switcher.innerHTML = `<label for="admin-league-select"><strong>Aktive Liga:</strong></label><select id="admin-league-select" aria-label="Aktive Liga auswählen">${leagues.map((league) => `<option value="${league.slug}" ${league.slug === currentSlug ? 'selected' : ''}>${league.name} · ${roleLabel(league.role)}</option>`).join('')}</select>`;
@@ -191,6 +240,19 @@
       dedupeLeagueSwitchers();
     })().finally(() => { switcherRenderPromise = null; });
     return switcherRenderPromise;
+  }
+
+  function addLeagueId(payload, leagueId, table) {
+    const enhanceRow = (row) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return row;
+      const next = { ...row, league_id: leagueId };
+      if (table === 'seasons' && !String(next.slug || '').trim()) {
+        const base = String(next.name || 'season').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'season';
+        next.slug = base;
+      }
+      return next;
+    };
+    return Array.isArray(payload) ? payload.map(enhanceRow) : enhanceRow(payload);
   }
 
   async function loadLeagueMembersModule() {
@@ -245,16 +307,8 @@
     };
 
     adminResultsUiPromise = (async () => {
-      await loadScript(
-        'assets/js/components/rcc-wizard-dialog.js',
-        'RCCWizardDialog',
-        'Dialog-Komponente konnte nicht geladen werden.'
-      );
-      const workflow = await loadScript(
-        'assets/js/components/rcc-results-workflow.js',
-        'RCCResultsWorkflow',
-        'Ergebnis-Workflow konnte nicht geladen werden.'
-      );
+      await loadScript('assets/js/components/rcc-wizard-dialog.js', 'RCCWizardDialog', 'Dialog-Komponente konnte nicht geladen werden.');
+      const workflow = await loadScript('assets/js/components/rcc-results-workflow.js', 'RCCResultsWorkflow', 'Ergebnis-Workflow konnte nicht geladen werden.');
       workflow?.ensureLauncher?.();
       return workflow;
     })().finally(() => { adminResultsUiPromise = null; });
@@ -286,18 +340,19 @@
   }
 
   function installLeagueRoleGuards() {
-    window.isAdminSession = (session) => Boolean(session?.user && window.RCCLeagueContext?.isAdmin?.());
+    window.isAdminSession = (session) => Boolean(session?.user && hasAdminRole(currentRole()));
     window.requireAdminSession = async () => {
       const { data, error } = await window.supabaseClient.auth.getSession();
       if (error) throw error;
-      if (!data?.session) throw new Error('Keine aktive Session. Bitte zuerst einloggen.');
+      if (!data?.session) throw new Error('Keine aktive RaceVora-Session.');
       await window.RCCData.getLeagueContext({ forceRefresh: true });
-      if (!window.RCCLeagueContext?.isAdmin?.()) throw new Error('Du hast in dieser Liga keine Owner- oder Ligaleitungs-Berechtigung.');
+      if (!hasAdminRole(currentRole())) throw new Error('Du hast in dieser Liga keine Owner- oder Ligaleitungs-Berechtigung.');
       return data.session;
     };
+
     const originalRefreshSessionStatus = window.refreshSessionStatus;
-    if (typeof originalRefreshSessionStatus === 'function') {
-      window.refreshSessionStatus = async (...args) => {
+    if (typeof originalRefreshSessionStatus === 'function' && !originalRefreshSessionStatus.__rccUnifiedAccess) {
+      const wrappedRefresh = async (...args) => {
         const sessionBeforeRefresh = await getSession().catch(() => null);
         if (sessionBeforeRefresh?.user && !window.RCCLeagueContext?.getRole?.()) {
           await window.RCCData.getLeagueContext({ forceRefresh: true }).catch(() => null);
@@ -307,46 +362,36 @@
         const result = await originalRefreshSessionStatus(...args);
         const session = await getSession().catch(() => null);
         const context = window.RCCLeagueContext?.snapshot?.() || null;
-        if (session && window.RCCLeagueContext?.isAdmin?.()) writeAdminUiHint(session, context);
+        const role = currentRole(context);
+        if (session && hasPrivilegedRole(role)) writeAdminUiHint(session, context);
         else clearAdminUiHint();
-        setAdminSurfaceVisibility(session);
+        setAdminSurfaceVisibility(session, { role });
         await renderLeagueSwitcher().catch((error) => console.warn('Liga-Auswahl konnte nicht geladen werden.', error));
-        const createModule = await loadLeagueCreateModule().catch((error) => console.warn(error));
-        await createModule?.init?.();
         return result;
       };
+      wrappedRefresh.__rccUnifiedAccess = true;
+      window.refreshSessionStatus = wrappedRefresh;
     }
   }
 
-  function bindPrivateLeagueReload(requestedSlug, initializedSlug) {
-    if (authReloadBound || requestedSlug === initializedSlug) return;
+  function bindAuthAccessRedirect() {
+    if (authReloadBound) return;
     authReloadBound = true;
     window.supabaseClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) navigateToLeague(requestedSlug);
-      if (event === 'SIGNED_OUT') clearAdminUiHint();
+      if (event === 'SIGNED_OUT' || !session) {
+        clearAdminUiHint();
+        redirectToLogin();
+      }
     });
   }
 
-  async function resolveAdminContext() {
+  async function resolveAdminContext(session) {
+    if (!session?.user) return null;
     const requestedSlug = requestedLeagueSlug();
-    const session = await getSession();
     try {
       return await window.RCCData.getLeagueContext({ slug: requestedSlug, forceRefresh: true });
     } catch (error) {
-      if (!session) {
-        if (requestedSlug !== FALLBACK_LEAGUE_SLUG) {
-          try {
-            const fallback = await window.RCCData.getLeagueContext({ slug: FALLBACK_LEAGUE_SLUG, forceRefresh: true });
-            bindPrivateLeagueReload(requestedSlug, fallback.slug);
-            return fallback;
-          } catch (_) {
-            bindPrivateLeagueReload(requestedSlug, FALLBACK_LEAGUE_SLUG);
-            return null;
-          }
-        }
-        return null;
-      }
-      const leagues = await fetchAccessibleLeagues();
+      const leagues = await fetchAccessibleLeagues().catch(() => []);
       const first = leagues[0];
       if (first?.slug && first.slug !== requestedSlug) {
         navigateToLeague(first.slug);
@@ -362,7 +407,9 @@
     if (prepared) return window.RCCLeagueContext || null;
     if (preparing) return preparing;
     preparing = (async () => {
-      const context = await resolveAdminContext();
+      const session = await getSession();
+      if (!session?.user) return null;
+      const context = await resolveAdminContext(session);
       if (!context) return null;
       if (!context?.leagueId) throw new Error('Keine aktive Liga für das Admin Center gefunden.');
       installLeagueScopedSupabase(context.leagueId);
@@ -373,44 +420,75 @@
     return preparing;
   }
 
+  async function initStewardPage() {
+    window.populateDriverDropdowns?.();
+    window.bindUiEvents?.();
+    window.bindAuthListener?.();
+    window.initAdminMobileTabs?.();
+    await Promise.all([
+      Promise.resolve(window.populateStewardDriverSelects?.()),
+      Promise.resolve(window.loadStewardCasesForAdmin?.()),
+      Promise.resolve(window.refreshSessionStatus?.())
+    ]);
+    const stewardButton = document.querySelector('#admin-mobile-tabs [data-admin-tab-target="admin-section-stewarding"]');
+    stewardButton?.click?.();
+  }
+
   window.RCCAdminTenant = { prepare, fetchAccessibleLeagues, renderLeagueSwitcher, navigateToLeague };
 
   document.addEventListener('DOMContentLoaded', async (event) => {
     event.stopImmediatePropagation();
 
     const initialSession = await getSession().catch(() => null);
-    const cachedHint = readAdminUiHint(initialSession);
-    if (cachedHint) setAdminSurfaceVisibility(initialSession, { assumeAdmin: true });
-    else setAdminSurfaceVisibility(null);
+    if (!initialSession?.user) {
+      clearAdminUiHint();
+      redirectToLogin();
+      return;
+    }
 
-    // The hub shell is entirely client-side and can be prepared immediately.
-    // On a return visit the cached admin hint therefore restores the familiar
-    // interface while Supabase validates the current league membership in parallel.
-    const adminUiReady = loadAdminResultsUi().catch((error) => {
-      console.warn('Ergebnis-Workflow konnte nicht geladen werden.', error);
-      return null;
-    });
+    const cachedHint = readAdminUiHint(initialSession);
+    if (cachedHint) setAdminSurfaceVisibility(initialSession, { assumePrivileged: true, role: cachedHint.role });
+    else setAdminSurfaceVisibility(null);
 
     try {
       const context = await prepare();
       const session = await getSession().catch(() => null);
-      if (context && session && window.RCCLeagueContext?.isAdmin?.()) writeAdminUiHint(session, context);
-      else clearAdminUiHint();
-
-      await adminUiReady;
-      setAdminSurfaceVisibility(session);
+      if (!session?.user) {
+        redirectToLogin();
+        return;
+      }
       if (!context) return;
 
-      // initAdminPage binds all existing controls synchronously and then starts
-      // its data requests. Restore the already-authorized shell immediately
-      // after that synchronous setup instead of waiting for every request.
+      const role = currentRole(context);
+      if (!hasPrivilegedRole(role)) {
+        clearAdminUiHint();
+        redirectToLeague(context.slug || requestedLeagueSlug());
+        return;
+      }
+
+      writeAdminUiHint(session, context);
+      bindAuthAccessRedirect();
+      setAdminSurfaceVisibility(session, { role });
+
+      if (role === 'steward') {
+        await initStewardPage();
+        setAdminSurfaceVisibility(session, { role });
+        await renderLeagueSwitcher();
+        return;
+      }
+
+      const adminUiReady = loadAdminResultsUi().catch((error) => {
+        console.warn('Ergebnis-Workflow konnte nicht geladen werden.', error);
+        return null;
+      });
+      await adminUiReady;
+
       const adminInitPromise = typeof window.initAdminPage === 'function'
         ? Promise.resolve(window.initAdminPage())
         : Promise.resolve();
-      setAdminSurfaceVisibility(session);
-
+      setAdminSurfaceVisibility(session, { role });
       await adminInitPromise;
-      setAdminSurfaceVisibility(session);
+      setAdminSurfaceVisibility(session, { role });
 
       await renderLeagueSwitcher();
       const createModule = await loadLeagueCreateModule();
@@ -420,12 +498,9 @@
     } catch (error) {
       console.error('RCC Admin tenant bootstrap failed.', error);
       clearAdminUiHint();
-      setAdminSurfaceVisibility(null);
-      const status = document.getElementById('admin-session-status');
-      if (status) {
-        status.hidden = false;
-        status.textContent = `Admin Center konnte nicht initialisiert werden: ${error.message}`;
-      }
+      const session = await getSession().catch(() => null);
+      if (!session?.user) redirectToLogin();
+      else redirectToLeague(requestedLeagueSlug());
     }
   });
 })();

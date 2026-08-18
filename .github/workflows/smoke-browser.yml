@@ -95,6 +95,31 @@ jobs:
             await page.waitForTimeout(300);
           };
 
+          const assertUnifiedAdminLogin = async (page, testCase) => {
+            await page.waitForURL((url) => url.pathname.endsWith('/index.html') && url.searchParams.get('login') === '1', { timeout: 15000 });
+            await page.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 15000 });
+            await page.waitForSelector('#landing-login-form', { timeout: 15000 });
+
+            const state = await page.evaluate(() => {
+              const params = new URLSearchParams(window.location.search);
+              return {
+                login: params.get('login'),
+                next: params.get('next'),
+                legacyAdminForm: Boolean(document.querySelector('#admin-login-form')),
+                legacyAdminPassword: Boolean(document.querySelector('#admin-password')),
+                landingPassword: Boolean(document.querySelector('#landing-login-password')),
+                modalVisible: Boolean(document.querySelector('#landing-login-modal:not([hidden])'))
+              };
+            });
+
+            if (state.login !== '1') throw new Error(`${testCase.name}: central login flag missing`);
+            if (state.next !== testCase.expectedNext) throw new Error(`${testCase.name}: expected next=${testCase.expectedNext}, got ${state.next}`);
+            if (state.legacyAdminForm) throw new Error(`${testCase.name}: legacy admin login form still exists`);
+            if (state.legacyAdminPassword) throw new Error(`${testCase.name}: legacy admin password field still exists`);
+            if (!state.landingPassword) throw new Error(`${testCase.name}: central RaceVora password field missing`);
+            if (!state.modalVisible) throw new Error(`${testCase.name}: central login modal did not open automatically`);
+          };
+
           const assertNavigation = async (page, testCase) => {
             await page.waitForSelector('#site-header .main-nav', { timeout: 15000 });
             await page.waitForFunction(() => document.querySelector('.brand')?.dataset?.directNavigation === 'true', { timeout: 5000 });
@@ -155,8 +180,8 @@ jobs:
               { name: 'public-rcc-home', url: 'http://127.0.0.1:8080/index.html?league=rcc', selector: 'body' },
               { name: 'race-hub-navigation-desktop', url: 'http://127.0.0.1:8080/race-hub.html?league=rcc', selector: 'body', navigation: true },
               { name: 'race-hub-navigation-iphone', url: 'http://127.0.0.1:8080/race-hub.html?league=rcc', selector: 'body', viewport: { width: 393, height: 852 }, navigation: true, mobileNavigation: true },
-              { name: 'rcc-admin-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#admin-login-form' },
-              { name: 'private-league-admin-login-fallback', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#admin-login-form' },
+              { name: 'rcc-admin-unified-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#landing-login-form', unifiedAdminLogin: true, expectedNext: 'admin.html?league=rcc' },
+              { name: 'private-league-admin-unified-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#landing-login-form', unifiedAdminLogin: true, expectedNext: 'admin.html?league=rcc-test' },
               { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' },
               { name: 'landing3-desktop', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 1440, height: 1000 }, landing3: true },
               { name: 'landing3-iphone', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 393, height: 852 }, landing3: true }
@@ -175,7 +200,7 @@ jobs:
                 const detail = `requestfailed: ${errorText} ${url}`;
                 diagnostics.push(detail);
                 if (kind === 'supabase' && errorText !== 'net::ERR_ABORTED') fatalErrors.push(detail);
-                if (kind === 'local' || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
+                if ((kind === 'local' && errorText !== 'net::ERR_ABORTED') || kind === 'critical-external' || kind === 'unknown') fatalErrors.push(detail);
               });
               page.on('response', (response) => {
                 if (response.status() < 400) return;
@@ -195,6 +220,7 @@ jobs:
               await page.waitForTimeout(2500);
               if (testCase.navigation) await assertNavigation(page, testCase);
               if (testCase.landing3) await assertLanding3(page, testCase);
+              if (testCase.unifiedAdminLogin) await assertUnifiedAdminLogin(page, testCase);
 
               diagnostics.forEach((line) => console.log(`[${testCase.name}] ${line}`));
               if (fatalErrors.length) throw new Error(`${testCase.name}: ${fatalErrors.join(' | ')}`);
