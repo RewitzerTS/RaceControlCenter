@@ -47,7 +47,9 @@ body[data-page="admin"] #admin-league-switcher.admin-context-compact {
   flex-wrap: wrap;
 }
 
-body[data-page="admin"] #admin-section-create-league.rcc-create-league-source-only {
+/* The create panel stays available to the existing wizard, but no longer owns
+   a standalone block in the normal admin layout. */
+body[data-page="admin"] .admin-layout > #admin-section-create-league {
   display: none !important;
 }
 
