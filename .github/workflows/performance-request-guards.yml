@@ -26,6 +26,7 @@ jobs:
           node --check assets/js/supabase-client.js
           node --check assets/js/services/rcc-data.js
           node --check assets/js/services/rcc-league-context.js
+          node --check assets/js/services/rcc-driver-context.js
           node --check assets/js/pages/admin-onboarding-context-guard.js
 
           if grep -Eq "client\.auth\.getUser[[:space:]]*\(" assets/js/supabase-client.js; then
@@ -46,7 +47,9 @@ jobs:
           grep -Fq "backgroundRefresh = false" assets/js/services/rcc-data.js
           grep -Fq "DATA_LIMITS" assets/js/services/rcc-data.js
           grep -Fq "raceResultsPage: 1000" assets/js/services/rcc-data.js
-          grep -Fq "CONTEXT_FORCE_COALESCE_MS" assets/js/pages/admin-onboarding-context-guard.js
+          grep -Fq "BOOTSTRAP_COALESCE_MS = 6000" assets/js/services/rcc-driver-context.js
+          grep -Fq "RCCContextRequestCoalescer" assets/js/services/rcc-driver-context.js
+          grep -Fq "__rccAdminContextCoalesced = true" assets/js/services/rcc-driver-context.js
           grep -Fq "bypassCoalescing: true" assets/js/pages/admin-onboarding-context-guard.js
 
           node <<'NODE'
@@ -63,6 +66,28 @@ jobs:
             throw new Error('league-context-ready listener must consume the supplied context snapshot');
           }
 
+          const driverContext = fs.readFileSync('assets/js/services/rcc-driver-context.js', 'utf8');
+          const coalescerStart = driverContext.indexOf('function installEarlyContextCoalescer');
+          const driverSetupStart = driverContext.indexOf('function setupDriverContext');
+          if (coalescerStart < 0 || driverSetupStart < 0 || coalescerStart > driverSetupStart) {
+            throw new Error('tenant request coalescer must install before the driver-context service initializes');
+          }
+          if (!/inFlight\s*&&\s*inFlightSlug\s*===\s*slug/.test(driverContext)) {
+            throw new Error('early tenant request coalescer must deduplicate concurrent context requests');
+          }
+          if (!/inBootstrapWindow/.test(driverContext)) {
+            throw new Error('forced tenant refreshes must be coalesced during the initial bootstrap window');
+          }
+
+          const adminHtml = fs.readFileSync('admin.html', 'utf8');
+          const supabasePos = adminHtml.indexOf('assets/js/supabase-client.js');
+          const driverContextPos = adminHtml.indexOf('assets/js/services/rcc-driver-context.js');
+          const layoutPos = adminHtml.indexOf('assets/js/layout.js');
+          const adminBootstrapPos = adminHtml.indexOf('assets/js/pages/admin-tenant-bootstrap.js');
+          if (!(supabasePos >= 0 && driverContextPos > supabasePos && layoutPos > driverContextPos && adminBootstrapPos > layoutPos)) {
+            throw new Error('admin script order must install early context coalescing before layout and admin bootstrap');
+          }
+
           const onboarding = fs.readFileSync('assets/js/pages/admin-onboarding-context-guard.js', 'utf8');
           const onboardingListenerStart = onboarding.indexOf("window.addEventListener('rcc:league-context-ready'");
           if (onboardingListenerStart < 0) throw new Error('admin onboarding context listener missing');
@@ -76,5 +101,5 @@ jobs:
           if (/from\(['"]leagues['"]\)[\s\S]{0,160}select\(['"]id, slug, settings['"]\)/.test(onboarding)) {
             throw new Error('admin onboarding reconciliation must reuse canonical league settings instead of issuing a duplicate leagues query');
           }
-          console.log('PASS request-loop, admin-context and shared-cache guards');
+          console.log('PASS request-loop, early coalescing, admin-context and shared-cache guards');
           NODE

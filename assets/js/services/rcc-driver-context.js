@@ -1,3 +1,105 @@
+(function installEarlyContextCoalescer(global) {
+  if (global.RCCContextRequestCoalescer?.installed) return;
+
+  const leagueContext = global.RCCLeagueContext;
+  const client = global.supabaseClient;
+  if (!leagueContext?.initialize || !client?.auth) return;
+
+  const BOOTSTRAP_COALESCE_MS = 6000;
+  const installedAt = Date.now();
+  const nativeInitialize = leagueContext.initialize.bind(leagueContext);
+  const nativeInvalidate = typeof leagueContext.invalidate === 'function'
+    ? leagueContext.invalidate.bind(leagueContext)
+    : null;
+
+  let inFlight = null;
+  let inFlightSlug = null;
+  let lastSnapshot = null;
+  let lastSlug = null;
+  let knownUserId;
+
+  function normalizeSlug(value) {
+    return String(value || leagueContext.getRequestedLeagueSlug?.() || 'rcc')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '') || 'rcc';
+  }
+
+  function cloneSnapshot(snapshot) {
+    if (!snapshot) return snapshot;
+    return {
+      ...snapshot,
+      league: snapshot.league ? { ...snapshot.league } : null,
+      membership: snapshot.membership ? { ...snapshot.membership } : null
+    };
+  }
+
+  function remember(snapshot, slug) {
+    if (!snapshot?.league) return;
+    lastSnapshot = cloneSnapshot(snapshot);
+    lastSlug = normalizeSlug(snapshot.slug || slug);
+  }
+
+  function clear() {
+    lastSnapshot = null;
+    lastSlug = null;
+  }
+
+  const seed = leagueContext.snapshot?.();
+  if (seed?.league) remember(seed, seed.slug);
+
+  leagueContext.initialize = (options = {}) => {
+    const slug = normalizeSlug(options.slug);
+    const forceRefresh = options.forceRefresh === true;
+    const bypassCoalescing = options.bypassCoalescing === true;
+    const inBootstrapWindow = Date.now() - installedAt < BOOTSTRAP_COALESCE_MS;
+
+    if (!bypassCoalescing && inFlight && inFlightSlug === slug) return inFlight;
+
+    if (!bypassCoalescing && lastSnapshot && lastSlug === slug) {
+      if (!forceRefresh || inBootstrapWindow) {
+        return Promise.resolve(cloneSnapshot(lastSnapshot));
+      }
+    }
+
+    inFlightSlug = slug;
+    inFlight = Promise.resolve(nativeInitialize(options))
+      .then((snapshot) => {
+        remember(snapshot, slug);
+        return snapshot;
+      })
+      .finally(() => {
+        inFlight = null;
+        inFlightSlug = null;
+      });
+    return inFlight;
+  };
+
+  if (nativeInvalidate) {
+    leagueContext.invalidate = (options = {}) => {
+      clear();
+      return nativeInvalidate(options);
+    };
+  }
+
+  global.addEventListener('rcc:league-context-ready', (event) => {
+    remember(event?.detail, event?.detail?.slug);
+  });
+
+  client.auth.onAuthStateChange((event, session) => {
+    const nextUserId = session?.user?.id || null;
+    if (knownUserId !== undefined && nextUserId !== knownUserId) clear();
+    if (event === 'SIGNED_OUT') clear();
+    knownUserId = nextUserId;
+  });
+
+  leagueContext.__rccAdminContextCoalesced = true;
+  global.RCCContextRequestCoalescer = Object.freeze({
+    installed: true,
+    bootstrapWindowMs: BOOTSTRAP_COALESCE_MS
+  });
+})(window);
+
 (function setupDriverContext(global) {
   function groupByDriver(assignments = []) {
     return assignments.reduce((map, assignment) => {
