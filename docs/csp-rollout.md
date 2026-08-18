@@ -1,67 +1,79 @@
 # RaceVora CSP Rollout
 
-Stand: 17.08.2026
+Stand: 18.08.2026
 
-## Ziel
+## Status
 
-RaceVora fuehrt Content Security Policy kontrolliert ein, ohne die produktiven Auth-, Turnstile-, Supabase- oder Admin-Flows durch eine zu enge Policy zu blockieren.
+RaceVora verwendet jetzt eine **enforced Content Security Policy**. Die vorherige Report-Only-Phase wurde nach realen Browser-/Admin-Tests und der Bereinigung des F1-News-Datenpfads beendet.
 
-Phase 1 verwendet deshalb ausschliesslich `Content-Security-Policy-Report-Only`.
+Die Policy wird zentral ueber `_headers` ausgeliefert.
 
-## Bekannte externe Ressourcen
+## Erlaubte externe Browser-Origins
 
-Aktuell benoetigte externe Origins im Browser:
-
-- `https://cdn.jsdelivr.net` – Supabase JavaScript Client.
+- `https://cdn.jsdelivr.net` – Supabase JavaScript Client und aktuell weitere versionierbare Frontend-Abhaengigkeiten.
 - `https://challenges.cloudflare.com` – Cloudflare Turnstile Script und Frame.
-- `https://kjccstcbqygxuqkvdaqw.supabase.co` – RaceVora Supabase HTTPS/API/Storage/Edge-Function-Verbindungen.
-- `wss://kjccstcbqygxuqkvdaqw.supabase.co` – Supabase WebSocket/Realtime, sofern ein Flow Realtime nutzt.
+- `https://kjccstcbqygxuqkvdaqw.supabase.co` – RaceVora Supabase HTTPS/API/Storage/Edge-Function-Verbindungen, inklusive des eigenen F1-News-Backends.
+- `wss://kjccstcbqygxuqkvdaqw.supabase.co` – Supabase WebSocket/Realtime.
 
-Die Landingpage verwendet zudem eigene RaceVora-Seiten in eingebetteten Frames; daher bleibt `frame-src 'self'` erlaubt.
+Die Landingpage verwendet eigene RaceVora-Seiten in eingebetteten Frames; deshalb bleibt `frame-src 'self'` erlaubt.
 
-## Report-Only-Baseline
-
-Die Policy wird zentral ueber `_headers` ausgeliefert. Sie blockiert in dieser Phase keine Ressourcen.
+## Enforcement-Baseline
 
 Wesentliche Direktiven:
 
 - `default-src 'self'`
 - `script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com`
 - `style-src 'self' 'unsafe-inline'`
+- `img-src 'self' data: blob: https:`
+- `font-src 'self' data:`
 - `connect-src 'self' https://kjccstcbqygxuqkvdaqw.supabase.co wss://kjccstcbqygxuqkvdaqw.supabase.co https://challenges.cloudflare.com`
 - `frame-src 'self' https://challenges.cloudflare.com`
+- `worker-src 'self' blob:`
+- `manifest-src 'self'`
 - `object-src 'none'`
 - `base-uri 'self'`
 - `form-action 'self'`
 - `frame-ancestors 'self'`
 
-`img-src` ist in Phase 1 bewusst breiter (`https:`), weil League-/Team-/Branding-Assets und bestehende Bildpfade vor einer Enforcement-Policy vollstaendig inventarisiert werden sollen.
+## F1-News und CSP
 
-## Warum aktuell noch `unsafe-inline`
+Die bisher im Browser aufgerufenen Proxy-Dienste `rss2json.com`, `rss2json.io` und `allorigins.win` sind keine erforderlichen Netzwerkziele mehr. Der Race Hub leitet den Legacy-Newsaufruf auf die eigene Supabase Edge Function `f1-news` um. Diese Funktion:
 
-RaceVora besitzt derzeit Inline-Skripte und Inline-Styles in mehreren HTML-Seiten. Eine sofortige Enforcement-Policy ohne `unsafe-inline` wuerde diese Bereiche blockieren.
+1. akzeptiert keine frei uebergebenen Feed-URLs,
+2. verwendet eine feste Server-Allowlist,
+3. begrenzt Feed-Antworten auf 2 MB,
+4. verwendet einen gemeinsamen 15-Minuten-Cache,
+5. kann bei Quellenausfaellen bis zu 24 Stunden auf den letzten erfolgreichen Cache zurueckfallen.
 
-Vor einer spaeteren strikten Enforcement-Phase sollten Inline-Skripte in versionierte JS-Dateien ausgelagert bzw. schrittweise auf CSP-Nonces/Hashes umgestellt werden. Cloudflare Turnstile unterstuetzt eine nonce-basierte CSP und alternativ die explizite Freigabe von `https://challenges.cloudflare.com` in `script-src` und `frame-src`.
+Dadurch muss die CSP keine oeffentlichen RSS-Proxy-Domains erlauben.
+
+## Warum `unsafe-inline` vorerst bestehen bleibt
+
+RaceVora besitzt weiterhin Inline-Skripte und Inline-Styles in mehreren bestehenden Seiten. Die CSP ist trotzdem bereits blockierend aktiv, erlaubt Inline-Code aber derzeit explizit.
+
+Eine spaetere Haertung soll Inline-Skripte/-Styles schrittweise in versionierte Dateien verlagern bzw. mit CSP-Nonces oder Hashes absichern. Diese Haertung ist bewusst **nicht** Teil der ersten Enforcement-Aktivierung, um Sicherheitsgewinn und Regressionsrisiko getrennt zu halten.
+
+## Warum `img-src https:` vorerst bestehen bleibt
+
+Liga-, Team- und Branding-Assets koennen aktuell aus unterschiedlichen HTTPS-Quellen stammen. Die Enforcement-Aktivierung veraendert diese bestehende Funktionalitaet deshalb nicht. Nach weiterer Beobachtung kann `img-src` auf konkrete Origins reduziert werden.
 
 ## Verifikation
 
-`.github/workflows/csp-report-only-smoke.yml` prueft:
+`.github/workflows/csp-report-only-smoke.yml` traegt aus historischen Gruenden noch diesen Dateinamen, prueft aber jetzt die **Enforcement-Policy**:
 
-1. dass die Policy im Repository vorhanden ist,
-2. dass Turnstile, jsDelivr und RaceVora Supabase explizit enthalten sind,
-3. dass keine Secret-artigen Werte in den oeffentlichen Headern stehen,
-4. nach Merge/Deploy, dass `https://racevora.com/` die Report-Only-Policy wirklich ausliefert.
+1. `Content-Security-Policy` ist vorhanden,
+2. `Content-Security-Policy-Report-Only` ist nicht mehr aktiv,
+3. Turnstile, jsDelivr und RaceVora Supabase bleiben freigegeben,
+4. keine Secret-artigen Werte stehen in den oeffentlichen Headern,
+5. nach Merge/Cloudflare-Deploy wird der produktive Enforcement-Header auf `racevora.com` kontrolliert.
 
-## Uebergang zu Enforcement
+Der F1-News-Pfad besitzt zusaetzlich `.github/workflows/f1-news-backend-smoke.yml`.
 
-Erst nach Beobachtung realer Browser-Flows:
+## Naechste CSP-Haertung
 
-1. Login, Registrierung, Passwort-Recovery, Signup-Resend testen.
-2. Admin Center inkl. KI-Upload, Ergebnis-Workflows und Asset-Uploads testen.
-3. Race Hub, Fahrer-/Team-WM und eingebettete Landingpage-Previews testen.
-4. Externe Bild-/Asset-Origins aus Reporten bzw. Browser-Netzwerkdaten inventarisieren.
-5. `img-src` auf konkrete Quellen reduzieren.
-6. Inline-JavaScript/-CSS schrittweise entfernen oder nonce/hash-basiert absichern.
-7. Erst danach `Content-Security-Policy-Report-Only` kontrolliert durch `Content-Security-Policy` ersetzen.
+Die Enforcement-Policy ist jetzt die produktive Basis. Weitere Haertung erfolgt separat:
 
-Bei jeder Enforcement-Aenderung muss Turnstile weiterhin `https://challenges.cloudflare.com` in `script-src` und `frame-src` erhalten.
+1. CDN-Abhaengigkeiten versionieren bzw. soweit sinnvoll selbst hosten.
+2. Inline-JavaScript/-CSS reduzieren und auf Nonces/Hashes umstellen.
+3. `img-src https:` auf bekannte Asset-Origins begrenzen.
+4. Optional eine strengere Kandidaten-Policy erneut parallel als Report-Only beobachten, bevor die produktive Enforcement-Policy enger wird.
