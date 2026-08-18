@@ -6,7 +6,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "
 const CACHE_KEY = "racevora-f1-news-v1";
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const STALE_MAX_MS = 24 * 60 * 60 * 1000;
-const FETCH_TIMEOUT_MS = 8000;
+const FETCH_TIMEOUT_MS = 4000;
 const MAX_ITEMS_PER_SOURCE = 8;
 const MAX_RESPONSE_ITEMS = 16;
 const MAX_FEED_BYTES = 2_000_000;
@@ -21,11 +21,10 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 const FEEDS = [
-  { name: "Motorsport-Total", url: "https://www.motorsport-total.com/formel-1/rss" },
-  { name: "Motorsport-Magazin", url: "https://www.motorsport-magazin.com/formel1/news.xml" },
-  { name: "Google News · Motorsport-Total", url: "https://news.google.com/rss/search?q=site%3Amotorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de" },
-  { name: "Google News · Motorsport-Magazin", url: "https://news.google.com/rss/search?q=site%3Amotorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de" },
-  { name: "Google News · Formel 1", url: "https://news.google.com/rss/search?q=Formel+1+News&hl=de&gl=DE&ceid=DE:de" },
+  { name: "Motorsport.com DE", url: "https://de.motorsport.com/rss/f1/news/" },
+  { name: "Motorsport-Total", url: "https://www.motorsport-total.com/rss/rss_formel-1.xml" },
+  { name: "Sportschau Formel 1", url: "https://www.sportschau.de/motorsport/formel1/index~rss2.xml" },
+  { name: "Autosport", url: "https://www.autosport.com/rss/f1/news/" },
 ] as const;
 
 type NewsItem = {
@@ -147,7 +146,7 @@ async function fetchFeed(feed: typeof FEEDS[number]): Promise<{ items: NewsItem[
       redirect: "follow",
       headers: {
         "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5",
-        "User-Agent": "RaceVora-F1-News/2.0 (+https://racevora.com)",
+        "User-Agent": "RaceVora-F1-News/3.0 (+https://racevora.com)",
       },
     });
 
