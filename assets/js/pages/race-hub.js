@@ -56,6 +56,87 @@
     document.body.appendChild(script);
   }
 
+  function ensureCommunitySection() {
+    if (byId('race-hub-community')) return byId('race-hub-community');
+    const insights = ensureInsightsSection();
+    const podium = document.querySelector('.podium-grid');
+    const anchor = insights || podium;
+    if (!anchor) return null;
+    const section = document.createElement('section');
+    section.id = 'race-hub-community';
+    section.className = 'race-hub-community';
+    section.hidden = true;
+    section.innerHTML = `
+      <article class="race-hub-community-card">
+        <div class="race-hub-community-head">
+          <div><div class="card-label">Formbarometer</div><h2>Aktuelle Formfahrer</h2></div>
+          <p>Performance Index aus den letzten veröffentlichten Starts. Zeitraum: <strong id="race-hub-community-season">aktuelle Saison</strong>.</p>
+        </div>
+        <div id="race-hub-form-drivers" class="race-hub-form-list"><div class="race-hub-community-empty">Formranking wird berechnet…</div></div>
+      </article>
+      <article class="race-hub-community-card">
+        <div class="race-hub-community-head">
+          <div><div class="card-label">Liga-Highlights</div><h2>Rekorde im Fokus</h2></div>
+          <a class="btn-secondary-ghost" href="rekorde.html">Alle Rekorde</a>
+        </div>
+        <div id="race-hub-record-highlights" class="race-hub-highlight-grid"><div class="race-hub-community-empty">Highlights werden berechnet…</div></div>
+      </article>
+      <article class="race-hub-explore">
+        <div class="race-hub-community-head">
+          <div><div class="card-label">RaceVora Driver Hub</div><h2>Liga entdecken</h2></div>
+          <p>Direkt zu Profilen, Teams, Strecken, Vergleichen und Rekorden.</p>
+        </div>
+        <div id="race-hub-explore-grid" class="race-hub-explore-grid"></div>
+      </article>
+    `;
+    anchor.after(section);
+    return section;
+  }
+
+  function loadCommunityScript(src, marker, ready) {
+    if (ready?.()) return Promise.resolve();
+    const existing = document.querySelector(`script[data-rcc-community-module="${marker}"]`);
+    if (existing) {
+      return new Promise((resolve, reject) => {
+        if (ready?.()) return resolve();
+        existing.addEventListener('load', resolve, { once: true });
+        existing.addEventListener('error', reject, { once: true });
+      });
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = false;
+      script.dataset.rccCommunityModule = marker;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.body.appendChild(script);
+    });
+  }
+
+  async function ensureCommunityAssets() {
+    const section = ensureCommunitySection();
+    if (!section) return;
+    if (!document.querySelector('link[data-rcc-community-style="true"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'assets/css/pages/race-hub-community.css';
+      link.dataset.rccCommunityStyle = 'true';
+      document.head.appendChild(link);
+    }
+    try {
+      await loadCommunityScript('assets/js/services/rcc-driver-stats.js', 'driver-stats', () => Boolean(window.RCCDriverStats));
+      await loadCommunityScript('assets/js/services/rcc-team-stats.js', 'team-stats', () => Boolean(window.RCCTeamStats));
+      await loadCommunityScript('assets/js/services/rcc-driver-performance.js', 'driver-performance', () => Boolean(window.RCCDriverPerformance));
+      await loadCommunityScript('assets/js/services/rcc-records.js', 'records', () => Boolean(window.RCCRecords));
+      await loadCommunityScript('assets/js/pages/race-hub-community.js', 'community-page', () => Boolean(window.RCCRaceHubCommunity));
+      window.RCCRaceHubCommunity?.render?.();
+    } catch (error) {
+      console.warn('Race Hub Community konnte nicht geladen werden:', error);
+      section.hidden = false;
+    }
+  }
+
   function copyText(sourceId, targetId, fallback = '—') {
     const source = byId(sourceId);
     const target = byId(targetId);
@@ -216,6 +297,7 @@
     renderSeasonProgress();
     renderLatestPole();
     ensureInsightsAssets();
+    ensureCommunityAssets();
   }
 
   window.RCCRaceHub = {
@@ -223,7 +305,8 @@
     syncLatestRace,
     renderSeasonProgress,
     renderLatestPole,
-    ensureInsightsAssets
+    ensureInsightsAssets,
+    ensureCommunityAssets
   };
 
   document.addEventListener('dashboard:content-ready', refresh);

@@ -1,0 +1,161 @@
+name: Public League Hub Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'race-hub.html'
+      - 'assets/js/pages/race-hub.js'
+      - 'assets/js/pages/race-hub-community.js'
+      - 'assets/css/pages/race-hub-community.css'
+      - '.github/workflows/public-league-hub-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'race-hub.html'
+      - 'assets/js/pages/race-hub.js'
+      - 'assets/js/pages/race-hub-community.js'
+      - 'assets/css/pages/race-hub-community.css'
+      - '.github/workflows/public-league-hub-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and wiring
+        run: |
+          node --check assets/js/pages/race-hub.js
+          node --check assets/js/pages/race-hub-community.js
+          grep -Fq 'class="race-hub-page"' race-hub.html
+          grep -Fq 'ensureCommunityAssets();' assets/js/pages/race-hub.js
+          grep -Fq 'race-hub-community.css' assets/js/pages/race-hub.js
+          grep -Fq 'rcc-driver-performance.js' assets/js/pages/race-hub.js
+          grep -Fq 'rcc-records.js' assets/js/pages/race-hub.js
+          grep -Fq 'Aktuelle Formfahrer' assets/js/pages/race-hub.js
+          grep -Fq 'Liga entdecken' assets/js/pages/race-hub.js
+          grep -Fq "['★', 'Rekorde'" assets/js/pages/race-hub-community.js
+          grep -Fq 'body.race-hub-page{max-width:100%;overflow-x:clip}' assets/css/pages/race-hub-community.css
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/public-league-hub-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/race-hub.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/public-league-hub-http.log
+          exit 1
+      - name: Exercise public RCC league hub
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8080/race-hub.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('#race-hub-community:not([hidden])', { state: 'visible', timeout: 30000 });
+            await page.waitForFunction(() => document.querySelectorAll('.race-hub-explore-link').length === 6, null, { timeout: 30000 });
+            const state = await page.evaluate(() => ({
+              formDrivers: document.querySelectorAll('.race-hub-form-driver').length,
+              highlights: document.querySelectorAll('.race-hub-highlight').length,
+              explore: document.querySelectorAll('.race-hub-explore-link').length,
+              ratingValues: [...document.querySelectorAll('.race-hub-form-score strong')].map((el) => Number(el.textContent)),
+              recordLink: document.querySelector('.race-hub-explore-link[href*="rekorde.html"]')?.getAttribute('href') || '',
+              profileLinks: document.querySelectorAll('.race-hub-form-driver[href*="fahrer-profil.html"]').length,
+              latestTitle: document.querySelector('#race-hub-latest-title')?.textContent?.trim() || '',
+              driverPodiumExists: Boolean(document.querySelector('#driver-podium')),
+              teamPodiumExists: Boolean(document.querySelector('#team-podium')),
+              nextRaceExists: Boolean(document.querySelector('#hero-next-race')),
+              progressExists: Boolean(document.querySelector('#race-hub-progress-bar'))
+            }));
+            if (state.formDrivers < 2) throw new Error(`expected form drivers, got ${JSON.stringify(state)}`);
+            if (state.highlights < 2) throw new Error(`expected record highlights, got ${JSON.stringify(state)}`);
+            if (state.explore !== 6 || !state.recordLink.includes('rekorde.html')) throw new Error(`explore incomplete ${JSON.stringify(state)}`);
+            if (state.profileLinks !== state.formDrivers) throw new Error(`form profile links incomplete ${JSON.stringify(state)}`);
+            if (state.ratingValues.some((value) => !Number.isFinite(value) || value < 0 || value > 100)) throw new Error(`invalid form rating ${JSON.stringify(state)}`);
+            if (!state.latestTitle || !state.driverPodiumExists || !state.teamPodiumExists || !state.nextRaceExists || !state.progressExists) throw new Error(`existing Race Hub shell regressed ${JSON.stringify(state)}`);
+            if (errors.length) throw new Error(errors.join(' | '));
+
+            await page.setViewportSize({ width: 393, height: 852 });
+            await page.waitForTimeout(300);
+            const mobile = await page.evaluate(() => {
+              const communityRect = document.querySelector('#race-hub-community')?.getBoundingClientRect();
+              const navRect = document.querySelector('.main-nav')?.getBoundingClientRect();
+              return {
+                width: innerWidth,
+                scrollWidth: document.documentElement.scrollWidth,
+                htmlOverflow: getComputedStyle(document.documentElement).overflowX,
+                bodyOverflow: getComputedStyle(document.body).overflowX,
+                bodyWidth: Math.round(document.body.getBoundingClientRect().width),
+                communityLeft: Math.round(communityRect?.left || 0),
+                communityRight: Math.round(communityRect?.right || 0),
+                navDisplay: getComputedStyle(document.querySelector('.main-nav')).display,
+                navLeft: Math.round(navRect?.left || 0),
+                navRight: Math.round(navRect?.right || 0)
+              };
+            });
+            const clipped = ['hidden', 'clip'].includes(mobile.htmlOverflow) || ['hidden', 'clip'].includes(mobile.bodyOverflow);
+            if (mobile.scrollWidth > mobile.width + 2 && !clipped) throw new Error(`unclipped mobile overflow ${JSON.stringify(mobile)}`);
+            if (mobile.bodyWidth > mobile.width + 2 || mobile.communityLeft < -2 || mobile.communityRight > mobile.width + 2) throw new Error(`visible mobile content overflow ${JSON.stringify(mobile)}`);
+            if (mobile.navDisplay === 'none') throw new Error(`existing off-canvas drawer was removed ${JSON.stringify(mobile)}`);
+
+            await page.waitForFunction(() => {
+              const loader = document.querySelector('.f1-loader-overlay');
+              return !loader || getComputedStyle(loader).pointerEvents === 'none' || getComputedStyle(loader).display === 'none' || getComputedStyle(loader).visibility === 'hidden';
+            }, null, { timeout: 15000 });
+            const championOverlay = page.locator('#season-champion-overlay.is-visible');
+            if (await championOverlay.count()) {
+              await page.locator('#season-champion-close').click({ timeout: 10000 });
+              await page.waitForFunction(() => !document.querySelector('#season-champion-overlay')?.classList.contains('is-visible'), null, { timeout: 5000 });
+            }
+
+            const toggle = page.locator('.mobile-toggle');
+            await toggle.waitFor({ state: 'visible', timeout: 10000 });
+            await toggle.click({ timeout: 10000 });
+            await page.waitForFunction(() => {
+              const nav = document.querySelector('[data-main-nav]');
+              if (!document.body.classList.contains('nav-drawer-open') || !nav?.classList.contains('open')) return false;
+              const rect = nav.getBoundingClientRect();
+              return rect.left < innerWidth && rect.right > 0;
+            }, null, { timeout: 5000 });
+            const openDrawer = await page.evaluate(() => {
+              const nav = document.querySelector('.main-nav');
+              const rect = nav?.getBoundingClientRect();
+              return {
+                display: nav ? getComputedStyle(nav).display : 'missing',
+                left: Math.round(rect?.left || 0),
+                right: Math.round(rect?.right || 0),
+                viewport: innerWidth
+              };
+            });
+            if (openDrawer.display === 'none' || openDrawer.left >= openDrawer.viewport || openDrawer.right <= 0) throw new Error(`mobile drawer did not open in viewport ${JSON.stringify(openDrawer)}`);
+            await toggle.click({ timeout: 10000 });
+            await page.waitForFunction(() => !document.body.classList.contains('nav-drawer-open') && !document.querySelector('[data-main-nav]')?.classList.contains('open'), null, { timeout: 5000 });
+
+            if (errors.length) throw new Error(errors.join(' | '));
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
