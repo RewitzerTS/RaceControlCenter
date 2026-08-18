@@ -64,8 +64,7 @@
   function navigateToLeague(slug) {
     setLeagueContext(slug);
     const file = window.location.pathname.split('/').pop() || 'race-hub.html';
-    const targetFile = file === 'admin.html' ? 'admin.html' : file;
-    const url = new URL(targetFile, window.location.href);
+    const url = new URL(file, window.location.href);
     url.searchParams.set('league', slug);
     window.location.assign(`${url.pathname.split('/').pop()}${url.search}${url.hash}`);
   }
@@ -139,6 +138,7 @@
   function setupGridDriverProfiles() {
     if (document.body?.dataset.page !== 'grid' || document.documentElement.dataset.rccGridProfileLinks === 'true') return;
     document.documentElement.dataset.rccGridProfileLinks = 'true';
+    document.getElementById('driver-card-modal')?.remove();
     document.addEventListener('click', (event) => {
       const card = event.target?.closest?.('.driver-team-member-flip[data-driver-id]');
       if (!card) return;
@@ -183,10 +183,11 @@
 
   function installLeagueManagementInCalendar() {
     if (document.body?.dataset.page !== 'admin') return;
+    document.getElementById('admin-create-league-launcher')?.remove();
+
     const source = document.getElementById('admin-section-create-league');
     if (!source) return;
-
-    source.classList.add('rcc-create-league-source-only');
+    source.classList.remove('rcc-create-league-source-only');
     source.hidden = true;
     source.dataset.rccAdminHubIgnore = 'true';
 
@@ -205,8 +206,7 @@
       </div>
       <button type="button" class="button-secondary">Neue Liga erstellen</button>`;
     card.querySelector('button')?.addEventListener('click', () => {
-      const panel = source.querySelector(':scope > section.panel') || source;
-      window.RCCWizardDialog?.open?.(panel, {
+      window.RCCWizardDialog?.open?.(source, {
         title: 'Ligaverwaltung · Neue Liga erstellen',
         headerActionLabel: 'Schließen',
         onHeaderAction: () => window.RCCWizardDialog?.close?.()
