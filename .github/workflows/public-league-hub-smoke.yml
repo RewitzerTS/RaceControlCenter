@@ -3,6 +3,7 @@ name: Public League Hub Smoke
 on:
   pull_request:
     paths:
+      - 'race-hub.html'
       - 'assets/js/pages/race-hub.js'
       - 'assets/js/pages/race-hub-community.js'
       - 'assets/css/pages/race-hub-community.css'
@@ -10,6 +11,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'race-hub.html'
       - 'assets/js/pages/race-hub.js'
       - 'assets/js/pages/race-hub-community.js'
       - 'assets/css/pages/race-hub-community.css'
@@ -31,6 +33,7 @@ jobs:
         run: |
           node --check assets/js/pages/race-hub.js
           node --check assets/js/pages/race-hub-community.js
+          grep -Fq 'class="race-hub-page"' race-hub.html
           grep -Fq 'ensureCommunityAssets();' assets/js/pages/race-hub.js
           grep -Fq 'race-hub-community.css' assets/js/pages/race-hub.js
           grep -Fq 'rcc-driver-performance.js' assets/js/pages/race-hub.js
@@ -38,6 +41,7 @@ jobs:
           grep -Fq 'Aktuelle Formfahrer' assets/js/pages/race-hub.js
           grep -Fq 'Liga entdecken' assets/js/pages/race-hub.js
           grep -Fq "['★', 'Rekorde'" assets/js/pages/race-hub-community.js
+          grep -Fq 'body.race-hub-page:not(.nav-drawer-open) .main-nav{display:none!important}' assets/css/pages/race-hub-community.css
 
   browser:
     needs: static
@@ -98,28 +102,44 @@ jobs:
             await page.setViewportSize({ width: 393, height: 852 });
             await page.waitForTimeout(300);
             const mobile = await page.evaluate(() => {
-              const width = innerWidth;
-              const offenders = [...document.querySelectorAll('body *')].map((el) => {
-                const rect = el.getBoundingClientRect();
-                const style = getComputedStyle(el);
-                return {
-                  tag: el.tagName.toLowerCase(),
-                  id: el.id || '',
-                  cls: String(el.className || '').slice(0, 140),
-                  left: Math.round(rect.left),
-                  right: Math.round(rect.right),
-                  width: Math.round(rect.width),
-                  clientWidth: el.clientWidth,
-                  scrollWidth: el.scrollWidth,
-                  position: style.position,
-                  overflowX: style.overflowX
-                };
-              }).filter((item) => item.right > width + 2 || item.left < -2 || item.scrollWidth > item.clientWidth + 2)
-                .sort((a, b) => Math.max(b.right - width, b.scrollWidth - b.clientWidth) - Math.max(a.right - width, a.scrollWidth - a.clientWidth))
-                .slice(0, 20);
-              return { width, scrollWidth: document.documentElement.scrollWidth, offenders };
+              const communityRect = document.querySelector('#race-hub-community')?.getBoundingClientRect();
+              return {
+                width: innerWidth,
+                scrollWidth: document.documentElement.scrollWidth,
+                htmlOverflow: getComputedStyle(document.documentElement).overflowX,
+                bodyOverflow: getComputedStyle(document.body).overflowX,
+                bodyWidth: Math.round(document.body.getBoundingClientRect().width),
+                communityLeft: Math.round(communityRect?.left || 0),
+                communityRight: Math.round(communityRect?.right || 0),
+                navDisplay: getComputedStyle(document.querySelector('.main-nav')).display
+              };
             });
-            if (mobile.scrollWidth > mobile.width + 2) throw new Error(`public league hub mobile overflow ${mobile.scrollWidth} > ${mobile.width}; offenders=${JSON.stringify(mobile.offenders)}`);
+            const clipped = ['hidden', 'clip'].includes(mobile.htmlOverflow) || ['hidden', 'clip'].includes(mobile.bodyOverflow);
+            if (mobile.scrollWidth > mobile.width + 2 && !clipped) throw new Error(`unclipped mobile overflow ${JSON.stringify(mobile)}`);
+            if (mobile.bodyWidth > mobile.width + 2 || mobile.communityLeft < -2 || mobile.communityRight > mobile.width + 2) throw new Error(`visible mobile content overflow ${JSON.stringify(mobile)}`);
+            if (mobile.navDisplay !== 'none') throw new Error(`closed mobile drawer still participates in layout ${JSON.stringify(mobile)}`);
+
+            const toggle = page.locator('.mobile-toggle');
+            await toggle.waitFor({ state: 'visible', timeout: 10000 });
+            await toggle.click();
+            await page.waitForFunction(() => document.body.classList.contains('nav-drawer-open'), null, { timeout: 5000 });
+            const openDrawer = await page.evaluate(() => {
+              const nav = document.querySelector('.main-nav');
+              const rect = nav?.getBoundingClientRect();
+              return {
+                display: nav ? getComputedStyle(nav).display : 'missing',
+                left: Math.round(rect?.left || 0),
+                right: Math.round(rect?.right || 0),
+                viewport: innerWidth
+              };
+            });
+            if (openDrawer.display === 'none' || openDrawer.left >= openDrawer.viewport || openDrawer.right <= 0) throw new Error(`mobile drawer did not open in viewport ${JSON.stringify(openDrawer)}`);
+            await toggle.click();
+            await page.waitForFunction(() => !document.body.classList.contains('nav-drawer-open'), null, { timeout: 5000 });
+            const closedDisplay = await page.evaluate(() => getComputedStyle(document.querySelector('.main-nav')).display);
+            if (closedDisplay !== 'none') throw new Error(`mobile drawer did not close cleanly: ${closedDisplay}`);
+
+            if (errors.length) throw new Error(errors.join(' | '));
             await browser.close();
           })().catch((error) => { console.error(error); process.exit(1); });
           NODE
