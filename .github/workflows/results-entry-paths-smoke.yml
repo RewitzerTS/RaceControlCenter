@@ -41,9 +41,15 @@ jobs:
           grep -Fq "openCsvImport(csvPanel)" assets/js/components/rcc-results-workflow.js
           grep -Fq '<h4>Manuelle Eingabe</h4>' assets/js/components/rcc-results-workflow.js
           grep -Fq 'data-rcc-results-action="manual"' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'id="manual-results-panel"' assets/js/components/rcc-manual-results-entry.js
           grep -Fq 'manual-race-select' assets/js/components/rcc-manual-results-entry.js
           grep -Fq 'rcc-manual-entry-editor" hidden' assets/js/components/rcc-manual-results-entry.js
-          grep -Fq 'renderRows();' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'rcc-manual-add-row' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'rcc-manual-remove-row' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'rcc-manual-clear-table' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq '30 Zeilen' assets/js/components/rcc-manual-results-entry.js || grep -Fq 'state.rowCount >= 30' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'manual-results-entry-table-wrap' assets/css/components/rcc-results-workflow.css
+          grep -Fq '#rcc-manual-results-table { min-width: 820px; }' assets/css/components/rcc-results-workflow.css
           grep -Fq 'Als Entwurf speichern' assets/js/components/rcc-manual-results-entry.js
           grep -Fq 'data-rcc-results-action="publish"' assets/js/components/rcc-results-workflow.js
           test "$(grep -o 'data-rcc-results-action="[^"]*"' assets/js/components/rcc-results-workflow.js | sort -u | wc -l)" -eq 4
