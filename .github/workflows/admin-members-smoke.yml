@@ -18,19 +18,27 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Verify member UI remains wired while email invitations are paused
+      - name: Verify member UI and active invite path without sending email
         shell: bash
         run: |
           set -euo pipefail
+          fn='supabase/functions/manage-league-member/index.ts'
           grep -Fq 'assets/js/pages/admin-members.js' admin.html
           grep -Fq 'RCCLeagueMembers?.init?.()' admin.html
           grep -Fq 'Person hinzufügen / einladen' assets/js/pages/admin-members.js
           grep -Fq "functions.invoke('manage-league-member'" assets/js/pages/admin-members.js
-          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
-          if grep -Fq 'inviteUserByEmail' supabase/functions/manage-league-member/index.ts; then
-            echo 'Paused member function must not contain an active email invite path.' >&2
+          grep -Fq 'auth.getUser()' "$fn"
+          grep -Fq 'platform_owners' "$fn"
+          grep -Fq 'league_members' "$fn"
+          grep -Fq 'inviteUserByEmail' "$fn"
+          grep -Fq '.upsert(' "$fn"
+          grep -Fq 'only_platform_owner_can_add_owner' "$fn"
+          grep -Fq 'only_platform_owner_can_modify_owner' "$fn"
+          if grep -Fq 'email_sending_paused' "$fn"; then
+            echo 'Member invitation function is still paused.' >&2
             exit 1
           fi
           grep -Fq "button.textContent='Team'" assets/js/pages/admin-members.js
           grep -Fq "button.dataset.adminTabTarget='admin-section-members'" assets/js/pages/admin-members.js
           node --check assets/js/pages/admin-members.js
+          echo 'PASS active member invite path verified statically; no invitation sent.'

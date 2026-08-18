@@ -73,14 +73,14 @@ jobs:
             exit 1
           fi
 
-      - name: Confirm email pause remains untouched
+      - name: Confirm transactional email state remains active
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'EMAIL_SENDING_PAUSED = true' assets/js/auth-turnstile-config.js
-          grep -Fq 'email_sending_paused' supabase/functions/finalize-consumer-registration/index.ts
-          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
-          grep -Fq 'email_sending_paused' supabase/functions/submit-consumer-withdrawal/index.ts
+          grep -Fq 'EMAIL_SENDING_PAUSED = false' assets/js/auth-turnstile-config.js
+          grep -Fq 'sendResendEmail' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'inviteUserByEmail' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'api.resend.com/emails' supabase/functions/submit-consumer-withdrawal/index.ts
 
   landing-browser-smoke:
     runs-on: ubuntu-latest

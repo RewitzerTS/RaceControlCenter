@@ -1,13 +1,10 @@
-name: Email Pause Smoke
+name: Email Delivery State
 
 on:
   pull_request:
     paths:
       - 'assets/js/email-pause.js'
       - 'assets/js/auth-turnstile-config.js'
-      - 'register.html'
-      - 'forgot-password.html'
-      - 'account-setup.html'
       - 'supabase/functions/finalize-consumer-registration/index.ts'
       - 'supabase/functions/manage-league-member/index.ts'
       - 'supabase/functions/submit-consumer-withdrawal/index.ts'
@@ -17,9 +14,6 @@ on:
     paths:
       - 'assets/js/email-pause.js'
       - 'assets/js/auth-turnstile-config.js'
-      - 'register.html'
-      - 'forgot-password.html'
-      - 'account-setup.html'
       - 'supabase/functions/finalize-consumer-registration/index.ts'
       - 'supabase/functions/manage-league-member/index.ts'
       - 'supabase/functions/submit-consumer-withdrawal/index.ts'
@@ -37,57 +31,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify pause wiring and no-send guards
+      - name: Verify transactional email flows are active without sending mail
+        shell: bash
         run: |
+          set -euo pipefail
           node --check assets/js/email-pause.js
-          grep -Fq 'window.RACEVORA_EMAIL_SENDING_PAUSED = true' assets/js/auth-turnstile-config.js
-          grep -Fq 'assets/js/email-pause.js' register.html
-          grep -Fq 'assets/js/email-pause.js' forgot-password.html
-          grep -Fq 'assets/js/email-pause.js' account-setup.html
-          grep -Fq 'email_sending_paused' supabase/functions/finalize-consumer-registration/index.ts
-          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
-          grep -Fq 'email_sending_paused' supabase/functions/submit-consumer-withdrawal/index.ts
-          if grep -Eq 'api\.resend\.com|inviteUserByEmail|sendResendEmail' \
+          grep -Fq 'window.RACEVORA_EMAIL_SENDING_PAUSED = false' assets/js/auth-turnstile-config.js
+          grep -Fq 'RACEVORA_EMAIL_SENDING_PAUSED !== true' assets/js/email-pause.js
+          grep -Fq 'create_league' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'contract_confirmations' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'sendResendEmail' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'inviteUserByEmail' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'api.resend.com/emails' supabase/functions/submit-consumer-withdrawal/index.ts
+          if grep -Fq 'email_sending_paused' \
             supabase/functions/finalize-consumer-registration/index.ts \
             supabase/functions/manage-league-member/index.ts \
             supabase/functions/submit-consumer-withdrawal/index.ts; then
-            echo 'Paused server functions must not contain an active email provider call.' >&2
+            echo 'An active transactional function still contains the pause response.' >&2
             exit 1
           fi
-      - name: Exercise client pause without network calls
-        run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const nativeLogin = async () => ({ data: { session: true }, error: null });
-          const nativeOtherInvoke = async (name) => ({ data: { name }, error: null });
-          global.window = {
-            RACEVORA_EMAIL_SENDING_PAUSED: true,
-            RACEVORA_EMAIL_PAUSE_MESSAGE: 'paused',
-            supabaseClient: {
-              auth: {
-                signUp: async () => { throw new Error('native signup called'); },
-                resend: async () => { throw new Error('native resend called'); },
-                resetPasswordForEmail: async () => { throw new Error('native recovery called'); },
-                signInWithPassword: nativeLogin,
-              },
-              functions: { invoke: nativeOtherInvoke },
-            },
-          };
-          global.document = { readyState: 'complete', getElementById: () => null };
-          eval(fs.readFileSync('assets/js/email-pause.js', 'utf8'));
-          (async () => {
-            const client = window.supabaseClient;
-            for (const result of [
-              await client.auth.signUp({}),
-              await client.auth.resend({}),
-              await client.auth.resetPasswordForEmail('test@example.com'),
-            ]) {
-              if (result?.error?.code !== 'racevora_email_sending_paused') throw new Error('Email auth flow was not blocked');
-            }
-            if (client.auth.signInWithPassword !== nativeLogin) throw new Error('Normal password login must remain untouched');
-            const finalize = await client.functions.invoke('finalize-consumer-registration', {});
-            if (finalize?.error?.code !== 'racevora_email_sending_paused') throw new Error('Registration finalization was not blocked');
-            const other = await client.functions.invoke('other-function', {});
-            if (other?.data?.name !== 'other-function') throw new Error('Unrelated functions must remain available');
-          })().catch((error) => { console.error(error); process.exit(1); });
-          NODE
+          echo 'PASS transactional email paths active; workflow performs static checks only.'

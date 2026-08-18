@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify withdrawal remains storable while email is paused
+      - name: Verify withdrawal storage and confirmation email path statically
         shell: bash
         run: |
           set -euo pipefail
@@ -23,10 +23,12 @@ jobs:
           grep -Fq 'consumer_withdrawals' database/2026-consumer-withdrawals.sql
           grep -Fq 'revoke all on table public.consumer_withdrawals from public, anon, authenticated' database/2026-consumer-withdrawals.sql
           grep -Fq '.from("consumer_withdrawals")' "$function"
-          grep -Fq 'confirmation_sent: false' "$function"
-          grep -Fq 'email_sending_paused' "$function"
-          if grep -Eq 'RESEND_API_KEY|api\.resend\.com|sendResendEmail' "$function"; then
-            echo 'Withdrawal pause implementation must not call the email provider.' >&2
+          grep -Fq 'RESEND_API_KEY' "$function"
+          grep -Fq 'https://api.resend.com/emails' "$function"
+          grep -Fq 'sendResendEmail' "$function"
+          grep -Fq 'confirmation_sent: confirmationSent' "$function"
+          if grep -Fq 'email_sending_paused' "$function"; then
+            echo 'Withdrawal confirmation email path is still paused.' >&2
             exit 1
           fi
           grep -Fq 'Widerruf bestätigen' widerruf.html
@@ -34,7 +36,7 @@ jobs:
           grep -Fq 'submit-consumer-withdrawal' assets/js/pages/withdrawal.js
           grep -Fq 'Eingangsbeleg herunterladen' widerruf.html
           grep -Fq 'Resend' datenschutz.html
-          echo 'Paused withdrawal backend contains storage only and no email provider call.'
+          echo 'PASS active withdrawal email path verified statically; no withdrawal or email created by CI.'
 
       - name: Syntax check browser script
         run: node --check assets/js/pages/withdrawal.js
@@ -55,4 +57,3 @@ jobs:
           grep -Fq '>Widerruf bestätigen<' widerruf.html
           grep -Fq 'confirmed: true' assets/js/pages/withdrawal.js
           grep -Fq 'downloadReceipt' assets/js/pages/withdrawal.js
-          echo 'Electronic withdrawal smoke is static only; no live withdrawal or email is created.'

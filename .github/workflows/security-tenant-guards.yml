@@ -57,11 +57,19 @@ jobs:
           requireMatch(migration, /Official result contains a driver outside this league/i, 'cross-league driver rejection');
           requireMatch(migration, /revoke execute on function public\.apply_race_penalties\(uuid\) from anon;/i, 'legacy penalty RPC anon revoke');
 
-          // Member writes are fully disabled while transactional email is paused.
-          // With no service-role client and no invite path, no owner/member mutation can occur.
-          requireMatch(memberFn, /email_sending_paused/i, 'member management pause guard');
-          if (/SUPABASE_SERVICE_ROLE_KEY|serviceRole|inviteUserByEmail|\.upsert\(/i.test(memberFn)) {
-            throw new Error('Paused member function unexpectedly retains a privileged mutation or email path');
+          requireMatch(memberFn, /auth\.getUser\(\)/i, 'member authenticated actor check');
+          requireMatch(memberFn, /from\("platform_owners"\)/i, 'member platform owner lookup');
+          requireMatch(memberFn, /from\("league_members"\)/i, 'member tenant membership lookup');
+          requireMatch(memberFn, /\["owner",\s*"admin"\]\.includes\(actorMembership\.role\)/i, 'member owner/admin role guard');
+          requireMatch(memberFn, /only_platform_owner_can_add_owner/i, 'owner assignment restriction');
+          requireMatch(memberFn, /only_platform_owner_can_modify_owner/i, 'existing owner protection');
+          requireMatch(memberFn, /inviteUserByEmail/i, 'active invitation path');
+          requireMatch(memberFn, /\.upsert\(\{\s*league_id:/i, 'tenant membership upsert');
+          const canManageIndex = memberFn.indexOf('const canManage');
+          const inviteIndex = memberFn.indexOf('inviteUserByEmail');
+          const upsertIndex = memberFn.indexOf('.upsert({ league_id:');
+          if ([canManageIndex, inviteIndex, upsertIndex].some((value) => value < 0) || !(canManageIndex < inviteIndex && inviteIndex < upsertIndex)) {
+            throw new Error('Member authorization must complete before invitation and membership mutation');
           }
 
           requireMatch(aiFn, /auth\.getUser\(\)/i, 'AI authenticated user check');
@@ -82,7 +90,7 @@ jobs:
 
           if (/Race Control Center/.test(aiFn)) throw new Error('Legacy platform brand remains in AI Edge Function prompt');
 
-          console.log('PASS member management disabled during email pause');
+          console.log('PASS active member invitation remains tenant/role guarded');
           console.log('PASS tenant-scoped result publishing');
           console.log('PASS closed-only steward public access');
           console.log('PASS privileged table client revokes');
