@@ -1,0 +1,135 @@
+name: Result Review Center Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/components/rcc-result-review-overview.js'
+      - 'assets/css/components/rcc-result-review-overview.css'
+      - 'assets/js/components/rcc-results-workflow.js'
+      - '.github/workflows/result-review-center-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/js/components/rcc-result-review-overview.js'
+      - 'assets/css/components/rcc-result-review-overview.css'
+      - 'assets/js/components/rcc-results-workflow.js'
+      - '.github/workflows/result-review-center-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check review center wiring
+        run: |
+          node --check assets/js/components/rcc-result-review-overview.js
+          node --check assets/js/components/rcc-results-workflow.js
+          grep -Fq 'RCCResultReviewOverview' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'rcc-result-review-overview.js' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'Änderungsstatus:' assets/js/components/rcc-result-review-overview.js
+          grep -Fq 'Vor Veröffentlichung klären:' assets/js/components/rcc-result-review-overview.js
+          grep -Fq 'Ergebnisvorschau anzeigen' assets/js/components/rcc-result-review-overview.js
+          grep -Fq "['draft', 'under_review']" assets/js/components/rcc-result-review-overview.js
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/result-review-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/assets/js/components/rcc-result-review-overview.js >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/result-review-http.log
+          exit 1
+      - name: Exercise review center
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            await page.setContent(`<!doctype html><html><head><style>
+              :root{--surface:#fff;--surface-2:#f5f5f5;--line:#ddd;--text:#111;--text-muted:#666;--primary:#333;--accent:#777}
+              body{margin:0;padding:16px;font-family:Arial,sans-serif}.panel{max-width:100%}
+            </style></head><body><details class="panel" open><div id="publish-workflow-list"></div></details></body></html>`);
+            await page.evaluate(() => {
+              const imports = [{
+                id:'import-1', race_id:'race-1', status:'under_review', source_filename:'Manuelle Eingabe', imported_at:'2026-08-18T08:00:00Z',
+                races:{id:'race-1',grand_prix_name:'Monaco GP',round_number:7},
+                race_result_import_rows:[
+                  {id:'row-1',driver_id:'driver-1',driver_name_raw:'Alpha',finish_position:1,grid_position:2,pit_stops:1,fastest_lap_time:'01:10,000',race_time:'42:00,000',participation_status:'PLAYER',raw_payload:{source:'manual'}},
+                  {id:'row-2',driver_id:'driver-2',driver_name_raw:'Beta',finish_position:2,grid_position:1,pit_stops:1,fastest_lap_time:'01:11,000',race_time:'+00:03,000',participation_status:'PLAYER',raw_payload:{source:'manual'}}
+                ]
+              }];
+              const datasets = {
+                race_result_imports: imports,
+                race_results: [
+                  {race_id:'race-1',driver_id:'driver-1',finish_position:2,grid_position:2,pit_stops:1,fastest_lap_time:'01:10,000',race_time:'42:05,000',participation_status:'PLAYER'},
+                  {race_id:'race-1',driver_id:'driver-2',finish_position:1,grid_position:1,pit_stops:1,fastest_lap_time:'01:11,000',race_time:'42:00,000',participation_status:'PLAYER'}
+                ],
+                drivers: [
+                  {id:'driver-1',display_name:'Alpha',gamertag:'Alpha'},
+                  {id:'driver-2',display_name:'Beta',gamertag:'Beta'}
+                ]
+              };
+              window.escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, '');
+              window.supabaseClient = {
+                from(table) {
+                  const chain = {
+                    select(){ return chain; },
+                    in(){ return chain; },
+                    order(){ return chain; },
+                    then(resolve, reject){ return Promise.resolve({ data: datasets[table] || [], error: null }).then(resolve, reject); }
+                  };
+                  return chain;
+                }
+              };
+            });
+            await page.addScriptTag({ url:'http://127.0.0.1:8080/assets/js/components/rcc-result-review-overview.js' });
+            await page.waitForSelector('.rcc-result-review__card', { timeout: 10000 });
+            await page.waitForFunction(() => document.querySelector('.rcc-result-review__source')?.textContent.includes('Manuell'));
+            const state = await page.evaluate(() => {
+              const root = document.querySelector('#rcc-result-review-overview');
+              const card = document.querySelector('.rcc-result-review__card');
+              const rect = card.getBoundingClientRect();
+              const duplicateCheck = window.RCCResultReviewOverview.validateDraft({ race_result_import_rows:[
+                {driver_id:'x',finish_position:1,grid_position:1,race_time:'1',fastest_lap_time:'1'},
+                {driver_id:'x',finish_position:1,grid_position:2,race_time:'1',fastest_lap_time:'1'}
+              ]});
+              return {
+                source: document.querySelector('.rcc-result-review__source')?.textContent || '',
+                change: document.querySelector('.rcc-result-review__change')?.textContent || '',
+                preview: document.querySelector('.rcc-result-review__preview summary')?.textContent || '',
+                ready: document.querySelector('.rcc-result-review__card')?.classList.contains('is-ready'),
+                duplicateBlocked: duplicateCheck.blockers.length >= 2,
+                left: Math.round(rect.left), right: Math.round(rect.right), width: innerWidth,
+                rootExists: Boolean(root)
+              };
+            });
+            if (!state.rootExists || !state.source.includes('Manuell')) throw new Error(`source/render failed ${JSON.stringify(state)}`);
+            if (!state.change.includes('Fahrer geändert')) throw new Error(`published diff missing ${JSON.stringify(state)}`);
+            if (!state.preview.includes('Ergebnisvorschau')) throw new Error(`preview missing ${JSON.stringify(state)}`);
+            if (!state.ready || !state.duplicateBlocked) throw new Error(`validation failed ${JSON.stringify(state)}`);
+            if (state.left < -2 || state.right > state.width + 2) throw new Error(`mobile overflow ${JSON.stringify(state)}`);
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
