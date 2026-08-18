@@ -7,6 +7,8 @@ on:
       - 'assets/js/layout.js'
       - 'assets/js/pages/landing.js'
       - 'assets/js/pages/landing3-motion.js'
+      - 'assets/css/pages/landing3-motion.css'
+      - 'assets/css/pages/landing3-previews.css'
       - 'assets/js/components/racevora-app-ux-polish.js'
       - 'assets/js/components/racevora-team-logo-resilience.js'
       - 'assets/css/rcc-ux-pass2.css'
@@ -56,12 +58,17 @@ jobs:
           grep -Fq 'autoEnterSingle' "$landing"
           grep -Fq "history.scrollRestoration = 'manual'" "$landing"
 
-          grep -Fq 'previewDocument(type)' "$motion"
-          grep -Fq 'srcdoc = previewDocument' "$motion"
-          grep -Fq 'step.hidden = !active' "$motion"
+          grep -Fq 'heroPreviewDocument()' "$motion"
+          grep -Fq 'desktopFrame.srcdoc = heroPreviewDocument()' "$motion"
+          grep -Fq 'sceneMarkup(index)' "$motion"
+          grep -Fq 'data-story-stage' "$motion"
+          grep -Fq 'l3-story-mobile-visual' "$motion"
           grep -Fq 'data-static-preview="hub"' index.html
-          grep -Fq 'data-static-preview="standings"' index.html
-          grep -Fq 'data-static-preview="results"' index.html
+
+          if grep -Fq 'previewDocument(type)' "$motion"; then
+            echo 'Legacy multi-device preview generator is still present.' >&2
+            exit 1
+          fi
 
           if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse)\.html\?league=rcc' index.html; then
             echo 'Decorative landing devices still load live RCC pages.' >&2
@@ -98,7 +105,7 @@ jobs:
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/racevora-ux-http.log 2>&1 &
           echo $! > /tmp/racevora-ux-http.pid
-      - name: Verify landing starts at top and previews are static
+      - name: Verify premium landing story on desktop and mobile
         shell: bash
         run: |
           set -euo pipefail
@@ -106,38 +113,69 @@ jobs:
           const { chromium } = require('playwright');
           (async () => {
             const browser = await chromium.launch({ headless: true });
-            const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-            page.on('pageerror', (error) => {
+
+            const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+            desktop.on('pageerror', (error) => {
               const text = String(error?.message || error);
               if (!/supabase|turnstile/i.test(text)) console.error('PAGEERROR', text);
             });
-            await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
-            await page.waitForTimeout(300);
+            await desktop.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+            await desktop.waitForTimeout(350);
 
-            const scrollY = await page.evaluate(() => window.scrollY);
+            const scrollY = await desktop.evaluate(() => window.scrollY);
             if (scrollY > 2) throw new Error(`Landing did not start at top: ${scrollY}`);
 
-            const previews = await page.locator('iframe[data-static-preview]').evaluateAll((frames) => frames.map((frame) => ({
+            const heroPreview = await desktop.locator('.l3-desktop iframe').evaluate((frame) => ({
               src: frame.getAttribute('src') || '',
-              hasSrcdoc: Boolean(frame.getAttribute('srcdoc')),
-              preview: frame.getAttribute('data-static-preview') || ''
-            })));
-            if (previews.length < 6) throw new Error(`Expected static hero/story previews, got ${previews.length}`);
-            if (previews.some((entry) => /race-hub|fahrer-wm|ergebnisse/.test(entry.src))) {
-              throw new Error('A decorative preview still points at a live league page.');
-            }
-            if (previews.some((entry) => !entry.hasSrcdoc)) {
-              throw new Error('Static preview srcdoc was not installed.');
-            }
+              hasSrcdoc: Boolean(frame.getAttribute('srcdoc'))
+            }));
+            if (heroPreview.src) throw new Error(`Hero preview unexpectedly loads ${heroPreview.src}`);
+            if (!heroPreview.hasSrcdoc) throw new Error('Premium hero preview srcdoc was not installed.');
 
-            const experience = page.locator('#experience');
+            const productSceneCount = await desktop.locator('[data-product-scene]').count();
+            if (productSceneCount !== 4) throw new Error(`Expected four product scenes, got ${productSceneCount}`);
+            const mobileVisualCount = await desktop.locator('.l3-story-mobile-visual').count();
+            if (mobileVisualCount !== 4) throw new Error(`Expected four mobile story visuals, got ${mobileVisualCount}`);
+
+            const experience = desktop.locator('#experience');
             await experience.scrollIntoViewIfNeeded();
-            await page.waitForTimeout(150);
-            const visibleSteps = await page.locator('[data-story-step]').evaluateAll((steps) => steps.filter((step) => {
+            await desktop.waitForTimeout(180);
+            const visibleSteps = await desktop.locator('[data-story-step]').evaluateAll((steps) => steps.filter((step) => {
               const style = getComputedStyle(step);
-              return !step.hidden && style.display !== 'none' && Number(style.opacity || '1') > 0.5;
+              return style.display !== 'none' && Number(style.opacity || '1') > 0.5;
             }).length);
             if (visibleSteps !== 1) throw new Error(`Desktop story overlays ${visibleSteps} readable steps instead of one.`);
+
+            await desktop.evaluate(() => {
+              const story = document.querySelector('#experience');
+              const top = window.scrollY + story.getBoundingClientRect().top;
+              const travel = Math.max(1, story.offsetHeight - window.innerHeight);
+              window.scrollTo(0, top + travel * 0.84);
+            });
+            await desktop.waitForTimeout(220);
+            const finalScene = await desktop.locator('[data-story-stage]').getAttribute('data-story-stage');
+            if (finalScene !== '3') throw new Error(`Final story scene did not activate: ${finalScene}`);
+            const satellitesVisible = await desktop.locator('.l3-story-satellite').evaluateAll((nodes) => nodes.every((node) => Number(getComputedStyle(node).opacity) > 0.5));
+            if (!satellitesVisible) throw new Error('Final multi-device payoff did not become visible.');
+
+            const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
+            await mobile.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+            await mobile.waitForTimeout(350);
+            const mobileState = await mobile.evaluate(() => ({
+              overflow: document.documentElement.scrollWidth - window.innerWidth,
+              heroStage: getComputedStyle(document.querySelector('.l3-device-stage')).display,
+              storyPosition: getComputedStyle(document.querySelector('.l3-scroll-story__sticky')).position,
+              visibleSteps: [...document.querySelectorAll('[data-story-step]')].filter((step) => {
+                const style = getComputedStyle(step);
+                return style.display !== 'none' && Number(style.opacity || '1') > 0.5;
+              }).length,
+              visibleVisuals: [...document.querySelectorAll('.l3-story-mobile-visual')].filter((node) => getComputedStyle(node).display !== 'none').length
+            }));
+            if (mobileState.overflow > 2) throw new Error(`Mobile landing overflows horizontally by ${mobileState.overflow}px.`);
+            if (mobileState.heroStage !== 'none') throw new Error(`Mobile hero device collage is still visible: ${mobileState.heroStage}`);
+            if (mobileState.storyPosition === 'sticky') throw new Error('Mobile story still uses desktop sticky behavior.');
+            if (mobileState.visibleSteps !== 4) throw new Error(`Expected four readable mobile chapters, got ${mobileState.visibleSteps}`);
+            if (mobileState.visibleVisuals !== 4) throw new Error(`Expected four mobile product visuals, got ${mobileState.visibleVisuals}`);
 
             await browser.close();
           })().catch((error) => {
