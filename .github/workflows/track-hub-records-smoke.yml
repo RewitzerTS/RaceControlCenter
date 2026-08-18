@@ -1,0 +1,149 @@
+name: Track Hub and Records Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'strecken.html'
+      - 'strecken-profil.html'
+      - 'kalender.html'
+      - 'rennen-detail.html'
+      - 'assets/js/services/rcc-track-stats.js'
+      - 'assets/js/pages/track-hub.js'
+      - 'assets/js/pages/track-profile.js'
+      - 'assets/js/pages/track-profile-link.js'
+      - 'assets/css/track-profile.css'
+      - '.github/workflows/track-hub-records-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'strecken.html'
+      - 'strecken-profil.html'
+      - 'kalender.html'
+      - 'rennen-detail.html'
+      - 'assets/js/services/rcc-track-stats.js'
+      - 'assets/js/pages/track-hub.js'
+      - 'assets/js/pages/track-profile.js'
+      - 'assets/js/pages/track-profile-link.js'
+      - 'assets/css/track-profile.css'
+      - '.github/workflows/track-hub-records-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax and wiring
+        run: |
+          node --check assets/js/services/rcc-track-stats.js
+          node --check assets/js/pages/track-hub.js
+          node --check assets/js/pages/track-profile.js
+          node --check assets/js/pages/track-profile-link.js
+          grep -Fq 'data-page="strecken"' strecken.html
+          grep -Fq 'data-page="strecken-profil"' strecken-profil.html
+          grep -Fq 'assets/js/services/rcc-track-stats.js' strecken.html
+          grep -Fq 'assets/js/services/rcc-track-stats.js' strecken-profil.html
+          grep -Fq 'Strecken & Rekorde' kalender.html
+          grep -Fq 'track-profile-link.js' rennen-detail.html
+          grep -Fq 'parseLapTime' assets/js/services/rcc-track-stats.js
+          grep -Fq 'fastest_lap_time' assets/js/services/rcc-track-stats.js
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/track-hub-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/strecken.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/track-hub-http.log
+          exit 1
+      - name: Exercise Track Hub with public RCC data
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+
+          async function openChecked(browser, path, selector, viewport = { width: 1280, height: 900 }) {
+            const page = await browser.newPage({ viewport });
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            const response = await page.goto(`http://127.0.0.1:8080/${path}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+            if (!response || response.status() >= 400) throw new Error(`${path}: HTTP ${response?.status()}`);
+            await page.waitForSelector(selector, { state: 'visible', timeout: 30000 });
+            await page.waitForTimeout(500);
+            if (errors.length) throw new Error(`${path}: ${errors.join(' | ')}`);
+            return page;
+          }
+
+          async function noOverflow(page, label) {
+            const size = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));
+            if (size.scroll > size.width + 2) throw new Error(`${label}: horizontal overflow ${size.scroll} > ${size.width}`);
+          }
+
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+
+            const hub = await openChecked(browser, 'strecken.html?league=rcc', '#track-hub-content:not([hidden])');
+            const hubState = await hub.evaluate(() => ({
+              cards: document.querySelectorAll('.track-hub-card').length,
+              races: Number(document.querySelector('#track-hub-races')?.textContent || 0),
+              starts: Number(document.querySelector('#track-hub-starts')?.textContent || 0),
+              links: [...document.querySelectorAll('.track-hub-card')].map((el) => el.getAttribute('href') || '')
+            }));
+            if (hubState.cards < 5) throw new Error(`Track Hub: expected multiple tracks, got ${hubState.cards}`);
+            if (hubState.races < 1 || hubState.starts < 1) throw new Error(`Track Hub: missing RCC history ${JSON.stringify(hubState)}`);
+            if (!hubState.links.every((href) => href.includes('strecken-profil.html') && href.includes('track='))) throw new Error('Track Hub: profile links incomplete');
+            const firstHref = hubState.links[0];
+            await hub.close();
+
+            const profile = await openChecked(browser, `${firstHref}`, '#track-profile-content:not([hidden])');
+            const profileState = await profile.evaluate(() => ({
+              options: document.querySelectorAll('#track-profile-select option').length,
+              races: Number(document.querySelector('#track-stat-races')?.textContent || 0),
+              starts: Number(document.querySelector('#track-stat-starts')?.textContent || 0),
+              leaders: document.querySelectorAll('.track-leader-item').length,
+              driverRows: document.querySelectorAll('#track-profile-drivers tr').length,
+              raceRows: document.querySelectorAll('#track-profile-races tr').length
+            }));
+            if (profileState.options < 5 || profileState.races < 1 || profileState.starts < 1) throw new Error(`Track Profile: incomplete history ${JSON.stringify(profileState)}`);
+            if (profileState.leaders !== 6 || profileState.driverRows < 1 || profileState.raceRows < 1) throw new Error(`Track Profile: records incomplete ${JSON.stringify(profileState)}`);
+            await profile.close();
+
+            const race = await openChecked(browser, 'rennen-detail.html?league=rcc&round=1', '#race-track-profile-link');
+            const raceTrackHref = await race.locator('#race-track-profile-link').getAttribute('href');
+            if (!raceTrackHref || !raceTrackHref.includes('strecken-profil.html') || !raceTrackHref.includes('track=')) throw new Error('Race detail: track profile link missing');
+            await race.close();
+
+            const calendar = await openChecked(browser, 'kalender.html?league=rcc', 'a[href="strecken.html"]');
+            await calendar.close();
+
+            const mobileHub = await openChecked(browser, 'strecken.html?league=rcc', '#track-hub-content:not([hidden])', { width: 393, height: 852 });
+            await noOverflow(mobileHub, 'Track Hub iPhone');
+            await mobileHub.close();
+
+            const mobileProfile = await openChecked(browser, `${firstHref}`, '#track-profile-content:not([hidden])', { width: 393, height: 852 });
+            await noOverflow(mobileProfile, 'Track Profile iPhone');
+            await mobileProfile.close();
+
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
