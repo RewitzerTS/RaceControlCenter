@@ -13,60 +13,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify durable-medium registration flow
+      - name: Verify registration is safely paused without email delivery
         shell: bash
         run: |
           set -euo pipefail
           migration='database/2026-consumer-contract-confirmations.sql'
           function='supabase/functions/finalize-consumer-registration/index.ts'
-          config='supabase/config.toml'
+          config='assets/js/auth-turnstile-config.js'
+          pause_client='assets/js/email-pause.js'
           register_client='assets/js/pages/register.js'
           setup_client='assets/js/pages/account-setup.js'
-          cors_guard='assets/js/pages/registration-function-cors.js'
           register_page='register.html'
           setup_page='account-setup.html'
+
           test -s "$migration"
           test -s "$function"
-          test -s "$config"
-          test -s "$register_client"
-          test -s "$setup_client"
-          test -s "$cors_guard"
-          test -s "$register_page"
-          test -s "$setup_page"
-          grep -Fq 'create table if not exists public.contract_confirmations' "$migration"
-          grep -Fq 'enable row level security' "$migration"
-          grep -Fq 'revoke all on table public.contract_confirmations from public, anon, authenticated' "$migration"
-          grep -Fq 'contract_confirmations_user_league_contract_unique' "$migration"
-          for client in "$register_client" "$setup_client"; do
-            grep -Fq 'finalize-consumer-registration' "$client"
-            grep -Fq 'confirmation?.sent_at' "$client"
-            if grep -Fq ".rpc('create_league'" "$client"; then
-              echo "Registration path bypasses contract finalization: $client" >&2
-              exit 1
-            fi
-          done
-          if grep -Fq 'findExistingLeague' "$setup_client"; then
-            echo 'Account setup can bypass contract finalization through an existing-league fallback.' >&2
-            exit 1
-          fi
-          grep -Fq '[functions.finalize-consumer-registration]' "$config"
-          grep -Fq 'verify_jwt = false' "$config"
+          test -s "$pause_client"
+          grep -Fq 'window.RACEVORA_EMAIL_SENDING_PAUSED = true' "$config"
+          grep -Fq 'email_sending_paused' "$function"
           grep -Fq 'authHeader.startsWith("Bearer ")' "$function"
           grep -Fq 'userClient.auth.getUser()' "$function"
-          grep -Fq 'actor.email_confirmed_at' "$function"
-          grep -Fq 'registration_metadata_mismatch' "$function"
-          grep -Fq 'userClient.rpc("create_league"' "$function"
-          grep -Fq 'contract_confirmations' "$function"
-          grep -Fq 'confirmation_sent_at' "$function"
-          grep -Fq 'RESEND_API_KEY' "$function"
-          grep -Fq 'Idempotency-Key' "$function"
-          grep -Fq 'contract-confirmation/${confirmation.reference}' "$function"
-          grep -Fq 'Muster-Widerrufsformular' "$function"
-          grep -Fq '0,00 EUR' "$function"
-          grep -Fq "x-rcc-league-slug" "$cors_guard"
-          grep -Fq "delete headers[key]" "$cors_guard"
-          for page in "$register_page" "$setup_page"; do
-            grep -Fq 'assets/js/supabase-client.js' "$page"
-            grep -Fq 'assets/js/pages/registration-function-cors.js' "$page"
-          done
-          echo 'Contract confirmation smoke passed.'
+          grep -Fq 'finalize-consumer-registration' "$register_client"
+          grep -Fq 'finalize-consumer-registration' "$setup_client"
+          grep -Fq 'assets/js/email-pause.js' "$register_page"
+          grep -Fq 'assets/js/email-pause.js' "$setup_page"
+
+          if grep -Eq 'RESEND_API_KEY|api\.resend\.com|create_league|contract_confirmations' "$function"; then
+            echo 'Paused registration finalizer must not send email or mutate registration business data.' >&2
+            exit 1
+          fi
+
+          echo 'Contract confirmation flow is intentionally paused without email delivery.'

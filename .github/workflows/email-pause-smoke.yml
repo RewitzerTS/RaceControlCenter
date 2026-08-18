@@ -1,0 +1,93 @@
+name: Email Pause Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/email-pause.js'
+      - 'assets/js/auth-turnstile-config.js'
+      - 'register.html'
+      - 'forgot-password.html'
+      - 'account-setup.html'
+      - 'supabase/functions/finalize-consumer-registration/index.ts'
+      - 'supabase/functions/manage-league-member/index.ts'
+      - 'supabase/functions/submit-consumer-withdrawal/index.ts'
+      - '.github/workflows/email-pause-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/js/email-pause.js'
+      - 'assets/js/auth-turnstile-config.js'
+      - 'register.html'
+      - 'forgot-password.html'
+      - 'account-setup.html'
+      - 'supabase/functions/finalize-consumer-registration/index.ts'
+      - 'supabase/functions/manage-league-member/index.ts'
+      - 'supabase/functions/submit-consumer-withdrawal/index.ts'
+      - '.github/workflows/email-pause-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify pause wiring and no-send guards
+        run: |
+          node --check assets/js/email-pause.js
+          grep -Fq 'window.RACEVORA_EMAIL_SENDING_PAUSED = true' assets/js/auth-turnstile-config.js
+          grep -Fq 'assets/js/email-pause.js' register.html
+          grep -Fq 'assets/js/email-pause.js' forgot-password.html
+          grep -Fq 'assets/js/email-pause.js' account-setup.html
+          grep -Fq 'email_sending_paused' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/submit-consumer-withdrawal/index.ts
+          if grep -Eq 'api\.resend\.com|inviteUserByEmail|sendResendEmail' \
+            supabase/functions/finalize-consumer-registration/index.ts \
+            supabase/functions/manage-league-member/index.ts \
+            supabase/functions/submit-consumer-withdrawal/index.ts; then
+            echo 'Paused server functions must not contain an active email provider call.' >&2
+            exit 1
+          fi
+      - name: Exercise client pause without network calls
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const nativeLogin = async () => ({ data: { session: true }, error: null });
+          const nativeOtherInvoke = async (name) => ({ data: { name }, error: null });
+          global.window = {
+            RACEVORA_EMAIL_SENDING_PAUSED: true,
+            RACEVORA_EMAIL_PAUSE_MESSAGE: 'paused',
+            supabaseClient: {
+              auth: {
+                signUp: async () => { throw new Error('native signup called'); },
+                resend: async () => { throw new Error('native resend called'); },
+                resetPasswordForEmail: async () => { throw new Error('native recovery called'); },
+                signInWithPassword: nativeLogin,
+              },
+              functions: { invoke: nativeOtherInvoke },
+            },
+          };
+          global.document = { readyState: 'complete', getElementById: () => null };
+          eval(fs.readFileSync('assets/js/email-pause.js', 'utf8'));
+          (async () => {
+            const client = window.supabaseClient;
+            for (const result of [
+              await client.auth.signUp({}),
+              await client.auth.resend({}),
+              await client.auth.resetPasswordForEmail('test@example.com'),
+            ]) {
+              if (result?.error?.code !== 'racevora_email_sending_paused') throw new Error('Email auth flow was not blocked');
+            }
+            if (client.auth.signInWithPassword !== nativeLogin) throw new Error('Normal password login must remain untouched');
+            const finalize = await client.functions.invoke('finalize-consumer-registration', {});
+            if (finalize?.error?.code !== 'racevora_email_sending_paused') throw new Error('Registration finalization was not blocked');
+            const other = await client.functions.invoke('other-function', {});
+            if (other?.data?.name !== 'other-function') throw new Error('Unrelated functions must remain available');
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE

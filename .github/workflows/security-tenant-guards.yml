@@ -7,6 +7,7 @@ on:
       - main
       - security/**
       - feature/**
+      - hotfix/**
 
 permissions:
   contents: read
@@ -42,30 +43,27 @@ jobs:
             if (!pattern.test(text)) throw new Error(`Missing security guard: ${label}`);
           };
 
-          // Direct privilege / RLS protections.
           requireMatch(migration, /revoke all privileges on table public\.platform_owners from anon, authenticated;/i, 'platform_owners direct client revoke');
           requireMatch(migration, /revoke all privileges on table public\.app_admins from anon, authenticated;/i, 'legacy app_admins direct client revoke');
           requireMatch(migration, /drop policy if exists "admins read admin list" on public\.app_admins;/i, 'legacy admin enumeration policy removal');
 
-          // Owner rows must be protected in both USING and WITH CHECK.
           const ownerRoleGuards = migration.match(/role\s*<>\s*'owner'/gi) || [];
           if (ownerRoleGuards.length < 2) throw new Error('Owner demotion RLS guard must protect both old and new membership rows');
           requireMatch(migration, /drop policy if exists "request scope race substitutions"/i, 'broad substitution read policy removal');
           requireMatch(migration, /status\s*=\s*'closed'/i, 'public steward closed-only guard');
 
-          // Result publishing must bind every driver to the race league and tenant.
           requireMatch(migration, /can_manage_race_workflow\(p_race_id\)/i, 'result publish tenant/role guard');
           requireMatch(migration, /d\.league_id\s*=\s*v_league_id/i, 'result driver tenant binding');
           requireMatch(migration, /Official result contains a driver outside this league/i, 'cross-league driver rejection');
           requireMatch(migration, /revoke execute on function public\.apply_race_penalties\(uuid\) from anon;/i, 'legacy penalty RPC anon revoke');
 
-          // service_role member management must explicitly protect existing owners.
-          requireMatch(memberFn, /existingTargetMembership\?\.role\s*===\s*"owner"\s*&&\s*!platformOwner/i, 'service-role owner protection');
-          requireMatch(memberFn, /only_platform_owner_can_modify_owner/i, 'owner modification denial response');
-          requireMatch(memberFn, /safeRedirect\(/i, 'live safe invite redirect behavior retained');
-          requireMatch(memberFn, /email_rate_limit_exceeded/i, 'live invite rate-limit behavior retained');
+          // Member writes are fully disabled while transactional email is paused.
+          // With no service-role client and no invite path, no owner/member mutation can occur.
+          requireMatch(memberFn, /email_sending_paused/i, 'member management pause guard');
+          if (/SUPABASE_SERVICE_ROLE_KEY|serviceRole|inviteUserByEmail|\.upsert\(/i.test(memberFn)) {
+            throw new Error('Paused member function unexpectedly retains a privileged mutation or email path');
+          }
 
-          // AI calls need user + tenant + owner/admin authorization before the paid key/call.
           requireMatch(aiFn, /auth\.getUser\(\)/i, 'AI authenticated user check');
           requireMatch(aiFn, /x-rcc-league-slug/i, 'AI requested tenant context');
           requireMatch(aiFn, /rpc\("is_platform_owner"\)/i, 'AI platform owner check');
@@ -84,7 +82,7 @@ jobs:
 
           if (/Race Control Center/.test(aiFn)) throw new Error('Legacy platform brand remains in AI Edge Function prompt');
 
-          console.log('PASS owner membership protection');
+          console.log('PASS member management disabled during email pause');
           console.log('PASS tenant-scoped result publishing');
           console.log('PASS closed-only steward public access');
           console.log('PASS privileged table client revokes');

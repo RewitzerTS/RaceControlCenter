@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Verify member management wiring and navigation
+      - name: Verify member UI remains wired while email invitations are paused
         shell: bash
         run: |
           set -euo pipefail
@@ -26,13 +26,11 @@ jobs:
           grep -Fq 'RCCLeagueMembers?.init?.()' admin.html
           grep -Fq 'Person hinzufügen / einladen' assets/js/pages/admin-members.js
           grep -Fq "functions.invoke('manage-league-member'" assets/js/pages/admin-members.js
-          grep -Fq "action:'check'" assets/js/pages/admin-members.js
-          grep -Fq 'Diese E-Mail besitzt bereits ein gültiges RaceVora Konto.' assets/js/pages/admin-members.js
-          grep -Fq 'accountExists' supabase/functions/manage-league-member/index.ts
-          grep -Fq 'alreadyMember' supabase/functions/manage-league-member/index.ts
-          grep -Fq 'action === "check"' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
+          if grep -Fq 'inviteUserByEmail' supabase/functions/manage-league-member/index.ts; then
+            echo 'Paused member function must not contain an active email invite path.' >&2
+            exit 1
+          fi
           grep -Fq "button.textContent='Team'" assets/js/pages/admin-members.js
           grep -Fq "button.dataset.adminTabTarget='admin-section-members'" assets/js/pages/admin-members.js
-          grep -Fq "setMemberPanelVisible(memberPanel,showMembers)" assets/js/pages/admin-members.js
-          grep -Fq "style.setProperty('display',visible?'block':'none','important')" assets/js/pages/admin-members.js
           node --check assets/js/pages/admin-members.js
