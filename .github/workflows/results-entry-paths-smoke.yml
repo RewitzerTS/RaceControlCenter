@@ -1,0 +1,49 @@
+name: Results Entry Paths Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/components/rcc-results-workflow.js'
+      - 'assets/js/components/rcc-manual-results-entry.js'
+      - 'assets/css/components/rcc-results-workflow.css'
+      - 'admin.html'
+      - '.github/workflows/results-entry-paths-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/js/components/rcc-results-workflow.js'
+      - 'assets/js/components/rcc-manual-results-entry.js'
+      - 'assets/css/components/rcc-results-workflow.css'
+      - 'admin.html'
+      - '.github/workflows/results-entry-paths-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate result entry separation
+        run: |
+          node --check assets/js/components/rcc-results-workflow.js
+          node --check assets/js/components/rcc-manual-results-entry.js
+          grep -Fq '<h4>Datei importieren</h4>' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'Renn-Screenshots oder Ergebnisbilder' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'data-rcc-results-action="ai"' assets/js/components/rcc-results-workflow.js
+          grep -Fq '<h4>CSV importieren</h4>' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'data-rcc-results-action="csv"' assets/js/components/rcc-results-workflow.js
+          grep -Fq "openCsvImport(csvPanel)" assets/js/components/rcc-results-workflow.js
+          grep -Fq '<h4>Manuelle Eingabe</h4>' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'data-rcc-results-action="manual"' assets/js/components/rcc-results-workflow.js
+          grep -Fq 'manual-race-select' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'rcc-manual-entry-editor" hidden' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'renderRows();' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'Als Entwurf speichern' assets/js/components/rcc-manual-results-entry.js
+          grep -Fq 'data-rcc-results-action="publish"' assets/js/components/rcc-results-workflow.js
+          test "$(grep -o 'data-rcc-results-action="[^"]*"' assets/js/components/rcc-results-workflow.js | sort -u | wc -l)" -eq 4
