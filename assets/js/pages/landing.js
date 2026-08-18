@@ -21,8 +21,18 @@
   const roleLabels = {
     owner: 'Owner',
     admin: 'Ligaleitung',
-    steward: 'Steward'
+    steward: 'Steward',
+    member: 'Mitglied'
   };
+
+  function forceLandingTop() {
+    if (window.location.hash) return;
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const reset = () => window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    reset();
+    requestAnimationFrame(reset);
+    window.setTimeout(reset, 80);
+  }
 
   function installPasswordToggle(input) {
     if (!input || input.dataset.passwordToggleReady === '1') return;
@@ -82,7 +92,7 @@
 
   function setLoginButtons(session) {
     document.querySelectorAll('[data-login-button-label]').forEach((label) => {
-      label.textContent = session?.user ? 'Admin öffnen' : 'Login';
+      label.textContent = session?.user ? 'RaceVora öffnen' : 'Login';
     });
   }
 
@@ -112,10 +122,30 @@
     return data?.session || null;
   }
 
+  function leagueOverviewHref(league) {
+    const url = new URL('race-hub.html', window.location.href);
+    url.searchParams.set('league', String(league.slug || 'rcc'));
+    return `${url.pathname.split('/').pop()}${url.search}`;
+  }
+
+  function rememberLeague(slug) {
+    try {
+      sessionStorage.setItem('rcc.activeLeagueSlug.v1', slug);
+      sessionStorage.setItem('rcc.lastTenantSlug.v1', slug);
+    } catch (_) {}
+  }
+
+  function enterLeague(league) {
+    const slug = String(league?.slug || '').trim() || 'rcc';
+    rememberLeague(slug);
+    window.location.assign(leagueOverviewHref({ ...league, slug }));
+  }
+
   function makeLeagueLink(league) {
     const link = document.createElement('a');
     link.className = 'login-league-link';
-    link.href = `admin.html?league=${encodeURIComponent(league.slug)}`;
+    link.href = leagueOverviewHref(league);
+    link.addEventListener('click', () => rememberLeague(String(league.slug || 'rcc')));
 
     const copy = document.createElement('div');
     const name = document.createElement('strong');
@@ -137,15 +167,14 @@
     const membershipResponse = await window.supabaseClient
       .from('league_members')
       .select('league_id, role')
-      .eq('user_id', session.user.id)
-      .in('role', ['owner', 'admin', 'steward']);
+      .eq('user_id', session.user.id);
 
     if (membershipResponse.error) throw membershipResponse.error;
     const memberships = membershipResponse.data || [];
     if (!memberships.length) return [];
 
     const roleByLeagueId = new Map(memberships.map((entry) => [String(entry.league_id), entry.role]));
-    const leagueIds = memberships.map((entry) => entry.league_id);
+    const leagueIds = memberships.map((entry) => entry.league_id).filter(Boolean);
     const leagueResponse = await window.supabaseClient
       .from('leagues')
       .select('id, name, slug, status')
@@ -156,7 +185,7 @@
     if (leagueResponse.error) throw leagueResponse.error;
     return (leagueResponse.data || []).map((league) => ({
       ...league,
-      role: roleByLeagueId.get(String(league.id)) || 'admin'
+      role: roleByLeagueId.get(String(league.id)) || 'member'
     }));
   }
 
@@ -169,43 +198,51 @@
     }
   }
 
-  async function renderSessionState(session) {
+  async function resolveAccessibleLeagues(session) {
+    const leagues = await fetchAccessibleLeagues(session);
+    if (leagues.length) return leagues;
+    return await isPlatformOwner()
+      ? [{ name: 'Race Control Center', slug: 'rcc', role: 'owner' }]
+      : [];
+  }
+
+  async function renderSessionState(session, { autoEnterSingle = false } = {}) {
     setLoginButtons(session);
     clearLeaguePicker();
 
     if (!session?.user) {
       setFormVisible(true);
-      if (intro) intro.textContent = 'Melde dich mit deinem RaceVora-Account an. Danach kannst du direkt deine Rennliga auswählen.';
+      if (intro) intro.textContent = 'Melde dich mit deinem RaceVora-Account an.';
       return;
     }
 
     setFormVisible(false);
-    if (intro) intro.textContent = `Angemeldet als ${session.user.email || 'RaceVora-Nutzer'}. Wähle die Liga, die du verwalten möchtest.`;
-    setFeedback('Ligen werden geladen …');
+    if (intro) intro.textContent = `Login erfolgreich${session.user.email ? ` · ${session.user.email}` : ''}`;
+    setFeedback('Rennligen werden geladen …');
 
     try {
-      const leagues = await fetchAccessibleLeagues(session);
-      const platformOwner = leagues.length ? false : await isPlatformOwner();
+      const leagues = await resolveAccessibleLeagues(session);
       setFeedback('');
+
+      if (leagues.length === 1 && autoEnterSingle) {
+        setFeedback(`Login erfolgreich. ${leagues[0].name || 'Deine Liga'} wird geöffnet …`, 'success');
+        enterLeague(leagues[0]);
+        return;
+      }
 
       if (!leaguePicker) return;
       leaguePicker.hidden = false;
 
       const heading = document.createElement('strong');
-      heading.textContent = leagues.length ? 'Deine Rennligen' : 'Admin-Zugang';
+      heading.textContent = leagues.length > 1 ? 'Welche Liga möchtest du betreten?' : 'Deine Rennliga';
       const list = document.createElement('div');
       list.className = 'login-league-picker__list';
-
       leagues.forEach((league) => list.appendChild(makeLeagueLink(league)));
 
-      if (!leagues.length && platformOwner) {
-        list.appendChild(makeLeagueLink({ name: 'Race Control Center', slug: 'rcc', role: 'owner' }));
-      }
-
-      if (!leagues.length && !platformOwner) {
+      if (!leagues.length) {
         const empty = document.createElement('div');
         empty.className = 'login-feedback';
-        empty.textContent = 'Deinem Account ist aktuell keine administrierbare Rennliga zugeordnet.';
+        empty.textContent = 'Deinem Account ist aktuell keine aktive Rennliga zugeordnet.';
         list.appendChild(empty);
       }
 
@@ -218,7 +255,7 @@
         clearLeaguePicker();
         setFeedback('');
         setFormVisible(true);
-        if (intro) intro.textContent = 'Melde dich mit deinem RaceVora-Account an. Danach kannst du direkt deine Rennliga auswählen.';
+        if (intro) intro.textContent = 'Melde dich mit deinem RaceVora-Account an.';
         emailInput?.focus?.();
       });
 
@@ -226,16 +263,7 @@
     } catch (error) {
       console.error('Landing league lookup failed:', error);
       clearLeaguePicker();
-      setFeedback('Deine Rennligen konnten gerade nicht geladen werden. Öffne alternativ das Admin Center und versuche es erneut.', 'error');
-
-      if (leaguePicker) {
-        leaguePicker.hidden = false;
-        const fallback = document.createElement('a');
-        fallback.className = 'landing-button landing-button--ghost';
-        fallback.href = 'admin.html?league=rcc';
-        fallback.textContent = 'Admin Center öffnen';
-        leaguePicker.appendChild(fallback);
-      }
+      setFeedback('Deine Rennligen konnten gerade nicht geladen werden. Bitte versuche es erneut.', 'error');
     }
   }
 
@@ -249,7 +277,7 @@
 
     try {
       const session = await getSession();
-      await renderSessionState(session);
+      await renderSessionState(session, { autoEnterSingle: Boolean(session?.user) });
       if (!session?.user) emailInput?.focus?.({ preventScroll: true });
       else modal.querySelector('.login-league-link, .landing-button')?.focus?.({ preventScroll: true });
     } catch (error) {
@@ -280,7 +308,7 @@
       const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
       if (error) throw error;
       passwordInput.value = '';
-      await renderSessionState(data?.session || null);
+      await renderSessionState(data?.session || null, { autoEnterSingle: true });
     } catch (error) {
       console.error('Landing login failed:', error);
       setFeedback('Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.', 'error');
@@ -322,9 +350,12 @@
     window.supabaseClient?.auth?.onAuthStateChange?.((_event, session) => {
       setLoginButtons(session);
     });
+
+    window.addEventListener('pageshow', forceLandingTop);
   }
 
   async function init() {
+    forceLandingTop();
     if (year) year.textContent = String(new Date().getFullYear());
     bindSmoothAnchors();
     bindEvents();
