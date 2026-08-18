@@ -1,0 +1,26 @@
+name: Admin Switcher Request Guard
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  request-dedupe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate admin switcher request dedupe
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/pages/admin-tenant-bootstrap.js
+          grep -Fq "ACCESSIBLE_LEAGUES_CACHE_TTL_MS" assets/js/pages/admin-tenant-bootstrap.js
+          grep -Fq "accessibleLeaguesPromise" assets/js/pages/admin-tenant-bootstrap.js
+          grep -Fq "fetchAccessibleLeagues(session)" assets/js/pages/admin-tenant-bootstrap.js
+          grep -Fq "clearAccessibleLeaguesCache()" assets/js/pages/admin-tenant-bootstrap.js
+          echo "PASS admin accessible-league requests are cached and deduplicated"
