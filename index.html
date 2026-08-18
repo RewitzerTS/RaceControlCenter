@@ -10,6 +10,26 @@
   <link rel="stylesheet" href="assets/css/pages/landing3.css">
   <link rel="stylesheet" href="assets/css/pages/landing3-motion.css">
   <link rel="stylesheet" href="assets/css/pages/landing3-previews.css">
+  <style id="l3-mobile-safe-area-fix">
+    @media (max-width: 900px) {
+      body[data-page="landing3"] .l3-header {
+        min-height: calc(92px + env(safe-area-inset-top));
+        padding-top: calc(9px + env(safe-area-inset-top));
+      }
+
+      body[data-page="landing3"]::after {
+        content: "";
+        position: fixed;
+        z-index: 99;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: env(safe-area-inset-top);
+        background: #07111f;
+        pointer-events: none;
+      }
+    }
+  </style>
 </head>
 <body data-page="landing3">
   <header class="l3-header" id="top">
