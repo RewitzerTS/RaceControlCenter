@@ -202,10 +202,26 @@ to authenticated
 using (
   user_id = auth.uid()
   and public.matches_requested_league(league_id)
+  and (
+    public.is_platform_owner()
+    or exists (
+      select 1 from public.league_members lm
+      where lm.league_id = driver_track_notes.league_id
+        and lm.user_id = auth.uid()
+    )
+  )
 )
 with check (
   user_id = auth.uid()
   and public.matches_requested_league(league_id)
+  and (
+    public.is_platform_owner()
+    or exists (
+      select 1 from public.league_members lm
+      where lm.league_id = driver_track_notes.league_id
+        and lm.user_id = auth.uid()
+    )
+  )
 );
 
 drop policy if exists "members delete own track notes" on public.driver_track_notes;
@@ -216,6 +232,14 @@ to authenticated
 using (
   user_id = auth.uid()
   and public.matches_requested_league(league_id)
+  and (
+    public.is_platform_owner()
+    or exists (
+      select 1 from public.league_members lm
+      where lm.league_id = driver_track_notes.league_id
+        and lm.user_id = auth.uid()
+    )
+  )
 );
 
 commit;
