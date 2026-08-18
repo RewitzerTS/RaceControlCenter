@@ -133,6 +133,12 @@
     );
     if (document.body?.dataset?.page === 'admin') {
       ensureScript(
+        'RCCResultVersionHistory',
+        'script[data-rcc-result-version-history="true"]',
+        'assets/js/components/rcc-result-version-history.js',
+        'Ergebnis-Versionhistorie konnte nicht geladen werden.'
+      );
+      ensureScript(
         '__RCC_ADMIN_PUBLISHED_RECALC_GUARD',
         'script[data-rcc-admin-published-recalc-guard="true"]',
         'assets/js/components/rcc-admin-published-recalc-guard.js',
