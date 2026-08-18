@@ -1,0 +1,32 @@
+.rcc-result-review__steward-impact {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-2) 76%, var(--surface));
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.rcc-result-review__steward-impact.has-steward-impact {
+  border-color: color-mix(in srgb, var(--warning, #d89b24) 48%, var(--line));
+  background: color-mix(in srgb, var(--warning, #d89b24) 9%, var(--surface));
+  color: var(--text);
+}
+
+.rcc-result-review__steward-impact ul {
+  margin: 7px 0 0;
+  padding-left: 20px;
+}
+
+.publish-results-btn[data-rcc-review-disabled="true"] {
+  cursor: not-allowed;
+  opacity: .58;
+}
+
+@media (max-width: 700px) {
+  .rcc-result-review__steward-impact {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
