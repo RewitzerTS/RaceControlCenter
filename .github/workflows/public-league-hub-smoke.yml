@@ -135,7 +135,12 @@ jobs:
             const toggle = page.locator('.mobile-toggle');
             await toggle.waitFor({ state: 'visible', timeout: 10000 });
             await toggle.click({ timeout: 10000 });
-            await page.waitForFunction(() => document.body.classList.contains('nav-drawer-open') && document.querySelector('[data-main-nav]')?.classList.contains('open'), null, { timeout: 5000 });
+            await page.waitForFunction(() => {
+              const nav = document.querySelector('[data-main-nav]');
+              if (!document.body.classList.contains('nav-drawer-open') || !nav?.classList.contains('open')) return false;
+              const rect = nav.getBoundingClientRect();
+              return rect.left < innerWidth && rect.right > 0;
+            }, null, { timeout: 5000 });
             const openDrawer = await page.evaluate(() => {
               const nav = document.querySelector('.main-nav');
               const rect = nav?.getBoundingClientRect();
