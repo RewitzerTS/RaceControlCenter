@@ -35,7 +35,8 @@ create index if not exists race_penalties_effective_race_type_idx
 
 -- DSQ is deliberately represented as a very large time delta in the browser
 -- scoring pipeline so every non-DSQ driver is promoted and rescored normally.
--- This function then marks the driver as DSQ and removes all awarded points.
+-- This helper only runs inside the safe published-result trigger below; it is
+-- intentionally not exposed as an authenticated RPC.
 create or replace function public.apply_race_dsq_penalties(p_race_id uuid)
 returns void
 language plpgsql
@@ -63,7 +64,7 @@ begin
     raise exception 'Race is outside requested tenant context';
   end if;
 
-  if not public.has_league_role(v_league_id, array['owner','admin','steward'])
+  if not public.has_league_role(v_league_id, array['owner','admin'])
      and not public.is_platform_owner() then
     raise exception 'Insufficient league role';
   end if;
@@ -98,7 +99,7 @@ $$;
 
 revoke all on function public.apply_race_dsq_penalties(uuid) from public;
 revoke all on function public.apply_race_dsq_penalties(uuid) from anon;
-grant execute on function public.apply_race_dsq_penalties(uuid) to authenticated;
+revoke all on function public.apply_race_dsq_penalties(uuid) from authenticated;
 
 -- Every result publish/rebuild updates the published import row after writing the
 -- official race_result rows. Apply the DSQ marker only after that safe publish.
@@ -127,6 +128,7 @@ $$;
 
 revoke all on function public.apply_dsq_after_published_result() from public;
 revoke all on function public.apply_dsq_after_published_result() from anon;
+revoke all on function public.apply_dsq_after_published_result() from authenticated;
 
 -- Trigger on any published-row update, including an explicit rebuild of an
 -- already published version. This keeps DSQ deletion/editing reversible.
