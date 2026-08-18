@@ -46,7 +46,7 @@ jobs:
           cat /tmp/racevora-admin-mobile-http.log
           exit 1
 
-      - name: Verify admin login and component containment
+      - name: Verify unified login and component containment
         shell: bash
         run: |
           node <<'NODE'
@@ -58,19 +58,26 @@ jobs:
 
             const loginPage = await browser.newPage({ viewport });
             await loginPage.goto('http://127.0.0.1:8080/admin.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
-            await loginPage.waitForSelector('#admin-login-form', { timeout: 15000 });
+            await loginPage.waitForURL((url) => url.pathname.endsWith('/index.html') && url.searchParams.get('login') === '1', { timeout: 15000 });
+            await loginPage.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 15000 });
+            await loginPage.waitForSelector('#landing-login-form', { timeout: 15000 });
             const loginLayout = await loginPage.evaluate(() => ({
               innerWidth: window.innerWidth,
               scrollWidth: document.documentElement.scrollWidth,
-              formWidth: document.querySelector('#admin-login-form')?.getBoundingClientRect().width || 0,
-              buttonWidth: document.querySelector('#admin-login-btn')?.getBoundingClientRect().width || 0
+              formWidth: document.querySelector('#landing-login-form')?.getBoundingClientRect().width || 0,
+              buttonWidth: document.querySelector('#landing-login-form button[type="submit"]')?.getBoundingClientRect().width || 0,
+              legacyAdminForm: Boolean(document.querySelector('#admin-login-form')),
+              legacyAdminPassword: Boolean(document.querySelector('#admin-password')),
+              next: new URLSearchParams(window.location.search).get('next')
             }));
             if (loginLayout.scrollWidth > loginLayout.innerWidth + 2) {
-              throw new Error(`Admin login overflows iPhone viewport: ${loginLayout.scrollWidth}px > ${loginLayout.innerWidth}px`);
+              throw new Error(`Unified login overflows iPhone viewport: ${loginLayout.scrollWidth}px > ${loginLayout.innerWidth}px`);
             }
-            if (loginLayout.formWidth > loginLayout.innerWidth) throw new Error('Admin login form exceeds viewport.');
-            if (loginLayout.buttonWidth > loginLayout.innerWidth) throw new Error('Admin login button exceeds viewport.');
-            console.log('PASS admin login iPhone containment');
+            if (loginLayout.formWidth > loginLayout.innerWidth) throw new Error('Unified RaceVora login form exceeds viewport.');
+            if (loginLayout.buttonWidth > loginLayout.innerWidth) throw new Error('Unified RaceVora login button exceeds viewport.');
+            if (loginLayout.legacyAdminForm || loginLayout.legacyAdminPassword) throw new Error('Legacy admin credentials UI is still present.');
+            if (loginLayout.next !== 'admin.html?league=rcc') throw new Error(`Admin return target is wrong: ${loginLayout.next}`);
+            console.log('PASS unified admin login iPhone containment');
             await loginPage.close();
 
             const page = await browser.newPage({ viewport });
