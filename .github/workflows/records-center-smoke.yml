@@ -8,6 +8,7 @@ on:
       - 'assets/js/services/rcc-records.js'
       - 'assets/js/pages/records.js'
       - 'assets/css/records.css'
+      - 'scripts/records-center-formula-smoke.js'
       - '.github/workflows/records-center-smoke.yml'
   push:
     branches: [main]
@@ -17,6 +18,7 @@ on:
       - 'assets/js/services/rcc-records.js'
       - 'assets/js/pages/records.js'
       - 'assets/css/records.css'
+      - 'scripts/records-center-formula-smoke.js'
       - '.github/workflows/records-center-smoke.yml'
 
 permissions:
@@ -35,12 +37,15 @@ jobs:
         run: |
           node --check assets/js/services/rcc-records.js
           node --check assets/js/pages/records.js
+          node --check scripts/records-center-formula-smoke.js
           grep -Fq 'data-page="rekorde"' rekorde.html
           grep -Fq 'assets/js/services/rcc-records.js' rekorde.html
           grep -Fq 'assets/js/pages/records.js' rekorde.html
           grep -Fq 'href="rekorde.html"' hall-of-fame.html
           grep -Fq 'Größte Aufholjagd' assets/js/pages/records.js
           grep -Fq 'longestStreak' assets/js/services/rcc-records.js
+      - name: Verify records calculations
+        run: node scripts/records-center-formula-smoke.js
 
   browser:
     needs: static
