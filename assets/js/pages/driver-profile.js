@@ -113,6 +113,56 @@
     byId('driver-stat-dnf').textContent = stats.dnfs;
   }
 
+  function renderPerformance() {
+    const performance = window.RCCDriverPerformance?.calculate?.(state.driverId, state.history, { seasonId: state.seasonId || null });
+    const gauge = byId('driver-rating-gauge');
+    const scoreHost = byId('driver-rating-score');
+    const labelHost = byId('driver-rating-label');
+    const sampleHost = byId('driver-rating-sample');
+    const trendHost = byId('driver-rating-trend');
+    const componentsHost = byId('driver-rating-components');
+    if (!performance || !Number.isFinite(performance.score)) {
+      gauge?.style.setProperty('--driver-rating', '0');
+      if (scoreHost) scoreHost.textContent = '—';
+      if (labelHost) labelHost.textContent = 'Noch ohne Rating';
+      if (sampleHost) sampleHost.textContent = 'Für den Performance Index ist mindestens ein veröffentlichter Start nötig.';
+      if (trendHost) {
+        trendHost.textContent = 'Trend noch nicht verfügbar';
+        trendHost.className = 'driver-rating-trend';
+      }
+      if (componentsHost) componentsHost.innerHTML = '<div class="driver-empty">Noch keine Rating-Daten vorhanden.</div>';
+      return;
+    }
+
+    gauge?.style.setProperty('--driver-rating', String(Math.max(0, Math.min(100, performance.score))));
+    scoreHost.textContent = performance.score;
+    labelHost.textContent = performance.label;
+    sampleHost.textContent = `${performance.sampleSize} von maximal 5 Starts im aktuellen Zeitraum fließen in das Rating ein.`;
+
+    trendHost.className = 'driver-rating-trend';
+    if (Number.isFinite(performance.trend) && performance.previousSampleSize >= 2) {
+      const roundedTrend = Math.round(performance.trend);
+      const sign = roundedTrend > 0 ? '+' : '';
+      trendHost.textContent = `${sign}${roundedTrend} Punkte vs. vorherige Formphase`;
+      if (roundedTrend > 0) trendHost.classList.add('is-up');
+      else if (roundedTrend < 0) trendHost.classList.add('is-down');
+    } else {
+      trendHost.textContent = 'Trend nach mindestens 7 Starts verfügbar';
+    }
+
+    const components = [
+      ['Rennergebnis', performance.components.finish],
+      ['Qualifying', performance.components.qualifying],
+      ['Punkte', performance.components.points],
+      ['Racecraft', performance.components.racecraft],
+      ['Zielankunft', performance.components.reliability]
+    ];
+    componentsHost.innerHTML = components.map(([label, value]) => {
+      const score = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : null;
+      return `<div class="driver-rating-component"><span>${esc(label)}</span><strong>${score === null ? '—' : score}</strong><div class="driver-rating-component-bar"><i style="width:${score === null ? 0 : score}%"></i></div></div>`;
+    }).join('');
+  }
+
   function renderForm(stats) {
     const host = byId('driver-profile-form');
     const caption = byId('driver-profile-form-caption');
@@ -192,6 +242,7 @@
     if (!stats) throw new Error('Fahrer konnte nicht gefunden werden.');
     renderHero(stats);
     renderStats(stats);
+    renderPerformance();
     renderForm(stats);
     renderSeasons(stats);
     renderTracks(stats);
