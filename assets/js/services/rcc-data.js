@@ -3,23 +3,40 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
-const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v2';
+const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v3';
 const RCC_DATA_DEFAULT_LEAGUE_SLUG = 'rcc';
-const RCC_LEAGUE_CONTEXT_SCRIPT = 'assets/js/services/rcc-league-context.js';
 const QUERY_CACHE_TTL = {
-  season: 1000 * 60 * 60 * 12,
-  seasons: 1000 * 60 * 60 * 12,
-  seasonHistory: 1000 * 60 * 60 * 24,
-  drivers: 1000 * 60 * 60 * 24,
-  races: 1000 * 60 * 60 * 6,
-  raceByRound: 1000 * 60 * 60 * 6,
-  raceResults: 1000 * 60 * 60 * 2,
-  stewardCases: 1000 * 60 * 30,
-  leagueContent: 1000 * 60 * 30
+  season: 1000 * 60 * 5,
+  seasons: 1000 * 60 * 15,
+  seasonHistory: 1000 * 60 * 30,
+  drivers: 1000 * 60 * 15,
+  races: 1000 * 60 * 5,
+  raceByRound: 1000 * 60 * 5,
+  raceResults: 1000 * 60,
+  stewardCases: 1000 * 60,
+  leagueContent: 1000 * 60 * 5
+};
+
+const DATA_SELECT = {
+  seasons: 'id,slug,name,championship_code,description,start_date,end_date,is_active,created_at,game_key,game_label,league_id',
+  seasonHistory: 'id,season_id,driver_champion,constructor_champion,finalized_at,snapshot,created_at,season_name,driver_champion_team,constructor_champion_lineup',
+  drivers: 'id,display_name,gamertag,real_name,nationality_code,number,is_active,ai_driver_reference,car_name,league_team,nationality,avatar_url,league_id',
+  races: 'id,season_id,round_number,grand_prix_name,circuit_name,country_code,weekend_start_date,race_date,race_start_at,weather,track_image,status,race_order,race_time,has_sprint',
+  raceResults: 'id,race_id,driver_id,team_id,source_assignment_id,car_name_snapshot,ai_driver_reference_snapshot,grid_position,finish_position,race_time_ms,fastest_lap_time_ms,pit_stops,participation_status,base_points,penalty_time_delta_ms,awarded_points,fastest_lap_time,race_time,points_owner_driver_id,points_team_name,points_car_name,points,fastest_lap_ms',
+  stewardCases: 'id,race_id,title,description,driver_1_id,driver_2_id,status,decision_text,consequence,created_by,created_at,updated_at'
+};
+
+const DATA_LIMITS = {
+  seasons: 100,
+  seasonHistory: 100,
+  drivers: 500,
+  races: 100,
+  raceResultsPage: 1000,
+  raceResultsMaxPages: 5,
+  stewardCases: 500
 };
 
 const inflightRequests = new Map();
-let leagueContextLoadPromise = null;
 
 function normalizeLeagueSlug(value) {
   return String(value || '')
@@ -43,36 +60,9 @@ function getRequestedLeagueSlug() {
   return RCC_DATA_DEFAULT_LEAGUE_SLUG;
 }
 
-function ensureLeagueContextScript() {
-  if (window.RCCLeagueContext) return Promise.resolve(window.RCCLeagueContext);
-  if (leagueContextLoadPromise) return leagueContextLoadPromise;
-
-  leagueContextLoadPromise = new Promise((resolve, reject) => {
-    const existing = [...document.scripts].find((script) => String(script.src || '').includes('rcc-league-context.js'));
-    if (existing) {
-      if (window.RCCLeagueContext) return resolve(window.RCCLeagueContext);
-      existing.addEventListener('load', () => resolve(window.RCCLeagueContext), { once: true });
-      existing.addEventListener('error', () => reject(new Error('LeagueContext could not be loaded.')), { once: true });
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = RCC_LEAGUE_CONTEXT_SCRIPT;
-    script.async = false;
-    script.onload = () => resolve(window.RCCLeagueContext);
-    script.onerror = () => reject(new Error('LeagueContext could not be loaded.'));
-    document.head.appendChild(script);
-  }).finally(() => {
-    leagueContextLoadPromise = null;
-  });
-
-  return leagueContextLoadPromise;
-}
-
 async function getLeagueContext(options = {}) {
-  await ensureLeagueContextScript();
   if (!window.RCCLeagueContext?.initialize) {
-    throw new Error('RCC LeagueContext is unavailable.');
+    throw new Error('RCC LeagueContext is unavailable. Load supabase-client.js before rcc-data.js.');
   }
   return window.RCCLeagueContext.initialize(options);
 }
@@ -83,12 +73,17 @@ async function getActiveLeagueId(options = {}) {
   return context.leagueId;
 }
 
+function normalizeCacheParam(value) {
+  if (!Array.isArray(value)) return String(value);
+  return [...new Set(value.map((item) => String(item)).filter(Boolean))].sort().join(',');
+}
+
 function buildCacheKey(scope, params = {}) {
   const leagueSlug = normalizeLeagueSlug(params.leagueSlug || getRequestedLeagueSlug());
   const stableParams = Object.entries(params)
     .filter(([key, value]) => key !== 'leagueSlug' && value !== undefined)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}:${Array.isArray(value) ? value.join(',') : String(value)}`)
+    .map(([key, value]) => `${key}:${normalizeCacheParam(value)}`)
     .join('|');
   return `${RCC_QUERY_CACHE_PREFIX}:${leagueSlug}:${scope}${stableParams ? `:${stableParams}` : ''}`;
 }
@@ -114,7 +109,35 @@ function writeCachedValue(key, value) {
   }
 }
 
-async function fetchWithLocalCache({ scope, params = {}, ttlMs, forceRefresh = false, backgroundRefresh = true, fetcher }) {
+function removeCachedValue(key) {
+  try {
+    window.localStorage?.removeItem(key);
+  } catch (_error) {
+    // Local cache is optional.
+  }
+}
+
+function invalidateCache(scope, params = {}) {
+  removeCachedValue(buildCacheKey(scope, params));
+}
+
+function clearTenantQueryCache() {
+  const prefix = `${RCC_QUERY_CACHE_PREFIX}:${normalizeLeagueSlug(getRequestedLeagueSlug())}:`;
+  try {
+    const storage = window.localStorage;
+    if (!storage) return;
+    const keys = [];
+    for (let index = 0; index < storage.length; index += 1) {
+      const key = storage.key(index);
+      if (key?.startsWith(prefix)) keys.push(key);
+    }
+    keys.forEach((key) => storage.removeItem(key));
+  } catch (_error) {
+    // Local cache is optional.
+  }
+}
+
+async function fetchWithLocalCache({ scope, params = {}, ttlMs, forceRefresh = false, backgroundRefresh = false, fetcher }) {
   const key = buildCacheKey(scope, params);
   const cached = forceRefresh ? null : readCachedValue(key, ttlMs);
 
@@ -132,7 +155,9 @@ async function fetchWithLocalCache({ scope, params = {}, ttlMs, forceRefresh = f
   };
 
   if (cached !== null) {
-    if (backgroundRefresh) runFetch().catch((error) => console.warn(`RCCData background refresh failed for ${scope}`, error));
+    if (backgroundRefresh === true) {
+      runFetch().catch((error) => console.warn(`RCCData background refresh failed for ${scope}`, error));
+    }
     return cached;
   }
   return runFetch();
@@ -170,7 +195,9 @@ function isTopTen(position) {
 function getFastestLapMs(row) {
   const explicit = safeNumber(row?.fastest_lap_ms, null);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
-  return parseLapTimeToMs(row?.fastest_lap);
+  const canonical = safeNumber(row?.fastest_lap_time_ms, null);
+  if (Number.isFinite(canonical) && canonical > 0) return canonical;
+  return parseLapTimeToMs(row?.fastest_lap_time || row?.fastest_lap);
 }
 
 function getFastestLapDriverId(rows = []) {
@@ -187,7 +214,7 @@ function getFastestLapDriverId(rows = []) {
 }
 
 function getAwardedRacePoints(row, fastestLapDriverId = null) {
-  const base = safeNumber(row?.points, 0);
+  const base = safeNumber(row?.points ?? row?.awarded_points, 0);
   const bonus = fastestLapDriverId && row?.driver_id === fastestLapDriverId && isTopTen(row?.finish_position) ? 1 : 0;
   return base + bonus;
 }
@@ -207,10 +234,19 @@ async function fetchCurrentSeason(options = {}) {
   if (!client) return null;
   const leagueId = await getActiveLeagueId();
   return fetchWithLocalCache({
-    scope: 'currentSeason', ttlMs: QUERY_CACHE_TTL.season, forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'currentSeason',
+    ttlMs: QUERY_CACHE_TTL.season,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client.from('seasons').select('*').eq('league_id', leagueId).eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      const { data, error } = await client
+        .from('seasons')
+        .select(DATA_SELECT.seasons)
+        .eq('league_id', leagueId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       if (error && error.code !== 'PGRST116') throw error;
       return data || null;
     }
@@ -222,10 +258,17 @@ async function fetchSeasons(options = {}) {
   if (!client) return [];
   const leagueId = await getActiveLeagueId();
   return fetchWithLocalCache({
-    scope: 'seasons', ttlMs: QUERY_CACHE_TTL.seasons, forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'seasons',
+    ttlMs: QUERY_CACHE_TTL.seasons,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client.from('seasons').select('*').eq('league_id', leagueId).order('created_at', { ascending: false });
+      const { data, error } = await client
+        .from('seasons')
+        .select(DATA_SELECT.seasons)
+        .eq('league_id', leagueId)
+        .order('created_at', { ascending: false })
+        .limit(DATA_LIMITS.seasons);
       if (error) throw error;
       return data || [];
     }
@@ -235,12 +278,26 @@ async function fetchSeasons(options = {}) {
 async function fetchSeasonHistory(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
-  const leagueId = await getActiveLeagueId();
+  const seasons = await fetchSeasons({
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: false
+  });
+  const seasonIds = seasons.map((season) => season.id).filter(Boolean);
+  if (!seasonIds.length) return [];
+
   return fetchWithLocalCache({
-    scope: 'seasonHistory', ttlMs: QUERY_CACHE_TTL.seasonHistory, forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'seasonHistory',
+    params: { seasonIds },
+    ttlMs: QUERY_CACHE_TTL.seasonHistory,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client.from('championship_history').select('*').eq('league_id', leagueId).order('season_number', { ascending: false });
+      const { data, error } = await client
+        .from('championship_history')
+        .select(DATA_SELECT.seasonHistory)
+        .in('season_id', seasonIds)
+        .order('finalized_at', { ascending: false })
+        .limit(DATA_LIMITS.seasonHistory);
       if (error) throw error;
       return data || [];
     }
@@ -252,10 +309,17 @@ async function fetchDrivers(options = {}) {
   if (!client) return [];
   const leagueId = await getActiveLeagueId();
   return fetchWithLocalCache({
-    scope: 'drivers', ttlMs: QUERY_CACHE_TTL.drivers, forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'drivers',
+    ttlMs: QUERY_CACHE_TTL.drivers,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client.from('drivers').select('*').eq('league_id', leagueId).order('display_name');
+      const { data, error } = await client
+        .from('drivers')
+        .select(DATA_SELECT.drivers)
+        .eq('league_id', leagueId)
+        .order('display_name')
+        .limit(DATA_LIMITS.drivers);
       if (error) throw error;
       return data || [];
     }
@@ -268,10 +332,18 @@ async function fetchRaces(options = {}) {
   const seasonId = options.seasonId || null;
   if (!seasonId) return [];
   return fetchWithLocalCache({
-    scope: 'races', params: { seasonId }, ttlMs: QUERY_CACHE_TTL.races, forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'races',
+    params: { seasonId },
+    ttlMs: QUERY_CACHE_TTL.races,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client.from('races').select('*').eq('season_id', seasonId).order('round_number');
+      const { data, error } = await client
+        .from('races')
+        .select(DATA_SELECT.races)
+        .eq('season_id', seasonId)
+        .order('round_number')
+        .limit(DATA_LIMITS.races);
       if (error) throw error;
       return data || [];
     }
@@ -281,23 +353,46 @@ async function fetchRaces(options = {}) {
 async function fetchRaceByRound(roundNumber, options = {}) {
   const seasonId = options.seasonId || (await fetchCurrentSeason())?.id;
   if (!seasonId) return null;
-  const rows = await fetchRaces({ seasonId, forceRefresh: options.forceRefresh });
+  const rows = await fetchRaces({
+    seasonId,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true
+  });
   return rows.find((row) => Number(row.round_number) === Number(roundNumber)) || null;
+}
+
+async function queryRaceResultsPaged(client, raceIds) {
+  const rows = [];
+  for (let page = 0; page < DATA_LIMITS.raceResultsMaxPages; page += 1) {
+    const from = page * DATA_LIMITS.raceResultsPage;
+    const to = from + DATA_LIMITS.raceResultsPage - 1;
+    const { data, error } = await client
+      .from('race_results')
+      .select(DATA_SELECT.raceResults)
+      .in('race_id', raceIds)
+      .order('race_id', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, to);
+    if (error) throw error;
+    const pageRows = data || [];
+    rows.push(...pageRows);
+    if (pageRows.length < DATA_LIMITS.raceResultsPage) break;
+  }
+  return rows;
 }
 
 async function fetchRaceResults(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
-  const raceIds = options.raceIds || (options.raceId ? [options.raceId] : []);
+  const raceIds = [...new Set((options.raceIds || (options.raceId ? [options.raceId] : [])).filter(Boolean))].sort();
   if (!raceIds.length) return [];
   return fetchWithLocalCache({
-    scope: 'raceResults', params: { raceId: options.raceId || null, raceIds }, ttlMs: QUERY_CACHE_TTL.raceResults,
-    forceRefresh: options.forceRefresh === true, backgroundRefresh: options.backgroundRefresh !== false,
-    fetcher: async () => {
-      const { data, error } = await client.from('race_results').select('*').in('race_id', raceIds);
-      if (error) throw error;
-      return data || [];
-    }
+    scope: 'raceResults',
+    params: { raceIds },
+    ttlMs: QUERY_CACHE_TTL.raceResults,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
+    fetcher: () => queryRaceResultsPaged(client, raceIds)
   });
 }
 
@@ -305,10 +400,18 @@ async function fetchStewardCasesByRaceId(raceId, options = {}) {
   const client = window.supabaseClient;
   if (!client || !raceId) return [];
   return fetchWithLocalCache({
-    scope: 'stewardCases', params: { raceId }, ttlMs: QUERY_CACHE_TTL.stewardCases, forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    scope: 'stewardCases',
+    params: { raceId },
+    ttlMs: QUERY_CACHE_TTL.stewardCases,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client.from('steward_cases').select('*').eq('race_id', raceId).order('created_at', { ascending: false });
+      const { data, error } = await client
+        .from('steward_cases')
+        .select(DATA_SELECT.stewardCases)
+        .eq('race_id', raceId)
+        .order('created_at', { ascending: false })
+        .limit(DATA_LIMITS.stewardCases);
       if (error) throw error;
       return data || [];
     }
@@ -328,7 +431,7 @@ async function fetchLeagueContent(options = {}) {
     scope: 'leagueContent',
     ttlMs: QUERY_CACHE_TTL.leagueContent,
     forceRefresh: options.forceRefresh === true,
-    backgroundRefresh: options.backgroundRefresh !== false,
+    backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
       const { data, error } = await client
         .from('league_content')
@@ -355,19 +458,30 @@ function hasFreshDashboardCache() {
 
   const races = readCachedValue(buildCacheKey('races', { seasonId: currentSeason.id }), QUERY_CACHE_TTL.races);
   const drivers = readCachedValue(buildCacheKey('drivers'), QUERY_CACHE_TTL.drivers);
-  const raceResults = readCachedValue(buildCacheKey('raceResults', { raceId: null, raceIds: [] }), QUERY_CACHE_TTL.raceResults);
+  if (!Array.isArray(races) || !Array.isArray(drivers)) return false;
 
-  return Array.isArray(races) && Array.isArray(drivers) && Array.isArray(raceResults);
+  const raceIds = races.map((race) => race.id).filter(Boolean).sort();
+  if (!raceIds.length) return true;
+  const raceResults = readCachedValue(buildCacheKey('raceResults', { raceIds }), QUERY_CACHE_TTL.raceResults);
+  return Array.isArray(raceResults);
 }
 
-async function warmDashboardCache() {
+async function warmDashboardCache(options = {}) {
   await getLeagueContext();
-  const currentSeason = await fetchCurrentSeason();
-  const races = await fetchRaces({ seasonId: currentSeason?.id });
+  const currentSeason = await fetchCurrentSeason({ backgroundRefresh: false });
+  const races = await fetchRaces({ seasonId: currentSeason?.id, backgroundRefresh: false });
   await Promise.all([
-    fetchDrivers(),
-    fetchRaceResults({ raceIds: races.map((race) => race.id) })
+    fetchDrivers({ backgroundRefresh: false }),
+    fetchRaceResults({ raceIds: races.map((race) => race.id), backgroundRefresh: false })
   ]);
+
+  if (options.revalidate === true) {
+    await Promise.all([
+      fetchCurrentSeason({ forceRefresh: true }),
+      fetchDrivers({ forceRefresh: true }),
+      currentSeason?.id ? fetchRaces({ seasonId: currentSeason.id, forceRefresh: true }) : Promise.resolve([])
+    ]);
+  }
 }
 
 function buildStandings({ drivers, races, raceResults, resolver } = {}) {
@@ -506,5 +620,8 @@ window.RCCData = {
   buildStandings,
   buildCacheKey,
   readCachedValue,
-  QUERY_CACHE_TTL
+  invalidateCache,
+  clearTenantQueryCache,
+  QUERY_CACHE_TTL,
+  DATA_LIMITS
 };
