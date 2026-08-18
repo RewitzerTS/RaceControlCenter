@@ -1,0 +1,62 @@
+name: Performance Request Guards
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  request-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate shared performance invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/supabase-client.js
+          node --check assets/js/services/rcc-data.js
+          node --check assets/js/services/rcc-league-context.js
+
+          if grep -Fq "auth.getUser()" assets/js/supabase-client.js; then
+            echo "Shared tenant context must not call auth.getUser() during UI initialization."
+            exit 1
+          fi
+
+          if grep -Fq ".select('*')" assets/js/services/rcc-data.js; then
+            echo "Shared data service must use explicit projections instead of select('*')."
+            exit 1
+          fi
+
+          if grep -Eq "\.from\(|auth\.get(User|Session)" assets/js/services/rcc-league-context.js; then
+            echo "Compatibility league-context file must not contain a second tenant/session implementation."
+            exit 1
+          fi
+
+          grep -Fq "backgroundRefresh = false" assets/js/services/rcc-data.js
+          grep -Fq "DATA_LIMITS" assets/js/services/rcc-data.js
+          grep -Fq "raceResultsPage: 1000" assets/js/services/rcc-data.js
+
+          node <<'NODE'
+          const fs = require('fs');
+          const source = fs.readFileSync('assets/js/supabase-client.js', 'utf8');
+          const listenerStart = source.indexOf("window.addEventListener('rcc:league-context-ready'");
+          if (listenerStart < 0) throw new Error('league-context-ready listener missing');
+          const listenerTail = source.slice(listenerStart, listenerStart + 500);
+          if (/forceRefresh\s*:\s*true/.test(listenerTail)) {
+            throw new Error('league-context-ready listener must never force another context refresh');
+          }
+          if (!/context:\s*event\?\.detail/.test(listenerTail)) {
+            throw new Error('league-context-ready listener must consume the supplied context snapshot');
+          }
+          console.log('PASS request-loop and shared-cache guards');
+          NODE
