@@ -117,14 +117,14 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
             await page.setContent(`<!doctype html><html><body data-page="admin">
-              <details id="admin-section-stewarding"><section>
+              <details id="admin-section-stewarding" open><section>
                 <input id="incident-edit-id"><select id="incident-race"><option value="race-1">Rennen</option></select>
                 <input id="incident-title" value="Test"><textarea id="incident-description"></textarea><textarea id="incident-decision"></textarea>
                 <div class="field"><label>Konsequenz</label><select id="incident-consequence"><option>Keine</option></select></div>
                 <select id="incident-driver-1"></select><select id="incident-driver-2"><option value="driver-1">Driver</option></select>
                 <button id="save-incident-btn">Alt speichern</button><div id="incident-feedback" hidden></div>
               </section></details>
-              <details id="admin-section-drivers"><section class="panel"><h3>Fahrer-Stammdaten</h3>
+              <details id="admin-section-drivers" open><section class="panel"><h3>Fahrer-Stammdaten</h3>
                 <input id="driver-id" type="hidden"><div class="form-grid"><input id="driver-display-name"><input id="driver-gamertag"></div>
                 <div class="card-actions"><button id="save-driver-btn">Fahrer speichern</button><button id="reset-driver-btn">Formular leeren</button></div>
                 <div id="driver-feedback" hidden></div><h3 class="section-spacer-top">Fahrer verwalten</h3><div id="driver-list"></div>
