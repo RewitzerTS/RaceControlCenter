@@ -41,7 +41,7 @@ jobs:
           grep -Fq 'Aktuelle Formfahrer' assets/js/pages/race-hub.js
           grep -Fq 'Liga entdecken' assets/js/pages/race-hub.js
           grep -Fq "['★', 'Rekorde'" assets/js/pages/race-hub-community.js
-          grep -Fq 'body.race-hub-page:not(.nav-drawer-open) .main-nav{display:none!important}' assets/css/pages/race-hub-community.css
+          grep -Fq 'body.race-hub-page{max-width:100%;overflow-x:clip}' assets/css/pages/race-hub-community.css
 
   browser:
     needs: static
@@ -103,6 +103,7 @@ jobs:
             await page.waitForTimeout(300);
             const mobile = await page.evaluate(() => {
               const communityRect = document.querySelector('#race-hub-community')?.getBoundingClientRect();
+              const navRect = document.querySelector('.main-nav')?.getBoundingClientRect();
               return {
                 width: innerWidth,
                 scrollWidth: document.documentElement.scrollWidth,
@@ -111,13 +112,15 @@ jobs:
                 bodyWidth: Math.round(document.body.getBoundingClientRect().width),
                 communityLeft: Math.round(communityRect?.left || 0),
                 communityRight: Math.round(communityRect?.right || 0),
-                navDisplay: getComputedStyle(document.querySelector('.main-nav')).display
+                navDisplay: getComputedStyle(document.querySelector('.main-nav')).display,
+                navLeft: Math.round(navRect?.left || 0),
+                navRight: Math.round(navRect?.right || 0)
               };
             });
             const clipped = ['hidden', 'clip'].includes(mobile.htmlOverflow) || ['hidden', 'clip'].includes(mobile.bodyOverflow);
             if (mobile.scrollWidth > mobile.width + 2 && !clipped) throw new Error(`unclipped mobile overflow ${JSON.stringify(mobile)}`);
             if (mobile.bodyWidth > mobile.width + 2 || mobile.communityLeft < -2 || mobile.communityRight > mobile.width + 2) throw new Error(`visible mobile content overflow ${JSON.stringify(mobile)}`);
-            if (mobile.navDisplay !== 'none') throw new Error(`closed mobile drawer still participates in layout ${JSON.stringify(mobile)}`);
+            if (mobile.navDisplay === 'none') throw new Error(`existing off-canvas drawer was removed ${JSON.stringify(mobile)}`);
 
             await page.waitForFunction(() => {
               const loader = document.querySelector('.f1-loader-overlay');
@@ -132,7 +135,7 @@ jobs:
             const toggle = page.locator('.mobile-toggle');
             await toggle.waitFor({ state: 'visible', timeout: 10000 });
             await toggle.click({ timeout: 10000 });
-            await page.waitForFunction(() => document.body.classList.contains('nav-drawer-open'), null, { timeout: 5000 });
+            await page.waitForFunction(() => document.body.classList.contains('nav-drawer-open') && document.querySelector('[data-main-nav]')?.classList.contains('open'), null, { timeout: 5000 });
             const openDrawer = await page.evaluate(() => {
               const nav = document.querySelector('.main-nav');
               const rect = nav?.getBoundingClientRect();
@@ -145,9 +148,7 @@ jobs:
             });
             if (openDrawer.display === 'none' || openDrawer.left >= openDrawer.viewport || openDrawer.right <= 0) throw new Error(`mobile drawer did not open in viewport ${JSON.stringify(openDrawer)}`);
             await toggle.click({ timeout: 10000 });
-            await page.waitForFunction(() => !document.body.classList.contains('nav-drawer-open'), null, { timeout: 5000 });
-            const closedDisplay = await page.evaluate(() => getComputedStyle(document.querySelector('.main-nav')).display);
-            if (closedDisplay !== 'none') throw new Error(`mobile drawer did not close cleanly: ${closedDisplay}`);
+            await page.waitForFunction(() => !document.body.classList.contains('nav-drawer-open') && !document.querySelector('[data-main-nav]')?.classList.contains('open'), null, { timeout: 5000 });
 
             if (errors.length) throw new Error(errors.join(' | '));
             await browser.close();
