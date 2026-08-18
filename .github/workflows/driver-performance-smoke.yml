@@ -1,0 +1,135 @@
+name: Driver Performance Rating Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'fahrer-profil.html'
+      - 'assets/js/services/rcc-driver-performance.js'
+      - 'assets/js/pages/driver-profile.js'
+      - 'assets/css/driver-performance.css'
+      - '.github/workflows/driver-performance-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'fahrer-profil.html'
+      - 'assets/js/services/rcc-driver-performance.js'
+      - 'assets/js/pages/driver-profile.js'
+      - 'assets/css/driver-performance.css'
+      - '.github/workflows/driver-performance-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static-and-formula:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check wiring and syntax
+        run: |
+          node --check assets/js/services/rcc-driver-performance.js
+          node --check assets/js/pages/driver-profile.js
+          grep -Fq 'assets/css/driver-performance.css' fahrer-profil.html
+          grep -Fq 'assets/js/services/rcc-driver-performance.js' fahrer-profil.html
+          grep -Fq 'id="driver-rating-score"' fahrer-profil.html
+          grep -Fq 'id="driver-rating-components"' fahrer-profil.html
+          grep -Fq 'renderPerformance();' assets/js/pages/driver-profile.js
+      - name: Verify performance formula and trend
+        shell: bash
+        run: |
+          node <<'NODE'
+          global.window = {
+            RCCDriverStats: {
+              validPosition(value) {
+                const n = Number(value);
+                return Number.isFinite(n) && n > 0 ? n : null;
+              },
+              getAwardedPoints(row) { return Number(row.points || 0); }
+            }
+          };
+          require('./assets/js/services/rcc-driver-performance.js');
+          const driverId = 'd1';
+          const seasonsById = new Map([['s1', { id: 's1', start_date: '2026-01-01' }]]);
+          const completedRaces = [];
+          const resultsByRace = new Map();
+          const fastestByRace = new Map();
+          for (let i = 1; i <= 10; i += 1) {
+            const race = { id: `r${i}`, season_id: 's1', round_number: i, race_date: `2026-01-${String(i).padStart(2, '0')}` };
+            completedRaces.push(race);
+            const strong = i > 5;
+            const finish = strong ? ((i % 2) + 1) : (8 + (i % 3));
+            const grid = strong ? Math.min(4, finish + 1) : Math.max(1, finish - 1);
+            const points = strong ? (finish === 1 ? 25 : 18) : 1;
+            const rows = [{ driver_id: driverId, finish_position: finish, grid_position: grid, points }];
+            for (let p = 2; p <= 12; p += 1) rows.push({ driver_id: `d${p}`, finish_position: p, grid_position: p, points: Math.max(0, 26 - (p * 2)) });
+            resultsByRace.set(race.id, rows);
+            fastestByRace.set(race.id, strong ? driverId : 'd2');
+          }
+          const history = {
+            driversById: new Map([[driverId, { id: driverId, display_name: 'Test Driver' }]]),
+            seasonsById,
+            completedRaces,
+            resultsByRace,
+            fastestByRace
+          };
+          const rating = window.RCCDriverPerformance.calculate(driverId, history, {});
+          if (!Number.isFinite(rating.score) || rating.score < 60 || rating.score > 100) throw new Error(`unexpected current score ${rating.score}`);
+          if (!Number.isFinite(rating.trend) || rating.trend <= 0) throw new Error(`expected positive trend, got ${rating.trend}`);
+          if (rating.sampleSize !== 5 || rating.previousSampleSize !== 5) throw new Error('window sizes are incorrect');
+          if (Object.values(rating.components).filter(Number.isFinite).length !== 5) throw new Error('rating components incomplete');
+          NODE
+
+  browser:
+    needs: static-and-formula
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/driver-performance-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/fahrer-profil.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/driver-performance-http.log
+          exit 1
+      - name: Exercise rating with public RCC data
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8080/fahrer-profil.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('#driver-profile-content:not([hidden])', { state: 'visible', timeout: 30000 });
+            const state = await page.evaluate(() => ({
+              score: Number(document.querySelector('#driver-rating-score')?.textContent),
+              label: document.querySelector('#driver-rating-label')?.textContent || '',
+              components: document.querySelectorAll('.driver-rating-component').length,
+              sample: document.querySelector('#driver-rating-sample')?.textContent || ''
+            }));
+            if (!Number.isFinite(state.score) || state.score < 0 || state.score > 100) throw new Error(`invalid RCC rating ${JSON.stringify(state)}`);
+            if (!state.label || state.components !== 5 || !state.sample.includes('Starts')) throw new Error(`rating UI incomplete ${JSON.stringify(state)}`);
+            if (errors.length) throw new Error(errors.join(' | '));
+            await page.setViewportSize({ width: 393, height: 852 });
+            await page.waitForTimeout(250);
+            const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+            if (mobile.scrollWidth > mobile.width + 2) throw new Error(`driver rating mobile overflow ${mobile.scrollWidth} > ${mobile.width}`);
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
