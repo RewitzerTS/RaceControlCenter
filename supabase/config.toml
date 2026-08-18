@@ -5,3 +5,8 @@
 # before the function code (and its CORS handling) can run.
 [functions.finalize-consumer-registration]
 verify_jwt = false
+
+# Public Race Hub news uses the public anon JWT at the gateway. The function
+# itself accepts GET only and fetches a fixed server-side source allowlist.
+[functions.f1-news]
+verify_jwt = true

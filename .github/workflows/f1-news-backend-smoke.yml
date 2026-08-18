@@ -1,0 +1,63 @@
+name: F1 News Backend Smoke
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  f1-news-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate browser bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check assets/js/services/rcc-f1-news-backend.js
+          grep -Fq 'functions/v1/f1-news' assets/js/services/rcc-f1-news-backend.js
+          grep -Fq 'Authorization: `Bearer ${anonKey}`' assets/js/services/rcc-f1-news-backend.js
+          grep -Fq "'api.rss2json.com'" assets/js/services/rcc-f1-news-backend.js
+          grep -Fq "'api.rss2json.io'" assets/js/services/rcc-f1-news-backend.js
+          grep -Fq "'api.allorigins.win'" assets/js/services/rcc-f1-news-backend.js
+
+      - name: Validate Race Hub load order
+        shell: python
+        run: |
+          from pathlib import Path
+          page = Path('race-hub.html').read_text(encoding='utf-8')
+          bridge = 'assets/js/services/rcc-f1-news-backend.js'
+          dashboard = 'assets/js/pages/index-dashboard.js'
+          assert bridge in page, 'F1 news bridge missing from Race Hub'
+          assert dashboard in page, 'Dashboard script missing from Race Hub'
+          assert page.index(bridge) < page.index(dashboard), 'F1 news bridge must load before dashboard news code'
+
+      - name: Validate Edge Function source allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='supabase/functions/f1-news/index.ts'
+          grep -Fq 'www.motorsport-total.com/formel-1/rss' "$file"
+          grep -Fq 'www.motorsport-magazin.com/formel1/news.xml' "$file"
+          grep -Fq 'news.google.com/rss/search' "$file"
+          grep -Fq 'CACHE_TTL_MS = 15 * 60 * 1000' "$file"
+          grep -Fq 'feed_too_large' "$file"
+          if grep -Eq 'searchParams\.get\(("|\x27)(url|feed|rss)' "$file"; then
+            echo 'F1 news endpoint must not accept caller-controlled feed URLs.' >&2
+            exit 1
+          fi
+
+      - name: Validate server-only cache
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'alter table public.f1_news_cache enable row level security' database/2026-f1-news-cache.sql
+          grep -Fq 'revoke all on table public.f1_news_cache from anon, authenticated' database/2026-f1-news-cache.sql
+          grep -Fq 'grant all on table public.f1_news_cache to service_role' database/2026-f1-news-cache.sql
