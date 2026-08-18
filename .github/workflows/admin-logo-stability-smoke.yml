@@ -1,0 +1,62 @@
+name: Admin Logo Stability Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'components/header.html'
+      - '.github/workflows/admin-logo-stability-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'components/header.html'
+      - '.github/workflows/admin-logo-stability-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/admin-logo-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/components/header.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/admin-logo-http.log
+          exit 1
+      - name: Verify admin logo stays visible while branding is pending
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 393, height: 852 } });
+            const header = await (await fetch('http://127.0.0.1:8080/components/header.html')).text();
+            await page.setContent(`<!doctype html><html data-league-branding-pending="true"><head><style>html[data-league-branding-pending="true"] .brand-logo{visibility:hidden!important}</style></head><body data-page="admin">${header}</body></html>`);
+            const adminState = await page.evaluate(() => {
+              const logo = document.querySelector('.brand-logo');
+              const style = getComputedStyle(logo);
+              const rect = logo.getBoundingClientRect();
+              return {visibility:style.visibility,opacity:style.opacity,width:rect.width,height:rect.height};
+            });
+            if (adminState.visibility !== 'visible' || Number(adminState.opacity) !== 1) throw new Error(`admin logo hidden ${JSON.stringify(adminState)}`);
+            if (adminState.width <= 0 || adminState.height <= 0) throw new Error(`admin logo collapsed ${JSON.stringify(adminState)}`);
+
+            await page.evaluate(() => { document.body.dataset.page = 'index'; });
+            const publicVisibility = await page.$eval('.brand-logo', (logo) => getComputedStyle(logo).visibility);
+            if (publicVisibility !== 'hidden') throw new Error(`public branding gate unexpectedly bypassed: ${publicVisibility}`);
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE

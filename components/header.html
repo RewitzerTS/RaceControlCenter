@@ -11,6 +11,17 @@
     box-shadow: 0 0 16px rgba(46, 255, 131, 0.92), inset 0 0 10px rgba(255, 255, 255, 0.24) !important;
   }
 
+  .site-header .brand-logo {
+    display: block;
+    flex: 0 0 auto;
+    object-fit: contain;
+  }
+
+  html[data-league-branding-pending="true"] body[data-page="admin"] .site-header .brand-logo {
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
   @media (max-width: 860px) {
     .site-header .header-inner {
       min-height: calc(64px + env(safe-area-inset-top));
@@ -29,7 +40,7 @@
 <header class="site-header">
   <div class="container header-inner">
     <a class="brand" href="race-hub.html">
-      <img src="assets/images/racevora-mark.svg" alt="RaceVora Logo" class="brand-logo">
+      <img src="assets/images/racevora-mark.svg" alt="RaceVora Logo" class="brand-logo" decoding="async" fetchpriority="high">
       <div class="brand-text">
         <div class="brand-title">RaceVora</div>
         <div class="brand-subtitle">Race Management Platform</div>
