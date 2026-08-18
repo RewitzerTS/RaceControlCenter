@@ -13,34 +13,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify registration is safely paused without email delivery
+      - name: Verify active registration and contract confirmation path statically
         shell: bash
         run: |
           set -euo pipefail
           migration='database/2026-consumer-contract-confirmations.sql'
           function='supabase/functions/finalize-consumer-registration/index.ts'
           config='assets/js/auth-turnstile-config.js'
-          pause_client='assets/js/email-pause.js'
           register_client='assets/js/pages/register.js'
           setup_client='assets/js/pages/account-setup.js'
-          register_page='register.html'
-          setup_page='account-setup.html'
 
           test -s "$migration"
           test -s "$function"
-          test -s "$pause_client"
-          grep -Fq 'window.RACEVORA_EMAIL_SENDING_PAUSED = true' "$config"
-          grep -Fq 'email_sending_paused' "$function"
+          grep -Fq 'window.RACEVORA_EMAIL_SENDING_PAUSED = false' "$config"
           grep -Fq 'authHeader.startsWith("Bearer ")' "$function"
           grep -Fq 'userClient.auth.getUser()' "$function"
+          grep -Fq 'create_league' "$function"
+          grep -Fq 'contract_confirmations' "$function"
+          grep -Fq 'sendResendEmail' "$function"
+          grep -Fq 'https://api.resend.com/emails' "$function"
           grep -Fq 'finalize-consumer-registration' "$register_client"
           grep -Fq 'finalize-consumer-registration' "$setup_client"
-          grep -Fq 'assets/js/email-pause.js' "$register_page"
-          grep -Fq 'assets/js/email-pause.js' "$setup_page"
-
-          if grep -Eq 'RESEND_API_KEY|api\.resend\.com|create_league|contract_confirmations' "$function"; then
-            echo 'Paused registration finalizer must not send email or mutate registration business data.' >&2
+          if grep -Fq 'email_sending_paused' "$function"; then
+            echo 'Registration finalizer is still paused.' >&2
             exit 1
           fi
-
-          echo 'Contract confirmation flow is intentionally paused without email delivery.'
+          echo 'PASS active contract confirmation path verified statically; no email sent by CI.'
