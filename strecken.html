@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="assets/js/theme-prepaint.js"></script>
+  <title>RaceVora · Strecken</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/driver-profile.css">
+  <link rel="stylesheet" href="assets/css/track-profile.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body data-page="strecken">
+  <div id="site-header"></div>
+
+  <main class="section driver-profile-page">
+    <div class="container driver-profile-toolbar">
+      <div>
+        <div class="eyebrow">RaceVora Track Hub</div>
+        <h1 class="page-title page-title-compact">Strecken & Rekorde</h1>
+        <p class="page-subtitle">Alle gefahrenen Strecken dieser Liga mit Rennen, Siegern und RaceVora-Rundenrekorden.</p>
+      </div>
+      <div class="driver-profile-controls">
+        <label><span>Zeitraum</span><select id="track-hub-season" aria-label="Saison auswählen"><option value="">Historie</option></select></label>
+        <a class="btn" href="kalender.html">Zum Kalender</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <section id="track-hub-loading" class="driver-profile-state">Strecken werden geladen …</section>
+      <section id="track-hub-error" class="driver-profile-state driver-profile-state--error" hidden></section>
+      <section id="track-hub-content" hidden>
+        <div class="driver-stat-grid track-stat-grid">
+          <article class="driver-stat-card"><span>Strecken</span><strong id="track-hub-count">0</strong></article>
+          <article class="driver-stat-card"><span>Rennen</span><strong id="track-hub-races">0</strong></article>
+          <article class="driver-stat-card"><span>Fahrer-Starts</span><strong id="track-hub-starts">0</strong></article>
+          <article class="driver-stat-card driver-stat-card--accent"><span>Rundenrekorde</span><strong id="track-hub-laps">0</strong></article>
+        </div>
+        <div id="track-hub-grid" class="track-hub-grid section-spacer-top"></div>
+      </section>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="assets/js/supabase-client.js"></script>
+  <script defer src="assets/js/data/tracks.js"></script>
+  <script defer src="assets/js/data/track-info.js"></script>
+  <script defer src="assets/js/services/rcc-data.js"></script>
+  <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
+  <script defer src="assets/js/services/rcc-driver-context.js"></script>
+  <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/services/rcc-track-stats.js"></script>
+  <script defer src="assets/js/layout.js"></script>
+  <script defer src="assets/js/utils.js"></script>
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/pages/track-hub.js"></script>
+</body>
+</html>
