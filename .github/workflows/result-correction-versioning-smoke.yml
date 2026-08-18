@@ -56,17 +56,27 @@ jobs:
           fi
 
   browser:
+    needs: static
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Install Playwright
-        run: npx playwright install --with-deps chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
       - name: Start static server
-        run: python3 -m http.server 4173 >/tmp/racevora-correction-server.log 2>&1 &
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/racevora-correction-server.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/assets/js/components/rcc-result-correction.js >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/racevora-correction-server.log
+          exit 1
       - name: Exercise correction editor without production writes
         run: |
           node <<'NODE'
