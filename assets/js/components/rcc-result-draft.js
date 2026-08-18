@@ -105,15 +105,23 @@
   }
 
   function schedulePostSaveUi({ raceId, importId, sourceFilename }) {
-    // Keep the actual save promise independent from secondary UI refreshes.
-    // On iOS/Safari this guarantees the save button/finally block can recover
-    // before the heavier draft overview refresh starts.
     window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('rcc:result-draft-saved', {
         detail: { raceId, importId, sourceFilename }
       }));
       refreshWorkflowInBackground();
     }, 0);
+  }
+
+  function ensureCorrectionModule() {
+    if (window.RCCResultCorrection || document.querySelector('script[data-rcc-result-correction="true"]')) return;
+    const script = document.createElement('script');
+    script.src = 'assets/js/components/rcc-result-correction.js';
+    script.defer = true;
+    script.dataset.rccResultCorrection = 'true';
+    script.onload = () => window.RCCResultCorrection?.init?.();
+    script.onerror = () => console.warn('Ergebnis-Korrekturmodul konnte nicht geladen werden.');
+    document.head.appendChild(script);
   }
 
   async function save({ raceId, rows = [], sourceFilename = 'Ergebnisentwurf' } = {}) {
@@ -125,17 +133,19 @@
     const payloadRows = rows.map(cleanRow);
     const now = new Date().toISOString();
 
-    const { data: existingImport, error: existingError } = await runQuery(
+    const { data: existingImports, error: existingError } = await runQuery(
       window.supabaseClient
         .from('race_result_imports')
-        .select('id')
+        .select('id, status')
         .eq('race_id', normalizedRaceId)
-        .maybeSingle(),
+        .in('status', ['draft', 'under_review'])
+        .order('imported_at', { ascending: false })
+        .limit(1),
       'Vorhandener Ergebnisentwurf'
     );
     if (existingError) throw existingError;
 
-    let importId = existingImport?.id || null;
+    let importId = existingImports?.[0]?.id || null;
     if (importId) {
       const { error: deleteError } = await runQuery(
         window.supabaseClient
@@ -153,11 +163,10 @@
             status: 'under_review',
             source_filename: String(sourceFilename || 'Ergebnisentwurf'),
             imported_by: session?.user?.id || null,
-            imported_at: now,
-            published_by: null,
-            published_at: null
+            imported_at: now
           })
-          .eq('id', importId),
+          .eq('id', importId)
+          .in('status', ['draft', 'under_review']),
         'Ergebnisentwurf'
       );
       if (updateError) throw updateError;
@@ -189,15 +198,6 @@
     );
     if (insertError) throw insertError;
 
-    const { error: raceError } = await runQuery(
-      window.supabaseClient
-        .from('races')
-        .update({ status: 'upcoming' })
-        .eq('id', normalizedRaceId),
-      'Rennstatus'
-    );
-    if (raceError) throw raceError;
-
     schedulePostSaveUi({
       raceId: normalizedRaceId,
       importId,
@@ -208,4 +208,5 @@
   }
 
   window.RCCResultDraft = { save };
+  ensureCorrectionModule();
 })();
