@@ -1,0 +1,102 @@
+name: Public League Hub Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/pages/race-hub.js'
+      - 'assets/js/pages/race-hub-community.js'
+      - 'assets/css/pages/race-hub-community.css'
+      - '.github/workflows/public-league-hub-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'assets/js/pages/race-hub.js'
+      - 'assets/js/pages/race-hub-community.js'
+      - 'assets/css/pages/race-hub-community.css'
+      - '.github/workflows/public-league-hub-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax and wiring
+        run: |
+          node --check assets/js/pages/race-hub.js
+          node --check assets/js/pages/race-hub-community.js
+          grep -Fq 'ensureCommunityAssets();' assets/js/pages/race-hub.js
+          grep -Fq 'race-hub-community.css' assets/js/pages/race-hub.js
+          grep -Fq 'rcc-driver-performance.js' assets/js/pages/race-hub.js
+          grep -Fq 'rcc-records.js' assets/js/pages/race-hub.js
+          grep -Fq 'Aktuelle Formfahrer' assets/js/pages/race-hub.js
+          grep -Fq 'Liga entdecken' assets/js/pages/race-hub.js
+          grep -Fq "['★', 'Rekorde'" assets/js/pages/race-hub-community.js
+
+  browser:
+    needs: static
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 > /tmp/public-league-hub-http.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8080/race-hub.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/public-league-hub-http.log
+          exit 1
+      - name: Exercise public RCC league hub
+        shell: bash
+        run: |
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1280, height: 1000 } });
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8080/race-hub.html?league=rcc', { waitUntil: 'domcontentloaded', timeout: 30000 });
+            await page.waitForSelector('#race-hub-community:not([hidden])', { state: 'visible', timeout: 30000 });
+            await page.waitForFunction(() => document.querySelectorAll('.race-hub-explore-link').length === 6, null, { timeout: 30000 });
+            const state = await page.evaluate(() => ({
+              formDrivers: document.querySelectorAll('.race-hub-form-driver').length,
+              highlights: document.querySelectorAll('.race-hub-highlight').length,
+              explore: document.querySelectorAll('.race-hub-explore-link').length,
+              ratingValues: [...document.querySelectorAll('.race-hub-form-score strong')].map((el) => Number(el.textContent)),
+              recordLink: document.querySelector('.race-hub-explore-link[href*="rekorde.html"]')?.getAttribute('href') || '',
+              profileLinks: document.querySelectorAll('.race-hub-form-driver[href*="fahrer-profil.html"]').length,
+              latestTitle: document.querySelector('#race-hub-latest-title')?.textContent?.trim() || '',
+              driverPodium: document.querySelectorAll('#driver-podium-list > *').length,
+              teamPodium: document.querySelectorAll('#team-podium-list > *').length
+            }));
+            if (state.formDrivers < 2) throw new Error(`expected form drivers, got ${JSON.stringify(state)}`);
+            if (state.highlights < 2) throw new Error(`expected record highlights, got ${JSON.stringify(state)}`);
+            if (state.explore !== 6 || !state.recordLink.includes('rekorde.html')) throw new Error(`explore incomplete ${JSON.stringify(state)}`);
+            if (state.profileLinks !== state.formDrivers) throw new Error(`form profile links incomplete ${JSON.stringify(state)}`);
+            if (state.ratingValues.some((value) => !Number.isFinite(value) || value < 0 || value > 100)) throw new Error(`invalid form rating ${JSON.stringify(state)}`);
+            if (!state.latestTitle || state.driverPodium < 1 || state.teamPodium < 1) throw new Error(`existing Race Hub content regressed ${JSON.stringify(state)}`);
+            if (errors.length) throw new Error(errors.join(' | '));
+
+            await page.setViewportSize({ width: 393, height: 852 });
+            await page.waitForTimeout(300);
+            const mobile = await page.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth }));
+            if (mobile.scrollWidth > mobile.width + 2) throw new Error(`public league hub mobile overflow ${mobile.scrollWidth} > ${mobile.width}`);
+            await browser.close();
+          })().catch((error) => { console.error(error); process.exit(1); });
+          NODE
