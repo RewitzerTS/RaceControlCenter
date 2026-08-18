@@ -30,10 +30,12 @@
 
     inFlight = (async () => {
       try {
+        const anonKey = typeof SUPABASE_ANON_KEY === 'string' ? SUPABASE_ANON_KEY : '';
         const response = await nativeFetch(ENDPOINT, {
           method: 'GET',
           headers: {
-            apikey: typeof SUPABASE_ANON_KEY === 'string' ? SUPABASE_ANON_KEY : ''
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`
           }
         });
         if (!response.ok) return [];
