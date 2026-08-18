@@ -237,8 +237,12 @@
       await module?.open?.();
     } catch (error) {
       console.error(error);
-      window.alert?.(error.message || 'KI-Bildimport konnte nicht geöffnet werden.');
+      window.alert?.(error.message || 'Dateiimport konnte nicht geöffnet werden.');
     }
+  }
+
+  function openCsvImport(csvPanel) {
+    return openPanel(csvPanel, 'CSV importieren');
   }
 
   async function openManualEntry(manualPanel) {
@@ -278,23 +282,31 @@
         <div>
           <span class="eyebrow">Rennergebnis</span>
           <h3>Wie möchtest du das Ergebnis erfassen?</h3>
-          <p class="muted">Wähle zwischen KI-Bildimport und manueller Eingabe. Beide Wege führen anschließend in denselben gespeicherten Ergebnisentwurf.</p>
+          <p class="muted">Wähle den passenden Erfassungsweg. Dateiimport, CSV und manuelle Eingabe bleiben getrennt und führen anschließend in den gemeinsamen Entwurfs- und Freigabeprozess.</p>
         </div>
       </div>
       <div class="rcc-results-workflow__grid">
         <article class="rcc-results-workflow__card">
           <div class="rcc-results-workflow__icon" aria-hidden="true">▣</div>
           <div>
-            <h4>KI-Bildimport</h4>
-            <p>Renn-Screenshots hochladen und direkt von der KI auslesen lassen. Die erkannten Werte können vor dem Übernehmen vollständig geprüft und bearbeitet werden.</p>
+            <h4>Datei importieren</h4>
+            <p>Renn-Screenshots oder Ergebnisbilder hochladen und von der KI auslesen lassen. Die erkannten Werte können vor dem Speichern vollständig geprüft und bearbeitet werden.</p>
           </div>
-          <button type="button" class="button-primary" data-rcc-results-action="ai">KI-Bildimport öffnen</button>
+          <button type="button" class="button-primary" data-rcc-results-action="ai">Bilder mit KI importieren</button>
+        </article>
+        <article class="rcc-results-workflow__card">
+          <div class="rcc-results-workflow__icon" aria-hidden="true">CSV</div>
+          <div>
+            <h4>CSV importieren</h4>
+            <p>Ein vorbereitetes Rennergebnis als CSV-Datei hochladen. Mapping und Konflikte werden vor dem Import angezeigt.</p>
+          </div>
+          <button type="button" class="button-primary" data-rcc-results-action="csv">CSV-Datei auswählen</button>
         </article>
         <article class="rcc-results-workflow__card">
           <div class="rcc-results-workflow__icon" aria-hidden="true">✎</div>
           <div>
             <h4>Manuelle Eingabe</h4>
-            <p>Zuerst ein Rennen auswählen. Danach öffnet sich eine leere Tabelle für Position, Fahrer, Team, Grid, Stopps und Zeiten.</p>
+            <p>Zuerst ein Rennen auswählen. Danach öffnet sich eine leere Tabelle für Position, Fahrer, Team, Startplatz, Stopps und Zeiten.</p>
           </div>
           <button type="button" class="button-primary" data-rcc-results-action="manual">Manuell eingeben</button>
         </article>
@@ -302,7 +314,7 @@
           <div class="rcc-results-workflow__icon" aria-hidden="true">✓</div>
           <div>
             <h4>Entwürfe & Freigabe</h4>
-            <p>Zwischengespeicherte Rennergebnisse prüfen und nach den Steward-Entscheidungen final veröffentlichen.</p>
+            <p>Zwischengespeicherte Rennergebnisse aus allen Erfassungswegen prüfen und nach den Steward-Entscheidungen final veröffentlichen.</p>
           </div>
           <button type="button" class="button-primary" data-rcc-results-action="publish">Freigabe öffnen</button>
         </article>
@@ -313,6 +325,7 @@
     else section.appendChild(launcher);
 
     launcher.querySelector('[data-rcc-results-action="ai"]')?.addEventListener('click', openAiImport);
+    launcher.querySelector('[data-rcc-results-action="csv"]')?.addEventListener('click', () => openCsvImport(csvPanel));
     launcher.querySelector('[data-rcc-results-action="manual"]')?.addEventListener('click', () => openManualEntry(manualPanel));
     launcher.querySelector('[data-rcc-results-action="publish"]')?.addEventListener('click', () => openPanel(publishPanel, 'Entwürfe & Freigabe'));
     loadAdminSectionHubs().catch((error) => console.warn(error));
@@ -325,7 +338,7 @@
   ensureAdminHomePlaceholder();
   prepareResultEntryModules().catch((error) => console.warn(error));
   loadResultReleaseModule().catch((error) => console.warn(error));
-  window.RCCResultsWorkflow = { ensureLauncher, openAiImport };
+  window.RCCResultsWorkflow = { ensureLauncher, openAiImport, openCsvImport };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => ensureLauncher(), { once: true });
