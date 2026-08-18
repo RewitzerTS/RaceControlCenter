@@ -7,6 +7,7 @@
   <title>RaceVora · Fahrerprofil</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/css/driver-profile.css">
+  <link rel="stylesheet" href="assets/css/driver-performance.css">
   <link rel="stylesheet" href="assets/css/driver-rivalries.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -63,6 +64,26 @@
           <article class="driver-stat-card"><span>Poles</span><strong id="driver-stat-poles">0</strong></article>
           <article class="driver-stat-card"><span>Schnellste Runden</span><strong id="driver-stat-fastest">0</strong></article>
           <article class="driver-stat-card driver-stat-card--accent"><span>Punkte</span><strong id="driver-stat-points">0</strong></article>
+        </section>
+
+        <section class="driver-performance-index" aria-label="RaceVora Performance Index">
+          <article class="driver-rating-card">
+            <div id="driver-rating-gauge" class="driver-rating-gauge" style="--driver-rating:0">
+              <strong id="driver-rating-score">—</strong>
+              <small>/ 100</small>
+            </div>
+            <div class="driver-rating-copy">
+              <span class="eyebrow">Performance Index</span>
+              <h3 id="driver-rating-label">Noch ohne Rating</h3>
+              <p id="driver-rating-sample">Berechnet aus den letzten Starts.</p>
+              <span id="driver-rating-trend" class="driver-rating-trend">Trend noch nicht verfügbar</span>
+            </div>
+          </article>
+          <article class="driver-rating-components">
+            <div class="driver-panel-heading"><div><span class="eyebrow">Form</span><h3>Rating-Komponenten</h3></div></div>
+            <div id="driver-rating-components" class="driver-rating-component-grid"></div>
+            <p class="driver-rating-note"><strong>So entsteht der Index:</strong> Rennergebnis 40 %, Qualifying 20 %, Punkte 20 %, Racecraft 10 % und Zielankunft 10 %. Bewertet werden maximal die letzten fünf Starts relativ zum jeweiligen Starterfeld. Neuere Rennen zählen etwas stärker. Das Rating ist ein Formindikator und ersetzt keine Meisterschaftswertung.</p>
+          </article>
         </section>
 
         <section class="driver-performance-grid">
@@ -140,6 +161,7 @@
   <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
   <script defer src="assets/js/services/rcc-driver-context.js"></script>
   <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/services/rcc-driver-performance.js"></script>
   <script defer src="assets/js/services/rcc-driver-rivalries.js"></script>
   <script defer src="assets/js/layout.js"></script>
   <script defer src="assets/js/utils.js"></script>
