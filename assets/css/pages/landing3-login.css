@@ -217,7 +217,19 @@
 }
 
 @media (max-width: 600px) {
+  html {
+    overflow-x: hidden;
+  }
+
+  body[data-page="landing3"] {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .login-modal {
+    width: 100%;
+    max-width: 100%;
     padding-top: max(10px, env(safe-area-inset-top));
     padding-right: max(10px, env(safe-area-inset-right));
     padding-bottom: 0;
