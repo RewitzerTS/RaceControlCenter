@@ -3,6 +3,7 @@
 
   const pos = (value) => window.RCCDriverStats?.validPosition?.(value) ?? null;
   const points = (row, fastestId) => Number(window.RCCDriverStats?.getAwardedPoints?.(row, fastestId) || 0);
+  const pointsOwnerId = (row) => String(row?.points_owner_driver_id || row?.driver_id || '');
 
   function racesFor(history, seasonId) {
     const races = seasonId
@@ -39,7 +40,7 @@
     return racesFor(history, seasonId).map((race) => {
       const rows = history.resultsByRace.get(String(race.id)) || [];
       const row = rows.find((candidate) => String(candidate.driver_id || '') === id);
-      return row ? { race, row, fastestId: history.fastestByRace.get(String(race.id)) } : null;
+      return row ? { race, row, fastestId: history.fastestByRace.get(String(race.id)), driverId: id } : null;
     }).filter(Boolean);
   }
 
@@ -131,11 +132,11 @@
       const finish = pos(row.finish_position);
       return Number.isFinite(finish) && finish <= 3;
     });
-    const pointsStreak = bestStreak(history, driverStats, seasonId, ({ row, fastestId }) => points(row, fastestId) > 0);
+    const pointsStreak = bestStreak(history, driverStats, seasonId, ({ row, fastestId, driverId }) => pointsOwnerId(row) === String(driverId) && points(row, fastestId) > 0);
     const specialist = trackSpecialist(history, seasonId);
     const avgFinish = leader([...driverStats], 'avgFinish', { lowerIsBetter: true, filter: (stat) => stat.starts >= 3 && Number.isFinite(stat.avgFinish) });
     const finishRate = leader([...driverStats], 'finishRate', { filter: (stat) => stat.starts >= 5 && Number.isFinite(stat.finishRate) });
-    const positionsGained = leader([...driverStats], 'positionsGained');
+    const positionsGained = leader([...driverStats], 'positionsGained', { filter: (stat) => Number(stat.positionsGained) > 0 });
 
     return {
       seasonId,
