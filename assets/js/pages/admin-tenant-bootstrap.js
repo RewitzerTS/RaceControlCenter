@@ -4,6 +4,7 @@
   const FALLBACK_LEAGUE_SLUG = 'rcc';
   const ADMIN_UI_HINT_PREFIX = 'rcc.adminUiHint.v2:';
   const ADMIN_UI_HINT_MAX_AGE_MS = 1000 * 60 * 60 * 12;
+  const ACCESSIBLE_LEAGUES_CACHE_TTL_MS = 1000 * 10;
   const ADMIN_ROLES = new Set(['owner', 'admin']);
   const PRIVILEGED_ROLES = new Set(['owner', 'admin', 'steward']);
   let prepared = false;
@@ -13,6 +14,9 @@
   let leagueCreateModulePromise = null;
   let adminResultsUiPromise = null;
   let switcherRenderPromise = null;
+  let accessibleLeaguesPromise = null;
+  let accessibleLeaguesPromiseUserId = null;
+  let accessibleLeaguesCache = { userId: null, rows: [], loadedAt: 0 };
 
   // The Admin Center uses the same RaceVora account/session as every other page.
   // Remove the legacy second login UI as soon as the deferred bootstrap executes.
@@ -162,26 +166,77 @@
     return data?.session || null;
   }
 
-  async function fetchAccessibleLeagues() {
-    const session = await getSession();
-    if (!session?.user?.id) return [];
-    const { data: memberships, error: membershipError } = await window.supabaseClient
-      .from('league_members')
-      .select('league_id, role')
-      .eq('user_id', session.user.id);
-    if (membershipError) throw membershipError;
-    const privilegedMemberships = (memberships || []).filter((row) => hasPrivilegedRole(row.role));
-    if (!privilegedMemberships.length) return [];
-    const roleByLeagueId = new Map(privilegedMemberships.map((row) => [row.league_id, row.role]));
-    const leagueIds = privilegedMemberships.map((row) => row.league_id);
-    const { data: leagues, error: leagueError } = await window.supabaseClient
-      .from('leagues')
-      .select('id, name, slug, status, is_public')
-      .in('id', leagueIds)
-      .eq('status', 'active')
-      .order('name', { ascending: true });
-    if (leagueError) throw leagueError;
-    return (leagues || []).map((league) => ({ ...league, role: roleByLeagueId.get(league.id) || 'member' }));
+  function cloneAccessibleLeagues(rows = []) {
+    return rows.map((row) => ({ ...row }));
+  }
+
+  function clearAccessibleLeaguesCache() {
+    accessibleLeaguesCache = { userId: null, rows: [], loadedAt: 0 };
+    accessibleLeaguesPromise = null;
+    accessibleLeaguesPromiseUserId = null;
+  }
+
+  async function fetchAccessibleLeagues(session = null, options = {}) {
+    const activeSession = session || await getSession();
+    const userId = activeSession?.user?.id || null;
+    if (!userId) {
+      clearAccessibleLeaguesCache();
+      return [];
+    }
+
+    const now = Date.now();
+    if (
+      options.forceRefresh !== true
+      && accessibleLeaguesCache.userId === userId
+      && now - accessibleLeaguesCache.loadedAt < ACCESSIBLE_LEAGUES_CACHE_TTL_MS
+    ) {
+      return cloneAccessibleLeagues(accessibleLeaguesCache.rows);
+    }
+
+    if (
+      options.forceRefresh !== true
+      && accessibleLeaguesPromise
+      && accessibleLeaguesPromiseUserId === userId
+    ) {
+      return accessibleLeaguesPromise;
+    }
+
+    accessibleLeaguesPromiseUserId = userId;
+    accessibleLeaguesPromise = (async () => {
+      const { data: memberships, error: membershipError } = await window.supabaseClient
+        .from('league_members')
+        .select('league_id, role')
+        .eq('user_id', userId);
+      if (membershipError) throw membershipError;
+
+      const privilegedMemberships = (memberships || []).filter((row) => hasPrivilegedRole(row.role));
+      if (!privilegedMemberships.length) {
+        accessibleLeaguesCache = { userId, rows: [], loadedAt: Date.now() };
+        return [];
+      }
+
+      const roleByLeagueId = new Map(privilegedMemberships.map((row) => [row.league_id, row.role]));
+      const leagueIds = privilegedMemberships.map((row) => row.league_id);
+      const { data: leagues, error: leagueError } = await window.supabaseClient
+        .from('leagues')
+        .select('id, name, slug, status, is_public')
+        .in('id', leagueIds)
+        .eq('status', 'active')
+        .order('name', { ascending: true });
+      if (leagueError) throw leagueError;
+
+      const rows = (leagues || []).map((league) => ({
+        ...league,
+        role: roleByLeagueId.get(league.id) || 'member'
+      }));
+      accessibleLeaguesCache = { userId, rows: cloneAccessibleLeagues(rows), loadedAt: Date.now() };
+      return cloneAccessibleLeagues(rows);
+    })().finally(() => {
+      accessibleLeaguesPromise = null;
+      accessibleLeaguesPromiseUserId = null;
+    });
+
+    return accessibleLeaguesPromise;
   }
 
   async function hasSwitcherAccess(session) {
@@ -224,7 +279,7 @@
         if (banner?.parentNode) banner.parentNode.insertBefore(switcher, banner.nextSibling);
       }
 
-      const leagues = await fetchAccessibleLeagues();
+      const leagues = await fetchAccessibleLeagues(session);
       const currentSlug = window.RCCLeagueContext?.getSlug?.() || requestedLeagueSlug();
       if (!leagues.length) {
         switcher?.remove();
@@ -378,6 +433,10 @@
     if (authReloadBound) return;
     authReloadBound = true;
     window.supabaseClient.auth.onAuthStateChange((event, session) => {
+      const nextUserId = session?.user?.id || null;
+      if (!nextUserId || (accessibleLeaguesCache.userId && accessibleLeaguesCache.userId !== nextUserId)) {
+        clearAccessibleLeaguesCache();
+      }
       if (event === 'SIGNED_OUT' || !session) {
         clearAdminUiHint();
         redirectToLogin();
@@ -391,7 +450,7 @@
     try {
       return await window.RCCData.getLeagueContext({ slug: requestedSlug, forceRefresh: true });
     } catch (error) {
-      const leagues = await fetchAccessibleLeagues().catch(() => []);
+      const leagues = await fetchAccessibleLeagues(session).catch(() => []);
       const first = leagues[0];
       if (first?.slug && first.slug !== requestedSlug) {
         navigateToLeague(first.slug);
