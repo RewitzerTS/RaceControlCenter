@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <script src="assets/js/theme-prepaint.js"></script>
+  <title>RaceVora · Rekorde</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/records.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+  <meta name="theme-color" content="#0B0F1A">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+</head>
+<body data-page="rekorde">
+  <div id="site-header"></div>
+  <main class="section records-page">
+    <div class="container records-toolbar">
+      <div>
+        <div class="eyebrow">RaceVora Records</div>
+        <h1 class="page-title page-title-compact">Rekordzentrale</h1>
+        <p class="page-subtitle">All-Time- und Saisonrekorde aus den veröffentlichten Rennergebnissen dieser Liga.</p>
+      </div>
+      <div class="records-controls">
+        <label><span>Zeitraum</span><select id="records-season" aria-label="Saison auswählen"><option value="">All-Time</option></select></label>
+        <a class="btn" href="hall-of-fame.html">Hall of Fame</a>
+      </div>
+    </div>
+
+    <div class="container">
+      <section id="records-loading" class="records-state">Rekorde werden berechnet …</section>
+      <section id="records-error" class="records-state" hidden></section>
+      <section id="records-content" hidden>
+        <section class="records-summary" aria-label="Rekorddatenbasis">
+          <article><span>Gewertete Rennen</span><strong id="records-races">0</strong></article>
+          <article><span>Fahrer mit Starts</span><strong id="records-drivers">0</strong></article>
+          <article><span>Teams mit Rennen</span><strong id="records-teams">0</strong></article>
+        </section>
+
+        <section class="records-section">
+          <div class="section-header section-header-compact"><div><div class="eyebrow">Special Records</div><h2 class="page-title page-title-compact">Besondere Rekorde</h2><p class="page-subtitle">Serien, Aufholjagden und statistische Ausreißer aus der Liga-Historie.</p></div></div>
+          <div id="records-specials" class="records-special-grid"></div>
+        </section>
+
+        <section class="records-section">
+          <div class="section-header section-header-compact"><div><div class="eyebrow">Fahrer</div><h2 class="page-title page-title-compact">Fahrer-Bestenlisten</h2></div></div>
+          <div class="records-board-grid">
+            <article id="records-driver-wins" class="records-board"></article>
+            <article id="records-driver-points" class="records-board"></article>
+            <article id="records-driver-poles" class="records-board"></article>
+            <article id="records-driver-podiums" class="records-board"></article>
+          </div>
+        </section>
+
+        <section class="records-section">
+          <div class="section-header section-header-compact"><div><div class="eyebrow">Teams</div><h2 class="page-title page-title-compact">Team-Bestenlisten</h2></div></div>
+          <div class="records-board-grid">
+            <article id="records-team-points" class="records-board"></article>
+            <article id="records-team-wins" class="records-board"></article>
+            <article id="records-team-podiums" class="records-board"></article>
+            <article id="records-team-poles" class="records-board"></article>
+          </div>
+        </section>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="assets/js/supabase-client.js"></script>
+  <script defer src="assets/js/data/tracks.js"></script>
+  <script defer src="assets/js/services/rcc-data.js"></script>
+  <script defer src="assets/js/services/rcc-result-data-compat.js"></script>
+  <script defer src="assets/js/services/rcc-driver-context.js"></script>
+  <script defer src="assets/js/services/rcc-driver-stats.js"></script>
+  <script defer src="assets/js/services/rcc-team-stats.js"></script>
+  <script defer src="assets/js/services/rcc-records.js"></script>
+  <script defer src="assets/js/layout.js"></script>
+  <script defer src="assets/js/utils.js"></script>
+  <script defer src="assets/js/app.js"></script>
+  <script defer src="assets/js/pages/records.js"></script>
+</body>
+</html>
