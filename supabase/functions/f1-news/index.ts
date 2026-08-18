@@ -6,9 +6,10 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "
 const CACHE_KEY = "racevora-f1-news-v1";
 const CACHE_TTL_MS = 15 * 60 * 1000;
 const STALE_MAX_MS = 24 * 60 * 60 * 1000;
-const FETCH_TIMEOUT_MS = 6500;
+const FETCH_TIMEOUT_MS = 8000;
 const MAX_ITEMS_PER_SOURCE = 8;
 const MAX_RESPONSE_ITEMS = 16;
+const MAX_FEED_BYTES = 2_000_000;
 
 const ALLOWED_ORIGINS = new Set([
   "https://racevora.com",
@@ -22,7 +23,9 @@ const ALLOWED_ORIGINS = new Set([
 const FEEDS = [
   { name: "Motorsport-Total", url: "https://www.motorsport-total.com/formel-1/rss" },
   { name: "Motorsport-Magazin", url: "https://www.motorsport-magazin.com/formel1/news.xml" },
-  { name: "Google News F1", url: "https://news.google.com/rss/search?q=Formel+1+News&hl=de&gl=DE&ceid=DE:de" },
+  { name: "Google News · Motorsport-Total", url: "https://news.google.com/rss/search?q=site%3Amotorsport-total.com+Formel+1&hl=de&gl=DE&ceid=DE:de" },
+  { name: "Google News · Motorsport-Magazin", url: "https://news.google.com/rss/search?q=site%3Amotorsport-magazin.com+Formel+1&hl=de&gl=DE&ceid=DE:de" },
+  { name: "Google News · Formel 1", url: "https://news.google.com/rss/search?q=Formel+1+News&hl=de&gl=DE&ceid=DE:de" },
 ] as const;
 
 type NewsItem = {
@@ -30,6 +33,17 @@ type NewsItem = {
   link: string;
   timestamp: number;
   source: string;
+};
+
+type SourceStatus = {
+  ok: boolean;
+  httpStatus?: number;
+  contentType?: string;
+  bytes?: number;
+  parsedItems: number;
+  format?: string;
+  finalUrl?: string;
+  error?: string;
 };
 
 type CacheRow = {
@@ -61,7 +75,7 @@ function json(body: unknown, status = 200, origin: string | null = null, cacheSt
 }
 
 function normalizeText(value: string) {
-  return value
+  return String(value || "")
     .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;/gi, " ")
@@ -77,53 +91,121 @@ function normalizeText(value: string) {
 }
 
 function elementText(block: string, tag: string) {
-  const match = block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(new RegExp(`<${escapedTag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${escapedTag}>`, "i"));
+  return normalizeText(match?.[1] || "");
+}
+
+function elementHref(block: string, tag = "link") {
+  const escapedTag = tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = block.match(new RegExp(`<${escapedTag}\\b[^>]*\\bhref=["']([^"']+)["'][^>]*>`, "i"));
   return normalizeText(match?.[1] || "");
 }
 
 function safeHttpUrl(raw: string) {
   try {
-    const url = new URL(raw);
+    const url = new URL(String(raw || "").trim());
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : "";
   } catch {
     return "";
   }
 }
 
-function parseFeed(xml: string, source: string): NewsItem[] {
-  const blocks = xml.match(/<item\b[\s\S]*?<\/item>/gi) || [];
-  return blocks.slice(0, MAX_ITEMS_PER_SOURCE).map((block) => {
+function parseFeed(xml: string, source: string) {
+  const rssBlocks = xml.match(/<item\b[\s\S]*?<\/item>/gi) || [];
+  const atomBlocks = rssBlocks.length ? [] : (xml.match(/<entry\b[\s\S]*?<\/entry>/gi) || []);
+  const blocks = rssBlocks.length ? rssBlocks : atomBlocks;
+  const format = rssBlocks.length ? "rss" : atomBlocks.length ? "atom" : "unknown";
+
+  const items = blocks.slice(0, MAX_ITEMS_PER_SOURCE).map((block) => {
     const headline = elementText(block, "title");
-    const link = safeHttpUrl(elementText(block, "link"));
-    const pubDate = elementText(block, "pubDate") || elementText(block, "published") || elementText(block, "updated");
+    const link = safeHttpUrl(elementText(block, "link"))
+      || safeHttpUrl(elementHref(block, "link"))
+      || safeHttpUrl(elementText(block, "guid"));
+    const pubDate = elementText(block, "pubDate")
+      || elementText(block, "published")
+      || elementText(block, "updated")
+      || elementText(block, "dc:date");
     const parsedTime = pubDate ? Date.parse(pubDate) : 0;
     return {
       headline,
       link,
       timestamp: Number.isFinite(parsedTime) ? parsedTime : 0,
       source,
-    };
+    } satisfies NewsItem;
   }).filter((item) => item.headline && item.link);
+
+  return { items, format, blockCount: blocks.length };
 }
 
-async function fetchFeed(feed: typeof FEEDS[number]) {
+async function fetchFeed(feed: typeof FEEDS[number]): Promise<{ items: NewsItem[]; status: SourceStatus }> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
     const response = await fetch(feed.url, {
       signal: controller.signal,
+      redirect: "follow",
       headers: {
-        "Accept": "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5",
-        "User-Agent": "RaceVora-F1-News/1.0 (+https://racevora.com)",
+        "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.5",
+        "User-Agent": "RaceVora-F1-News/2.0 (+https://racevora.com)",
       },
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const contentType = String(response.headers.get("content-type") || "").slice(0, 120);
+    if (!response.ok) {
+      return {
+        items: [],
+        status: {
+          ok: false,
+          httpStatus: response.status,
+          contentType,
+          parsedItems: 0,
+          finalUrl: response.url,
+          error: `HTTP ${response.status}`,
+        },
+      };
+    }
+
     const text = await response.text();
-    if (text.length > 2_000_000) throw new Error("feed_too_large");
-    return { items: parseFeed(text, feed.name), status: "ok" };
+    if (text.length > MAX_FEED_BYTES) {
+      return {
+        items: [],
+        status: {
+          ok: false,
+          httpStatus: response.status,
+          contentType,
+          bytes: text.length,
+          parsedItems: 0,
+          finalUrl: response.url,
+          error: "feed_too_large",
+        },
+      };
+    }
+
+    const parsed = parseFeed(text, feed.name);
+    return {
+      items: parsed.items,
+      status: {
+        ok: parsed.items.length > 0,
+        httpStatus: response.status,
+        contentType,
+        bytes: text.length,
+        parsedItems: parsed.items.length,
+        format: parsed.format,
+        finalUrl: response.url,
+        ...(parsed.items.length ? {} : { error: parsed.blockCount ? "no_valid_items" : "no_feed_entries" }),
+      },
+    };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    return { items: [] as NewsItem[], status: message.slice(0, 120) || "fetch_failed" };
+    return {
+      items: [],
+      status: {
+        ok: false,
+        parsedItems: 0,
+        error: message.slice(0, 160) || "fetch_failed",
+      },
+    };
   } finally {
     clearTimeout(timeout);
   }
@@ -171,6 +253,10 @@ Deno.serve(async (req: Request) => {
   const sourceStatus = Object.fromEntries(FEEDS.map((feed, index) => [feed.name, results[index].status]));
   const freshItems = dedupeAndSort(results.flatMap((result) => result.items));
 
+  for (const [source, status] of Object.entries(sourceStatus)) {
+    console.info("f1 news source", source, JSON.stringify(status));
+  }
+
   if (freshItems.length) {
     const refreshedAt = new Date().toISOString();
     const { error: upsertError } = await admin.from("f1_news_cache").upsert({
@@ -180,12 +266,23 @@ Deno.serve(async (req: Request) => {
       refreshed_at: refreshedAt,
     }, { onConflict: "cache_key" });
     if (upsertError) console.error("f1 news cache upsert failed", upsertError.message);
-    return json({ items: freshItems, refreshedAt, stale: false }, 200, origin, "MISS");
+    return json({ items: freshItems, refreshedAt, stale: false, sources: sourceStatus }, 200, origin, "MISS");
   }
 
   if (cachedItems.length && cachedAgeMs <= STALE_MAX_MS) {
-    return json({ items: cachedItems, refreshedAt: cached?.refreshed_at, stale: true }, 200, origin, "STALE");
+    await admin.from("f1_news_cache")
+      .update({ source_status: sourceStatus })
+      .eq("cache_key", CACHE_KEY);
+    return json({ items: cachedItems, refreshedAt: cached?.refreshed_at, stale: true, sources: sourceStatus }, 200, origin, "STALE");
   }
+
+  const attemptedAt = new Date().toISOString();
+  await admin.from("f1_news_cache").upsert({
+    cache_key: CACHE_KEY,
+    payload: [],
+    source_status: sourceStatus,
+    refreshed_at: attemptedAt,
+  }, { onConflict: "cache_key" });
 
   return json({ items: [], refreshedAt: null, stale: true, sources: sourceStatus }, 502, origin, "EMPTY");
 });
