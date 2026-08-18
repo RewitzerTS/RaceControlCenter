@@ -10,6 +10,10 @@ const RCC_TRANSLATE_COOKIE_NAME = 'googtrans';
 const RCC_SOURCE_LANGUAGE = 'de';
 const RCC_THEME_META_COLORS = { dark: '#021b34', light: '#4f63b8' };
 
+// Never paint the neutral RaceVora placeholder on tenant pages. The branding
+// service releases this gate once the requested league has been resolved.
+document.documentElement.dataset.leagueBrandingPending = 'true';
+
 function ensureUxPassStylesheet(){
   if(document.querySelector('link[data-rcc-ux-pass1="true"]'))return;
   const link=document.createElement('link');
@@ -17,6 +21,45 @@ function ensureUxPassStylesheet(){
   link.href='assets/css/rcc-ux-pass1.css';
   link.dataset.rccUxPass1='true';
   document.head.appendChild(link);
+}
+
+function ensureUxPass2(){
+  if(!document.querySelector('link[data-rcc-ux-pass2="true"]')){
+    const link=document.createElement('link');
+    link.rel='stylesheet';
+    link.href='assets/css/rcc-ux-pass2.css';
+    link.dataset.rccUxPass2='true';
+    document.head.appendChild(link);
+  }
+  if(window.__raceVoraAppUxPolish||document.querySelector('script[data-rcc-ux-pass2="true"]'))return;
+  const script=document.createElement('script');
+  script.src='assets/js/components/racevora-app-ux-polish.js';
+  script.defer=true;
+  script.dataset.rccUxPass2='true';
+  document.head.appendChild(script);
+}
+
+function installAdminAuthPrepaintGuard(){
+  if(document.body?.dataset?.page!=='admin'||document.getElementById('rcc-admin-auth-prepaint'))return;
+  const style=document.createElement('style');
+  style.id='rcc-admin-auth-prepaint';
+  style.textContent='body[data-page="admin"] #admin-section-auth{visibility:hidden!important}';
+  document.head.appendChild(style);
+  const release=()=>style.remove();
+  const authSection=document.getElementById('admin-section-auth');
+  const observeAuthorizedSession=()=>{
+    if(authSection?.hidden){release();return;}
+    if(!authSection){release();return;}
+    const observer=new MutationObserver(()=>{
+      if(authSection.hidden){observer.disconnect();release();}
+    });
+    observer.observe(authSection,{attributes:true,attributeFilter:['hidden']});
+    window.setTimeout(()=>{observer.disconnect();release();},2500);
+  };
+  window.supabaseClient?.auth?.getSession?.().then(({data})=>{
+    if(!data?.session?.user){release();return;}
+    observeAuthorizedSession();
+  }).catch(release);
 }
 
 function relabelAdminTabs(){
@@ -117,7 +160,9 @@ function applyGoogleTranslateLanguage(targetLanguage){const s=document.querySele
 async function applyLanguageSelection(selectedLanguage,{forceReload=false}={}){document.documentElement.lang=selectedLanguage;if(selectedLanguage===RCC_SOURCE_LANGUAGE){clearTranslationCookie();if(forceReload)window.location.reload();return;}setTranslationCookie(selectedLanguage);try{await loadGoogleTranslateScript();let applied=applyGoogleTranslateLanguage(selectedLanguage);if(!applied){window.setTimeout(()=>applyGoogleTranslateLanguage(selectedLanguage),220);window.setTimeout(()=>applyGoogleTranslateLanguage(selectedLanguage),600);if(forceReload)window.setTimeout(()=>window.location.reload(),900);}}catch(error){console.warn(error);if(forceReload)window.location.reload();}}
 window.resolveCurrentPage=resolveCurrentPage;window.updateActiveNavigation=updateActiveNavigation;window.loadSiteLayout=loadSiteLayout;window.preserveLeagueContextInLinks=preserveLeagueContextInLinks;window.withLeagueContextHref=withLeagueContextHref;
 ensureUxPassStylesheet();
+ensureUxPass2();
 ensureLeagueBrandingService();
+installAdminAuthPrepaintGuard();
 document.addEventListener('DOMContentLoaded',loadSiteLayout);document.addEventListener('DOMContentLoaded',applyPreferredLanguage);document.addEventListener('DOMContentLoaded',applyThemePreference);document.addEventListener('DOMContentLoaded',relabelAdminTabs);document.addEventListener('DOMContentLoaded',()=>{const p=getPreferredLanguage();if(p!==RCC_SOURCE_LANGUAGE)applyLanguageSelection(p);});document.addEventListener('DOMContentLoaded',()=>{ensureAdminLeagueBrandingOnboarding();});window.addEventListener('rcc:league-context-ready',()=>{ensureAdminLeagueBrandingOnboarding();});
 function setupAdminShortcut(){const b=document.querySelector('.brand');if(!b||b.dataset.adminShortcutBound==='true')return;const home=b.getAttribute('href')||'index.html';let timer=null;b.addEventListener('click',e=>{e.preventDefault();if(timer)clearTimeout(timer);timer=window.setTimeout(()=>{window.location.href=withLeagueContextHref(home);},220);});b.addEventListener('dblclick',e=>{e.preventDefault();if(timer){clearTimeout(timer);timer=null;}window.location.href=withLeagueContextHref('admin.html');});b.dataset.adminShortcutBound='true';}
 document.addEventListener('layout:loaded',setupAdminShortcut);

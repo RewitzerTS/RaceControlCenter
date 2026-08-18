@@ -1,0 +1,147 @@
+name: UX Polish Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assets/js/layout.js'
+      - 'assets/js/pages/landing.js'
+      - 'assets/js/pages/landing3-motion.js'
+      - 'assets/js/components/racevora-app-ux-polish.js'
+      - 'assets/js/components/racevora-team-logo-resilience.js'
+      - 'assets/css/rcc-ux-pass2.css'
+      - '.github/workflows/ux-polish-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-ux-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate browser JavaScript
+        run: |
+          node --check assets/js/layout.js
+          node --check assets/js/pages/landing.js
+          node --check assets/js/pages/landing3-motion.js
+          node --check assets/js/components/racevora-app-ux-polish.js
+          node --check assets/js/components/racevora-team-logo-resilience.js
+
+      - name: Verify requested UX behavior is wired
+        shell: bash
+        run: |
+          set -euo pipefail
+          polish='assets/js/components/racevora-app-ux-polish.js'
+          landing='assets/js/pages/landing.js'
+          motion='assets/js/pages/landing3-motion.js'
+          layout='assets/js/layout.js'
+
+          grep -Fq "document.documentElement.dataset.leagueBrandingPending = 'true'" "$layout"
+          grep -Fq 'rcc-admin-auth-prepaint' "$layout"
+          grep -Fq 'footer-account-controls__logout' "$polish"
+          grep -Fq ".from('league_members')" "$polish"
+          grep -Fq 'fahrer-profil.html' "$polish"
+          grep -Fq "document.getElementById('driver-card-modal')?.remove()" "$polish"
+          grep -Fq "document.getElementById('admin-create-league-launcher')?.remove()" "$polish"
+          grep -Fq 'data-rcc-league-management-card' "$polish"
+          grep -Fq "archive.before(link)" "$polish"
+          grep -Fq 'maintainAspectRatio = false' "$polish"
+
+          grep -Fq "roleLabels" "$landing"
+          grep -Fq "member: 'Mitglied'" "$landing"
+          grep -Fq "race-hub.html" "$landing"
+          grep -Fq 'Welche Liga möchtest du betreten?' "$landing"
+          grep -Fq 'autoEnterSingle' "$landing"
+          grep -Fq "history.scrollRestoration = 'manual'" "$landing"
+
+          grep -Fq 'previewDocument(type)' "$motion"
+          grep -Fq 'srcdoc = previewDocument' "$motion"
+          grep -Fq 'step.hidden = !active' "$motion"
+          grep -Fq 'data-static-preview="hub"' index.html
+          grep -Fq 'data-static-preview="standings"' index.html
+          grep -Fq 'data-static-preview="results"' index.html
+
+          if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse)\.html\?league=rcc' index.html; then
+            echo 'Decorative landing devices still load live RCC pages.' >&2
+            exit 1
+          fi
+
+          if grep -Eq "\.in\('role',[[:space:]]*\['owner',[[:space:]]*'admin',[[:space:]]*'steward'\]" "$landing" "$polish"; then
+            echo 'League switching still excludes normal member accounts.' >&2
+            exit 1
+          fi
+
+      - name: Confirm email pause remains untouched
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'EMAIL_SENDING_PAUSED = true' assets/js/auth-turnstile-config.js
+          grep -Fq 'email_sending_paused' supabase/functions/finalize-consumer-registration/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/manage-league-member/index.ts
+          grep -Fq 'email_sending_paused' supabase/functions/submit-consumer-withdrawal/index.ts
+
+  landing-browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.54.2
+          npx playwright install --with-deps chromium
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/racevora-ux-http.log 2>&1 &
+          echo $! > /tmp/racevora-ux-http.pid
+      - name: Verify landing starts at top and previews are static
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({ headless: true });
+            const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+            page.on('pageerror', (error) => {
+              const text = String(error?.message || error);
+              if (!/supabase|turnstile/i.test(text)) console.error('PAGEERROR', text);
+            });
+            await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+            await page.waitForTimeout(300);
+
+            const scrollY = await page.evaluate(() => window.scrollY);
+            if (scrollY > 2) throw new Error(`Landing did not start at top: ${scrollY}`);
+
+            const previews = await page.locator('iframe[data-static-preview]').evaluateAll((frames) => frames.map((frame) => ({
+              src: frame.getAttribute('src') || '',
+              hasSrcdoc: Boolean(frame.getAttribute('srcdoc')),
+              preview: frame.getAttribute('data-static-preview') || ''
+            })));
+            if (previews.length < 6) throw new Error(`Expected static hero/story previews, got ${previews.length}`);
+            if (previews.some((entry) => /race-hub|fahrer-wm|ergebnisse/.test(entry.src))) {
+              throw new Error('A decorative preview still points at a live league page.');
+            }
+            if (previews.some((entry) => !entry.hasSrcdoc)) {
+              throw new Error('Static preview srcdoc was not installed.');
+            }
+
+            const experience = page.locator('#experience');
+            await experience.scrollIntoViewIfNeeded();
+            await page.waitForTimeout(150);
+            const visibleSteps = await page.locator('[data-story-step]').evaluateAll((steps) => steps.filter((step) => {
+              const style = getComputedStyle(step);
+              return !step.hidden && style.display !== 'none' && Number(style.opacity || '1') > 0.5;
+            }).length);
+            if (visibleSteps !== 1) throw new Error(`Desktop story overlays ${visibleSteps} readable steps instead of one.`);
+
+            await browser.close();
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
