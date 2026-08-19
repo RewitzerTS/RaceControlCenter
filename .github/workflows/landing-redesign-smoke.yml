@@ -1,0 +1,32 @@
+name: Landing Redesign Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'assets/css/pages/landing3-impeccable.css'
+      - '.github/workflows/landing-redesign-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  landing-redesign:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify redesign revision and stylesheet
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq 'data-landing-revision="impeccable-v2-2026-08-19"' index.html
+          grep -Fq 'assets/css/pages/landing3-impeccable.css' index.html
+          grep -Fq 'Rennbetrieb.<br><em>Ohne Tool-Chaos.</em>' index.html
+          grep -Fq '.l3-hero-grid{display:flex;flex-direction:column' assets/css/pages/landing3-impeccable.css
+          grep -Fq '.l3-platform-grid{margin-top:64px;display:block' assets/css/pages/landing3-impeccable.css
+          grep -Fq '.l3-feature-row{display:grid;grid-template-columns:1fr 1fr' assets/css/pages/landing3-impeccable.css
+          if grep -Fq 'background-clip:text' assets/css/pages/landing3-impeccable.css; then
+            echo 'Impeccable redesign must not add gradient text.' >&2
+            exit 1
+          fi

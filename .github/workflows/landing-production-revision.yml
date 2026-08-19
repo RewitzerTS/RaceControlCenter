@@ -1,0 +1,29 @@
+name: Landing Production Revision
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  verify-live-revision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check current landing revision is live
+        shell: bash
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          curl --fail --silent --show-error --location --connect-timeout 10 --max-time 20 \
+            --user-agent 'RaceVora-Landing-Revision/1.0' \
+            --output "$body" 'https://racevora.com/'
+          if ! grep -Fq 'data-landing-revision="impeccable-v2-2026-08-19"' "$body"; then
+            echo 'Production is not serving the current RaceVora landing revision.' >&2
+            sed -n '1,30p' "$body" >&2
+            exit 1
+          fi
+          echo 'PASS current landing revision is live'
