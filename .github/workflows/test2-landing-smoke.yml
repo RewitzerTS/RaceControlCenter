@@ -1,0 +1,53 @@
+name: Test2 Landing Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'Test2-Landing.html'
+      - 'assets/css/pages/test2-landing.css'
+      - 'assets/js/pages/test2-landing.js'
+      - 'assets/data/racevora-demo-snapshot.json'
+      - '.github/workflows/test2-landing-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test2-landing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Test2 landing architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f Test2-Landing.html
+          test -f assets/css/pages/test2-landing.css
+          test -f assets/js/pages/test2-landing.js
+          test -f assets/data/racevora-demo-snapshot.json
+
+          grep -Fq 'data-landing-revision="test2-impeccable-2026-08-19"' Test2-Landing.html
+          grep -Fq 'data-login-open' Test2-Landing.html
+          grep -Fq 'data-demo-open' Test2-Landing.html
+          grep -Fq 'href="register.html"' Test2-Landing.html
+          grep -Fq 'RaceVora Demo Championship' Test2-Landing.html
+          grep -Fq 'assets/js/pages/landing.js' Test2-Landing.html
+          grep -Fq 'assets/js/pages/test2-landing.js' Test2-Landing.html
+          grep -Fq 'assets/data/racevora-demo-snapshot.json' assets/js/pages/test2-landing.js
+
+          if grep -Fq '<iframe' Test2-Landing.html; then
+            echo 'Test2 landing must not use product iframes.' >&2
+            exit 1
+          fi
+          if grep -Fq 'background-clip:text' assets/css/pages/test2-landing.css; then
+            echo 'Gradient text is not allowed in Test2 landing.' >&2
+            exit 1
+          fi
+          if grep -Eq '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' assets/data/racevora-demo-snapshot.json; then
+            echo 'Demo snapshot unexpectedly contains an email address.' >&2
+            exit 1
+          fi
+
+          python -m json.tool assets/data/racevora-demo-snapshot.json >/dev/null
+          node --check assets/js/pages/test2-landing.js
