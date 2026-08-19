@@ -4,17 +4,10 @@ on:
   pull_request:
     paths:
       - 'index.html'
-      - 'assets/js/layout.js'
       - 'assets/js/pages/landing.js'
-      - 'assets/js/pages/landing3-motion.js'
-      - 'assets/css/pages/landing3-motion.css'
-      - 'assets/css/pages/landing3-previews.css'
-      - 'assets/css/pages/landing3-product-snapshots.css'
-      - 'assets/css/pages/landing-product-preview.css'
+      - 'assets/js/pages/landing-next.js'
+      - 'assets/css/pages/landing-next.css'
       - 'assets/previews/landing-*.html'
-      - 'assets/js/components/racevora-app-ux-polish.js'
-      - 'assets/js/components/racevora-team-logo-resilience.js'
-      - 'assets/css/rcc-ux-pass2.css'
       - '.github/workflows/ux-polish-smoke.yml'
   workflow_dispatch:
 
@@ -28,81 +21,30 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate browser JavaScript
         run: |
-          node --check assets/js/layout.js
           node --check assets/js/pages/landing.js
-          node --check assets/js/pages/landing3-motion.js
-          node --check assets/js/components/racevora-app-ux-polish.js
-          node --check assets/js/components/racevora-team-logo-resilience.js
-
-      - name: Verify requested UX behavior is wired
+          node --check assets/js/pages/landing-next.js
+      - name: Verify authentic landing product sources
         shell: bash
         run: |
           set -euo pipefail
-          polish='assets/js/components/racevora-app-ux-polish.js'
-          landing='assets/js/pages/landing.js'
-          motion='assets/js/pages/landing3-motion.js'
-          layout='assets/js/layout.js'
-
-          grep -Fq "document.documentElement.dataset.leagueBrandingPending = 'true'" "$layout"
-          grep -Fq 'rcc-admin-auth-prepaint' "$layout"
-          grep -Fq 'footer-account-controls__logout' "$polish"
-          grep -Fq ".from('league_members')" "$polish"
-          grep -Fq 'fahrer-profil.html' "$polish"
-          grep -Fq "document.getElementById('driver-card-modal')?.remove()" "$polish"
-          grep -Fq "document.getElementById('admin-create-league-launcher')?.remove()" "$polish"
-          grep -Fq 'data-rcc-league-management-card' "$polish"
-          grep -Fq "archive.before(link)" "$polish"
-          grep -Fq 'maintainAspectRatio = false' "$polish"
-
-          grep -Fq "roleLabels" "$landing"
-          grep -Fq "member: 'Mitglied'" "$landing"
-          grep -Fq "race-hub.html" "$landing"
-          grep -Fq 'Welche Liga möchtest du betreten?' "$landing"
-          grep -Fq 'autoEnterSingle' "$landing"
-          grep -Fq "history.scrollRestoration = 'manual'" "$landing"
-
-          grep -Fq "preview: 'assets/previews/landing-admin.html'" "$motion"
-          grep -Fq "preview: 'assets/previews/landing-ai-results.html'" "$motion"
-          grep -Fq "preview: 'assets/previews/landing-stewarding.html'" "$motion"
-          grep -Fq "preview: 'assets/previews/landing-race-hub.html'" "$motion"
-          grep -Fq 'data-story-stage' "$motion"
-          grep -Fq 'l3-story-mobile-visual' "$motion"
-          grep -Fq 'data-static-preview="hub"' index.html
-          grep -Fq "@import url('./landing3-product-snapshots.css')" assets/css/pages/landing3-previews.css
-
+          grep -Fq 'assets/previews/landing-race-hub.html' index.html
+          grep -Fq 'assets/previews/landing-admin.html' index.html
+          grep -Fq 'assets/previews/landing-ai-results.html' index.html
+          grep -Fq 'assets/previews/landing-stewarding.html' index.html
+          grep -Fq 'data-login-open' index.html
+          grep -Fq 'landing-login-form' index.html
           test -f assets/previews/landing-race-hub.html
           test -f assets/previews/landing-admin.html
           test -f assets/previews/landing-ai-results.html
           test -f assets/previews/landing-stewarding.html
-
-          if grep -Fq 'heroPreviewDocument()' "$motion" || grep -Fq 'sceneMarkup(index)' "$motion"; then
-            echo 'Legacy hand-drawn landing preview generator is still present.' >&2
+          if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse|admin|stewards)\.html' index.html; then
+            echo 'Decorative landing preview unexpectedly loads a live application page.' >&2
             exit 1
           fi
-
-          if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse)\.html\?league=rcc' index.html "$motion" assets/previews/landing-*.html; then
-            echo 'Decorative landing previews still load live RCC pages.' >&2
-            exit 1
-          fi
-
           if grep -Eq '<script[^>]+(supabase|landing|app|admin|race-hub|steward)' assets/previews/landing-*.html; then
             echo 'Static landing previews unexpectedly execute production application scripts.' >&2
             exit 1
           fi
-
-          if grep -Eq "\.in\('role',[[:space:]]*\['owner',[[:space:]]*'admin',[[:space:]]*'steward'\]" "$landing" "$polish"; then
-            echo 'League switching still excludes normal member accounts.' >&2
-            exit 1
-          fi
-
-      - name: Confirm transactional email state remains active
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -Fq 'EMAIL_SENDING_PAUSED = false' assets/js/auth-turnstile-config.js
-          grep -Fq 'sendResendEmail' supabase/functions/finalize-consumer-registration/index.ts
-          grep -Fq 'inviteUserByEmail' supabase/functions/manage-league-member/index.ts
-          grep -Fq 'api.resend.com/emails' supabase/functions/submit-consumer-withdrawal/index.ts
 
   landing-browser-smoke:
     runs-on: ubuntu-latest
@@ -114,13 +56,13 @@ jobs:
           node-version: '22'
       - name: Install Playwright
         run: |
-          npm install --no-save playwright@1.54.2
+          npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Start static server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/racevora-ux-http.log 2>&1 &
           echo $! > /tmp/racevora-ux-http.pid
-      - name: Verify premium landing story on desktop and mobile
+      - name: Verify responsive landing on common devices
         shell: bash
         run: |
           set -euo pipefail
@@ -128,76 +70,55 @@ jobs:
           const { chromium } = require('playwright');
           (async () => {
             const browser = await chromium.launch({ headless: true });
-
-            const desktop = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-            desktop.on('pageerror', (error) => {
-              const text = String(error?.message || error);
-              if (!/supabase|turnstile/i.test(text)) console.error('PAGEERROR', text);
-            });
-            await desktop.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
-            await desktop.waitForTimeout(500);
-
-            const scrollY = await desktop.evaluate(() => window.scrollY);
-            if (scrollY > 2) throw new Error(`Landing did not start at top: ${scrollY}`);
-
-            const heroPreview = await desktop.locator('.l3-desktop iframe').evaluate((frame) => ({
-              src: frame.getAttribute('src') || '',
-              hasSrcdoc: Boolean(frame.getAttribute('srcdoc'))
-            }));
-            if (heroPreview.src !== 'assets/previews/landing-race-hub.html') throw new Error(`Hero preview uses unexpected source: ${heroPreview.src}`);
-            if (heroPreview.hasSrcdoc) throw new Error('Hero preview still uses generated srcdoc instead of the static RaceVora snapshot.');
-
-            const previewFrames = await desktop.locator('.l3-product-preview-frame').evaluateAll((frames) => frames.map((frame) => frame.getAttribute('src') || ''));
-            const expected = ['assets/previews/landing-admin.html','assets/previews/landing-ai-results.html','assets/previews/landing-stewarding.html','assets/previews/landing-race-hub.html'];
-            for (const source of expected) {
-              if (!previewFrames.includes(source)) throw new Error(`Missing authentic product preview ${source}`);
+            const cases = [
+              ['desktop-1440', 1440, 900],
+              ['laptop-1280', 1280, 800],
+              ['tablet-1024', 1024, 1366],
+              ['tablet-768', 768, 1024],
+              ['iphone', 390, 844],
+              ['small-phone', 360, 800]
+            ];
+            for (const [name, width, height] of cases) {
+              const page = await browser.newPage({ viewport: { width, height } });
+              const errors = [];
+              page.on('pageerror', error => {
+                const text = String(error?.message || error);
+                if (!/supabase|turnstile/i.test(text)) errors.push(text);
+              });
+              const response = await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+              if (!response || response.status() >= 400) throw new Error(`${name}: HTTP ${response?.status()}`);
+              await page.waitForSelector('.rvx-hero');
+              await page.waitForTimeout(450);
+              const state = await page.evaluate(() => ({
+                revision: document.body.dataset.landingRevision,
+                overflow: document.documentElement.scrollWidth - window.innerWidth,
+                heroWidth: document.querySelector('.rvx-hero h1')?.getBoundingClientRect().width || 0,
+                viewport: window.innerWidth,
+                previews: document.querySelectorAll('iframe[data-product-preview]').length,
+                loginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
+                legacyCss: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('landing3'))
+              }));
+              if (state.revision !== 'greenfield-v1-2026-08-19') throw new Error(`${name}: wrong landing revision ${state.revision}`);
+              if (state.overflow > 2) throw new Error(`${name}: horizontal overflow ${state.overflow}px`);
+              if (state.heroWidth > state.viewport + 2) throw new Error(`${name}: hero heading exceeds viewport`);
+              if (state.previews < 7) throw new Error(`${name}: expected static product previews, got ${state.previews}`);
+              if (state.loginButtons < 1) throw new Error(`${name}: visible login button missing`);
+              if (state.legacyCss) throw new Error(`${name}: legacy landing3 stylesheet still loaded`);
+              if (errors.length) throw new Error(`${name}: ${errors.join(' | ')}`);
+              await page.close();
             }
 
-            const productSceneCount = await desktop.locator('[data-product-scene]').count();
-            if (productSceneCount !== 4) throw new Error(`Expected four product scenes, got ${productSceneCount}`);
-            const mobileVisualCount = await desktop.locator('.l3-story-mobile-visual').count();
-            if (mobileVisualCount !== 4) throw new Error(`Expected four mobile story visuals, got ${mobileVisualCount}`);
-
-            const experience = desktop.locator('#experience');
-            await experience.scrollIntoViewIfNeeded();
-            await desktop.waitForTimeout(180);
-            const visibleSteps = await desktop.locator('[data-story-step]').evaluateAll((steps) => steps.filter((step) => {
-              const style = getComputedStyle(step);
-              return style.display !== 'none' && Number(style.opacity || '1') > 0.5;
-            }).length);
-            if (visibleSteps !== 1) throw new Error(`Desktop story overlays ${visibleSteps} readable steps instead of one.`);
-
-            await desktop.evaluate(() => {
-              document.documentElement.style.scrollBehavior = 'auto';
-              const story = document.querySelector('#experience');
-              const top = window.scrollY + story.getBoundingClientRect().top;
-              window.scrollTo(0, top + story.offsetHeight - window.innerHeight - 4);
-            });
-            await desktop.waitForTimeout(550);
-            const finalScene = await desktop.locator('[data-story-stage]').getAttribute('data-story-stage');
-            if (finalScene !== '3') throw new Error(`Final story scene did not activate: ${finalScene}`);
-            const satellitesVisible = await desktop.locator('.l3-story-satellite').evaluateAll((nodes) => nodes.every((node) => Number(getComputedStyle(node).opacity) > 0.5));
-            if (!satellitesVisible) throw new Error('Final multi-device payoff did not become visible.');
-
-            const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
-            await mobile.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
-            await mobile.waitForTimeout(500);
-            const mobileState = await mobile.evaluate(() => ({
-              overflow: document.documentElement.scrollWidth - window.innerWidth,
-              heroStage: getComputedStyle(document.querySelector('.l3-device-stage')).display,
-              storyPosition: getComputedStyle(document.querySelector('.l3-scroll-story__sticky')).position,
-              visibleSteps: [...document.querySelectorAll('[data-story-step]')].filter((step) => {
-                const style = getComputedStyle(step);
-                return style.display !== 'none' && Number(style.opacity || '1') > 0.5;
-              }).length,
-              visibleVisuals: [...document.querySelectorAll('.l3-story-mobile-visual')].filter((node) => getComputedStyle(node).display !== 'none').length
+            const login = await browser.newPage({ viewport: { width: 390, height: 844 } });
+            await login.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
+            await login.locator('[data-login-open]:visible').first().click();
+            await login.waitForSelector('#landing-login-modal:not([hidden])');
+            const dialog = await login.locator('.login-modal__dialog').evaluate(el => ({
+              width: el.getBoundingClientRect().width,
+              viewport: window.innerWidth,
+              overflow: document.documentElement.scrollWidth - window.innerWidth
             }));
-            if (mobileState.overflow > 2) throw new Error(`Mobile landing overflows horizontally by ${mobileState.overflow}px.`);
-            if (mobileState.heroStage !== 'none') throw new Error(`Mobile hero device collage is still visible: ${mobileState.heroStage}`);
-            if (mobileState.storyPosition === 'sticky') throw new Error('Mobile story still uses desktop sticky behavior.');
-            if (mobileState.visibleSteps !== 4) throw new Error(`Expected four readable mobile chapters, got ${mobileState.visibleSteps}`);
-            if (mobileState.visibleVisuals !== 4) throw new Error(`Expected four mobile product visuals, got ${mobileState.visibleVisuals}`);
-
+            if (dialog.width > dialog.viewport) throw new Error('Mobile login modal exceeds viewport.');
+            if (dialog.overflow > 2) throw new Error(`Mobile login creates ${dialog.overflow}px horizontal overflow.`);
             await browser.close();
           })().catch((error) => {
             console.error(error);

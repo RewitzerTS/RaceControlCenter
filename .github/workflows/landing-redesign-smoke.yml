@@ -4,7 +4,8 @@ on:
   pull_request:
     paths:
       - 'index.html'
-      - 'assets/css/pages/landing3-impeccable.css'
+      - 'assets/css/pages/landing-next.css'
+      - 'assets/js/pages/landing-next.js'
       - '.github/workflows/landing-redesign-smoke.yml'
   workflow_dispatch:
 
@@ -16,17 +17,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify redesign revision and stylesheet
+      - name: Verify greenfield landing architecture
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'data-landing-revision="impeccable-v2-2026-08-19"' index.html
-          grep -Fq 'assets/css/pages/landing3-impeccable.css' index.html
-          grep -Fq 'Rennbetrieb.<br><em>Ohne Tool-Chaos.</em>' index.html
-          grep -Fq '.l3-hero-grid{display:flex;flex-direction:column' assets/css/pages/landing3-impeccable.css
-          grep -Fq '.l3-platform-grid{margin-top:64px;display:block' assets/css/pages/landing3-impeccable.css
-          grep -Fq '.l3-feature-row{display:grid;grid-template-columns:1fr 1fr' assets/css/pages/landing3-impeccable.css
-          if grep -Fq 'background-clip:text' assets/css/pages/landing3-impeccable.css; then
-            echo 'Impeccable redesign must not add gradient text.' >&2
+          grep -Fq 'data-landing-revision="greenfield-v1-2026-08-19"' index.html
+          grep -Fq 'assets/css/pages/landing-next.css' index.html
+          grep -Fq 'assets/js/pages/landing-next.js' index.html
+          grep -Fq 'Eine Plattform für den' index.html
+          grep -Fq 'KI-Ergebnisimport' index.html
+          grep -Fq 'Stewarding' index.html
+          grep -Fq 'Fahrerprofile' index.html
+          grep -Fq 'Strecken & Records' index.html
+          grep -Fq 'Rivalitäten' index.html
+          grep -Fq 'Multi-Liga' index.html
+          grep -Fq 'background-clip:text' assets/css/pages/landing-next.css
+          if grep -Fq 'landing3.css' index.html || grep -Fq 'landing3-motion.js' index.html; then
+            echo 'Greenfield landing still loads legacy landing3 presentation assets.' >&2
             exit 1
           fi
+          node --check assets/js/pages/landing-next.js
