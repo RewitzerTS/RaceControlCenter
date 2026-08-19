@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const ASSET_ROOT = 'https://racevora-cinematic.r-rewitzer.chatgpt.site';
+  const ASSET_ROOT = '.';
   const FRAME_COUNT = 90;
   const story = document.querySelector('.cinematic-story');
   const canvas = story?.querySelector('canvas');
