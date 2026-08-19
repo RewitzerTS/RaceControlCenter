@@ -33,7 +33,7 @@ jobs:
           grep -Fq 'test-landing/style.css' index.html
           grep -Fq 'test-landing/script.js' index.html
           grep -Fq 'YOUR LEAGUE.' index.html
-          grep -Fq 'KI-Ergebnisimport' index.html
+          grep -Fq 'KI-Bildimport' index.html
           grep -Fq 'Stewarding' index.html
           grep -Fq 'Multi-Liga' index.html
           grep -Fq 'racevora-master-mobile.mp4' index.html
