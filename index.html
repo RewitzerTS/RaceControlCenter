@@ -3,93 +3,167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="RaceVora bündelt Rennbetrieb, Ergebnisimport, Stewarding und Race Hub in einer Plattform für moderne Simracing-Ligen.">
-  <meta name="theme-color" content="#04101d">
-  <meta name="racevora-landing-revision" content="impeccable-v2-2026-08-19">
-  <title>RaceVora · Rennbetrieb ohne Tool-Chaos</title>
+  <meta name="description" content="RaceVora verbindet Liga-Administration, KI-Ergebnisimport, Stewarding, Meisterschaften, Profile und Race Hub in einer Plattform für Simracing-Ligen.">
+  <meta name="theme-color" content="#030812">
+  <meta name="racevora-landing-revision" content="greenfield-v1-2026-08-19">
+  <title>RaceVora · Eine Plattform für deine Rennliga</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/racevora-mark.svg">
-  <link rel="stylesheet" href="assets/css/pages/landing3.css">
-  <link rel="stylesheet" href="assets/css/pages/landing3-motion.css">
-  <link rel="stylesheet" href="assets/css/pages/landing3-previews.css">
-  <link rel="stylesheet" href="assets/css/pages/landing3-impeccable.css">
-  <style id="l3-mobile-safe-area-fix">
-    @media (max-width: 900px) {
-      body[data-page="landing3"] .l3-header {
-        min-height: calc(70px + env(safe-area-inset-top));
-        padding-top: calc(7px + env(safe-area-inset-top));
-      }
-
-      body[data-page="landing3"]::after {
-        content: "";
-        position: fixed;
-        z-index: 99;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: env(safe-area-inset-top);
-        background: #04101d;
-        pointer-events: none;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/pages/landing-next.css">
 </head>
-<body data-page="landing3" data-landing-revision="impeccable-v2-2026-08-19">
-  <header class="l3-header" id="top">
-    <a class="l3-brand" href="#top" aria-label="RaceVora Startseite">
-      <img src="assets/images/racevora-mark.svg" alt="" width="76" height="76">
+<body data-page="landing-next" data-landing-revision="greenfield-v1-2026-08-19">
+  <header class="rvx-header" id="top">
+    <a class="rvx-brand" href="#top" aria-label="RaceVora Startseite">
+      <img src="assets/images/racevora-mark.svg" alt="" width="52" height="52">
       <div><strong>RaceVora</strong><span>Race Management Platform</span></div>
     </a>
-    <nav class="l3-nav" aria-label="Hauptnavigation"><a href="#platform">Produkt</a><a href="#experience">Workflow</a><a href="#roles">Funktionen</a></nav>
-    <div class="l3-header-actions">
-      <a class="l3-button l3-button--primary l3-register-cta" href="register.html">Liga starten</a>
-      <button class="l3-button l3-button--ghost" type="button" data-login-open><span data-login-button-label>Login</span><span aria-hidden="true">→</span></button>
+    <nav class="rvx-nav" aria-label="Hauptnavigation">
+      <a href="#platform">Plattform</a><a href="#workflow">Workflow</a><a href="#insights">Insights</a><a href="#leagues">Multi-Liga</a>
+    </nav>
+    <div class="rvx-header-actions">
+      <a class="rvx-btn rvx-btn--primary" href="register.html">Liga starten</a>
+      <button class="rvx-btn rvx-btn--secondary" type="button" data-login-open><span data-login-button-label>Login</span><span aria-hidden="true">→</span></button>
     </div>
   </header>
 
   <main>
-    <section class="l3-hero" aria-labelledby="l3-title">
-      <div class="l3-shell l3-hero-grid">
-        <div class="l3-hero-copy">
-          <div class="l3-kicker"><span></span>Race Control für deine Liga</div>
-          <h1 id="l3-title">Rennbetrieb.<br><em>Ohne Tool-Chaos.</em></h1>
-          <p class="l3-lead">RaceVora verbindet Liga-Administration, KI-Ergebnisimport, Stewarding und die öffentliche Saisonansicht in einem durchgängigen Workflow. Ein Datenstand, klare Rollen und eine Plattform für den kompletten Rennbetrieb.</p>
-          <div class="l3-actions">
-            <a class="l3-button l3-button--primary l3-button--large l3-register-cta" href="register.html">Eigene Liga starten <span aria-hidden="true">→</span></a>
-            <a class="l3-button l3-button--ghost l3-button--large" href="race-hub.html?league=rcc">RaceVora live ansehen</a>
-            <a class="l3-button l3-button--ghost l3-button--large" href="#experience">Workflow erleben</a>
+    <section class="rvx-hero" aria-labelledby="rvx-title">
+      <div class="rvx-shell">
+        <div class="rvx-hero-copy" data-reveal>
+          <p class="rvx-eyebrow">Race Management für Simracing-Ligen</p>
+          <h1 id="rvx-title">Eine Plattform für den<br><span class="rvx-gradient">kompletten Rennbetrieb.</span></h1>
+          <p class="rvx-hero-lead">RaceVora verbindet Ligaleitung, Ergebnisse, Stewarding und die öffentliche Saisonansicht in einem System. Von der Vorbereitung bis zum veröffentlichten Ergebnis.</p>
+          <div class="rvx-hero-actions">
+            <a class="rvx-btn rvx-btn--primary rvx-btn--large" href="register.html">Eigene Liga starten <span aria-hidden="true">→</span></a>
+            <a class="rvx-btn rvx-btn--secondary rvx-btn--large" href="race-hub.html?league=rcc">RaceVora live ansehen</a>
           </div>
-          <div class="l3-badges" aria-label="Produkteigenschaften"><span>Multi-Liga</span><span>KI-Ergebnisse</span><span>Stewarding</span><span>Responsive Web App</span></div>
+          <div class="rvx-proof" aria-label="RaceVora Eigenschaften"><span><i></i>Multi-Liga</span><span><i></i>KI-Ergebnisimport</span><span><i></i>Stewarding</span><span><i></i>Responsive Web App</span></div>
         </div>
-
-        <div class="l3-device-stage" aria-label="RaceVora Produktansicht">
-          <div class="l3-desktop"><div class="l3-browser-top"><i></i><i></i><i></i><span>racevora.com</span></div><div class="l3-device-preview"><iframe src="about:blank" data-static-preview="hub" title="RaceVora Race Hub Produktansicht" loading="eager" tabindex="-1"></iframe></div></div>
-          <div class="l3-tablet"><div class="l3-tablet-screen"><div class="l3-device-preview"><iframe src="about:blank" data-static-preview="standings" title="RaceVora Beispielansicht auf Tablet" loading="eager" tabindex="-1"></iframe></div></div></div>
-          <div class="l3-phone"><div class="l3-phone-screen"><div class="l3-device-preview"><iframe src="about:blank" data-static-preview="results" title="RaceVora Beispielansicht auf Smartphone" loading="eager" tabindex="-1"></iframe></div></div></div>
-          <div class="l3-sync-pill"><i></i><span>Eine Veröffentlichung · überall aktuell</span></div>
+        <div class="rvx-product-stage" data-reveal aria-label="RaceVora Race Hub Vorschau">
+          <div class="rvx-browser">
+            <div class="rvx-browser-bar"><i></i><i></i><i></i><span>racevora.com</span></div>
+            <iframe src="assets/previews/landing-race-hub.html" title="Statische RaceVora Race Hub Produktansicht" data-product-preview></iframe>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="l3-strip"><div class="l3-shell l3-strip-inner"><span>Admin Center</span><b>•</b><span>KI-Import</span><b>•</b><span>Stewarding</span><b>•</b><span>Race Hub</span><b>•</b><span>Multi-Liga</span></div></section>
+    <section class="rvx-capabilities" id="platform" aria-label="RaceVora Kernfunktionen">
+      <div class="rvx-shell rvx-capabilities-inner">
+        <div class="rvx-capabilities-intro"><strong>Alles, was eine Liga braucht.<br><span class="rvx-gradient">In einem System.</span></strong></div>
+        <div class="rvx-capability"><b>Admin Center</b><small>Seasons, Kalender, Fahrer, Teams und Rennen verwalten.</small></div>
+        <div class="rvx-capability"><b>Ergebnisse</b><small>KI-Bildimport, manuelle Eingabe, Review und Versionen.</small></div>
+        <div class="rvx-capability"><b>Stewarding</b><small>Fälle, Entscheidungen und Strafen direkt am Rennworkflow.</small></div>
+        <div class="rvx-capability"><b>Race Hub</b><small>Öffentliche Saisonansicht mit aktuellen veröffentlichten Daten.</small></div>
+        <div class="rvx-capability"><b>Profile & Records</b><small>Fahrer, Teams, Strecken, Rekorde und Performance-Insights.</small></div>
+      </div>
+    </section>
 
-    <section class="l3-section" id="platform"><div class="l3-shell"><div class="l3-section-heading"><div class="l3-kicker"><span></span>Eine Plattform</div><h2>Alles zwischen Startaufstellung und <em>offiziellem Ergebnis.</em></h2><p>RaceVora ersetzt den Flickenteppich aus Tabellen, Chat-Nachrichten und Einzeltools. Administration, Rennresultate und Veröffentlichung greifen direkt ineinander.</p></div><div class="l3-platform-grid"><article class="l3-platform-card l3-platform-card--large"><div class="l3-card-number">01</div><div><span>ADMINISTRATION</span><h3>Die Liga an einem Ort steuern.</h3><p>Seasons, Kalender, Fahrer, Teams, Ergebnisse und Regeln werden in derselben Umgebung verwaltet. Rollen und Zugriffsrechte bleiben pro Liga getrennt.</p></div><div class="l3-card-tags"><span>Kalender</span><span>Fahrer</span><span>Ergebnisse</span><span>Regeln</span></div></article><article class="l3-platform-card"><div class="l3-card-number">02</div><span>STEWARDING</span><h3>Entscheidungen gehören zum Rennen.</h3><p>Vorfälle, Strafen und Begründungen bleiben direkt am Event und fließen nachvollziehbar in den Ergebnisentwurf ein.</p></article><article class="l3-platform-card"><div class="l3-card-number">03</div><span>COMMUNITY</span><h3>Eine Saison, die sich selbst aktualisiert.</h3><p>Fahrer sehen Race Hub, Ergebnisse, WM, Kalender und Racing Insights ohne manuelle Doppelpflege.</p></article><article class="l3-platform-card l3-platform-card--accent"><div class="l3-card-number">04</div><span>SYNC</span><h3>Einmal veröffentlichen.</h3><p>Ergebnis, Fahrer-WM, Team-WM und Race Hub wechseln gemeinsam auf den neuen offiziellen Stand.</p></article></div></div></section>
+    <section class="rvx-section" id="workflow">
+      <div class="rvx-shell rvx-showcase">
+        <div class="rvx-showcase-media" data-reveal>
+          <div class="rvx-window"><div class="rvx-window-top"><i></i><i></i><i></i><span>Admin Center</span></div><iframe src="assets/previews/landing-admin.html" title="Statische RaceVora Admin Center Produktansicht" data-product-preview></iframe></div>
+        </div>
+        <div class="rvx-showcase-copy" data-reveal>
+          <p class="rvx-eyebrow">Ligaleitung</p>
+          <h3>Deine Liga.<br><span class="rvx-gradient">Ein Kontrollzentrum.</span></h3>
+          <p>Seasons, Kalender, Fahrer, Teams, Rennen, Ergebnisse und Liga-Einstellungen greifen in derselben Umgebung ineinander. Keine getrennten Tabellen und keine parallelen Datenstände.</p>
+          <ul class="rvx-showcase-list"><li>Eigene Daten und Berechtigungen pro Liga</li><li>Fahrer- und Teamverwaltung</li><li>Rennkalender, Ergebnisse und Liga-Einstellungen an einem Ort</li></ul>
+        </div>
+      </div>
+    </section>
 
-    <section class="l3-section l3-section--dark" id="roles"><div class="l3-shell"><div class="l3-section-heading l3-section-heading--center"><div class="l3-kicker"><span></span>Rennbetrieb</div><h2>Weniger Verwaltung. <em>Mehr Liga.</em></h2><p>Die wichtigsten Arbeitsabläufe sind so verbunden, dass Ligaleitung, Stewards und Fahrer nicht mit unterschiedlichen Datenständen arbeiten.</p></div><div class="l3-feature-row"><article><b>▣</b><span>KI-ERGEBNISIMPORT</span><h3>Screenshot rein. Bearbeitbarer Draft raus.</h3><p>Ergebnisbilder auslesen, Fahrer automatisch zuordnen und die erkannten Daten vor dem Speichern kontrollieren.</p></article><article><b>⚑</b><span>STEWARDING</span><h3>Prüfen, bevor es offiziell wird.</h3><p>Strafen wirken auf den Arbeitsstand. Erst die bewusste Veröffentlichung ersetzt das offizielle Live-Ergebnis.</p></article><article><b>↗</b><span>RACE HUB</span><h3>Die Saison bleibt automatisch aktuell.</h3><p>Countdown, letztes Rennen, WM-Spitze, Saisonfortschritt und Insights greifen auf denselben veröffentlichten Stand zu.</p></article><article><b>◎</b><span>MULTI-LIGA</span><h3>Eine Plattform. Sauber getrennte Ligen.</h3><p>Jede Liga besitzt ihre eigenen Fahrer, Seasons, Ergebnisse, Regeln, Farben und Berechtigungen.</p></article></div></div></section>
+    <section class="rvx-section rvx-section--soft">
+      <div class="rvx-shell rvx-showcase rvx-showcase--reverse">
+        <div class="rvx-showcase-copy" data-reveal>
+          <p class="rvx-eyebrow">KI-Ergebnisimport</p>
+          <h3>Screenshot rein.<br><span class="rvx-gradient">Ergebnisentwurf raus.</span></h3>
+          <p>RaceVora liest Ergebnisbilder aus, ordnet bekannte Fahrer zu und erstellt daraus einen bearbeitbaren Entwurf. Vor der Veröffentlichung bleibt alles kontrollierbar.</p>
+          <ul class="rvx-showcase-list"><li>Ergebnisbilder per KI auslesen</li><li>Fahrer automatisch zuordnen</li><li>Erkannten Draft vor dem Speichern bearbeiten und prüfen</li></ul>
+        </div>
+        <div class="rvx-showcase-media" data-reveal>
+          <div class="rvx-window"><div class="rvx-window-top"><i></i><i></i><i></i><span>KI-Ergebnisimport</span></div><iframe src="assets/previews/landing-ai-results.html" title="Statische RaceVora KI-Ergebnisimport Produktansicht" data-product-preview></iframe></div>
+        </div>
+      </div>
+    </section>
 
-    <section class="l3-section" id="flow"><div class="l3-shell l3-flow-grid"><div class="l3-section-heading"><div class="l3-kicker"><span></span>Workflow</div><h2>Vom Rennen bis zur <em>Meisterschaft.</em></h2><p>Ein klarer Ablauf verhindert doppelte Pflege und macht jederzeit sichtbar, was Entwurf und was offiziell veröffentlicht ist.</p></div><ol class="l3-flow-list"><li><span>01</span><div><strong>Rennen durchführen</strong><p>Das geplante Event wird gefahren.</p></div></li><li><span>02</span><div><strong>Ergebnis erfassen</strong><p>KI-Bildimport oder manuelle Eingabe erzeugen denselben bearbeitbaren Ergebnisentwurf.</p></div></li><li><span>03</span><div><strong>Stewarding abschließen</strong><p>Strafen und Entscheidungen werden im Arbeitsstand berücksichtigt.</p></div></li><li><span>04</span><div><strong>Offiziell veröffentlichen</strong><p>Ergebnis, Fahrer-WM, Team-WM und Race Hub aktualisieren sich gemeinsam.</p></div></li></ol></div></section>
+    <section class="rvx-section">
+      <div class="rvx-shell rvx-showcase">
+        <div class="rvx-showcase-media" data-reveal>
+          <div class="rvx-window"><div class="rvx-window-top"><i></i><i></i><i></i><span>Stewarding</span></div><iframe src="assets/previews/landing-stewarding.html" title="Statische RaceVora Stewarding Produktansicht" data-product-preview></iframe></div>
+        </div>
+        <div class="rvx-showcase-copy" data-reveal>
+          <p class="rvx-eyebrow">Stewarding</p>
+          <h3>Entscheiden,<br><span class="rvx-gradient">bevor es zählt.</span></h3>
+          <p>Stewarding ist Teil des Ergebnisprozesses. Entscheidungen und Strafen wirken zuerst auf den Arbeitsstand. Das veröffentlichte Ergebnis bleibt unangetastet, bis die Liga bewusst neu freigibt.</p>
+          <ul class="rvx-showcase-list"><li>Fälle und Entscheidungen nachvollziehbar verwalten</li><li>Strafen im Ergebnisentwurf berücksichtigen</li><li>Offiziellen Stand erst durch bewusste Veröffentlichung ersetzen</li></ul>
+        </div>
+      </div>
+    </section>
 
-    <section class="l3-cta"><div class="l3-shell l3-cta-inner"><div><div class="l3-kicker"><span></span>Deine Liga</div><h2>Bring deinen Rennbetrieb <em>in ein System.</em></h2><p>Starte deine eigene RaceVora-Liga oder öffne die öffentliche Demo mit echten Renndaten.</p></div><div class="l3-cta-actions"><a class="l3-button l3-button--light l3-button--large" href="register.html">Liga registrieren</a><a class="l3-button l3-button--outline l3-button--large" href="race-hub.html?league=rcc">Live-Demo</a><button class="l3-button l3-button--outline l3-button--large" type="button" data-login-open>Login</button></div></div></section>
+    <section class="rvx-section rvx-section--soft">
+      <div class="rvx-shell">
+        <div class="rvx-section-head rvx-section-head--center" data-reveal>
+          <span class="rvx-label">Veröffentlichen & synchronisieren</span>
+          <h2>Einmal freigeben.<br><span class="rvx-gradient">Die Saison ist aktuell.</span></h2>
+          <p>Das veröffentlichte Rennergebnis bildet die gemeinsame Grundlage. Fahrer-WM, Team-WM und Race Hub arbeiten anschließend mit demselben offiziellen Stand.</p>
+        </div>
+        <div class="rvx-publish-stage" data-reveal aria-label="RaceVora auf mehreren Geräten">
+          <div class="rvx-device-main"><div class="rvx-window"><div class="rvx-window-top"><i></i><i></i><i></i><span>Race Hub · Desktop</span></div><iframe src="assets/previews/landing-race-hub.html" title="RaceVora Race Hub Desktopansicht" data-product-preview></iframe></div></div>
+          <div class="rvx-device-tablet"><div class="rvx-window"><div class="rvx-window-top"><i></i><i></i><i></i><span>Tablet</span></div><iframe src="assets/previews/landing-race-hub.html" title="RaceVora Race Hub Tabletansicht" data-product-preview></iframe></div></div>
+          <div class="rvx-device-phone"><div class="rvx-window"><div class="rvx-window-top"><i></i><span>Mobile</span></div><iframe src="assets/previews/landing-race-hub.html" title="RaceVora Race Hub Smartphoneansicht" data-product-preview></iframe></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rvx-section rvx-section--light" id="insights">
+      <div class="rvx-shell">
+        <div class="rvx-section-head" data-reveal>
+          <span class="rvx-label">Mehr als Rennergebnisse</span>
+          <h2>Eine Saison bekommt<br><span class="rvx-gradient">Geschichte und Kontext.</span></h2>
+          <p>RaceVora nutzt die vorhandenen Renndaten weiter: für Profile, Rekorde, Streckenstatistiken, Rivalitäten und Performance-Auswertungen.</p>
+        </div>
+        <div class="rvx-insights" data-reveal>
+          <div><strong>Deeper insights.<br>Stronger seasons.</strong></div>
+          <div><b>Fahrerprofile</b><p>Ergebnisse, Leistungen, Performance Index und direkte Vergleiche.</p></div>
+          <div><b>Teamprofile</b><p>Teamleistung, Fahrer und aktuelle Rekorde im Kontext der Liga.</p></div>
+          <div><b>Strecken & Records</b><p>Streckenprofile, Liga-Rekorde und historische Bestleistungen.</p></div>
+          <div><b>Rivalitäten</b><p>Head-to-Head und Teamkollegen-Duelle aus den vorhandenen Renndaten.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rvx-section" id="leagues">
+      <div class="rvx-shell rvx-world">
+        <div class="rvx-world-copy" data-reveal>
+          <p class="rvx-eyebrow">Multi-Liga</p>
+          <h2>Eine Plattform.<br><span class="rvx-gradient">Getrennte Welten.</span></h2>
+          <p>RaceVora ist für mehrere Rennligen ausgelegt. Jede Liga arbeitet mit ihren eigenen Fahrern, Teams, Seasons, Ergebnissen, Regeln, Farben und Zugriffsrechten.</p>
+          <div class="rvx-world-list"><div><b>Eigene Daten</b><span>Jede Liga sieht und verwaltet nur ihren eigenen Rennbetrieb.</span></div><div><b>Rollen</b><span>Owner, Admin, Steward und Mitglieder erhalten passende Zugänge.</span></div><div><b>Öffentlich oder privat</b><span>Die Liga entscheidet, wie ihre öffentlichen Bereiche erreichbar sind.</span></div><div><b>Eigene Identität</b><span>Farben und Liga-Einstellungen bleiben pro Tenant getrennt.</span></div></div>
+        </div>
+        <div class="rvx-world-media" data-reveal>
+          <div class="rvx-window"><div class="rvx-window-top"><i></i><i></i><i></i><span>RaceVora Admin Center</span></div><iframe src="assets/previews/landing-admin.html" title="Statische RaceVora Multi-Liga Adminansicht" data-product-preview></iframe></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rvx-final">
+      <div class="rvx-shell rvx-final-inner" data-reveal>
+        <h2>RaceVora.<br>Bereit, wenn die <span class="rvx-gradient">Ampeln ausgehen.</span></h2>
+        <p>Ein System für Ligaleitung, Stewards und Fahrer. Starte deine eigene Liga oder öffne die öffentliche RaceVora-Demo.</p>
+        <div class="rvx-final-actions"><a class="rvx-btn rvx-btn--primary rvx-btn--large" href="register.html">Eigene Liga starten</a><a class="rvx-btn rvx-btn--secondary rvx-btn--large" href="race-hub.html?league=rcc">Live-Demo öffnen</a><button class="rvx-btn rvx-btn--secondary rvx-btn--large" type="button" data-login-open>Login</button></div>
+      </div>
+    </section>
   </main>
 
-  <footer class="l3-footer"><div class="l3-shell l3-footer-inner"><div class="l3-brand l3-brand--footer"><img src="assets/images/racevora-mark.svg" alt="" width="58" height="58"><div><strong>RaceVora</strong><span>Race Management Platform</span></div></div><p>Race Management für moderne Simracing-Ligen.</p><nav aria-label="Rechtliche Informationen"><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a> · <a href="agb.html">AGB</a> · <a href="widerruf.html"><strong>Vertrag widerrufen</strong></a></nav><p>© <span id="landing-year"></span> RaceVora</p></div></footer>
+  <footer class="rvx-footer"><div class="rvx-shell rvx-footer-inner"><a class="rvx-brand" href="#top"><img src="assets/images/racevora-mark.svg" alt="" width="40" height="40"><div><strong>RaceVora</strong><span>Race Management Platform</span></div></a><p>© <span id="landing-year"></span> RaceVora</p><nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a> · <a href="agb.html">AGB</a> · <a href="widerruf.html">Widerruf</a></nav></div></footer>
 
-  <div class="login-modal" id="landing-login-modal" hidden aria-hidden="true"><div class="login-modal__backdrop" data-login-close></div><section class="login-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="landing-login-title"><button class="login-modal__close" type="button" data-login-close aria-label="Login schließen">×</button><div class="login-modal__brand"><img src="assets/images/racevora-mark.svg" alt="" width="64" height="64"><div><span>RACEVORA</span><strong id="landing-login-title">Willkommen zurück.</strong></div></div><p class="login-modal__intro" id="landing-login-intro">Melde dich mit deinem RaceVora-Account an. Danach gelangst du direkt in deine Liga oder wählst bei mehreren Zugängen die gewünschte Rennliga aus.</p><form id="landing-login-form" class="login-form"><label><span>E-Mail</span><input id="landing-login-email" type="email" autocomplete="username" required placeholder="name@beispiel.de"></label><label><span>Passwort</span><input id="landing-login-password" type="password" autocomplete="current-password" required placeholder="••••••••"></label><button class="l3-button l3-button--primary l3-button--large login-form__submit" type="submit">Einloggen <span aria-hidden="true">→</span></button><a href="forgot-password.html" style="display:inline-block;margin-top:12px;color:#9eafc2;text-decoration:none;font-size:14px;">Passwort vergessen?</a></form><div id="landing-login-feedback" class="login-feedback" role="status" aria-live="polite" hidden></div><div id="landing-league-picker" class="login-league-picker" hidden></div><p class="login-modal__footnote">Der Login verwendet die RaceVora-Authentifizierung. Welche Funktionen du nutzen kannst, wird über deine Liga-Rolle gesteuert – nicht über dein Gerät.</p></section></div>
+  <div class="login-modal" id="landing-login-modal" hidden aria-hidden="true"><div class="login-modal__backdrop" data-login-close></div><section class="login-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="landing-login-title"><button class="login-modal__close" type="button" data-login-close aria-label="Login schließen">×</button><div class="login-modal__brand"><img src="assets/images/racevora-mark.svg" alt="" width="52" height="52"><div><span>RACEVORA</span><strong id="landing-login-title">Willkommen zurück.</strong></div></div><p class="login-modal__intro" id="landing-login-intro">Melde dich mit deinem RaceVora-Account an. Danach gelangst du direkt in deine Liga oder wählst bei mehreren Zugängen die gewünschte Rennliga aus.</p><form id="landing-login-form" class="login-form"><label><span>E-Mail</span><input id="landing-login-email" type="email" autocomplete="username" required placeholder="name@beispiel.de"></label><label><span>Passwort</span><input id="landing-login-password" type="password" autocomplete="current-password" required placeholder="••••••••"></label><button class="rvx-btn rvx-btn--primary rvx-btn--large login-form__submit" type="submit">Einloggen <span aria-hidden="true">→</span></button><a href="forgot-password.html" style="display:inline-block;margin-top:12px;color:#9eafc2;text-decoration:none;font-size:14px;">Passwort vergessen?</a></form><div id="landing-login-feedback" class="login-feedback" role="status" aria-live="polite" hidden></div><div id="landing-league-picker" class="login-league-picker" hidden></div><p class="login-modal__footnote">Welche Funktionen du nutzen kannst, wird über deine Liga-Rolle gesteuert.</p></section></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-client.js"></script>
   <script src="assets/js/auth-turnstile-config.js"></script>
   <script src="assets/js/auth-turnstile.js"></script>
   <script src="assets/js/pages/landing.js"></script>
-  <script src="assets/js/pages/landing3-motion.js"></script>
+  <script src="assets/js/pages/landing-next.js"></script>
 </body>
 </html>
