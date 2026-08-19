@@ -21,7 +21,7 @@ jobs:
           curl --fail --silent --show-error --location --connect-timeout 10 --max-time 20 \
             --user-agent 'RaceVora-Landing-Revision/1.0' \
             --output "$body" 'https://racevora.com/'
-          if ! grep -Fq 'data-landing-revision="impeccable-v2-2026-08-19"' "$body"; then
+          if ! grep -Fq 'data-landing-revision="greenfield-v1-2026-08-19"' "$body"; then
             echo 'Production is not serving the current RaceVora landing revision.' >&2
             sed -n '1,30p' "$body" >&2
             exit 1

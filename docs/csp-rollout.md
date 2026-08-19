@@ -1,10 +1,10 @@
 # RaceVora CSP Rollout
 
-Stand: 18.08.2026
+Stand: 19.08.2026
 
 ## Status
 
-RaceVora verwendet jetzt eine **enforced Content Security Policy**. Die vorherige Report-Only-Phase wurde nach realen Browser-/Admin-Tests und der Bereinigung des F1-News-Datenpfads beendet.
+RaceVora verwendet eine **enforced Content Security Policy**. Die vorherige Report-Only-Phase wurde nach realen Browser-/Admin-Tests und der Bereinigung des F1-News-Datenpfads beendet.
 
 Die Policy wird zentral ueber `_headers` ausgeliefert.
 
@@ -15,7 +15,7 @@ Die Policy wird zentral ueber `_headers` ausgeliefert.
 - `https://kjccstcbqygxuqkvdaqw.supabase.co` – RaceVora Supabase HTTPS/API/Storage/Edge-Function-Verbindungen, inklusive des eigenen F1-News-Backends.
 - `wss://kjccstcbqygxuqkvdaqw.supabase.co` – Supabase WebSocket/Realtime.
 
-Die Landingpage verwendet eigene RaceVora-Seiten in eingebetteten Frames; deshalb bleibt `frame-src 'self'` erlaubt.
+Die Landingpage verwendet eigene statische RaceVora-Produktansichten in eingebetteten Frames; deshalb bleibt `frame-src 'self'` erlaubt.
 
 ## Enforcement-Baseline
 
@@ -59,7 +59,7 @@ Liga-, Team- und Branding-Assets koennen aktuell aus unterschiedlichen HTTPS-Que
 
 ## Verifikation
 
-`.github/workflows/csp-report-only-smoke.yml` traegt aus historischen Gruenden noch diesen Dateinamen, prueft aber jetzt die **Enforcement-Policy**:
+`.github/workflows/csp-enforcement-smoke.yml` prueft die **Enforcement-Policy**:
 
 1. `Content-Security-Policy` ist vorhanden,
 2. `Content-Security-Policy-Report-Only` ist nicht mehr aktiv,

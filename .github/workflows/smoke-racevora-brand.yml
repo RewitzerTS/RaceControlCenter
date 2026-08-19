@@ -85,7 +85,7 @@ jobs:
             const browser = await chromium.launch({ headless: true });
             const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 
-            await assertPlatformPage(page, 'index.html', '.l3-hero');
+            await assertPlatformPage(page, 'index.html', '.rvx-hero');
             await assertPlatformPage(page, 'register.html', '#league-registration-form');
             await assertPlatformPage(page, 'forgot-password.html', '#password-recovery-form');
             await assertPlatformPage(page, 'set-password.html', '#password-setup-status');

@@ -1,12 +1,4 @@
 (() => {
-  const logoFixHref = 'assets/css/pages/landing-brand-fix.css';
-  if (!document.querySelector(`link[href="${logoFixHref}"]`)) {
-    const logoFix = document.createElement('link');
-    logoFix.rel = 'stylesheet';
-    logoFix.href = logoFixHref;
-    document.head.appendChild(logoFix);
-  }
-
   const modal = document.getElementById('landing-login-modal');
   const form = document.getElementById('landing-login-form');
   const emailInput = document.getElementById('landing-login-email');
@@ -276,7 +268,7 @@
 
       const switchAccount = document.createElement('button');
       switchAccount.type = 'button';
-      switchAccount.className = 'landing-button landing-button--ghost';
+      switchAccount.className = 'rvx-btn rvx-btn--secondary';
       switchAccount.textContent = 'Anderen Account verwenden';
       switchAccount.addEventListener('click', async () => {
         await window.supabaseClient.auth.signOut().catch(() => null);
@@ -307,7 +299,7 @@
       const session = await getSession();
       await renderSessionState(session, { autoEnterSingle: Boolean(session?.user) });
       if (!session?.user) emailInput?.focus?.({ preventScroll: true });
-      else modal.querySelector('.login-league-link, .landing-button')?.focus?.({ preventScroll: true });
+      else modal.querySelector('.login-league-link, .rvx-btn')?.focus?.({ preventScroll: true });
     } catch (error) {
       console.error('Landing session check failed:', error);
       setFormVisible(true);

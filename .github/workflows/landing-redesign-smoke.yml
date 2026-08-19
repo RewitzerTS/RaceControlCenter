@@ -4,7 +4,12 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'landing.html'
+      - 'landing2.html'
+      - 'landing3.html'
       - 'assets/css/pages/landing-next.css'
+      - 'assets/css/pages/landing-next-responsive.css'
+      - 'assets/js/pages/landing.js'
       - 'assets/js/pages/landing-next.js'
       - '.github/workflows/landing-redesign-smoke.yml'
   workflow_dispatch:
@@ -17,13 +22,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify greenfield landing architecture
+      - name: Verify current landing architecture
         shell: bash
         run: |
           set -euo pipefail
           grep -Fq 'data-landing-revision="greenfield-v1-2026-08-19"' index.html
           grep -Fq 'assets/css/pages/landing-next.css' index.html
           grep -Fq 'assets/js/pages/landing-next.js' index.html
+          grep -Fq "responsiveHref = 'assets/css/pages/landing-next-responsive.css'" assets/js/pages/landing-next.js
           grep -Fq 'Eine Plattform für den' index.html
           grep -Fq 'KI-Ergebnisimport' index.html
           grep -Fq 'Stewarding' index.html
@@ -32,8 +38,29 @@ jobs:
           grep -Fq 'Rivalitäten' index.html
           grep -Fq 'Multi-Liga' index.html
           grep -Fq 'background-clip:text' assets/css/pages/landing-next.css
-          if grep -Fq 'landing3.css' index.html || grep -Fq 'landing3-motion.js' index.html; then
-            echo 'Greenfield landing still loads legacy landing3 presentation assets.' >&2
-            exit 1
-          fi
+
+          for legacy in \
+            assets/css/pages/landing.css \
+            assets/css/pages/landing2.css \
+            assets/css/pages/landing-brand-fix.css \
+            assets/css/pages/landing3.css \
+            assets/css/pages/landing3-impeccable.css \
+            assets/css/pages/landing3-login.css \
+            assets/css/pages/landing3-motion.css \
+            assets/css/pages/landing3-previews.css \
+            assets/css/pages/landing3-product-snapshots.css \
+            assets/js/pages/landing-3d.js \
+            assets/js/pages/landing3-motion.js; do
+            if [[ -e "$legacy" ]]; then
+              echo "Legacy landing asset still present: $legacy" >&2
+              exit 1
+            fi
+          done
+
+          for redirect in landing.html landing2.html landing3.html; do
+            grep -Fq "index.html" "$redirect"
+            grep -Fq 'noindex' "$redirect"
+          done
+
+          node --check assets/js/pages/landing.js
           node --check assets/js/pages/landing-next.js
