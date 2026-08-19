@@ -44,11 +44,16 @@ jobs:
         run: |
           set -euo pipefail
           file='supabase/functions/f1-news/index.ts'
-          grep -Fq 'www.motorsport-total.com/formel-1/rss' "$file"
-          grep -Fq 'www.motorsport-magazin.com/formel1/news.xml' "$file"
-          grep -Fq 'news.google.com/rss/search' "$file"
+          grep -Fq 'https://de.motorsport.com/rss/f1/news/' "$file"
+          grep -Fq 'https://www.motorsport-total.com/rss/rss_formel-1.xml' "$file"
+          grep -Fq 'https://www.sportschau.de/motorsport/formel1/index~rss2.xml' "$file"
+          grep -Fq 'https://www.autosport.com/rss/f1/news/' "$file"
           grep -Fq 'CACHE_TTL_MS = 15 * 60 * 1000' "$file"
           grep -Fq 'feed_too_large' "$file"
+          if grep -Fq 'news.google.com/rss/search' "$file"; then
+            echo 'Google News must not return to the critical F1 feed path.' >&2
+            exit 1
+          fi
           if grep -Eq 'searchParams\.get\(("|\x27)(url|feed|rss)' "$file"; then
             echo 'F1 news endpoint must not accept caller-controlled feed URLs.' >&2
             exit 1
