@@ -5,9 +5,9 @@ on:
     paths:
       - 'index.html'
       - 'assets/js/pages/landing.js'
-      - 'assets/js/pages/landing-next.js'
-      - 'assets/css/pages/landing-next.css'
-      - 'assets/previews/landing-*.html'
+      - 'test-landing/index.html'
+      - 'test-landing/style.css'
+      - 'test-landing/script.js'
       - '.github/workflows/ux-polish-smoke.yml'
   workflow_dispatch:
 
@@ -22,27 +22,21 @@ jobs:
       - name: Validate browser JavaScript
         run: |
           node --check assets/js/pages/landing.js
-          node --check assets/js/pages/landing-next.js
-      - name: Verify authentic landing product sources
+          node --check test-landing/script.js
+      - name: Verify cinematic landing sources
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq 'assets/previews/landing-race-hub.html' index.html
-          grep -Fq 'assets/previews/landing-admin.html' index.html
-          grep -Fq 'assets/previews/landing-ai-results.html' index.html
-          grep -Fq 'assets/previews/landing-stewarding.html' index.html
+          grep -Fq 'test-landing/racevora-master-mobile.mp4' index.html
+          grep -Fq 'test-landing/racevora-poster.webp' index.html
+          grep -Fq 'class="command-shell"' index.html
           grep -Fq 'data-login-open' index.html
           grep -Fq 'landing-login-form' index.html
-          test -f assets/previews/landing-race-hub.html
-          test -f assets/previews/landing-admin.html
-          test -f assets/previews/landing-ai-results.html
-          test -f assets/previews/landing-stewarding.html
+          test -f test-landing/racevora-master-mobile.mp4
+          test -f test-landing/racevora-poster.webp
+          test "$(find test-landing/frames -maxdepth 1 -name 'frame-*.webp' | wc -l)" -eq 90
           if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse|admin|stewards)\.html' index.html; then
             echo 'Decorative landing preview unexpectedly loads a live application page.' >&2
-            exit 1
-          fi
-          if grep -Eq '<script[^>]+(supabase|landing|app|admin|race-hub|steward)' assets/previews/landing-*.html; then
-            echo 'Static landing previews unexpectedly execute production application scripts.' >&2
             exit 1
           fi
 
@@ -87,21 +81,21 @@ jobs:
               });
               const response = await page.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
               if (!response || response.status() >= 400) throw new Error(`${name}: HTTP ${response?.status()}`);
-              await page.waitForSelector('.rvx-hero');
+              await page.waitForSelector('.cinematic-story');
               await page.waitForTimeout(450);
               const state = await page.evaluate(() => ({
                 revision: document.body.dataset.landingRevision,
                 overflow: document.documentElement.scrollWidth - window.innerWidth,
-                heroWidth: document.querySelector('.rvx-hero h1')?.getBoundingClientRect().width || 0,
+                heroWidth: document.querySelector('.cinematic-story h1')?.getBoundingClientRect().width || 0,
                 viewport: window.innerWidth,
-                previews: document.querySelectorAll('iframe[data-product-preview]').length,
+                cinematicMedia: document.querySelectorAll('.cinematic-story canvas,.cinematic-story video,.cinematic-story .motion-poster').length,
                 loginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
                 legacyCss: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('landing3'))
               }));
-              if (state.revision !== 'greenfield-v1-2026-08-19') throw new Error(`${name}: wrong landing revision ${state.revision}`);
+              if (state.revision !== 'cinematic-v2-2026-08-19') throw new Error(`${name}: wrong landing revision ${state.revision}`);
               if (state.overflow > 2) throw new Error(`${name}: horizontal overflow ${state.overflow}px`);
               if (state.heroWidth > state.viewport + 2) throw new Error(`${name}: hero heading exceeds viewport`);
-              if (state.previews < 7) throw new Error(`${name}: expected static product previews, got ${state.previews}`);
+              if (state.cinematicMedia < 3) throw new Error(`${name}: cinematic media layers missing`);
               if (state.loginButtons < 1) throw new Error(`${name}: visible login button missing`);
               if (state.legacyCss) throw new Error(`${name}: legacy landing3 stylesheet still loaded`);
               if (errors.length) throw new Error(`${name}: ${errors.join(' | ')}`);

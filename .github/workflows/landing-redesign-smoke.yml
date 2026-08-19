@@ -9,10 +9,10 @@ on:
       - 'landing3.html'
       - 'test-landing.html'
       - 'Test2-Landing.html'
-      - 'assets/css/pages/landing-next.css'
-      - 'assets/css/pages/landing-next-responsive.css'
+      - 'test-landing/index.html'
+      - 'test-landing/style.css'
+      - 'test-landing/script.js'
       - 'assets/js/pages/landing.js'
-      - 'assets/js/pages/landing-next.js'
       - '.github/workflows/landing-redesign-smoke.yml'
   workflow_dispatch:
 
@@ -29,18 +29,18 @@ jobs:
         run: |
           set -euo pipefail
           test -f index.html
-          grep -Fq 'data-landing-revision="greenfield-v1-2026-08-19"' index.html
-          grep -Fq 'assets/css/pages/landing-next.css' index.html
-          grep -Fq 'assets/js/pages/landing-next.js' index.html
-          grep -Fq "responsiveHref = 'assets/css/pages/landing-next-responsive.css'" assets/js/pages/landing-next.js
-          grep -Fq 'Eine Plattform für den' index.html
-          grep -Fq 'KI-Ergebnisimport' index.html
+          grep -Fq 'data-landing-revision="cinematic-v2-2026-08-19"' index.html
+          grep -Fq 'test-landing/style.css' index.html
+          grep -Fq 'test-landing/script.js' index.html
+          grep -Fq 'YOUR LEAGUE.' index.html
+          grep -Fq 'KI-Bildimport' index.html
           grep -Fq 'Stewarding' index.html
-          grep -Fq 'Fahrerprofile' index.html
-          grep -Fq 'Strecken & Records' index.html
-          grep -Fq 'Rivalitäten' index.html
           grep -Fq 'Multi-Liga' index.html
-          grep -Fq 'background-clip:text' assets/css/pages/landing-next.css
+          grep -Fq 'racevora-master-mobile.mp4' index.html
+          grep -Fq 'background-clip:text' test-landing/style.css
+          grep -Fq -- '--brand-gradient' test-landing/style.css
+          grep -Fq 'linear-gradient(135deg,#1b0b36' test-landing/style.css
+          test "$(find test-landing/frames -maxdepth 1 -name 'frame-*.webp' | wc -l)" -eq 90
 
           for legacy in \
             assets/css/pages/landing.css \
@@ -61,4 +61,4 @@ jobs:
           done
 
           node --check assets/js/pages/landing.js
-          node --check assets/js/pages/landing-next.js
+          node --check test-landing/script.js
