@@ -9,6 +9,9 @@ on:
       - 'assets/js/pages/landing3-motion.js'
       - 'assets/css/pages/landing3-motion.css'
       - 'assets/css/pages/landing3-previews.css'
+      - 'assets/css/pages/landing3-product-snapshots.css'
+      - 'assets/css/pages/landing-product-preview.css'
+      - 'assets/previews/landing-*.html'
       - 'assets/js/components/racevora-app-ux-polish.js'
       - 'assets/js/components/racevora-team-logo-resilience.js'
       - 'assets/css/rcc-ux-pass2.css'
@@ -58,20 +61,32 @@ jobs:
           grep -Fq 'autoEnterSingle' "$landing"
           grep -Fq "history.scrollRestoration = 'manual'" "$landing"
 
-          grep -Fq 'heroPreviewDocument()' "$motion"
-          grep -Fq 'desktopFrame.srcdoc = heroPreviewDocument()' "$motion"
-          grep -Fq 'sceneMarkup(index)' "$motion"
+          grep -Fq "preview: 'assets/previews/landing-admin.html'" "$motion"
+          grep -Fq "preview: 'assets/previews/landing-ai-results.html'" "$motion"
+          grep -Fq "preview: 'assets/previews/landing-stewarding.html'" "$motion"
+          grep -Fq "preview: 'assets/previews/landing-race-hub.html'" "$motion"
           grep -Fq 'data-story-stage' "$motion"
           grep -Fq 'l3-story-mobile-visual' "$motion"
           grep -Fq 'data-static-preview="hub"' index.html
+          grep -Fq "@import url('./landing3-product-snapshots.css')" assets/css/pages/landing3-previews.css
 
-          if grep -Fq 'previewDocument(type)' "$motion"; then
-            echo 'Legacy multi-device preview generator is still present.' >&2
+          test -f assets/previews/landing-race-hub.html
+          test -f assets/previews/landing-admin.html
+          test -f assets/previews/landing-ai-results.html
+          test -f assets/previews/landing-stewarding.html
+
+          if grep -Fq 'heroPreviewDocument()' "$motion" || grep -Fq 'sceneMarkup(index)' "$motion"; then
+            echo 'Legacy hand-drawn landing preview generator is still present.' >&2
             exit 1
           fi
 
-          if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse)\.html\?league=rcc' index.html; then
-            echo 'Decorative landing devices still load live RCC pages.' >&2
+          if grep -Eq '<iframe[^>]+src="(race-hub|fahrer-wm|ergebnisse)\.html\?league=rcc' index.html "$motion" assets/previews/landing-*.html; then
+            echo 'Decorative landing previews still load live RCC pages.' >&2
+            exit 1
+          fi
+
+          if grep -Eq '<script[^>]+(supabase|landing|app|admin|race-hub|steward)' assets/previews/landing-*.html; then
+            echo 'Static landing previews unexpectedly execute production application scripts.' >&2
             exit 1
           fi
 
@@ -120,7 +135,7 @@ jobs:
               if (!/supabase|turnstile/i.test(text)) console.error('PAGEERROR', text);
             });
             await desktop.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
-            await desktop.waitForTimeout(350);
+            await desktop.waitForTimeout(500);
 
             const scrollY = await desktop.evaluate(() => window.scrollY);
             if (scrollY > 2) throw new Error(`Landing did not start at top: ${scrollY}`);
@@ -129,8 +144,14 @@ jobs:
               src: frame.getAttribute('src') || '',
               hasSrcdoc: Boolean(frame.getAttribute('srcdoc'))
             }));
-            if (heroPreview.src) throw new Error(`Hero preview unexpectedly loads ${heroPreview.src}`);
-            if (!heroPreview.hasSrcdoc) throw new Error('Premium hero preview srcdoc was not installed.');
+            if (heroPreview.src !== 'assets/previews/landing-race-hub.html') throw new Error(`Hero preview uses unexpected source: ${heroPreview.src}`);
+            if (heroPreview.hasSrcdoc) throw new Error('Hero preview still uses generated srcdoc instead of the static RaceVora snapshot.');
+
+            const previewFrames = await desktop.locator('.l3-product-preview-frame').evaluateAll((frames) => frames.map((frame) => frame.getAttribute('src') || ''));
+            const expected = ['assets/previews/landing-admin.html','assets/previews/landing-ai-results.html','assets/previews/landing-stewarding.html','assets/previews/landing-race-hub.html'];
+            for (const source of expected) {
+              if (!previewFrames.includes(source)) throw new Error(`Missing authentic product preview ${source}`);
+            }
 
             const productSceneCount = await desktop.locator('[data-product-scene]').count();
             if (productSceneCount !== 4) throw new Error(`Expected four product scenes, got ${productSceneCount}`);
@@ -147,12 +168,12 @@ jobs:
             if (visibleSteps !== 1) throw new Error(`Desktop story overlays ${visibleSteps} readable steps instead of one.`);
 
             await desktop.evaluate(() => {
+              document.documentElement.style.scrollBehavior = 'auto';
               const story = document.querySelector('#experience');
               const top = window.scrollY + story.getBoundingClientRect().top;
-              const travel = Math.max(1, story.offsetHeight - window.innerHeight);
-              window.scrollTo(0, top + travel * 0.84);
+              window.scrollTo(0, top + story.offsetHeight - window.innerHeight - 4);
             });
-            await desktop.waitForTimeout(220);
+            await desktop.waitForTimeout(550);
             const finalScene = await desktop.locator('[data-story-stage]').getAttribute('data-story-stage');
             if (finalScene !== '3') throw new Error(`Final story scene did not activate: ${finalScene}`);
             const satellitesVisible = await desktop.locator('.l3-story-satellite').evaluateAll((nodes) => nodes.every((node) => Number(getComputedStyle(node).opacity) > 0.5));
@@ -160,7 +181,7 @@ jobs:
 
             const mobile = await browser.newPage({ viewport: { width: 390, height: 844 } });
             await mobile.goto('http://127.0.0.1:4173/index.html', { waitUntil: 'domcontentloaded' });
-            await mobile.waitForTimeout(350);
+            await mobile.waitForTimeout(500);
             const mobileState = await mobile.evaluate(() => ({
               overflow: document.documentElement.scrollWidth - window.innerWidth,
               heroStage: getComputedStyle(document.querySelector('.l3-device-stage')).display,
