@@ -1,7 +1,10 @@
 (() => {
   'use strict';
 
-  const ASSET_ROOT = '.';
+  const scriptElement = document.querySelector('script[src$="test-landing/script.js"],script[src$="script.js"]');
+  const ASSET_ROOT = scriptElement?.src
+    ? new URL('.', scriptElement.src).href.replace(/\/$/, '')
+    : '.';
   const FRAME_COUNT = 90;
   const story = document.querySelector('.cinematic-story');
   const canvas = story?.querySelector('canvas');

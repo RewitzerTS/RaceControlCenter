@@ -59,9 +59,9 @@ jobs:
           };
 
           const assertLanding = async (page, testCase) => {
-            await page.waitForSelector('.rvx-hero', { timeout: 15000 });
-            await page.waitForSelector('.rvx-capabilities', { timeout: 15000 });
-            await page.waitForSelector('.rvx-showcase', { timeout: 15000 });
+            await page.waitForSelector('.cinematic-story', { timeout: 15000 });
+            await page.waitForSelector('.command-shell', { timeout: 15000 });
+            await page.waitForSelector('#workflow', { timeout: 15000 });
 
             const layout = await page.evaluate(() => ({
               revision: document.body.dataset.landingRevision || '',
@@ -72,8 +72,9 @@ jobs:
               loginButtons: document.querySelectorAll('[data-login-open]').length,
               visibleLoginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
               registerLinks: document.querySelectorAll('a[href="register.html"]').length,
-              productPreviewFrames: document.querySelectorAll('iframe[data-product-preview]').length,
-              gradientHeadlines: document.querySelectorAll('.rvx-gradient').length,
+              cinematicCanvas: Boolean(document.querySelector('.cinematic-story canvas')),
+              mobileMaster: document.querySelector('.mobile-master source')?.getAttribute('src') || '',
+              gradientHeadlines: document.querySelectorAll('.gradient-text').length,
               legacyLandingStyles: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('landing3'))
             }));
 
@@ -81,10 +82,10 @@ jobs:
             if (layout.scrollWidth > layout.innerWidth + 2 && !xOverflowClipped) {
               throw new Error(`${testCase.name}: visible horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
             }
-            if (layout.revision !== 'greenfield-v1-2026-08-19') throw new Error(`${testCase.name}: unexpected landing revision ${layout.revision}`);
+            if (layout.revision !== 'cinematic-v2-2026-08-19') throw new Error(`${testCase.name}: unexpected landing revision ${layout.revision}`);
             if (layout.loginButtons < 1 || layout.visibleLoginButtons < 1) throw new Error(`${testCase.name}: visible login CTA missing`);
             if (layout.registerLinks < 2) throw new Error(`${testCase.name}: registration CTA missing`);
-            if (layout.productPreviewFrames < 7) throw new Error(`${testCase.name}: expected authentic product preview frames, got ${layout.productPreviewFrames}`);
+            if (!layout.cinematicCanvas || !layout.mobileMaster.includes('racevora-master-mobile.mp4')) throw new Error(`${testCase.name}: cinematic media missing`);
             if (layout.gradientHeadlines < 4) throw new Error(`${testCase.name}: expected gradient product headlines, got ${layout.gradientHeadlines}`);
             if (layout.legacyLandingStyles) throw new Error(`${testCase.name}: legacy landing3 stylesheet is still loaded`);
 
@@ -185,8 +186,8 @@ jobs:
               { name: 'rcc-admin-unified-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#landing-login-form', unifiedAdminLogin: true, expectedNext: 'admin.html?league=rcc' },
               { name: 'private-league-admin-unified-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#landing-login-form', unifiedAdminLogin: true, expectedNext: 'admin.html?league=rcc-test' },
               { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' },
-              { name: 'landing-desktop', url: 'http://127.0.0.1:8080/index.html', selector: '.rvx-hero', viewport: { width: 1440, height: 1000 }, landing: true },
-              { name: 'landing-iphone', url: 'http://127.0.0.1:8080/index.html', selector: '.rvx-hero', viewport: { width: 393, height: 852 }, landing: true }
+              { name: 'landing-desktop', url: 'http://127.0.0.1:8080/index.html', selector: '.cinematic-story', viewport: { width: 1440, height: 1000 }, landing: true },
+              { name: 'landing-iphone', url: 'http://127.0.0.1:8080/index.html', selector: '.cinematic-story', viewport: { width: 393, height: 852 }, landing: true }
             ];
 
             for (const testCase of cases) {
