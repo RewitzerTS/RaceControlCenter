@@ -170,10 +170,9 @@ jobs:
             await desktop.evaluate(() => {
               const story = document.querySelector('#experience');
               const top = window.scrollY + story.getBoundingClientRect().top;
-              const travel = Math.max(1, story.offsetHeight - window.innerHeight);
-              window.scrollTo(0, top + travel * 0.84);
+              window.scrollTo(0, top + story.offsetHeight - window.innerHeight - 4);
             });
-            await desktop.waitForTimeout(220);
+            await desktop.waitForTimeout(240);
             const finalScene = await desktop.locator('[data-story-stage]').getAttribute('data-story-stage');
             if (finalScene !== '3') throw new Error(`Final story scene did not activate: ${finalScene}`);
             const satellitesVisible = await desktop.locator('.l3-story-satellite').evaluateAll((nodes) => nodes.every((node) => Number(getComputedStyle(node).opacity) > 0.5));
