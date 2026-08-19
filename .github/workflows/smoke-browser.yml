@@ -58,40 +58,42 @@ jobs:
             }
           };
 
-          const assertLanding3 = async (page, testCase) => {
-            await page.waitForSelector('.l3-hero', { timeout: 15000 });
-            await page.waitForSelector('.l3-scroll-story', { timeout: 15000 });
-            await page.waitForSelector('[data-story-step="0"]', { timeout: 15000 });
+          const assertLanding = async (page, testCase) => {
+            await page.waitForSelector('.rvx-hero', { timeout: 15000 });
+            await page.waitForSelector('.rvx-capabilities', { timeout: 15000 });
+            await page.waitForSelector('.rvx-showcase', { timeout: 15000 });
 
             const layout = await page.evaluate(() => ({
+              revision: document.body.dataset.landingRevision || '',
               innerWidth: window.innerWidth,
               scrollWidth: document.documentElement.scrollWidth,
               htmlOverflowX: getComputedStyle(document.documentElement).overflowX,
               bodyOverflowX: getComputedStyle(document.body).overflowX,
-              storySteps: document.querySelectorAll('[data-story-step]').length,
               loginButtons: document.querySelectorAll('[data-login-open]').length,
               visibleLoginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
               registerLinks: document.querySelectorAll('a[href="register.html"]').length,
-              realPreviewFrames: document.querySelectorAll('.l3-device-preview iframe,.l3-story-preview iframe').length,
-              previewBadges: document.querySelectorAll('.l3-preview-badge').length
+              productPreviewFrames: document.querySelectorAll('iframe[data-product-preview]').length,
+              gradientHeadlines: document.querySelectorAll('.rvx-gradient').length,
+              legacyLandingStyles: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('landing3'))
             }));
 
             const xOverflowClipped = ['hidden', 'clip'].includes(layout.htmlOverflowX) || ['hidden', 'clip'].includes(layout.bodyOverflowX);
             if (layout.scrollWidth > layout.innerWidth + 2 && !xOverflowClipped) {
               throw new Error(`${testCase.name}: visible horizontal overflow ${layout.scrollWidth}px > ${layout.innerWidth}px`);
             }
-            if (layout.storySteps !== 4) throw new Error(`${testCase.name}: expected 4 story steps, got ${layout.storySteps}`);
+            if (layout.revision !== 'greenfield-v1-2026-08-19') throw new Error(`${testCase.name}: unexpected landing revision ${layout.revision}`);
             if (layout.loginButtons < 1 || layout.visibleLoginButtons < 1) throw new Error(`${testCase.name}: visible login CTA missing`);
             if (layout.registerLinks < 2) throw new Error(`${testCase.name}: registration CTA missing`);
-            if (layout.realPreviewFrames < 6) throw new Error(`${testCase.name}: expected 6 real RCC preview frames, got ${layout.realPreviewFrames}`);
-            if (layout.previewBadges !== 0) throw new Error(`${testCase.name}: RCC preview badges should be removed`);
+            if (layout.productPreviewFrames < 7) throw new Error(`${testCase.name}: expected authentic product preview frames, got ${layout.productPreviewFrames}`);
+            if (layout.gradientHeadlines < 4) throw new Error(`${testCase.name}: expected gradient product headlines, got ${layout.gradientHeadlines}`);
+            if (layout.legacyLandingStyles) throw new Error(`${testCase.name}: legacy landing3 stylesheet is still loaded`);
 
             await page.locator('[data-login-open]:visible').first().click();
             await page.waitForSelector('#landing-login-modal:not([hidden])', { timeout: 5000 });
             await page.locator('[data-login-close]').last().click();
             await page.waitForFunction(() => document.querySelector('#landing-login-modal')?.hidden === true, { timeout: 5000 });
 
-            await page.locator('#experience').scrollIntoViewIfNeeded();
+            await page.locator('#workflow').scrollIntoViewIfNeeded();
             await page.waitForTimeout(300);
           };
 
@@ -183,8 +185,8 @@ jobs:
               { name: 'rcc-admin-unified-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc', selector: '#landing-login-form', unifiedAdminLogin: true, expectedNext: 'admin.html?league=rcc' },
               { name: 'private-league-admin-unified-login', url: 'http://127.0.0.1:8080/admin.html?league=rcc-test', selector: '#landing-login-form', unifiedAdminLogin: true, expectedNext: 'admin.html?league=rcc-test' },
               { name: 'invite-password-page', url: 'http://127.0.0.1:8080/set-password.html?league=rcc-test', selector: '#password-setup-status' },
-              { name: 'landing3-desktop', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 1440, height: 1000 }, landing3: true },
-              { name: 'landing3-iphone', url: 'http://127.0.0.1:8080/landing3.html', selector: '.l3-hero', viewport: { width: 393, height: 852 }, landing3: true }
+              { name: 'landing-desktop', url: 'http://127.0.0.1:8080/index.html', selector: '.rvx-hero', viewport: { width: 1440, height: 1000 }, landing: true },
+              { name: 'landing-iphone', url: 'http://127.0.0.1:8080/index.html', selector: '.rvx-hero', viewport: { width: 393, height: 852 }, landing: true }
             ];
 
             for (const testCase of cases) {
@@ -219,7 +221,7 @@ jobs:
               await page.waitForSelector(testCase.selector, { timeout: 15000 });
               await page.waitForTimeout(2500);
               if (testCase.navigation) await assertNavigation(page, testCase);
-              if (testCase.landing3) await assertLanding3(page, testCase);
+              if (testCase.landing) await assertLanding(page, testCase);
               if (testCase.unifiedAdminLogin) await assertUnifiedAdminLogin(page, testCase);
 
               diagnostics.forEach((line) => console.log(`[${testCase.name}] ${line}`));
