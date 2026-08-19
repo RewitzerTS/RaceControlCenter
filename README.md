@@ -20,6 +20,22 @@ Primäre Plattform-Tagline: **Your League. Your Race. One Platform.**
 
 Die vollständige Brand Story, Messaging-Säulen, Claims und Sprachregeln stehen in [`docs/racevora-brand-story.md`](docs/racevora-brand-story.md).
 
+## Repository-Struktur
+
+- `index.html` – aktuelle öffentliche RaceVora-Landingpage
+- `assets/` – produktive CSS-, JavaScript-, Bild- und Preview-Assets
+- `components/` – wiederverwendete statische HTML-Komponenten
+- `data/` – statische Plattform-/Renndaten
+- `database/` – historische SQL-Migrationen und gezielte Schemaänderungen; siehe [`database/README.md`](database/README.md)
+- `docs/` – aktuelle technische, operative und Marken-Dokumentation
+- `docs/archive/` – historische RCC-/RaceVora-Notizen, die nicht den aktuellen Soll-Stand beschreiben
+- `scripts/` – Wartungs-, Prüf- und Hilfsskripte
+- `supabase/` – Edge Functions, E-Mail-Templates und Supabase-spezifische Dateien
+- `tests/` – lokale/CI-nahe Tests und Fixtures
+- `.github/workflows/` – CI, Security-, Browser-, Backup- und Produktions-Smokes
+
+Die Dateien `landing.html`, `landing2.html` und `landing3.html` bleiben bewusst als **Legacy-Redirects** auf `index.html` erhalten. So brechen alte Links nicht, während es nur noch eine aktive Landingpage-Implementierung gibt.
+
 ## Wichtige Routen
 
 - `/` / `index.html` – öffentliche RaceVora-Landingpage
@@ -66,7 +82,11 @@ Gebrandete Supabase-Auth-E-Mail-Templates liegen unter:
 
 ## Zentrale Frontend-Dateien
 
-- `assets/js/supabase-client.js` – Supabase-Client, früher Tenant-Kontext und Auth-Guards
+- `assets/css/pages/landing-next.css` – aktuelle Landingpage inklusive Login-Modal-Grundlayout
+- `assets/css/pages/landing-next-responsive.css` – responsive Landing-Anpassungen
+- `assets/js/pages/landing-next.js` – Landing-Motion und Preview-Verhalten
+- `assets/js/pages/landing.js` – Landing-Login, Session- und Liga-Auswahl
+- `assets/js/supabase-client.js` – Supabase-Client und zentraler Tenant-/Auth-Kontext
 - `assets/js/services/rcc-data.js` – zentrale Datenabfragen und Ergebnis-/Standings-Helfer
 - `assets/js/services/rcc-branding.js` – ligaabhängiges Branding/Theme
 - `assets/js/services/rcc-driver-context.js` – saisonabhängige Fahrer-/Team-Zuordnungen
@@ -75,7 +95,7 @@ Gebrandete Supabase-Auth-E-Mail-Templates liegen unter:
 
 ## Datenbank
 
-Migrationen liegen unter `database/`. Bestehende Instanzen nicht blind mit allen historischen SQL-Dateien neu bespielen; vor Änderungen Abhängigkeiten und aktuellen Live-Schema-Stand prüfen.
+Migrationen liegen unter `database/`. Bestehende Instanzen nicht blind mit allen historischen SQL-Dateien neu bespielen; vor Änderungen Abhängigkeiten und aktuellen Live-Schema-Stand prüfen. Zusätzliche Regeln stehen in [`database/README.md`](database/README.md).
 
 ## Lokale Entwicklung
 
