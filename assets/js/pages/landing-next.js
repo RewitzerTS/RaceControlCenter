@@ -2,6 +2,14 @@
   'use strict';
   if (document.body?.dataset?.page !== 'landing-next') return;
 
+  const responsiveHref = 'assets/css/pages/landing-next-responsive.css';
+  if (!document.querySelector(`link[href="${responsiveHref}"]`)) {
+    const responsive = document.createElement('link');
+    responsive.rel = 'stylesheet';
+    responsive.href = responsiveHref;
+    document.head.appendChild(responsive);
+  }
+
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   const revealTargets = [...document.querySelectorAll('[data-reveal]')];
   revealTargets.forEach((node) => node.classList.add('rvx-reveal'));
