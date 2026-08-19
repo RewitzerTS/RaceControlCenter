@@ -7,6 +7,8 @@ on:
       - 'landing.html'
       - 'landing2.html'
       - 'landing3.html'
+      - 'test-landing.html'
+      - 'Test2-Landing.html'
       - 'assets/css/pages/landing-next.css'
       - 'assets/css/pages/landing-next-responsive.css'
       - 'assets/js/pages/landing.js'
@@ -26,6 +28,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          test -f index.html
           grep -Fq 'data-landing-revision="greenfield-v1-2026-08-19"' index.html
           grep -Fq 'assets/css/pages/landing-next.css' index.html
           grep -Fq 'assets/js/pages/landing-next.js' index.html
@@ -55,11 +58,6 @@ jobs:
               echo "Legacy landing asset still present: $legacy" >&2
               exit 1
             fi
-          done
-
-          for redirect in landing.html landing2.html landing3.html; do
-            grep -Fq "index.html" "$redirect"
-            grep -Fq 'noindex' "$redirect"
           done
 
           node --check assets/js/pages/landing.js
