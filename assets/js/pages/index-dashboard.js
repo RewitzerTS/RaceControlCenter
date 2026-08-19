@@ -940,23 +940,31 @@
         if (!overlay || !show || !driverChampion || !constructorChampion) return;
         const shownKey = `rcc.championOverlayShown.${seasonId || 'current'}`;
         if (window.sessionStorage?.getItem(shownKey) === '1') return;
+        const previousFocus = document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
         const driverEl = document.getElementById('season-driver-champion');
         const constructorEl = document.getElementById('season-constructor-champion');
         const closeBtn = document.getElementById('season-champion-close');
         if (driverEl) driverEl.textContent = driverChampion;
         if (constructorEl) constructorEl.textContent = constructorChampion;
+        overlay.inert = false;
         overlay.classList.add('is-visible');
         overlay.setAttribute('aria-hidden', 'false');
         startScreenConfetti();
         const close = () => {
           stopScreenConfetti();
+          if (overlay.contains(document.activeElement)) document.activeElement.blur();
           overlay.classList.remove('is-visible');
+          overlay.inert = true;
           overlay.setAttribute('aria-hidden', 'true');
+          if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
         };
         closeBtn?.addEventListener('click', close, { once: true });
         overlay.addEventListener('click', (event) => {
           if (event.target === overlay || event.target.classList.contains('season-champion-overlay__backdrop')) close();
         }, { once: true });
+        closeBtn?.focus({ preventScroll: true });
         window.sessionStorage?.setItem(shownKey, '1');
       }
 

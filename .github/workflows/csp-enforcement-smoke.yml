@@ -29,6 +29,8 @@ jobs:
             exit 1
           fi
           grep -Fq "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://challenges.cloudflare.com" _headers
+          grep -Fq "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com" _headers
+          grep -Fq "font-src 'self' data: https://fonts.gstatic.com" _headers
           grep -Fq 'https://kjccstcbqygxuqkvdaqw.supabase.co' _headers
           grep -Fq 'wss://kjccstcbqygxuqkvdaqw.supabase.co' _headers
           grep -Fq "frame-src 'self' https://challenges.cloudflare.com" _headers

@@ -51,3 +51,5 @@ jobs:
           fi
 
           grep -Fq "window.RACEVORA_TURNSTILE_SITE_KEY" assets/js/auth-turnstile-config.js
+          grep -Fq '0x4AAAAAAETIVWWbQKe_2CaL' assets/js/auth-turnstile-config.js
+          grep -Fq '0x4AAAAAAETIVWWbQKe_2CaL' docs/turnstile-site-key-activation-2026-08-17.md
