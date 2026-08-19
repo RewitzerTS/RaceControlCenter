@@ -50,7 +50,7 @@
   }
 
   function mobileVisual(scene) {
-    return `<div class="l3-story-mobile-visual"><div class="l3-story-mobile-shell">${previewFrame(scene, 'l3-product-preview-frame--mobile')}</div></div>`;
+    return `<div class="l3-story-mobile-visual l3-story-preview"><div class="l3-story-mobile-shell">${previewFrame(scene, 'l3-product-preview-frame--mobile')}</div></div>`;
   }
 
   function storyMarkup() {
@@ -63,9 +63,9 @@
           </div>
           <div class="l3-scroll-story__stage" data-story-stage="0" aria-hidden="true">
             <div class="l3-story-halo"></div>
-            <div class="l3-story-product"><div class="l3-story-browser"><i></i><i></i><i></i><span>racevora.com</span><b>Race Management Platform</b></div><div class="l3-story-product__screen">${scenes.map((scene, index) => `<div class="l3-product-scene${index === 0 ? ' is-active' : ''}" data-product-scene="${index}">${previewFrame(scene)}</div>`).join('')}</div></div>
-            <div class="l3-story-satellite l3-story-satellite--tablet">${previewFrame(scenes[3], 'l3-product-preview-frame--tablet')}</div>
-            <div class="l3-story-satellite l3-story-satellite--phone">${previewFrame(scenes[3], 'l3-product-preview-frame--phone')}</div>
+            <div class="l3-story-product"><div class="l3-story-browser"><i></i><i></i><i></i><span>racevora.com</span><b>Race Management Platform</b></div><div class="l3-story-product__screen">${scenes.map((scene, index) => `<div class="l3-product-scene l3-story-preview${index === 0 ? ' is-active' : ''}" data-product-scene="${index}">${previewFrame(scene)}</div>`).join('')}</div></div>
+            <div class="l3-story-satellite l3-story-satellite--tablet l3-story-preview">${previewFrame(scenes[3], 'l3-product-preview-frame--tablet')}</div>
+            <div class="l3-story-satellite l3-story-satellite--phone l3-story-preview">${previewFrame(scenes[3], 'l3-product-preview-frame--phone')}</div>
             <div class="l3-story-sync"><i></i><span>Eine Veröffentlichung · überall aktuell</span></div>
           </div>
         </div>
