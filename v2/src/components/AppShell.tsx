@@ -2,7 +2,12 @@ import { NavLink, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import type { RuntimeEnvironment } from '../config/environment';
 import { useDriverIdentity } from '../driver/DriverIdentityProvider';
-import { SUPPORTED_LANGUAGES, useI18n, type Language } from '../i18n/I18nProvider';
+import {
+  SUPPORTED_LANGUAGES,
+  useI18n,
+  type Language,
+  type MessageKey,
+} from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 
@@ -20,7 +25,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
   const { error: identityError, identity, loading: identityLoading } = useDriverIdentity();
   const { leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
-  const { t } = useI18n();
+  const { plural, t } = useI18n();
   const roleValue = role === 'driver'
     ? t('driverRole')
     : role === 'steward'
@@ -35,7 +40,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
     <main className="content" id="main-content">
       <div className="content-heading">
         <div>
-          <p className="eyebrow">{t('overview')} · Phase 9</p>
+          <p className="eyebrow">{t('overview')} · {t('phaseLabel')} 13</p>
           <h1>{t('foundation')}</h1>
         </div>
         <span className="environment-badge">{environment.appEnvironment}</span>
@@ -45,7 +50,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
         <div className="track-mark" aria-hidden="true"><span /></div>
         <div>
           <h2 id="isolation-title">{t('protectedCopy')}</h2>
-          <p>Project <code>{environment.supabaseProjectRef}</code> · Browser key only · RLS remains authoritative</p>
+          <p>{t('isolationDetails', { projectRef: environment.supabaseProjectRef })}</p>
         </div>
       </section>
 
@@ -73,7 +78,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
                   : !user
                     ? t('signedOut')
                     : identity
-                      ? `${t(identity.status === 'active' ? 'identityActive' : 'identitySuspended')} · ${identity.linkedDriverCount} ${t('linkedRecords')}`
+                      ? `${t(identity.status === 'active' ? 'identityActive' : 'identitySuspended')} · ${identity.linkedDriverCount} ${plural('linkedRecord', identity.linkedDriverCount)}`
                       : t('noIdentity')
             }
             tone={identityLoading || Boolean(identityError) ? 'pending' : 'ok'}
@@ -85,10 +90,15 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
           <StatusRow label={t('xpSource')} value={t('appendOnlyLedger')} />
           <StatusRow label={t('levelRange')} value={t('oneToHundred')} />
           <StatusRow label={t('highestRank')} value={t('immortal')} />
+          <StatusRow label={t('achievementSystem')} value={t('fiftyCoreAchievements')} />
+          <StatusRow label={t('creditSource')} value={t('signedCreditLedger')} />
+          <StatusRow label={t('garage')} value={t('cosmeticsOnly')} />
+          <StatusRow label={t('challengeSystem')} value={t('threeRacingChallenges')} />
+          <StatusRow label={t('launchLanguages')} value={t('fourLanguages')} />
         </div>
 
         <aside className="next-step" aria-labelledby="next-title">
-          <span className="step-number">10</span>
+          <span className="step-number">14</span>
           <div>
             <h2 id="next-title">{t('next')}</h2>
             <p>{t('nextCopy')}</p>
@@ -113,7 +123,11 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         <label className="language-control">
           <span>{t('language')}</span>
           <select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
-            {SUPPORTED_LANGUAGES.map((item) => <option key={item} value={item}>{item.toUpperCase()}</option>)}
+            {SUPPORTED_LANGUAGES.map((item) => (
+              <option key={item} value={item}>
+                {t(`languageName.${item}` as MessageKey)}
+              </option>
+            ))}
           </select>
         </label>
       </header>
@@ -121,7 +135,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <Routes>
         <Route path="*" element={<FoundationPage environment={environment} />} />
       </Routes>
-      <footer className="footer"><span>RaceVora V2</span><span>Append-only XP · deterministic Level and Rank</span></footer>
+      <footer className="footer"><span>{t('footerTitle')}</span><span>{t('footerCopy')}</span></footer>
     </div>
   );
 }

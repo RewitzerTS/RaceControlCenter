@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_definitions: {
+        Row: {
+          code: string
+          created_at: string
+          description_key: string
+          is_active: boolean
+          is_core: boolean
+          metric: string
+          reward_vc: number
+          rule_version: number
+          sort_order: number
+          threshold: number
+          title_key: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description_key: string
+          is_active?: boolean
+          is_core?: boolean
+          metric: string
+          reward_vc?: number
+          rule_version?: number
+          sort_order: number
+          threshold: number
+          title_key: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description_key?: string
+          is_active?: boolean
+          is_core?: boolean
+          metric?: string
+          reward_vc?: number
+          rule_version?: number
+          sort_order?: number
+          threshold?: number
+          title_key?: string
+        }
+        Relationships: []
+      }
       career_result_facts: {
         Row: {
           awarded_points: number
@@ -137,6 +179,344 @@ export type Database = {
           },
         ]
       }
+      challenge_definitions: {
+        Row: {
+          active_from: string
+          active_until: string | null
+          code: string
+          created_at: string
+          description_key: string
+          is_active: boolean
+          metric: string
+          reward_vc: number
+          rule_version: number
+          sort_order: number
+          target_value: number
+          title_key: string
+          updated_at: string
+        }
+        Insert: {
+          active_from: string
+          active_until?: string | null
+          code: string
+          created_at?: string
+          description_key: string
+          is_active?: boolean
+          metric: string
+          reward_vc?: number
+          rule_version?: number
+          sort_order: number
+          target_value: number
+          title_key: string
+          updated_at?: string
+        }
+        Update: {
+          active_from?: string
+          active_until?: string | null
+          code?: string
+          created_at?: string
+          description_key?: string
+          is_active?: boolean
+          metric?: string
+          reward_vc?: number
+          rule_version?: number
+          sort_order?: number
+          target_value?: number
+          title_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      challenge_races: {
+        Row: {
+          challenge_code: string
+          entered_at: string
+          entered_by_event_id: string
+          league_id: string
+          race_id: string
+        }
+        Insert: {
+          challenge_code: string
+          entered_at: string
+          entered_by_event_id: string
+          league_id: string
+          race_id: string
+        }
+        Update: {
+          challenge_code?: string
+          entered_at?: string
+          entered_by_event_id?: string
+          league_id?: string
+          race_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_races_challenge_code_fkey"
+            columns: ["challenge_code"]
+            isOneToOne: false
+            referencedRelation: "challenge_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "challenge_races_entered_by_event_id_fkey"
+            columns: ["entered_by_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_races_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_races_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenge_result_facts: {
+        Row: {
+          challenge_code: string
+          contribution: number
+          driver_identity_id: string
+          league_id: string
+          race_id: string
+          reconciled_by_event_id: string
+          source_result_version_id: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_code: string
+          contribution: number
+          driver_identity_id: string
+          league_id: string
+          race_id: string
+          reconciled_by_event_id: string
+          source_result_version_id: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_code?: string
+          contribution?: number
+          driver_identity_id?: string
+          league_id?: string
+          race_id?: string
+          reconciled_by_event_id?: string
+          source_result_version_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_result_facts_challenge_code_fkey"
+            columns: ["challenge_code"]
+            isOneToOne: false
+            referencedRelation: "challenge_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "challenge_result_facts_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_result_facts_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_result_facts_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_result_facts_reconciled_by_event_id_fkey"
+            columns: ["reconciled_by_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_result_facts_source_result_version_id_fkey"
+            columns: ["source_result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cosmetic_definitions: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          description_key: string
+          is_active: boolean
+          metadata: Json
+          price_vc: number
+          sort_order: number
+          title_key: string
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          description_key: string
+          is_active?: boolean
+          metadata?: Json
+          price_vc: number
+          sort_order: number
+          title_key: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          description_key?: string
+          is_active?: boolean
+          metadata?: Json
+          price_vc?: number
+          sort_order?: number
+          title_key?: string
+        }
+        Relationships: []
+      }
+      cosmetic_purchases: {
+        Row: {
+          completed_at: string | null
+          cosmetic_code: string
+          created_at: string
+          driver_identity_id: string
+          id: string
+          idempotency_key: string
+          ledger_entry_id: string | null
+          price_vc_snapshot: number
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          cosmetic_code: string
+          created_at?: string
+          driver_identity_id: string
+          id?: string
+          idempotency_key: string
+          ledger_entry_id?: string | null
+          price_vc_snapshot: number
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          cosmetic_code?: string
+          created_at?: string
+          driver_identity_id?: string
+          id?: string
+          idempotency_key?: string
+          ledger_entry_id?: string | null
+          price_vc_snapshot?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cosmetic_purchases_cosmetic_code_fkey"
+            columns: ["cosmetic_code"]
+            isOneToOne: false
+            referencedRelation: "cosmetic_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "cosmetic_purchases_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cosmetic_purchases_ledger_entry_id_fkey"
+            columns: ["ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "credit_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_ledger: {
+        Row: {
+          amount: number
+          driver_identity_id: string
+          entry_type: string
+          id: string
+          idempotency_key: string
+          league_id: string | null
+          metadata: Json
+          occurred_at: string
+          reason_code: string
+          recorded_at: string
+          source_event_id: string | null
+          source_scope: string
+        }
+        Insert: {
+          amount: number
+          driver_identity_id: string
+          entry_type: string
+          id?: string
+          idempotency_key: string
+          league_id?: string | null
+          metadata?: Json
+          occurred_at: string
+          reason_code: string
+          recorded_at?: string
+          source_event_id?: string | null
+          source_scope: string
+        }
+        Update: {
+          amount?: number
+          driver_identity_id?: string
+          entry_type?: string
+          id?: string
+          idempotency_key?: string
+          league_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          reason_code?: string
+          recorded_at?: string
+          source_event_id?: string | null
+          source_scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_ledger_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_ledger_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_events: {
         Row: {
           actor_user_id: string | null
@@ -190,6 +570,144 @@ export type Database = {
             columns: ["result_version_id"]
             isOneToOne: false
             referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_achievement_events: {
+        Row: {
+          achievement_code: string
+          credit_eligible: boolean
+          driver_identity_id: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          observed_value: number
+          occurred_at: string
+          recorded_at: string
+          reward_vc_snapshot: number
+          rule_version: number
+          source_event_id: string
+          source_result_version_id: string | null
+          threshold_snapshot: number
+        }
+        Insert: {
+          achievement_code: string
+          credit_eligible?: boolean
+          driver_identity_id: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          observed_value: number
+          occurred_at: string
+          recorded_at?: string
+          reward_vc_snapshot?: number
+          rule_version: number
+          source_event_id: string
+          source_result_version_id?: string | null
+          threshold_snapshot: number
+        }
+        Update: {
+          achievement_code?: string
+          credit_eligible?: boolean
+          driver_identity_id?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          observed_value?: number
+          occurred_at?: string
+          recorded_at?: string
+          reward_vc_snapshot?: number
+          rule_version?: number
+          source_event_id?: string
+          source_result_version_id?: string | null
+          threshold_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_achievement_events_achievement_code_fkey"
+            columns: ["achievement_code"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "driver_achievement_events_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_achievement_events_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_achievement_events_source_result_version_id_fkey"
+            columns: ["source_result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_achievements: {
+        Row: {
+          achievement_code: string
+          current_value: number
+          driver_identity_id: string
+          first_unlocked_at: string | null
+          last_event_id: string
+          revoked_at: string | null
+          status: string
+          unlocked_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          achievement_code: string
+          current_value?: number
+          driver_identity_id: string
+          first_unlocked_at?: string | null
+          last_event_id: string
+          revoked_at?: string | null
+          status: string
+          unlocked_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          achievement_code?: string
+          current_value?: number
+          driver_identity_id?: string
+          first_unlocked_at?: string | null
+          last_event_id?: string
+          revoked_at?: string | null
+          status?: string
+          unlocked_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_achievements_achievement_code_fkey"
+            columns: ["achievement_code"]
+            isOneToOne: false
+            referencedRelation: "achievement_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "driver_achievements_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_achievements_last_event_id_fkey"
+            columns: ["last_event_id"]
+            isOneToOne: false
+            referencedRelation: "driver_achievement_events"
             referencedColumns: ["id"]
           },
         ]
@@ -307,6 +825,141 @@ export type Database = {
           },
         ]
       }
+      driver_challenge_events: {
+        Row: {
+          challenge_code: string
+          driver_identity_id: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          occurred_at: string
+          progress_snapshot: number
+          recorded_at: string
+          reward_eligible: boolean
+          reward_vc_snapshot: number
+          rule_version: number
+          source_event_id: string
+          source_result_version_id: string | null
+          target_snapshot: number
+        }
+        Insert: {
+          challenge_code: string
+          driver_identity_id: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          occurred_at: string
+          progress_snapshot: number
+          recorded_at?: string
+          reward_eligible?: boolean
+          reward_vc_snapshot?: number
+          rule_version: number
+          source_event_id: string
+          source_result_version_id?: string | null
+          target_snapshot: number
+        }
+        Update: {
+          challenge_code?: string
+          driver_identity_id?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          occurred_at?: string
+          progress_snapshot?: number
+          recorded_at?: string
+          reward_eligible?: boolean
+          reward_vc_snapshot?: number
+          rule_version?: number
+          source_event_id?: string
+          source_result_version_id?: string | null
+          target_snapshot?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_challenge_events_challenge_code_fkey"
+            columns: ["challenge_code"]
+            isOneToOne: false
+            referencedRelation: "challenge_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "driver_challenge_events_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_challenge_events_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_challenge_events_source_result_version_id_fkey"
+            columns: ["source_result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_challenges: {
+        Row: {
+          challenge_code: string
+          completed_at: string | null
+          driver_identity_id: string
+          last_event_id: string | null
+          progress: number
+          reward_eligible: boolean
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_code: string
+          completed_at?: string | null
+          driver_identity_id: string
+          last_event_id?: string | null
+          progress?: number
+          reward_eligible?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_code?: string
+          completed_at?: string | null
+          driver_identity_id?: string
+          last_event_id?: string | null
+          progress?: number
+          reward_eligible?: boolean
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_challenges_challenge_code_fkey"
+            columns: ["challenge_code"]
+            isOneToOne: false
+            referencedRelation: "challenge_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "driver_challenges_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_challenges_last_event_id_fkey"
+            columns: ["last_event_id"]
+            isOneToOne: false
+            referencedRelation: "driver_challenge_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_claims: {
         Row: {
           claimant_user_id: string
@@ -350,6 +1003,52 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_cosmetics: {
+        Row: {
+          acquired_at: string
+          acquisition_type: string
+          cosmetic_code: string
+          driver_identity_id: string
+          purchase_id: string | null
+        }
+        Insert: {
+          acquired_at?: string
+          acquisition_type: string
+          cosmetic_code: string
+          driver_identity_id: string
+          purchase_id?: string | null
+        }
+        Update: {
+          acquired_at?: string
+          acquisition_type?: string
+          cosmetic_code?: string
+          driver_identity_id?: string
+          purchase_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_cosmetics_cosmetic_code_fkey"
+            columns: ["cosmetic_code"]
+            isOneToOne: false
+            referencedRelation: "cosmetic_definitions"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "driver_cosmetics_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_cosmetics_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "cosmetic_purchases"
             referencedColumns: ["id"]
           },
         ]
@@ -468,6 +1167,48 @@ export type Database = {
             columns: ["last_ledger_entry_id"]
             isOneToOne: false
             referencedRelation: "xp_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_wallets: {
+        Row: {
+          balance: number
+          driver_identity_id: string
+          last_ledger_entry_id: string | null
+          lifetime_earned: number
+          lifetime_spent: number
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          driver_identity_id: string
+          last_ledger_entry_id?: string | null
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          driver_identity_id?: string
+          last_ledger_entry_id?: string | null
+          lifetime_earned?: number
+          lifetime_spent?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_wallets_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: true
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_wallets_last_ledger_entry_id_fkey"
+            columns: ["last_ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "credit_ledger"
             referencedColumns: ["id"]
           },
         ]
@@ -1172,6 +1913,16 @@ export type Database = {
       matches_requested_league: {
         Args: { p_league_id: string }
         Returns: boolean
+      }
+      purchase_cosmetic: {
+        Args: { p_cosmetic_code: string; p_idempotency_key: string }
+        Returns: {
+          amount_spent: number
+          balance_after: number
+          purchase_id: string
+          purchase_status: string
+          purchased_cosmetic_code: string
+        }[]
       }
       requested_league_slug: { Args: never; Returns: string }
     }
