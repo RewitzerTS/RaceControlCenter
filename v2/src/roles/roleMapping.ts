@@ -11,6 +11,8 @@ export function mapLegacyLeagueRole(role: string | null | undefined): AppRole | 
     case 'owner':
     case 'league_admin':
       return 'league_admin';
+    case 'platform_owner':
+      return 'platform_owner';
     default:
       return null;
   }

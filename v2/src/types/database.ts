@@ -332,6 +332,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_app_role: { Args: never; Returns: string }
       is_platform_owner: { Args: never; Returns: boolean }
       matches_requested_league: {
         Args: { p_league_id: string }

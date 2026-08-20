@@ -7,6 +7,9 @@ describe('mapLegacyLeagueRole', () => {
     ['steward', 'steward'],
     ['admin', 'league_admin'],
     ['owner', 'league_admin'],
+    ['driver', 'driver'],
+    ['league_admin', 'league_admin'],
+    ['platform_owner', 'platform_owner'],
   ])('maps %s to %s', (legacy, expected) => {
     expect(mapLegacyLeagueRole(legacy)).toBe(expected);
   });

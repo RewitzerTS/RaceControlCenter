@@ -11,32 +11,15 @@ interface RoleContextValue {
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-async function resolveRole(client: LeagueSupabaseClient, user: User, leagueSlug: string): Promise<AppRole | null> {
-  const ownerResponse = await client.rpc('is_platform_owner');
-  if (!ownerResponse.error && ownerResponse.data === true) return 'platform_owner';
-
-  const leagueResponse = await client
-    .from('leagues')
-    .select('id')
-    .eq('slug', leagueSlug)
-    .maybeSingle();
-  if (leagueResponse.error || !leagueResponse.data) return null;
-
-  const membershipResponse = await client
-    .from('league_members')
-    .select('role')
-    .eq('league_id', leagueResponse.data.id)
-    .eq('user_id', user.id)
-    .maybeSingle();
-  if (membershipResponse.error) return null;
-
-  return mapLegacyLeagueRole(membershipResponse.data?.role);
+async function resolveRole(client: LeagueSupabaseClient, _user: User): Promise<AppRole | null> {
+  const response = await client.rpc('current_app_role');
+  if (response.error) throw response.error;
+  return mapLegacyLeagueRole(response.data);
 }
 
-export function RoleProvider({ client, user, leagueSlug, children }: PropsWithChildren<{
+export function RoleProvider({ client, user, children }: PropsWithChildren<{
   client: LeagueSupabaseClient;
   user: User | null;
-  leagueSlug: string;
 }>) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(Boolean(user));
@@ -52,7 +35,7 @@ export function RoleProvider({ client, user, leagueSlug, children }: PropsWithCh
     }
 
     setLoading(true);
-    void resolveRole(client, user, leagueSlug)
+    void resolveRole(client, user)
       .then((nextRole) => {
         if (active) setRole(nextRole);
       })
@@ -64,7 +47,7 @@ export function RoleProvider({ client, user, leagueSlug, children }: PropsWithCh
       });
 
     return () => { active = false; };
-  }, [client, leagueSlug, user]);
+  }, [client, user]);
 
   const value = useMemo(() => ({ role, loading, error }), [error, loading, role]);
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;

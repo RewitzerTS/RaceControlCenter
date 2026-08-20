@@ -9,11 +9,11 @@ import { LeagueProvider, useLeague } from './league/LeagueProvider';
 import { RoleProvider } from './roles/RoleProvider';
 
 function AuthorizedShell({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
-  const { client, leagueSlug } = useLeague();
+  const { client } = useLeague();
   const { user } = useAuth();
   return (
     <DriverIdentityProvider client={client} user={user}>
-      <RoleProvider client={client} user={user} leagueSlug={leagueSlug}>
+      <RoleProvider client={client} user={user}>
         <AppShell environment={environment} />
       </RoleProvider>
     </DriverIdentityProvider>
