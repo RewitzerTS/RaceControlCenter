@@ -73,7 +73,7 @@ jobs:
               visibleLoginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
               registerLinks: document.querySelectorAll('a[href="register.html"]').length,
               cinematicCanvas: Boolean(document.querySelector('.cinematic-story canvas')),
-              mobileMaster: document.querySelector('.mobile-master source')?.getAttribute('src') || '',
+              mobileMaster: document.querySelector('.mobile-master source')?.getAttribute('src') || document.querySelector('.mobile-master source')?.getAttribute('data-src') || '',
               gradientHeadlines: document.querySelectorAll('.gradient-text').length,
               legacyLandingStyles: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('landing3'))
             }));

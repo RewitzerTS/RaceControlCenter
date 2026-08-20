@@ -1,13 +1,19 @@
 (() => {
   'use strict';
 
-  const scriptElement = document.querySelector('script[src$="test-landing/script.js"],script[src$="script.js"]');
+  const scriptElement = document.currentScript
+    || document.querySelector('script[src*="test-landing/script.js"],script[src*="script.js"]');
   const ASSET_ROOT = scriptElement?.src
     ? new URL('.', scriptElement.src).href.replace(/\/$/, '')
     : '.';
+  const ASSET_VERSION = 'phase24-2026-08-20';
   const FRAME_COUNT = 90;
+  const FRAME_WINDOW_RADIUS = 3;
   const story = document.querySelector('.cinematic-story');
   const canvas = story?.querySelector('canvas');
+  const mobileVideo = story?.querySelector('.mobile-master');
+  const mobileSource = mobileVideo?.querySelector('source[data-src]');
+  const motionPoster = story?.querySelector('.motion-poster[data-src]');
   const chapters = [...(story?.querySelectorAll('.story-chapters article') || [])];
   const rails = [...(story?.querySelectorAll('.story-rail i') || [])];
   const header = document.querySelector('[data-header]');
@@ -15,11 +21,12 @@
   const mobile = window.matchMedia('(max-width: 700px)');
   const images = new Map();
   let activeChapter = 0;
+  let desiredFrame = 0;
   let lastFrame = -1;
   let started = false;
   let raf = 0;
 
-  const frameSrc = (index) => `${ASSET_ROOT}/frames/frame-${String(index).padStart(3, '0')}.webp`;
+  const frameSrc = (index) => `${ASSET_ROOT}/frames/frame-${String(index).padStart(3, '0')}.webp?v=${ASSET_VERSION}`;
 
   function setChapter(index) {
     if (index === activeChapter) return;
@@ -54,44 +61,68 @@
   }
 
   function loadFrame(index) {
-    if (images.has(index)) return;
+    if (index < 0 || index >= FRAME_COUNT || images.has(index)) return;
     const image = new Image();
     image.decoding = 'async';
     image.src = frameSrc(index);
     image.onload = () => {
-      if (index === 0) {
-        draw(0);
-        story?.classList.add('is-ready');
-      }
+      if (index === 0) story?.classList.add('is-ready');
+      if (index === desiredFrame || (lastFrame < 0 && index === 0)) draw(index);
     };
     images.set(index, image);
+  }
+
+  function loadFrameWindow(center, radius = FRAME_WINDOW_RADIUS) {
+    loadFrame(center);
+    for (let gap = 1; gap <= radius; gap += 1) {
+      loadFrame(center - gap);
+      loadFrame(center + gap);
+    }
+  }
+
+  function activateMotionPoster() {
+    if (!motionPoster?.dataset.src) return;
+    motionPoster.src = motionPoster.dataset.src;
+    delete motionPoster.dataset.src;
+  }
+
+  function activateMobileVideo() {
+    if (!mobile.matches || reduceMotion.matches || !mobileVideo || !mobileSource?.dataset.src) return;
+    if (mobileVideo.dataset.poster) {
+      mobileVideo.poster = mobileVideo.dataset.poster;
+      delete mobileVideo.dataset.poster;
+    }
+    mobileSource.src = mobileSource.dataset.src;
+    delete mobileSource.dataset.src;
+    mobileVideo.load();
+    mobileVideo.play().catch(() => {});
   }
 
   function beginLoading() {
     if (started || mobile.matches || reduceMotion.matches) return;
     started = true;
-    loadFrame(0);
-    let index = 1;
-    const batch = () => {
-      for (let count = 0; count < 6 && index < FRAME_COUNT; count += 1, index += 1) loadFrame(index);
-      if (index < FRAME_COUNT) window.setTimeout(batch, 80);
-    };
-    batch();
+    loadFrameWindow(0);
   }
 
   function update() {
     raf = 0;
     header?.classList.toggle('is-scrolled', window.scrollY > 48);
     if (!story || reduceMotion.matches) return;
+    if (mobile.matches) {
+      activateMobileVideo();
+      return;
+    }
     const rect = story.getBoundingClientRect();
     const distance = Math.max(1, story.offsetHeight - window.innerHeight);
     const progress = Math.min(1, Math.max(0, -rect.top / distance));
     const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
+    desiredFrame = frame;
+    loadFrameWindow(frame);
     story.style.setProperty('--story-progress', String(progress));
     setChapter(Math.min(2, Math.floor(progress * 3)));
     if (frame !== lastFrame && !draw(frame)) {
-      for (let gap = 1; gap <= 4; gap += 1) {
-        if (draw(Math.max(0, frame - gap))) break;
+      for (let gap = 1; gap <= FRAME_WINDOW_RADIUS + 1; gap += 1) {
+        if (draw(Math.max(0, frame - gap)) || draw(Math.min(FRAME_COUNT - 1, frame + gap))) break;
       }
     }
   }
@@ -102,8 +133,10 @@
 
   if (story && canvas) {
     const observer = new IntersectionObserver((entries) => {
-      if (entries.some((entry) => entry.isIntersecting)) beginLoading();
-    }, { rootMargin: '100% 0px' });
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      if (mobile.matches) activateMobileVideo();
+      else beginLoading();
+    }, { rootMargin: '50% 0px' });
     observer.observe(story);
   }
 
@@ -111,6 +144,8 @@
   window.addEventListener('resize', () => { lastFrame = -1; requestUpdate(); }, { passive: true });
   reduceMotion.addEventListener?.('change', () => window.location.reload());
   mobile.addEventListener?.('change', () => window.location.reload());
-  beginLoading();
+  if (reduceMotion.matches) activateMotionPoster();
+  else if (mobile.matches) activateMobileVideo();
+  else beginLoading();
   update();
 })();
