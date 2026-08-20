@@ -7,6 +7,7 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   error: string | null;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -46,7 +47,11 @@ export function AuthProvider({ client, children }: PropsWithChildren<{ client: L
     user: session?.user ?? null,
     loading,
     error,
-  }), [error, loading, session]);
+    signOut: async () => {
+      const { error: signOutError } = await client.auth.signOut();
+      if (signOutError) throw signOutError;
+    },
+  }), [client, error, loading, session]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

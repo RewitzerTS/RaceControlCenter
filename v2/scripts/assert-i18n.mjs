@@ -6,9 +6,11 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const messagesPath = resolve(root, 'src/i18n/messages.ts');
 const providerPath = resolve(root, 'src/i18n/I18nProvider.tsx');
 const shellPath = resolve(root, 'src/components/AppShell.tsx');
+const driverHomePath = resolve(root, 'src/driver/DriverHomePage.tsx');
 const source = await readFile(messagesPath, 'utf8');
 const provider = await readFile(providerPath, 'utf8');
 const shell = await readFile(shellPath, 'utf8');
+const driverHome = await readFile(driverHomePath, 'utf8');
 
 const violations = [];
 const expectedLocales = ['de', 'en', 'es', 'fr'];
@@ -74,8 +76,11 @@ for (const forbidden of [
 ]) {
   if (shell.includes(forbidden)) violations.push(`hardcoded visible AppShell string remains: ${forbidden}`);
 }
-if (!shell.includes("t('isolationDetails'") || !shell.includes("plural('linkedRecord'")) {
-  violations.push('AppShell does not use interpolated and plural-aware translations');
+if (!driverHome.includes("t('home.greeting'") || !driverHome.includes("plural('home.achievementCount'")) {
+  violations.push('Driver Home does not use interpolated and plural-aware translations');
+}
+for (const formatter of ['formatDate', 'formatTime', 'formatNumber']) {
+  if (!driverHome.includes(formatter)) violations.push(`Driver Home does not use ${formatter}`);
 }
 if (violations.length) {
   console.error(`V2 i18n check failed:\n${violations.map((item) => `- ${item}`).join('\n')}`);
