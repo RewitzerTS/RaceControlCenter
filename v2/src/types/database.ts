@@ -424,6 +424,54 @@ export type Database = {
           },
         ]
       }
+      driver_progression: {
+        Row: {
+          driver_identity_id: string
+          last_ledger_entry_id: string | null
+          level: number
+          lifetime_xp: number
+          rank: string
+          updated_at: string
+          xp_into_level: number
+          xp_to_next_level: number
+        }
+        Insert: {
+          driver_identity_id: string
+          last_ledger_entry_id?: string | null
+          level?: number
+          lifetime_xp?: number
+          rank?: string
+          updated_at?: string
+          xp_into_level?: number
+          xp_to_next_level?: number
+        }
+        Update: {
+          driver_identity_id?: string
+          last_ledger_entry_id?: string | null
+          level?: number
+          lifetime_xp?: number
+          rank?: string
+          updated_at?: string
+          xp_into_level?: number
+          xp_to_next_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_progression_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: true
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_progression_last_ledger_entry_id_fkey"
+            columns: ["last_ledger_entry_id"]
+            isOneToOne: false
+            referencedRelation: "xp_ledger"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           ai_driver_reference: string | null
@@ -1020,6 +1068,96 @@ export type Database = {
             columns: ["league_id"]
             isOneToOne: false
             referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      xp_ledger: {
+        Row: {
+          amount: number
+          driver_identity_id: string
+          entry_type: string
+          id: string
+          idempotency_key: string
+          league_id: string | null
+          metadata: Json
+          occurred_at: string
+          processing_id: string
+          race_id: string | null
+          reason_code: string
+          recorded_at: string
+          result_version_id: string | null
+          rule_version: number
+          source_event_id: string
+        }
+        Insert: {
+          amount: number
+          driver_identity_id: string
+          entry_type: string
+          id?: string
+          idempotency_key: string
+          league_id?: string | null
+          metadata?: Json
+          occurred_at: string
+          processing_id: string
+          race_id?: string | null
+          reason_code: string
+          recorded_at?: string
+          result_version_id?: string | null
+          rule_version?: number
+          source_event_id: string
+        }
+        Update: {
+          amount?: number
+          driver_identity_id?: string
+          entry_type?: string
+          id?: string
+          idempotency_key?: string
+          league_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          processing_id?: string
+          race_id?: string | null
+          reason_code?: string
+          recorded_at?: string
+          result_version_id?: string | null
+          rule_version?: number
+          source_event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_ledger_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xp_ledger_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xp_ledger_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xp_ledger_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xp_ledger_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
             referencedColumns: ["id"]
           },
         ]

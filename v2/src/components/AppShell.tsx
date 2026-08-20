@@ -35,7 +35,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
     <main className="content" id="main-content">
       <div className="content-heading">
         <div>
-          <p className="eyebrow">{t('overview')} · Phase 8</p>
+          <p className="eyebrow">{t('overview')} · Phase 9</p>
           <h1>{t('foundation')}</h1>
         </div>
         <span className="environment-badge">{environment.appEnvironment}</span>
@@ -82,10 +82,13 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
           <StatusRow label={t('eventProcessing')} value={t('independentProcessors')} />
           <StatusRow label={t('careerSource')} value={t('currentOfficialResults')} />
           <StatusRow label={t('careerScope')} value={t('crossLeagueIdentity')} />
+          <StatusRow label={t('xpSource')} value={t('appendOnlyLedger')} />
+          <StatusRow label={t('levelRange')} value={t('oneToHundred')} />
+          <StatusRow label={t('highestRank')} value={t('immortal')} />
         </div>
 
         <aside className="next-step" aria-labelledby="next-title">
-          <span className="step-number">09</span>
+          <span className="step-number">10</span>
           <div>
             <h2 id="next-title">{t('next')}</h2>
             <p>{t('nextCopy')}</p>
@@ -118,7 +121,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <Routes>
         <Route path="*" element={<FoundationPage environment={environment} />} />
       </Routes>
-      <footer className="footer"><span>RaceVora V2</span><span>Deterministic cross-league Career foundation</span></footer>
+      <footer className="footer"><span>RaceVora V2</span><span>Append-only XP · deterministic Level and Rank</span></footer>
     </div>
   );
 }
