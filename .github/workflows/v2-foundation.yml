@@ -1,0 +1,41 @@
+name: V2 foundation checks
+
+on:
+  pull_request:
+    paths:
+      - 'v2/**'
+      - 'PRODUCT.md'
+      - 'docs/v2/**'
+      - '.github/workflows/v2-foundation.yml'
+  push:
+    branches:
+      - v2-development
+    paths:
+      - 'v2/**'
+      - 'PRODUCT.md'
+      - 'docs/v2/**'
+      - '.github/workflows/v2-foundation.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v2-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - run: npm ci
+      - run: npm run verify
