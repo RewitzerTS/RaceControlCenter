@@ -141,14 +141,16 @@ a { color: inherit; }
 }
 
 h1, h2, p { margin-top: 0; }
-h1 { margin-bottom: 0; font-size: clamp(2rem, 6vw, 4.75rem); line-height: 0.96; letter-spacing: -0.045em; }
+h1 { margin-bottom: 0; font-size: 3.5rem; line-height: 0.98; letter-spacing: -0.035em; text-wrap: balance; }
+h2 { text-wrap: balance; }
+p { text-wrap: pretty; }
 h2 { font-size: clamp(1.15rem, 2.5vw, 1.55rem); line-height: 1.25; }
 p { color: var(--muted); line-height: 1.6; }
 
 .environment-badge {
   flex: 0 0 auto;
   padding: 0.55rem 0.75rem;
-  border-left: 3px solid var(--success);
+  border: 1px solid rgba(45, 192, 141, 0.45);
   background: rgba(45, 192, 141, 0.09);
   color: #a9efd7;
   font-size: 0.72rem;
@@ -243,11 +245,12 @@ p { color: var(--muted); line-height: 1.6; }
   padding: 2rem max(1.25rem, env(safe-area-inset-right)) 2rem max(1.25rem, env(safe-area-inset-left));
 }
 .fatal-state h1 { margin-bottom: 1.5rem; }
-.technical-note { padding-left: 1rem; border-left: 2px solid var(--warning); }
+.technical-note { padding: 1rem; border: 1px solid rgba(244, 193, 77, 0.5); }
 
 @media (max-width: 720px) {
   .language-control > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .content-heading { align-items: flex-start; flex-direction: column; }
+  h1 { font-size: 2.2rem; }
   .foundation-grid { grid-template-columns: 1fr; }
   .isolation-statement { grid-template-columns: 48px 1fr; }
   .track-mark { width: 48px; height: 56px; }

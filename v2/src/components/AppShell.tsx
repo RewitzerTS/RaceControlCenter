@@ -1,6 +1,7 @@
 import { NavLink, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import type { RuntimeEnvironment } from '../config/environment';
+import { useDriverIdentity } from '../driver/DriverIdentityProvider';
 import { SUPPORTED_LANGUAGES, useI18n, type Language } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
@@ -16,6 +17,7 @@ function StatusRow({ label, value, tone = 'ok' }: { label: string; value: string
 
 function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
   const { loading: authLoading, user } = useAuth();
+  const { error: identityError, identity, loading: identityLoading } = useDriverIdentity();
   const { leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const { t } = useI18n();
@@ -24,7 +26,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
     <main className="content" id="main-content">
       <div className="content-heading">
         <div>
-          <p className="eyebrow">{t('overview')} · Phase 3</p>
+          <p className="eyebrow">{t('overview')} · Phase 4</p>
           <h1>{t('foundation')}</h1>
         </div>
         <span className="environment-badge">{environment.appEnvironment}</span>
@@ -52,10 +54,25 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
             value={roleLoading ? t('pending') : role ?? t('noRole')}
             tone={roleLoading ? 'pending' : 'ok'}
           />
+          <StatusRow
+            label={t('driverIdentity')}
+            value={
+              identityLoading
+                ? t('pending')
+                : identityError
+                  ? t('notConfirmed')
+                  : !user
+                    ? t('signedOut')
+                    : identity
+                      ? `${t(identity.status === 'active' ? 'identityActive' : 'identitySuspended')} · ${identity.linkedDriverCount} ${t('linkedRecords')}`
+                      : t('noIdentity')
+            }
+            tone={identityLoading || Boolean(identityError) ? 'pending' : 'ok'}
+          />
         </div>
 
         <aside className="next-step" aria-labelledby="next-title">
-          <span className="step-number">04</span>
+          <span className="step-number">05</span>
           <div>
             <h2 id="next-title">{t('next')}</h2>
             <p>{t('nextCopy')}</p>
@@ -88,7 +105,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <Routes>
         <Route path="*" element={<FoundationPage environment={environment} />} />
       </Routes>
-      <footer className="footer"><span>RaceVora V2</span><span>Isolated staging foundation</span></footer>
+      <footer className="footer"><span>RaceVora V2</span><span>Verified driver identity foundation</span></footer>
     </div>
   );
 }

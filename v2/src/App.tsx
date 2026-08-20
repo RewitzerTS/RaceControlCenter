@@ -2,6 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './components/AppShell';
 import { EnvironmentGate } from './components/EnvironmentGate';
+import { DriverIdentityProvider } from './driver/DriverIdentityProvider';
 import { FeatureFlagProvider } from './features/FeatureFlagProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
@@ -11,9 +12,11 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
   const { client, leagueSlug } = useLeague();
   const { user } = useAuth();
   return (
-    <RoleProvider client={client} user={user} leagueSlug={leagueSlug}>
-      <AppShell environment={environment} />
-    </RoleProvider>
+    <DriverIdentityProvider client={client} user={user}>
+      <RoleProvider client={client} user={user} leagueSlug={leagueSlug}>
+        <AppShell environment={environment} />
+      </RoleProvider>
+    </DriverIdentityProvider>
   );
 }
 

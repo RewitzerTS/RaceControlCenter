@@ -14,6 +14,233 @@ export type Database = {
   }
   public: {
     Tables: {
+      driver_aliases: {
+        Row: {
+          alias: string
+          alias_type: string
+          created_at: string
+          driver_id: string | null
+          driver_identity_id: string | null
+          id: string
+          normalized_alias: string | null
+        }
+        Insert: {
+          alias: string
+          alias_type: string
+          created_at?: string
+          driver_id?: string | null
+          driver_identity_id?: string | null
+          id?: string
+          normalized_alias?: string | null
+        }
+        Update: {
+          alias?: string
+          alias_type?: string
+          created_at?: string
+          driver_id?: string | null
+          driver_identity_id?: string | null
+          id?: string
+          normalized_alias?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_aliases_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_aliases_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_claims: {
+        Row: {
+          claimant_user_id: string
+          driver_id: string
+          expires_at: string | null
+          id: string
+          proof_token_hash: string | null
+          requested_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          verification_method: string
+        }
+        Insert: {
+          claimant_user_id: string
+          driver_id: string
+          expires_at?: string | null
+          id?: string
+          proof_token_hash?: string | null
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          verification_method: string
+        }
+        Update: {
+          claimant_user_id?: string
+          driver_id?: string
+          expires_at?: string | null
+          id?: string
+          proof_token_hash?: string | null
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          verification_method?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_claims_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_identities: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      driver_identity_links: {
+        Row: {
+          claim_id: string
+          driver_id: string
+          driver_identity_id: string
+          id: string
+          linked_at: string
+        }
+        Insert: {
+          claim_id: string
+          driver_id: string
+          driver_identity_id: string
+          id?: string
+          linked_at?: string
+        }
+        Update: {
+          claim_id?: string
+          driver_id?: string
+          driver_identity_id?: string
+          id?: string
+          linked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_identity_links_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: true
+            referencedRelation: "driver_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_identity_links_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_identity_links_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drivers: {
+        Row: {
+          ai_driver_reference: string | null
+          avatar_url: string | null
+          car_name: string | null
+          created_at: string
+          display_name: string
+          gamertag: string | null
+          id: string
+          is_active: boolean
+          league_id: string
+          league_team: string | null
+          nationality: string | null
+          nationality_code: string | null
+          notes: string | null
+          number: number | null
+          real_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_driver_reference?: string | null
+          avatar_url?: string | null
+          car_name?: string | null
+          created_at?: string
+          display_name: string
+          gamertag?: string | null
+          id?: string
+          is_active?: boolean
+          league_id: string
+          league_team?: string | null
+          nationality?: string | null
+          nationality_code?: string | null
+          notes?: string | null
+          number?: number | null
+          real_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_driver_reference?: string | null
+          avatar_url?: string | null
+          car_name?: string | null
+          created_at?: string
+          display_name?: string
+          gamertag?: string | null
+          id?: string
+          is_active?: boolean
+          league_id?: string
+          league_team?: string | null
+          nationality?: string | null
+          nationality_code?: string | null
+          notes?: string | null
+          number?: number | null
+          real_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       league_members: {
         Row: {
           created_at: string
