@@ -21,8 +21,8 @@ for (const nav of [
 if (!shell.includes('<Route path="/" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
-if (!shell.includes('<DriverNavigation mobile />') || !styles.includes('.bottom-navigation')) {
-  violations.push('mobile Bottom Navigation is missing');
+if (!shell.includes('className="mobile-toggle"') || !shell.includes("'main-navigation main-navigation--open'")) {
+  violations.push('responsive V1 navigation drawer is missing');
 }
 for (const responsiveContract of [
   'env(safe-area-inset-bottom)',
@@ -64,4 +64,4 @@ if (violations.length) {
   console.error(`V2 Driver Experience check failed:\n${violations.map((item) => `- ${item}`).join('\n')}`);
   process.exit(1);
 }
-console.log('V2 Driver Experience check passed. Career-first navigation, responsive cockpit shell, RLS-bound reads, deterministic hero priority, and safe UI states are present.');
+console.log('V2 Driver Experience check passed. Career-first navigation, responsive V1 shell, RLS-bound reads, deterministic hero priority, and safe UI states are present.');

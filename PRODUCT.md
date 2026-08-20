@@ -23,6 +23,8 @@ RaceVora moves leagues forward. The product is professional, calm, precise, moto
 
 The visual language is dark and focused, using the established RaceVora purple-to-teal spectrum, crisp typography, restrained motion, and high-information surfaces. It must avoid chaotic neon-gaming aesthetics, excessive glow, ornamental dashboards, and generic card grids.
 
+V1 is the canonical visual reference for V2. V2 extends the existing RaceVora experience with new capabilities; it does not introduce a separate cockpit identity. The established horizontal header, RaceVora mark, background atmosphere, rounded dashboard surfaces, status strips, button language, spacing rhythm, and responsive navigation must remain recognizably continuous with V1.
+
 ## Design principles
 
 1. **Career first:** driver-facing surfaces tell a coherent story of progress and upcoming action.
@@ -45,6 +47,7 @@ The visual language is dark and focused, using the established RaceVora purple-t
 ## Technical constraints
 
 - Production V1 remains live and unchanged while V2 is built in parallel.
+- V2 feature work must preserve V1 visual continuity; changes to the production V1 application or the productive `rcc` league are outside the V2 build scope.
 - V2 uses a separate Supabase project and a separate Cloudflare Pages project.
 - V2 must refuse to start when configured with the Production Supabase project.
 - No service-role credential is ever exposed to the browser.

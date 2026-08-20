@@ -1,5 +1,6 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, useState, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
+import raceVoraMark from '../../../assets/images/racevora-mark.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
 import type { RuntimeEnvironment } from '../config/environment';
@@ -55,22 +56,23 @@ function NavIcon({ name }: { name: IconName }) {
   );
 }
 
-function DriverNavigation({ mobile = false }: { mobile?: boolean }) {
+function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useI18n();
   return (
-    <nav className={mobile ? 'bottom-navigation' : 'driver-navigation'} aria-label={t('nav.driver')}>
+    <div className="driver-navigation" aria-label={t('nav.driver')}>
       {DRIVER_NAV_ITEMS.map((item) => (
         <NavLink
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
           end={item.path === '/'}
           key={item.path}
+          onClick={onNavigate}
           to={item.path}
         >
           <NavIcon name={item.icon} />
           <span>{t(item.key)}</span>
         </NavLink>
       ))}
-    </nav>
+    </div>
   );
 }
 
@@ -101,6 +103,7 @@ function RoutePlaceholder({
 }
 
 export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
+  const [navigationOpen, setNavigationOpen] = useState(false);
   const { language, setLanguage, t } = useI18n();
   const { leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
@@ -111,35 +114,37 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const canOwner = features.ownerControl && role === 'platform_owner';
   const canNotify = features.notificationsV2 && Boolean(user);
   const canCreateGraphics = canAdmin && features.socialGraphics;
+  const closeNavigation = () => setNavigationOpen(false);
 
   return (
     <div className="app-shell">
-      <aside className="app-rail">
-        <NavLink className="brand" to="/" aria-label={t('nav.home')}>
-          <span className="brand-symbol" aria-hidden="true">RV</span>
-          <span className="brand-copy"><strong>{t('product')}</strong><small>{t('staging')}</small></span>
+      <header className="site-header">
+        <div className="header-inner">
+        <NavLink className="brand" to="/" aria-label={t('nav.home')} onClick={closeNavigation}>
+          <img className="brand-logo" src={raceVoraMark} alt="" />
+          <span className="brand-copy"><strong>{t('product')}</strong><small>Race Management Platform</small></span>
         </NavLink>
-        <DriverNavigation />
-        {canSteward && <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active steward-nav-item' : 'nav-item steward-nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
-        {canAdmin && <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/admin"><NavIcon name="admin" /><span>{t('nav.admin')}</span></NavLink>}
-        {canOwner && <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
-        <div className="rail-status">
-          <i aria-hidden="true" />
-          <span>{environment.appEnvironment}</span>
-        </div>
-      </aside>
 
-      <div className="shell-frame">
-        <header className="topbar">
-          <div className="tenant-context">
-            <span>{t('shell.leagueContext')}</span>
-            <strong>{leagueSlug}</strong>
+        <button
+          aria-controls="main-navigation"
+          aria-expanded={navigationOpen}
+          aria-label={navigationOpen ? 'Navigation schließen' : 'Navigation öffnen'}
+          className="mobile-toggle"
+          onClick={() => setNavigationOpen((current) => !current)}
+          type="button"
+        >
+          <span /><span /><span />
+        </button>
+
+        <nav className={navigationOpen ? 'main-navigation main-navigation--open' : 'main-navigation'} id="main-navigation" aria-label={t('nav.driver')}>
+          <DriverNavigation onNavigate={closeNavigation} />
+          <div className="privileged-navigation">
+            {canSteward && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active steward-nav-item' : 'nav-item steward-nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
+            {canAdmin && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/admin"><NavIcon name="admin" /><span>{t('nav.admin')}</span></NavLink>}
+            {canOwner && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
           </div>
-          <div className="topbar-actions">
-            {canAdmin && <NavLink className="mobile-operations-link" to="/admin" aria-label={t('nav.admin')}><NavIcon name="admin" /></NavLink>}
-            {canOwner && <NavLink className="mobile-operations-link" to="/owner" aria-label={t('nav.owner')}><NavIcon name="owner" /></NavLink>}
-            {canNotify && <NavLink className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /></NavLink>}
-            {canSteward && <NavLink className="mobile-steward-link" to="/stewarding" aria-label={t('nav.stewarding')}><NavIcon name="steward" /></NavLink>}
+          <div className="header-tools">
+            {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
             <label className="language-control" htmlFor="language-selector">
               <span>{t('language')}</span>
@@ -155,10 +160,20 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
                 <span>{t('shell.signOut')}</span>
               </button>
             ) : (
-              <NavLink className="session-state session-state--link" to="/beta">{t('beta.action')}</NavLink>
+              <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/beta">{t('beta.action')}</NavLink>
             )}
           </div>
-        </header>
+        </nav>
+        </div>
+      </header>
+
+      <div className="context-strip" aria-label={t('shell.leagueContext')}>
+        <span className="context-pill"><i aria-hidden="true" />{t('shell.leagueContext')} <strong>{leagueSlug}</strong></span>
+        <span className="context-pill"><i aria-hidden="true" />{roleLoading ? t('pending') : roleLabel(role, t)}</span>
+        <span className="context-pill context-pill--environment"><i aria-hidden="true" />{environment.appEnvironment}</span>
+      </div>
+
+      <div className="shell-frame">
 
         <Routes>
           <Route path="/" element={<DriverHomePage />} />
@@ -181,9 +196,6 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <span>{t('shell.footerCopy')}</span>
         </footer>
       </div>
-
-      <DriverNavigation mobile />
     </div>
   );
 }
-
