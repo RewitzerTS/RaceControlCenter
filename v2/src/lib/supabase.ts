@@ -1,5 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { RuntimeEnvironment } from '../config/environment';
+import type { Database } from '../types/database';
+
+export type LeagueSupabaseClient = SupabaseClient<Database>;
 
 const LEAGUE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -15,8 +18,8 @@ export function createLeagueRequestHeaders(leagueSlug: string): Record<string, s
   };
 }
 
-export function createLeagueClient(environment: RuntimeEnvironment, leagueSlug: string): SupabaseClient {
-  return createClient(environment.supabaseUrl, environment.supabasePublishableKey, {
+export function createLeagueClient(environment: RuntimeEnvironment, leagueSlug: string): LeagueSupabaseClient {
+  return createClient<Database>(environment.supabaseUrl, environment.supabasePublishableKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,

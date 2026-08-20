@@ -1,12 +1,11 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { createContext, type PropsWithChildren, useContext, useMemo, useState } from 'react';
 import type { RuntimeEnvironment } from '../config/environment';
-import { createLeagueClient } from '../lib/supabase';
+import { createLeagueClient, type LeagueSupabaseClient } from '../lib/supabase';
 
 interface LeagueContextValue {
   leagueSlug: string;
   setLeagueSlug: (slug: string) => void;
-  client: SupabaseClient;
+  client: LeagueSupabaseClient;
 }
 
 const LeagueContext = createContext<LeagueContextValue | null>(null);

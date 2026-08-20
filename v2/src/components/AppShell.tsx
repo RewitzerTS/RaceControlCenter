@@ -24,7 +24,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
     <main className="content" id="main-content">
       <div className="content-heading">
         <div>
-          <p className="eyebrow">{t('overview')} · Phase 1</p>
+          <p className="eyebrow">{t('overview')} · Phase 3</p>
           <h1>{t('foundation')}</h1>
         </div>
         <span className="environment-badge">{environment.appEnvironment}</span>
@@ -55,7 +55,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
         </div>
 
         <aside className="next-step" aria-labelledby="next-title">
-          <span className="step-number">02</span>
+          <span className="step-number">04</span>
           <div>
             <h2 id="next-title">{t('next')}</h2>
             <p>{t('nextCopy')}</p>

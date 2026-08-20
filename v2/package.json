@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "isolation": "node scripts/assert-isolation.mjs",
-    "verify": "npm run check && npm run test && npm run isolation && npm run build",
+    "database-contract": "node scripts/assert-database-foundation.mjs",
+    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run build",
     "deploy": "wrangler deploy",
     "deploy:preview": "wrangler versions upload"
   },

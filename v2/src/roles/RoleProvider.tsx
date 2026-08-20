@@ -1,5 +1,6 @@
-import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
+import type { LeagueSupabaseClient } from '../lib/supabase';
 import { mapLegacyLeagueRole, type AppRole } from './roleMapping';
 
 interface RoleContextValue {
@@ -10,7 +11,7 @@ interface RoleContextValue {
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-async function resolveRole(client: SupabaseClient, user: User, leagueSlug: string): Promise<AppRole | null> {
+async function resolveRole(client: LeagueSupabaseClient, user: User, leagueSlug: string): Promise<AppRole | null> {
   const ownerResponse = await client.rpc('is_platform_owner');
   if (!ownerResponse.error && ownerResponse.data === true) return 'platform_owner';
 
@@ -33,7 +34,7 @@ async function resolveRole(client: SupabaseClient, user: User, leagueSlug: strin
 }
 
 export function RoleProvider({ client, user, leagueSlug, children }: PropsWithChildren<{
-  client: SupabaseClient;
+  client: LeagueSupabaseClient;
   user: User | null;
   leagueSlug: string;
 }>) {

@@ -1,5 +1,6 @@
-import type { Session, SupabaseClient, User } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
+import type { LeagueSupabaseClient } from '../lib/supabase';
 
 interface AuthContextValue {
   session: Session | null;
@@ -10,7 +11,7 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ client, children }: PropsWithChildren<{ client: SupabaseClient }>) {
+export function AuthProvider({ client, children }: PropsWithChildren<{ client: LeagueSupabaseClient }>) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
