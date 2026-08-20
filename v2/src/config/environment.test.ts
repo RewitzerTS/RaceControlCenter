@@ -15,7 +15,7 @@ describe('parseEnvironment', () => {
       appEnvironment: 'staging',
       supabaseProjectRef: 'stagingprojectref',
       defaultLeagueSlug: 'demo-league',
-      features: { stewardWorkspace: true, leagueAdmin: false },
+      features: { stewardWorkspace: true, leagueAdmin: false, ownerControl: true, notificationsV2: true },
     });
   });
 
@@ -40,5 +40,13 @@ describe('parseEnvironment', () => {
       VITE_APP_ENV: 'local',
       VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
     }).supabaseProjectRef).toBe('local');
+  });
+
+  it('allows completed staging experiences to be explicitly disabled', () => {
+    expect(parseEnvironment({
+      ...validSource,
+      VITE_FEATURE_OWNER_CONTROL: 'false',
+      VITE_FEATURE_NOTIFICATIONS_V2: 'false',
+    }).features).toMatchObject({ ownerControl: false, notificationsV2: false });
   });
 });

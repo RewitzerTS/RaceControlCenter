@@ -1,0 +1,32 @@
+import { readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const [migration, shell, admin, owner, notifications, styles, test] = await Promise.all([
+  'supabase/migrations/20260820191000_v2_admin_owner_notifications.sql',
+  'src/components/AppShell.tsx', 'src/operations/AdminWorkspacePage.tsx',
+  'src/operations/OwnerControlPage.tsx', 'src/operations/NotificationCenterPage.tsx',
+  'src/styles.css', 'supabase/tests/phase-17-19-operations.sql',
+].map((path) => readFile(resolve(root, path), 'utf8')));
+
+const violations = [];
+for (const contract of [
+  'create table public.v2_audit_events', 'create table public.platform_feature_flags',
+  'create table public.user_notifications', 'enable row level security',
+  'private.has_league_capability(target_league.id', 'public.is_platform_owner()',
+  'v2_audit_events_protect_history', 'recipient_user_id = (select auth.uid())',
+  'enqueue_race_summary_notification',
+]) if (!migration.includes(contract)) violations.push('missing database contract: ' + contract);
+for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canAdmin', 'canOwner', 'canNotify']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
+for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
+for (const contract of ["t('owner.control')", 'setPlatformFlag', "navigate('/admin')"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
+for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
+for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
+for (const contract of ['rollback;', 'league admin entered global Owner Control', 'notification leaked to another user', 'audit history was mutable']) if (!test.includes(contract)) violations.push('missing SQL regression: ' + contract);
+
+if (violations.length) {
+  console.error('V2 operations contract failed:\n' + violations.map((item) => '- ' + item).join('\n'));
+  process.exit(1);
+}
+console.log('V2 Phases 17-19 operations contract passed: explicit Admin entry, separate Owner Control, immutable audit, private bundled notifications, role gates, and responsive layouts are present.');

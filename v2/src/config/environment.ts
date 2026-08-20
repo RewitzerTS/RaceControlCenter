@@ -5,6 +5,8 @@ export type AppEnvironment = 'local' | 'staging';
 export interface FeatureFlags {
   stewardWorkspace: boolean;
   leagueAdmin: boolean;
+  ownerControl: boolean;
+  notificationsV2: boolean;
 }
 
 export interface RuntimeEnvironment {
@@ -33,7 +35,8 @@ function isPlaceholder(value: string): boolean {
   return PLACEHOLDER_PATTERNS.some((pattern) => pattern.test(value));
 }
 
-function parseBoolean(value: string | boolean | undefined): boolean {
+function parseBoolean(value: string | boolean | undefined, defaultValue = false): boolean {
+  if (value === undefined) return defaultValue;
   if (typeof value === 'boolean') return value;
   return value?.trim().toLowerCase() === 'true';
 }
@@ -73,6 +76,8 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
       features: {
         stewardWorkspace: parseBoolean(source.VITE_FEATURE_STEWARD_WORKSPACE),
         leagueAdmin: parseBoolean(source.VITE_FEATURE_LEAGUE_ADMIN),
+        ownerControl: parseBoolean(source.VITE_FEATURE_OWNER_CONTROL, true),
+        notificationsV2: parseBoolean(source.VITE_FEATURE_NOTIFICATIONS_V2, true),
       },
     };
   }
@@ -95,6 +100,8 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
     features: {
       stewardWorkspace: parseBoolean(source.VITE_FEATURE_STEWARD_WORKSPACE),
       leagueAdmin: parseBoolean(source.VITE_FEATURE_LEAGUE_ADMIN),
+      ownerControl: parseBoolean(source.VITE_FEATURE_OWNER_CONTROL, true),
+      notificationsV2: parseBoolean(source.VITE_FEATURE_NOTIFICATIONS_V2, true),
     },
   };
 }

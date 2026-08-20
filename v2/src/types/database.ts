@@ -1349,6 +1349,30 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_feature_flags: {
+        Row: {
+          description_key: string
+          enabled: boolean
+          flag_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          description_key: string
+          enabled?: boolean
+          flag_key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          description_key?: string
+          enabled?: boolean
+          flag_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       platform_owners: {
         Row: {
           created_at: string
@@ -2184,6 +2208,142 @@ export type Database = {
           },
         ]
       }
+      user_notifications: {
+        Row: {
+          body_key: string
+          created_at: string
+          dedupe_key: string
+          id: string
+          league_id: string | null
+          notification_kind: string
+          payload: Json
+          read_at: string | null
+          recipient_user_id: string
+          source_event_id: string | null
+          title_key: string
+        }
+        Insert: {
+          body_key: string
+          created_at?: string
+          dedupe_key: string
+          id?: string
+          league_id?: string | null
+          notification_kind: string
+          payload?: Json
+          read_at?: string | null
+          recipient_user_id: string
+          source_event_id?: string | null
+          title_key: string
+        }
+        Update: {
+          body_key?: string
+          created_at?: string
+          dedupe_key?: string
+          id?: string
+          league_id?: string | null
+          notification_kind?: string
+          payload?: Json
+          read_at?: string | null
+          recipient_user_id?: string
+          source_event_id?: string | null
+          title_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_notifications_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_notifications_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v2_audit_events: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          league_id: string | null
+          metadata: Json
+          occurred_at: string
+          scope: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          league_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          scope: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          league_id?: string | null
+          metadata?: Json
+          occurred_at?: string
+          scope?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "v2_audit_events_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vora_context_audit: {
+        Row: {
+          actor_user_id: string
+          context_fields: string[]
+          driver_identity_id: string
+          generated_at: string
+          id: string
+          insight_rule: string
+        }
+        Insert: {
+          actor_user_id: string
+          context_fields: string[]
+          driver_identity_id: string
+          generated_at?: string
+          id?: string
+          insight_rule: string
+        }
+        Update: {
+          actor_user_id?: string
+          context_fields?: string[]
+          driver_identity_id?: string
+          generated_at?: string
+          id?: string
+          insight_rule?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vora_context_audit_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_ledger: {
         Row: {
           amount: number
@@ -2314,6 +2474,16 @@ export type Database = {
         Returns: Json
       }
       current_app_role: { Args: never; Returns: string }
+      enqueue_race_summary_notification: {
+        Args: {
+          p_dedupe_key: string
+          p_league_id: string
+          p_recipient_user_id: string
+          p_source_event_id: string
+          p_summary: Json
+        }
+        Returns: string
+      }
       finalize_steward_decision: {
         Args: {
           p_case_id: string
@@ -2326,7 +2496,14 @@ export type Database = {
         }
         Returns: Json
       }
+      get_league_admin_workspace: { Args: never; Returns: Json }
+      get_owner_control_snapshot: { Args: never; Returns: Json }
+      get_vora_companion_snapshot: { Args: never; Returns: Json }
       is_platform_owner: { Args: never; Returns: boolean }
+      mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: string
+      }
       matches_requested_league: {
         Args: { p_league_id: string }
         Returns: boolean
@@ -2342,6 +2519,10 @@ export type Database = {
         }[]
       }
       requested_league_slug: { Args: never; Returns: string }
+      set_platform_feature_flag: {
+        Args: { p_enabled: boolean; p_flag_key: string }
+        Returns: Json
+      }
       submit_steward_appeal: {
         Args: { p_case_id: string; p_idempotency_key: string; p_reason: string }
         Returns: Json
@@ -2478,3 +2659,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
