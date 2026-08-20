@@ -123,17 +123,16 @@
     raf = 0;
     header?.classList.toggle('is-scrolled', window.scrollY > 48);
     if (!story || reduceMotion.matches) return;
-    if (mobile.matches) {
-      activateMobileVideo();
-      return;
-    }
+    const isMobile = mobile.matches;
+    if (isMobile) activateMobileVideo();
     const rect = story.getBoundingClientRect();
     const distance = Math.max(1, story.offsetHeight - window.innerHeight);
     const progress = Math.min(1, Math.max(0, -rect.top / distance));
-    const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
-    desiredFrame = frame;
     story.style.setProperty('--story-progress', String(progress));
     setChapter(Math.min(2, Math.floor(progress * 3)));
+    if (isMobile) return;
+    const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
+    desiredFrame = frame;
     if (started) {
       loadFrameWindow(frame);
       if (frame !== lastFrame && !draw(frame)) {
