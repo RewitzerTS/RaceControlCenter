@@ -17,7 +17,8 @@
     "driver-identity-contract": "node scripts/assert-driver-identity.mjs",
     "role-model-contract": "node scripts/assert-role-model.mjs",
     "result-versioning-contract": "node scripts/assert-result-versioning.mjs",
-    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run driver-identity-contract && npm run role-model-contract && npm run result-versioning-contract && npm run build",
+    "domain-events-contract": "node scripts/assert-domain-events.mjs",
+    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run driver-identity-contract && npm run role-model-contract && npm run result-versioning-contract && npm run domain-events-contract && npm run build",
     "deploy": "wrangler deploy",
     "deploy:preview": "wrangler versions upload"
   },

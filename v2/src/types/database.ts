@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      domain_events: {
+        Row: {
+          actor_user_id: string | null
+          aggregate_id: string
+          aggregate_type: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          league_id: string
+          occurred_at: string
+          payload: Json
+          recorded_at: string
+          result_version_id: string | null
+        }
+        Insert: {
+          actor_user_id?: string | null
+          aggregate_id: string
+          aggregate_type: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          league_id: string
+          occurred_at?: string
+          payload?: Json
+          recorded_at?: string
+          result_version_id?: string | null
+        }
+        Update: {
+          actor_user_id?: string | null
+          aggregate_id?: string
+          aggregate_type?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          league_id?: string
+          occurred_at?: string
+          payload?: Json
+          recorded_at?: string
+          result_version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_events_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_events_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_aliases: {
         Row: {
           alias: string
