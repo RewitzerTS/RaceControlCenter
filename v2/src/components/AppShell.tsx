@@ -168,10 +168,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/profile" element={<RoutePlaceholder titleKey="route.profileTitle" copyKey="route.profileCopy" />} />
           <Route path="/beta" element={<BetaAccessPage />} />
           <Route path="/stewarding" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense>} />
-          <Route path="/admin" element={canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/graphics" element={canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
-          <Route path="/owner" element={canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/owner/demo" element={canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin" element={roleLoading ? <main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/graphics" element={roleLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
+          <Route path="/owner" element={roleLoading ? <main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/owner/demo" element={roleLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/notifications" element={canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
@@ -186,3 +186,4 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     </div>
   );
 }
+
