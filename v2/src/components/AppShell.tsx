@@ -18,6 +18,7 @@ const AdminWorkspacePage = lazy(() => import('../operations/AdminWorkspacePage')
 const OwnerControlPage = lazy(() => import('../operations/OwnerControlPage').then((module) => ({ default: module.OwnerControlPage })));
 const NotificationCenterPage = lazy(() => import('../operations/NotificationCenterPage').then((module) => ({ default: module.NotificationCenterPage })));
 const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ default: module.VoraPage })));
+const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').then((module) => ({ default: module.GraphicsStudioPage })));
 
 type IconName = 'admin' | 'bell' | 'career' | 'home' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
 
@@ -107,6 +108,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const canAdmin = features.leagueAdmin && (role === 'league_admin' || role === 'platform_owner');
   const canOwner = features.ownerControl && role === 'platform_owner';
   const canNotify = features.notificationsV2 && Boolean(user);
+  const canCreateGraphics = canAdmin && features.socialGraphics;
 
   return (
     <div className="app-shell">
@@ -164,6 +166,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/profile" element={<RoutePlaceholder titleKey="route.profileTitle" copyKey="route.profileCopy" />} />
           <Route path="/stewarding" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense>} />
           <Route path="/admin" element={canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/graphics" element={canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
           <Route path="/owner" element={canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/notifications" element={canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="*" element={<Navigate replace to="/" />} />

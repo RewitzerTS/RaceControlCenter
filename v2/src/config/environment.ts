@@ -7,6 +7,7 @@ export interface FeatureFlags {
   leagueAdmin: boolean;
   ownerControl: boolean;
   notificationsV2: boolean;
+  socialGraphics: boolean;
 }
 
 export interface RuntimeEnvironment {
@@ -78,6 +79,7 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
         leagueAdmin: parseBoolean(source.VITE_FEATURE_LEAGUE_ADMIN),
         ownerControl: parseBoolean(source.VITE_FEATURE_OWNER_CONTROL, true),
         notificationsV2: parseBoolean(source.VITE_FEATURE_NOTIFICATIONS_V2, true),
+        socialGraphics: parseBoolean(source.VITE_FEATURE_SOCIAL_GRAPHICS, true),
       },
     };
   }
@@ -102,6 +104,7 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
       leagueAdmin: parseBoolean(source.VITE_FEATURE_LEAGUE_ADMIN),
       ownerControl: parseBoolean(source.VITE_FEATURE_OWNER_CONTROL, true),
       notificationsV2: parseBoolean(source.VITE_FEATURE_NOTIFICATIONS_V2, true),
+      socialGraphics: parseBoolean(source.VITE_FEATURE_SOCIAL_GRAPHICS, true),
     },
   };
 }

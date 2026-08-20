@@ -1837,6 +1837,63 @@ export type Database = {
           },
         ]
       }
+      social_graphic_renders: {
+        Row: {
+          generated_at: string
+          generated_by: string | null
+          graphic_format: string
+          graphic_type: string
+          id: string
+          league_id: string
+          outdated_at: string | null
+          result_version_id: string | null
+          source_digest: string
+          source_payload: Json
+          status: string
+        }
+        Insert: {
+          generated_at?: string
+          generated_by?: string | null
+          graphic_format: string
+          graphic_type: string
+          id?: string
+          league_id: string
+          outdated_at?: string | null
+          result_version_id?: string | null
+          source_digest: string
+          source_payload: Json
+          status?: string
+        }
+        Update: {
+          generated_at?: string
+          generated_by?: string | null
+          graphic_format?: string
+          graphic_type?: string
+          id?: string
+          league_id?: string
+          outdated_at?: string | null
+          result_version_id?: string | null
+          source_digest?: string
+          source_payload?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_graphic_renders_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_graphic_renders_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       steward_appeals: {
         Row: {
           case_id: string
@@ -2498,6 +2555,7 @@ export type Database = {
       }
       get_league_admin_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
+      get_social_graphics_workspace: { Args: never; Returns: Json }
       get_vora_companion_snapshot: { Args: never; Returns: Json }
       is_platform_owner: { Args: never; Returns: boolean }
       mark_notification_read: {
@@ -2517,6 +2575,16 @@ export type Database = {
           purchase_status: string
           purchased_cosmetic_code: string
         }[]
+      }
+      record_social_graphic_render: {
+        Args: {
+          p_graphic_format: string
+          p_graphic_type: string
+          p_result_version_id: string
+          p_source_digest: string
+          p_source_payload: Json
+        }
+        Returns: string
       }
       requested_league_slug: { Args: never; Returns: string }
       set_platform_feature_flag: {
