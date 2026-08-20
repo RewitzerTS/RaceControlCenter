@@ -2,7 +2,7 @@
 
 Date: 2026-08-20
 
-## Completed locally
+## Completed
 
 - Created local branch `v2-development` from Production baseline commit `2835298a59128341b99a0b29ffa7f831caf29b21`.
 - Added a standalone Vite/React/TypeScript application under `v2/`.
@@ -12,9 +12,11 @@ Date: 2026-08-20
 - Added independent Platform-Owner resolution and fail-closed legacy role mapping.
 - Added German, English, Spanish, and French interface scaffolding.
 - Added keyboard focus, skip navigation, reduced-motion support, mobile safe-area handling, minimum touch sizing, no-index headers, and a restrictive browser CSP.
-- Added Cloudflare Pages redirects and caching headers for a dedicated V2 project.
-- Added path-scoped GitHub Actions verification.
+- Added Cloudflare static-asset redirects, caching headers, and a dedicated Workers configuration for V2.
+- Added path-scoped GitHub Actions verification, including a Wrangler deployment dry run.
 - Generated a locked dependency tree.
+- Created the isolated Supabase staging project `RaceVora V2 Staging` (`znnkwjogtvzwfkwnmawp`).
+- Published the foundation on `v2-development` and opened draft pull request #437.
 
 ## Verification evidence
 
@@ -24,16 +26,16 @@ Date: 2026-08-20
 | Unit tests | 9 passed |
 | Production project isolation scan | passed |
 | Vite production bundle | passed |
+| Cloudflare Wrangler deployment dry run | passed |
 | Existing tracked V1 files | unchanged |
 
-Bundle output at this checkpoint: 0.67 kB HTML, 5.88 kB CSS, and 448.97 kB JavaScript (130.54 kB gzip). Source maps are enabled for staging diagnostics.
+Bundle output at this checkpoint: 0.67 kB HTML, 5.88 kB CSS, and 449.23 kB JavaScript (130.64 kB gzip). Source maps are enabled for staging diagnostics.
 
-## Awaiting explicit authorization
+## Remaining external setup
 
-1. Confirm that the second Supabase project should be created in `RewitzerTS's Org`. The current project cost must then be retrieved and explicitly confirmed before creation.
-2. Approve Git staging and commit if the local foundation should be recorded.
-3. Approve push and pull-request creation if the branch should be published to GitHub.
-4. Configure a separate Cloudflare Pages project after the branch is available remotely.
+1. Complete the separate Cloudflare Worker Git connection.
+2. Set its production branch to `v2-development` under Settings → Build → Branch control.
+3. Add only the staging Supabase URL and publishable key as build variables.
 
 ## Known prerequisite for the next data step
 

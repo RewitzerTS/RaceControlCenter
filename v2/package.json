@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "isolation": "node scripts/assert-isolation.mjs",
-    "verify": "npm run check && npm run test && npm run isolation && npm run build"
+    "verify": "npm run check && npm run test && npm run isolation && npm run build",
+    "deploy": "wrangler deploy",
+    "deploy:preview": "wrangler versions upload"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.112.3",
@@ -30,6 +32,7 @@
     "jsdom": "30.0.1",
     "typescript": "7.0.2",
     "vite": "8.2.2",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "wrangler": "4.124.0"
   }
 }

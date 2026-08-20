@@ -39,3 +39,4 @@ jobs:
           cache-dependency-path: v2/package-lock.json
       - run: npm ci
       - run: npm run verify
+      - run: npm run deploy -- --dry-run --outdir /tmp/racevora-v2-worker-dry-run

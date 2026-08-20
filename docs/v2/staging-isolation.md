@@ -9,29 +9,31 @@ V2 is developed and verified without changing the Production website or Producti
 | Concern | Production V1 | V2 staging |
 |---|---|---|
 | Git | `main` | `v2-development` and short-lived feature branches |
-| Cloudflare Pages | Existing project and domains | New, dedicated Pages project |
+| Cloudflare hosting | Existing project and domains | New, dedicated static-assets Worker |
 | Supabase | Existing `Race Control Center` project | New, separate project in the same organization |
 | Secrets | Existing Production values | New staging-only URL and publishable key |
-| Public URL | Existing live domains | Pages preview/branch URL until cutover approval |
+| Public URL | Existing live domains | Dedicated `workers.dev` staging and preview URLs until cutover approval |
 
 Supabase database branching is not used for the initial staging environment because persistent branches require a paid plan. A separate project gives V2 distinct credentials and a hard blast-radius boundary.
 
-## Cloudflare Pages settings
+## Cloudflare Workers settings
 
-- Repository: the same repository, with a new Pages project.
-- Production branch for the staging project: `v2-development`.
-- Root directory: `v2`.
+- Repository: the same repository, connected to a new Worker named `racevora-v2-staging`.
+- Production branch for the staging project: `v2-development` (configured after creation under Settings → Build → Branch control when the creation form omits the branch selector).
+- Root path: `v2`.
 - Build command: `npm run build`.
-- Build output directory: `dist`.
+- Deploy command: `npm run deploy`.
+- Non-production deploy command: `npm run deploy:preview`.
+- Static output directory: `dist`, defined in `v2/wrangler.jsonc`.
 - Environment variables: `VITE_APP_ENV=staging`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_PUBLISHABLE_KEY` using only the staging project.
-- Preview deployments remain enabled. The included `_headers` file prevents indexing.
+- Preview URLs remain enabled. The included `_headers` file prevents indexing.
 
 Do not attach an existing Production custom domain to this project.
 
 ## Supabase staging setup
 
 1. Create a second project after cost confirmation.
-2. Set allowed redirect URLs only to the V2 Pages staging and preview origins.
+2. Set allowed redirect URLs only to the V2 Worker staging and preview origins.
 3. reconstruct the schema from a reviewed, complete migration baseline; do not copy browser credentials from Production.
 4. Seed only synthetic or explicitly approved test data.
 5. Deploy only V2-reviewed Edge Functions and secrets.
@@ -55,5 +57,6 @@ Replace placeholders with staging-only values. The application fails closed if v
 - `npm run check` passes TypeScript checks.
 - `npm test` verifies environment rejection and role mapping.
 - `npm run build` produces an isolated static bundle.
+- `npm run deploy -- --dry-run` validates the Cloudflare Worker package without publishing it.
 - `npm run isolation` confirms the Production project reference occurs only in the runtime deny-list and that no service-role credential is present.
 - V1 protected files remain unchanged in the branch diff.
