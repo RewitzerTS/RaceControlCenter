@@ -14,6 +14,8 @@ V2 is developed and verified without changing the Production website or Producti
 | Secrets | Existing Production values | New staging-only URL and publishable key |
 | Public URL | Existing live domains | Dedicated `workers.dev` staging and preview URLs until cutover approval |
 
+Current staging URL: `https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev`.
+
 Supabase database branching is not used for the initial staging environment because persistent branches require a paid plan. A separate project gives V2 distinct credentials and a hard blast-radius boundary.
 
 ## Cloudflare Workers settings
@@ -41,6 +43,13 @@ Do not attach an existing Production custom domain to this project.
 
 The repository currently does not contain a complete migration history for the live database. Creating a migration baseline is therefore a separate reviewed step, not an automatic inference from partial files.
 
+## Tenant request contract
+
+- Browser and Edge Function requests use the canonical `x-rcc-league-slug` header.
+- V2 normalizes the slug and rejects malformed values before creating the Supabase client.
+- The deprecated/noncanonical `x-racevora-league` header must not be sent.
+- The Production database currently falls back to `rcc` when the canonical header is absent, so header compatibility is security-critical even though V2 also rejects the Production project reference.
+
 ## Local setup
 
 ```bash
@@ -55,7 +64,7 @@ Replace placeholders with staging-only values. The application fails closed if v
 ## Verification gates
 
 - `npm run check` passes TypeScript checks.
-- `npm test` verifies environment rejection and role mapping.
+- `npm test` verifies environment rejection, role mapping, and the canonical tenant header contract.
 - `npm run build` produces an isolated static bundle.
 - `npm run deploy -- --dry-run` validates the Cloudflare Worker package without publishing it.
 - `npm run isolation` confirms the Production project reference occurs only in the runtime deny-list and that no service-role credential is present.

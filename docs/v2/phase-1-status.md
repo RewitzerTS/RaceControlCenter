@@ -1,4 +1,4 @@
-# Phase 1 status — local staging foundation
+# Phase 1 status — deployed staging foundation
 
 Date: 2026-08-20
 
@@ -17,6 +17,8 @@ Date: 2026-08-20
 - Generated a locked dependency tree.
 - Created the isolated Supabase staging project `RaceVora V2 Staging` (`znnkwjogtvzwfkwnmawp`).
 - Published the foundation on `v2-development` and opened draft pull request #437.
+- Deployed the isolated Worker at `https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev`.
+- Verified the root and arbitrary SPA routes, staging project reference, four-language selector, security headers, no-index policy, cache policy, and staging Supabase Auth settings endpoint.
 
 ## Verification evidence
 
@@ -27,15 +29,19 @@ Date: 2026-08-20
 | Production project isolation scan | passed |
 | Vite production bundle | passed |
 | Cloudflare Wrangler deployment dry run | passed |
+| Live Worker root and SPA fallback | passed |
+| Live CSP, no-index, and asset-cache headers | passed |
+| Staging Supabase connectivity | passed |
 | Existing tracked V1 files | unchanged |
 
 Bundle output at this checkpoint: 0.67 kB HTML, 5.88 kB CSS, and 449.23 kB JavaScript (130.64 kB gzip). Source maps are enabled for staging diagnostics.
 
 ## Remaining external setup
 
-1. Complete the separate Cloudflare Worker Git connection.
-2. Set its production branch to `v2-development` under Settings → Build → Branch control.
-3. Add only the staging Supabase URL and publishable key as build variables.
+1. Set the Supabase Auth Site URL to `https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev`.
+2. Add exact V2 recovery/confirmation/invitation callback routes to the redirect allowlist once those routes exist.
+
+Cloudflare Git deployment, branch control, build root, and staging-only build variables are complete.
 
 ## Known prerequisite for the next data step
 
