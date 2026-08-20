@@ -12,7 +12,7 @@ Date: 2026-08-20
 - Added independent Platform-Owner resolution and fail-closed legacy role mapping.
 - Added German, English, Spanish, and French interface scaffolding.
 - Added keyboard focus, skip navigation, reduced-motion support, mobile safe-area handling, minimum touch sizing, no-index headers, and a restrictive browser CSP.
-- Added Cloudflare static-asset redirects, caching headers, and a dedicated Workers configuration for V2.
+- Added Cloudflare static-asset caching headers, Wrangler-native SPA routing, and a dedicated Workers configuration for V2.
 - Added path-scoped GitHub Actions verification, including a Wrangler deployment dry run.
 - Generated a locked dependency tree.
 - Created the isolated Supabase staging project `RaceVora V2 Staging` (`znnkwjogtvzwfkwnmawp`).
