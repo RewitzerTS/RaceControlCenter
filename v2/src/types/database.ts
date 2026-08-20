@@ -1813,6 +1813,377 @@ export type Database = {
           },
         ]
       }
+      steward_appeals: {
+        Row: {
+          case_id: string
+          id: string
+          idempotency_key: string
+          reason: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          submitted_at: string
+          submitted_by: string
+        }
+        Insert: {
+          case_id: string
+          id?: string
+          idempotency_key: string
+          reason: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by: string
+        }
+        Update: {
+          case_id?: string
+          id?: string
+          idempotency_key?: string
+          reason?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          submitted_at?: string
+          submitted_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_appeals_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "steward_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      steward_case_events: {
+        Row: {
+          actor_user_id: string | null
+          case_id: string
+          event_type: string
+          id: string
+          occurred_at: string
+          payload: Json
+        }
+        Insert: {
+          actor_user_id?: string | null
+          case_id: string
+          event_type: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+        }
+        Update: {
+          actor_user_id?: string | null
+          case_id?: string
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_case_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "steward_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      steward_cases: {
+        Row: {
+          accused_driver_id: string
+          case_number: string
+          closed_at: string | null
+          created_at: string
+          created_by: string
+          current_decision_version: number | null
+          description: string
+          id: string
+          idempotency_key: string
+          league_id: string
+          race_id: string
+          reported_driver_id: string | null
+          rule_code: string
+          rule_version: string
+          status: string
+          title: string
+        }
+        Insert: {
+          accused_driver_id: string
+          case_number: string
+          closed_at?: string | null
+          created_at?: string
+          created_by: string
+          current_decision_version?: number | null
+          description: string
+          id?: string
+          idempotency_key: string
+          league_id: string
+          race_id: string
+          reported_driver_id?: string | null
+          rule_code: string
+          rule_version: string
+          status?: string
+          title: string
+        }
+        Update: {
+          accused_driver_id?: string
+          case_number?: string
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string
+          current_decision_version?: number | null
+          description?: string
+          id?: string
+          idempotency_key?: string
+          league_id?: string
+          race_id?: string
+          reported_driver_id?: string | null
+          rule_code?: string
+          rule_version?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_cases_accused_driver_id_fkey"
+            columns: ["accused_driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steward_cases_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steward_cases_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steward_cases_reported_driver_id_fkey"
+            columns: ["reported_driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      steward_decision_versions: {
+        Row: {
+          case_id: string
+          finalized_at: string
+          finalized_by: string
+          id: string
+          idempotency_key: string
+          outcome: string
+          reasoning: string
+          result_version_id: string
+          rule_code: string
+          rule_version: string
+          version_number: number
+        }
+        Insert: {
+          case_id: string
+          finalized_at?: string
+          finalized_by: string
+          id?: string
+          idempotency_key: string
+          outcome: string
+          reasoning: string
+          result_version_id: string
+          rule_code: string
+          rule_version: string
+          version_number: number
+        }
+        Update: {
+          case_id?: string
+          finalized_at?: string
+          finalized_by?: string
+          id?: string
+          idempotency_key?: string
+          outcome?: string
+          reasoning?: string
+          result_version_id?: string
+          rule_code?: string
+          rule_version?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_decision_versions_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "steward_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steward_decision_versions_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      steward_evidence: {
+        Row: {
+          case_id: string
+          description: string
+          evidence_kind: string
+          id: string
+          idempotency_key: string
+          is_public: boolean
+          submitted_at: string
+          submitted_by: string
+          uri: string | null
+        }
+        Insert: {
+          case_id: string
+          description: string
+          evidence_kind: string
+          id?: string
+          idempotency_key: string
+          is_public?: boolean
+          submitted_at?: string
+          submitted_by: string
+          uri?: string | null
+        }
+        Update: {
+          case_id?: string
+          description?: string
+          evidence_kind?: string
+          id?: string
+          idempotency_key?: string
+          is_public?: boolean
+          submitted_at?: string
+          submitted_by?: string
+          uri?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_evidence_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "steward_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      steward_penalties: {
+        Row: {
+          created_at: string
+          decision_version_id: string
+          driver_id: string
+          id: string
+          penalty_type: string
+          points_delta: number | null
+          reason: string
+          time_delta_ms: number | null
+        }
+        Insert: {
+          created_at?: string
+          decision_version_id: string
+          driver_id: string
+          id?: string
+          penalty_type: string
+          points_delta?: number | null
+          reason: string
+          time_delta_ms?: number | null
+        }
+        Update: {
+          created_at?: string
+          decision_version_id?: string
+          driver_id?: string
+          id?: string
+          penalty_type?: string
+          points_delta?: number | null
+          reason?: string
+          time_delta_ms?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_penalties_decision_version_id_fkey"
+            columns: ["decision_version_id"]
+            isOneToOne: false
+            referencedRelation: "steward_decision_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steward_penalties_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      steward_votes: {
+        Row: {
+          case_id: string
+          cast_at: string
+          conflict_disclosed: boolean
+          id: string
+          idempotency_key: string
+          outcome: string
+          reasoning: string
+          steward_user_id: string
+          supersedes_vote_id: string | null
+          vote_version: number
+        }
+        Insert: {
+          case_id: string
+          cast_at?: string
+          conflict_disclosed?: boolean
+          id?: string
+          idempotency_key: string
+          outcome: string
+          reasoning: string
+          steward_user_id: string
+          supersedes_vote_id?: string | null
+          vote_version: number
+        }
+        Update: {
+          case_id?: string
+          cast_at?: string
+          conflict_disclosed?: boolean
+          id?: string
+          idempotency_key?: string
+          outcome?: string
+          reasoning?: string
+          steward_user_id?: string
+          supersedes_vote_id?: string | null
+          vote_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "steward_votes_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "steward_cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steward_votes_supersedes_vote_id_fkey"
+            columns: ["supersedes_vote_id"]
+            isOneToOne: false
+            referencedRelation: "steward_votes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_ledger: {
         Row: {
           amount: number
@@ -1908,7 +2279,53 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_steward_evidence: {
+        Args: {
+          p_case_id: string
+          p_description: string
+          p_evidence_kind: string
+          p_idempotency_key: string
+          p_is_public: boolean
+          p_uri: string
+        }
+        Returns: Json
+      }
+      cast_steward_vote: {
+        Args: {
+          p_case_id: string
+          p_conflict_disclosed: boolean
+          p_idempotency_key: string
+          p_outcome: string
+          p_reasoning: string
+        }
+        Returns: Json
+      }
+      create_steward_case: {
+        Args: {
+          p_accused_driver_id: string
+          p_description: string
+          p_idempotency_key: string
+          p_race_id: string
+          p_reported_driver_id: string
+          p_rule_code: string
+          p_rule_version: string
+          p_title: string
+        }
+        Returns: Json
+      }
       current_app_role: { Args: never; Returns: string }
+      finalize_steward_decision: {
+        Args: {
+          p_case_id: string
+          p_idempotency_key: string
+          p_outcome: string
+          p_penalties: Json
+          p_reasoning: string
+          p_rule_code: string
+          p_rule_version: string
+        }
+        Returns: Json
+      }
       is_platform_owner: { Args: never; Returns: boolean }
       matches_requested_league: {
         Args: { p_league_id: string }
@@ -1925,6 +2342,10 @@ export type Database = {
         }[]
       }
       requested_league_slug: { Args: never; Returns: string }
+      submit_steward_appeal: {
+        Args: { p_case_id: string; p_idempotency_key: string; p_reason: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import type { RuntimeEnvironment } from '../config/environment';
 import { DriverHomePage } from '../driver/DriverHomePage';
+import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import {
   SUPPORTED_LANGUAGES,
   useI18n,
@@ -12,7 +13,9 @@ import {
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 
-type IconName = 'career' | 'home' | 'profile' | 'racing' | 'vora';
+const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
+
+type IconName = 'career' | 'home' | 'profile' | 'racing' | 'steward' | 'vora';
 
 export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   icon: IconName;
@@ -33,6 +36,7 @@ function NavIcon({ name }: { name: IconName }) {
     career: <><path d="M4 20V9" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M3 20h18" /></>,
     vora: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5Z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7Z" /></>,
     profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6" /></>,
+    steward: <><path d="M12 3 5 6v5c0 4.5 2.7 8 7 10 4.3-2 7-5.5 7-10V6Z" /><path d="m9 12 2 2 4-5" /></>,
   };
   return (
     <svg aria-hidden="true" className="nav-icon" viewBox="0 0 24 24">
@@ -90,7 +94,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const { language, setLanguage, t } = useI18n();
   const { leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
+  const features = useFeatureFlags();
   const { signOut, user } = useAuth();
+  const canSteward = features.stewardWorkspace && (role === 'steward' || role === 'league_admin' || role === 'platform_owner');
 
   return (
     <div className="app-shell">
@@ -100,6 +106,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <span className="brand-copy"><strong>{t('product')}</strong><small>{t('staging')}</small></span>
         </NavLink>
         <DriverNavigation />
+        {canSteward && <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active steward-nav-item' : 'nav-item steward-nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
         <div className="rail-status">
           <i aria-hidden="true" />
           <span>{environment.appEnvironment}</span>
@@ -113,6 +120,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
             <strong>{leagueSlug}</strong>
           </div>
           <div className="topbar-actions">
+            {canSteward && <NavLink className="mobile-steward-link" to="/stewarding" aria-label={t('nav.stewarding')}><NavIcon name="steward" /></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
             <label className="language-control">
               <span>{t('language')}</span>
@@ -139,6 +147,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/career" element={<RoutePlaceholder titleKey="route.careerTitle" copyKey="route.careerCopy" />} />
           <Route path="/vora" element={<RoutePlaceholder titleKey="route.voraTitle" copyKey="route.voraCopy" />} />
           <Route path="/profile" element={<RoutePlaceholder titleKey="route.profileTitle" copyKey="route.profileCopy" />} />
+          <Route path="/stewarding" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense>} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
 
