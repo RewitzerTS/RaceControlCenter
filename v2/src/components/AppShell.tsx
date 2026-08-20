@@ -35,7 +35,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
     <main className="content" id="main-content">
       <div className="content-heading">
         <div>
-          <p className="eyebrow">{t('overview')} · Phase 7</p>
+          <p className="eyebrow">{t('overview')} · Phase 8</p>
           <h1>{t('foundation')}</h1>
         </div>
         <span className="environment-badge">{environment.appEnvironment}</span>
@@ -80,10 +80,12 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
           />
           <StatusRow label={t('resultHistory')} value={t('explicitPointer')} />
           <StatusRow label={t('eventProcessing')} value={t('independentProcessors')} />
+          <StatusRow label={t('careerSource')} value={t('currentOfficialResults')} />
+          <StatusRow label={t('careerScope')} value={t('crossLeagueIdentity')} />
         </div>
 
         <aside className="next-step" aria-labelledby="next-title">
-          <span className="step-number">08</span>
+          <span className="step-number">09</span>
           <div>
             <h2 id="next-title">{t('next')}</h2>
             <p>{t('nextCopy')}</p>
@@ -116,7 +118,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <Routes>
         <Route path="*" element={<FoundationPage environment={environment} />} />
       </Routes>
-      <footer className="footer"><span>RaceVora V2</span><span>Idempotent domain-event processing foundation</span></footer>
+      <footer className="footer"><span>RaceVora V2</span><span>Deterministic cross-league Career foundation</span></footer>
     </div>
   );
 }

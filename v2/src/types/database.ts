@@ -14,6 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
+      career_result_facts: {
+        Row: {
+          awarded_points: number
+          classification_status: string
+          created_at: string
+          driver_id: string
+          driver_identity_id: string
+          finish_position: number | null
+          grid_position: number | null
+          id: string
+          is_fastest_lap: boolean
+          is_pole: boolean
+          league_id: string
+          participation_status: string
+          race_date: string | null
+          race_id: string
+          reconciled_by_event_id: string
+          result_version_id: string
+          result_version_row_id: string
+          season_id: string
+          updated_at: string
+        }
+        Insert: {
+          awarded_points?: number
+          classification_status: string
+          created_at?: string
+          driver_id: string
+          driver_identity_id: string
+          finish_position?: number | null
+          grid_position?: number | null
+          id?: string
+          is_fastest_lap?: boolean
+          is_pole?: boolean
+          league_id: string
+          participation_status: string
+          race_date?: string | null
+          race_id: string
+          reconciled_by_event_id: string
+          result_version_id: string
+          result_version_row_id: string
+          season_id: string
+          updated_at?: string
+        }
+        Update: {
+          awarded_points?: number
+          classification_status?: string
+          created_at?: string
+          driver_id?: string
+          driver_identity_id?: string
+          finish_position?: number | null
+          grid_position?: number | null
+          id?: string
+          is_fastest_lap?: boolean
+          is_pole?: boolean
+          league_id?: string
+          participation_status?: string
+          race_date?: string | null
+          race_id?: string
+          reconciled_by_event_id?: string
+          result_version_id?: string
+          result_version_row_id?: string
+          season_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "career_result_facts_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_reconciled_by_event_id_fkey"
+            columns: ["reconciled_by_event_id"]
+            isOneToOne: false
+            referencedRelation: "domain_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_result_version_row_id_fkey"
+            columns: ["result_version_row_id"]
+            isOneToOne: true
+            referencedRelation: "result_version_rows"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "career_result_facts_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_events: {
         Row: {
           actor_user_id: string | null
@@ -111,6 +234,74 @@ export type Database = {
             foreignKeyName: "driver_aliases_driver_identity_id_fkey"
             columns: ["driver_identity_id"]
             isOneToOne: false
+            referencedRelation: "driver_identities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_career_stats: {
+        Row: {
+          average_finish: number | null
+          best_finish: number | null
+          classified_finishes: number
+          dnfs: number
+          dns: number
+          driver_identity_id: string
+          dsqs: number
+          fastest_laps: number
+          last_race_date: string | null
+          leagues_competed: number
+          podiums: number
+          poles: number
+          seasons_competed: number
+          starts: number
+          total_points: number
+          updated_at: string
+          wins: number
+        }
+        Insert: {
+          average_finish?: number | null
+          best_finish?: number | null
+          classified_finishes?: number
+          dnfs?: number
+          dns?: number
+          driver_identity_id: string
+          dsqs?: number
+          fastest_laps?: number
+          last_race_date?: string | null
+          leagues_competed?: number
+          podiums?: number
+          poles?: number
+          seasons_competed?: number
+          starts?: number
+          total_points?: number
+          updated_at?: string
+          wins?: number
+        }
+        Update: {
+          average_finish?: number | null
+          best_finish?: number | null
+          classified_finishes?: number
+          dnfs?: number
+          dns?: number
+          driver_identity_id?: string
+          dsqs?: number
+          fastest_laps?: number
+          last_race_date?: string | null
+          leagues_competed?: number
+          podiums?: number
+          poles?: number
+          seasons_competed?: number
+          starts?: number
+          total_points?: number
+          updated_at?: string
+          wins?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_career_stats_driver_identity_id_fkey"
+            columns: ["driver_identity_id"]
+            isOneToOne: true
             referencedRelation: "driver_identities"
             referencedColumns: ["id"]
           },
@@ -390,6 +581,7 @@ export type Database = {
           awarded_points: number
           base_points: number
           car_name_snapshot: string | null
+          classification_status: string
           created_at: string
           driver_id: string
           fastest_lap_ms: number | null
@@ -419,6 +611,7 @@ export type Database = {
           awarded_points?: number
           base_points?: number
           car_name_snapshot?: string | null
+          classification_status?: string
           created_at?: string
           driver_id: string
           fastest_lap_ms?: number | null
@@ -448,6 +641,7 @@ export type Database = {
           awarded_points?: number
           base_points?: number
           car_name_snapshot?: string | null
+          classification_status?: string
           created_at?: string
           driver_id?: string
           fastest_lap_ms?: number | null
@@ -593,6 +787,7 @@ export type Database = {
           awarded_points: number
           base_points: number
           car_name_snapshot: string | null
+          classification_status: string
           created_at: string
           driver_id: string
           fastest_lap_ms: number | null
@@ -621,6 +816,7 @@ export type Database = {
           awarded_points?: number
           base_points?: number
           car_name_snapshot?: string | null
+          classification_status?: string
           created_at?: string
           driver_id: string
           fastest_lap_ms?: number | null
@@ -649,6 +845,7 @@ export type Database = {
           awarded_points?: number
           base_points?: number
           car_name_snapshot?: string | null
+          classification_status?: string
           created_at?: string
           driver_id?: string
           fastest_lap_ms?: number | null
