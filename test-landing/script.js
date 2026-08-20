@@ -24,6 +24,7 @@
   let desiredFrame = 0;
   let lastFrame = -1;
   let started = false;
+  let loadingQueued = false;
   let raf = 0;
 
   const frameSrc = (index) => `${ASSET_ROOT}/frames/frame-${String(index).padStart(3, '0')}.webp?v=${ASSET_VERSION}`;
@@ -104,6 +105,20 @@
     loadFrameWindow(0);
   }
 
+  function queueDesktopLoading() {
+    if (started || loadingQueued || mobile.matches || reduceMotion.matches) return;
+    if (document.readyState === 'complete') {
+      beginLoading();
+      return;
+    }
+    loadingQueued = true;
+    window.addEventListener('load', () => {
+      loadingQueued = false;
+      beginLoading();
+      requestUpdate();
+    }, { once: true });
+  }
+
   function update() {
     raf = 0;
     header?.classList.toggle('is-scrolled', window.scrollY > 48);
@@ -117,12 +132,14 @@
     const progress = Math.min(1, Math.max(0, -rect.top / distance));
     const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
     desiredFrame = frame;
-    loadFrameWindow(frame);
     story.style.setProperty('--story-progress', String(progress));
     setChapter(Math.min(2, Math.floor(progress * 3)));
-    if (frame !== lastFrame && !draw(frame)) {
-      for (let gap = 1; gap <= FRAME_WINDOW_RADIUS + 1; gap += 1) {
-        if (draw(Math.max(0, frame - gap)) || draw(Math.min(FRAME_COUNT - 1, frame + gap))) break;
+    if (started) {
+      loadFrameWindow(frame);
+      if (frame !== lastFrame && !draw(frame)) {
+        for (let gap = 1; gap <= FRAME_WINDOW_RADIUS + 1; gap += 1) {
+          if (draw(Math.max(0, frame - gap)) || draw(Math.min(FRAME_COUNT - 1, frame + gap))) break;
+        }
       }
     }
   }
@@ -135,7 +152,7 @@
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;
       if (mobile.matches) activateMobileVideo();
-      else beginLoading();
+      else queueDesktopLoading();
     }, { rootMargin: '50% 0px' });
     observer.observe(story);
   }
@@ -146,6 +163,6 @@
   mobile.addEventListener?.('change', () => window.location.reload());
   if (reduceMotion.matches) activateMotionPoster();
   else if (mobile.matches) activateMobileVideo();
-  else beginLoading();
+  else queueDesktopLoading();
   update();
 })();
