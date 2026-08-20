@@ -517,6 +517,51 @@ export type Database = {
           },
         ]
       }
+      demo_driver_profiles: {
+        Row: {
+          created_at: string
+          driver_id: string
+          is_substitute: boolean
+          league_id: string
+          progression: Json
+          team_history: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          is_substitute?: boolean
+          league_id: string
+          progression?: Json
+          team_history?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          is_substitute?: boolean
+          league_id?: string
+          progression?: Json
+          team_history?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demo_driver_profiles_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: true
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "demo_driver_profiles_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_events: {
         Row: {
           actor_user_id: string | null
@@ -2553,6 +2598,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_demo_full_e2e_snapshot: { Args: never; Returns: Json }
       get_league_admin_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
       get_social_graphics_workspace: { Args: never; Returns: Json }

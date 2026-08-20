@@ -798,6 +798,52 @@ h2 {
 .render-status--ready { color: #a9efd7 !important; }
 .render-status--outdated { color: #ffd785 !important; }
 
+.demo-cockpit {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  padding: clamp(2.4rem, 5vw, 4.5rem) max(1.5rem, env(safe-area-inset-right)) 5rem max(1.5rem, env(safe-area-inset-left));
+}
+.demo-isolation { min-height: 38px; display: flex; align-items: center; gap: 0.75rem 1.25rem; padding: 0.55rem 0.8rem; border: 1px solid rgba(44, 143, 166, 0.52); background: rgba(44, 143, 166, 0.08); }
+.demo-isolation strong { color: var(--teal-bright); font-size: 0.68rem; letter-spacing: 0.08em; }
+.demo-isolation span { color: var(--muted); font-size: 0.72rem; }
+.demo-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin: 2.2rem 0; }
+.demo-header h1 { max-width: 860px; }
+.demo-header p:last-child { max-width: 70ch; margin: 0.85rem 0 0; }
+.demo-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.45rem; }
+.demo-actions a { min-height: 44px; display: inline-flex; align-items: center; gap: 1rem; padding: 0 0.8rem; border: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: 0.75rem; }
+.demo-actions a:hover, .demo-actions a:focus-visible { border-color: var(--teal-bright); background: rgba(44, 143, 166, 0.1); }
+.demo-metrics { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 1.5rem; border-block: 1px solid var(--line); }
+.demo-metrics div { display: grid; gap: 0.3rem; padding: 1.1rem; border-right: 1px solid var(--line); }
+.demo-metrics div:last-child { border-right: 0; }
+.demo-metrics strong { font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.demo-metrics span { color: var(--muted); font-size: 0.7rem; }
+.demo-layout { display: grid; grid-template-columns: minmax(280px, 0.7fr) minmax(420px, 1.3fr); border: 1px solid var(--line-strong); }
+.demo-coverage, .demo-calendar, .demo-drivers { min-width: 0; padding: clamp(1.15rem, 3vw, 2rem); }
+.demo-coverage { border-right: 1px solid var(--line); background: rgba(2, 15, 28, 0.42); }
+.demo-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1rem; }
+.demo-section-heading h2 { margin: 0; font-size: 1.05rem; }
+.demo-section-heading > span { color: var(--teal-bright); font-size: 0.68rem; }
+.demo-coverage ul, .demo-calendar ol { margin: 0; padding: 0; list-style: none; }
+.demo-coverage li { min-height: 36px; display: grid; grid-template-columns: 24px 1fr; align-items: center; gap: 0.55rem; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.75rem; }
+.demo-coverage li i { width: 20px; height: 20px; display: grid; place-items: center; border: 1px solid var(--line); font-style: normal; }
+.demo-coverage li.is-covered { color: var(--text); }
+.demo-coverage li.is-covered i { border-color: rgba(86, 201, 167, 0.55); color: #a9efd7; }
+.demo-calendar li { min-height: 66px; display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 0.8rem; border-bottom: 1px solid var(--line); }
+.demo-calendar li:last-child { border-bottom: 0; }
+.demo-calendar li > b { color: var(--purple-bright); font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.demo-calendar li div { min-width: 0; display: grid; gap: 0.2rem; }
+.demo-calendar li span, .demo-calendar li small { color: var(--muted); font-size: 0.7rem; }
+.demo-drivers { margin-top: 1.5rem; border: 1px solid var(--line); }
+.demo-drivers td { font-variant-numeric: tabular-nums; }
+.demo-revision { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr); gap: 2rem; margin-top: 1.5rem; padding: clamp(1.2rem, 3vw, 2rem); border: 1px solid rgba(118, 83, 199, 0.55); background: linear-gradient(110deg, rgba(118, 83, 199, 0.12), transparent 58%); }
+.demo-revision h2 { margin: 0.35rem 0 0.65rem; font-size: clamp(1.2rem, 2.2vw, 1.75rem); }
+.demo-revision p:last-child { margin: 0; }
+.demo-revision dl { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border: 1px solid var(--line); }
+.demo-revision dl div { display: grid; align-content: center; gap: 0.35rem; padding: 1rem; border-right: 1px solid var(--line); }
+.demo-revision dl div:last-child { border-right: 0; }
+.demo-revision dt { color: var(--muted); font-size: 0.65rem; }
+.demo-revision dd { margin: 0; font-size: 0.85rem; overflow-wrap: anywhere; }
+
 .footer {
   display: flex;
   justify-content: space-between;
@@ -852,6 +898,8 @@ h2 {
   .operations-menu { border-right: 0; border-bottom: 1px solid var(--line); }
   .graphics-workbench { grid-template-columns: 1fr; }
   .graphics-controls { border-right: 0; border-bottom: 1px solid var(--line); }
+  .demo-layout, .demo-revision { grid-template-columns: 1fr; }
+  .demo-coverage { border-right: 0; border-bottom: 1px solid var(--line); }
 }
 
 @media (max-width: 700px) {
@@ -895,8 +943,19 @@ h2 {
   .operations-page { padding: 2rem max(1rem, env(safe-area-inset-right)) 3.5rem max(1rem, env(safe-area-inset-left)); }
   .vora-page { padding: 2rem max(1rem, env(safe-area-inset-right)) 3.5rem max(1rem, env(safe-area-inset-left)); }
   .graphics-studio { padding: 2rem max(1rem, env(safe-area-inset-right)) 3.5rem max(1rem, env(safe-area-inset-left)); }
+  .demo-cockpit { padding: 2rem max(1rem, env(safe-area-inset-right)) 3.5rem max(1rem, env(safe-area-inset-left)); }
   .operations-header { align-items: flex-start; flex-direction: column; }
   .graphics-header { align-items: flex-start; flex-direction: column; }
+  .demo-header { align-items: flex-start; flex-direction: column; }
+  .demo-actions { width: 100%; justify-content: flex-start; }
+  .demo-isolation { align-items: flex-start; flex-direction: column; }
+  .demo-metrics { grid-template-columns: repeat(2, 1fr); }
+  .demo-metrics div { border-bottom: 1px solid var(--line); }
+  .demo-metrics div:nth-child(even) { border-right: 0; }
+  .demo-metrics div:last-child { grid-column: 1 / -1; border-bottom: 0; }
+  .demo-revision dl { grid-template-columns: 1fr; }
+  .demo-revision dl div { border-right: 0; border-bottom: 1px solid var(--line); }
+  .demo-revision dl div:last-child { border-bottom: 0; }
   .graphics-preview-panel { padding-inline: 0.85rem; }
   .graphics-history { grid-template-columns: 1fr; }
   .graphics-history li { grid-template-columns: minmax(0, 1fr) auto; padding-block: 0.65rem; }

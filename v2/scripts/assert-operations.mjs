@@ -20,7 +20,7 @@ for (const contract of [
 ]) if (!migration.includes(contract)) violations.push('missing database contract: ' + contract);
 for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canAdmin', 'canOwner', 'canNotify']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
 for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
-for (const contract of ["t('owner.control')", 'setPlatformFlag', "navigate('/admin')"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
+for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
 for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
 for (const contract of ['rollback;', 'league admin entered global Owner Control', 'notification leaked to another user', 'audit history was mutable']) if (!test.includes(contract)) violations.push('missing SQL regression: ' + contract);
