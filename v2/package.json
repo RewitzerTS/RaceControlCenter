@@ -31,7 +31,8 @@
     "social-graphics-contract": "node scripts/assert-social-graphics.mjs",
     "demo-full-e2e-contract": "node scripts/assert-demo-full-e2e.mjs",
     "user-journey-e2e-contract": "node scripts/assert-user-journeys.mjs",
-    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run driver-identity-contract && npm run role-model-contract && npm run result-versioning-contract && npm run domain-events-contract && npm run career-engine-contract && npm run xp-level-rank-contract && npm run achievements-contract && npm run credits-garage-contract && npm run challenges-contract && npm run i18n-contract && npm run driver-experience-contract && npm run steward-experience-contract && npm run operations-contract && npm run vora-contract && npm run social-graphics-contract && npm run demo-full-e2e-contract && npm run user-journey-e2e-contract && npm run build",
+    "security-gate-contract": "node scripts/assert-security-gate.mjs",
+    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run driver-identity-contract && npm run role-model-contract && npm run result-versioning-contract && npm run domain-events-contract && npm run career-engine-contract && npm run xp-level-rank-contract && npm run achievements-contract && npm run credits-garage-contract && npm run challenges-contract && npm run i18n-contract && npm run driver-experience-contract && npm run steward-experience-contract && npm run operations-contract && npm run vora-contract && npm run social-graphics-contract && npm run demo-full-e2e-contract && npm run user-journey-e2e-contract && npm run security-gate-contract && npm run build",
     "deploy": "wrangler deploy",
     "deploy:preview": "wrangler versions upload"
   },

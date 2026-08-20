@@ -23,7 +23,7 @@ const violations = [];
 let protectedRefOccurrences = 0;
 
 for (const file of files) {
-  const path = relative(root, file).replaceAll('\\\\', '/');
+  const path = relative(root, file).replaceAll('\\', '/');
   const extension = path.includes('.env.example') ? '.example' : `.${path.split('.').pop()}`;
   if (!textExtensions.has(extension)) continue;
 
