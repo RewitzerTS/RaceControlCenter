@@ -35,7 +35,7 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
     <main className="content" id="main-content">
       <div className="content-heading">
         <div>
-          <p className="eyebrow">{t('overview')} · Phase 5</p>
+          <p className="eyebrow">{t('overview')} · Phase 6</p>
           <h1>{t('foundation')}</h1>
         </div>
         <span className="environment-badge">{environment.appEnvironment}</span>
@@ -78,10 +78,11 @@ function FoundationPage({ environment }: { environment: RuntimeEnvironment }) {
             }
             tone={identityLoading || Boolean(identityError) ? 'pending' : 'ok'}
           />
+          <StatusRow label={t('resultHistory')} value={t('explicitPointer')} />
         </div>
 
         <aside className="next-step" aria-labelledby="next-title">
-          <span className="step-number">06</span>
+          <span className="step-number">07</span>
           <div>
             <h2 id="next-title">{t('next')}</h2>
             <p>{t('nextCopy')}</p>
@@ -114,7 +115,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <Routes>
         <Route path="*" element={<FoundationPage environment={environment} />} />
       </Routes>
-      <footer className="footer"><span>RaceVora V2</span><span>Actor-bound role model foundation</span></footer>
+      <footer className="footer"><span>RaceVora V2</span><span>Immutable result versioning foundation</span></footer>
     </div>
   );
 }

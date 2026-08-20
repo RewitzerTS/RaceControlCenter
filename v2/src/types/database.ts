@@ -327,6 +327,449 @@ export type Database = {
         }
         Relationships: []
       }
+      race_results: {
+        Row: {
+          ai_driver_reference_snapshot: string | null
+          awarded_points: number
+          base_points: number
+          car_name_snapshot: string | null
+          created_at: string
+          driver_id: string
+          fastest_lap_ms: number | null
+          fastest_lap_time: string | null
+          fastest_lap_time_ms: number | null
+          finish_position: number | null
+          grid_position: number | null
+          id: string
+          notes: string | null
+          participation_status: string
+          penalty_time_delta_ms: number
+          pit_stops: number
+          points: number
+          points_car_name: string | null
+          points_owner_driver_id: string | null
+          points_team_name: string | null
+          race_id: string
+          race_time: string | null
+          race_time_ms: number | null
+          result_version_id: string
+          source_assignment_id: string | null
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_driver_reference_snapshot?: string | null
+          awarded_points?: number
+          base_points?: number
+          car_name_snapshot?: string | null
+          created_at?: string
+          driver_id: string
+          fastest_lap_ms?: number | null
+          fastest_lap_time?: string | null
+          fastest_lap_time_ms?: number | null
+          finish_position?: number | null
+          grid_position?: number | null
+          id?: string
+          notes?: string | null
+          participation_status?: string
+          penalty_time_delta_ms?: number
+          pit_stops?: number
+          points?: number
+          points_car_name?: string | null
+          points_owner_driver_id?: string | null
+          points_team_name?: string | null
+          race_id: string
+          race_time?: string | null
+          race_time_ms?: number | null
+          result_version_id: string
+          source_assignment_id?: string | null
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_driver_reference_snapshot?: string | null
+          awarded_points?: number
+          base_points?: number
+          car_name_snapshot?: string | null
+          created_at?: string
+          driver_id?: string
+          fastest_lap_ms?: number | null
+          fastest_lap_time?: string | null
+          fastest_lap_time_ms?: number | null
+          finish_position?: number | null
+          grid_position?: number | null
+          id?: string
+          notes?: string | null
+          participation_status?: string
+          penalty_time_delta_ms?: number
+          pit_stops?: number
+          points?: number
+          points_car_name?: string | null
+          points_owner_driver_id?: string | null
+          points_team_name?: string | null
+          race_id?: string
+          race_time?: string | null
+          race_time_ms?: number | null
+          result_version_id?: string
+          source_assignment_id?: string | null
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_results_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_results_points_owner_driver_id_fkey"
+            columns: ["points_owner_driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_results_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_results_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      races: {
+        Row: {
+          circuit_name: string | null
+          country_code: string | null
+          created_at: string
+          current_result_version_id: string | null
+          grand_prix_name: string
+          has_sprint: boolean
+          id: string
+          next_result_version_number: number
+          notes: string | null
+          race_date: string | null
+          race_order: number | null
+          race_start_at: string | null
+          race_time: string | null
+          round_number: number
+          season_id: string
+          status: string
+          track_image: string | null
+          updated_at: string
+          weather: string | null
+          weekend_start_date: string | null
+        }
+        Insert: {
+          circuit_name?: string | null
+          country_code?: string | null
+          created_at?: string
+          current_result_version_id?: string | null
+          grand_prix_name: string
+          has_sprint?: boolean
+          id?: string
+          next_result_version_number?: number
+          notes?: string | null
+          race_date?: string | null
+          race_order?: number | null
+          race_start_at?: string | null
+          race_time?: string | null
+          round_number: number
+          season_id: string
+          status?: string
+          track_image?: string | null
+          updated_at?: string
+          weather?: string | null
+          weekend_start_date?: string | null
+        }
+        Update: {
+          circuit_name?: string | null
+          country_code?: string | null
+          created_at?: string
+          current_result_version_id?: string | null
+          grand_prix_name?: string
+          has_sprint?: boolean
+          id?: string
+          next_result_version_number?: number
+          notes?: string | null
+          race_date?: string | null
+          race_order?: number | null
+          race_start_at?: string | null
+          race_time?: string | null
+          round_number?: number
+          season_id?: string
+          status?: string
+          track_image?: string | null
+          updated_at?: string
+          weather?: string | null
+          weekend_start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "races_current_result_version_id_fkey"
+            columns: ["current_result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "races_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      result_version_rows: {
+        Row: {
+          ai_driver_reference_snapshot: string | null
+          awarded_points: number
+          base_points: number
+          car_name_snapshot: string | null
+          created_at: string
+          driver_id: string
+          fastest_lap_ms: number | null
+          fastest_lap_time: string | null
+          fastest_lap_time_ms: number | null
+          finish_position: number | null
+          grid_position: number | null
+          id: string
+          notes: string | null
+          participation_status: string
+          penalty_time_delta_ms: number
+          pit_stops: number
+          points: number
+          points_car_name: string | null
+          points_owner_driver_id: string | null
+          points_team_name: string | null
+          race_time: string | null
+          race_time_ms: number | null
+          result_version_id: string
+          row_order: number
+          source_assignment_id: string | null
+          team_id: string | null
+        }
+        Insert: {
+          ai_driver_reference_snapshot?: string | null
+          awarded_points?: number
+          base_points?: number
+          car_name_snapshot?: string | null
+          created_at?: string
+          driver_id: string
+          fastest_lap_ms?: number | null
+          fastest_lap_time?: string | null
+          fastest_lap_time_ms?: number | null
+          finish_position?: number | null
+          grid_position?: number | null
+          id?: string
+          notes?: string | null
+          participation_status?: string
+          penalty_time_delta_ms?: number
+          pit_stops?: number
+          points?: number
+          points_car_name?: string | null
+          points_owner_driver_id?: string | null
+          points_team_name?: string | null
+          race_time?: string | null
+          race_time_ms?: number | null
+          result_version_id: string
+          row_order: number
+          source_assignment_id?: string | null
+          team_id?: string | null
+        }
+        Update: {
+          ai_driver_reference_snapshot?: string | null
+          awarded_points?: number
+          base_points?: number
+          car_name_snapshot?: string | null
+          created_at?: string
+          driver_id?: string
+          fastest_lap_ms?: number | null
+          fastest_lap_time?: string | null
+          fastest_lap_time_ms?: number | null
+          finish_position?: number | null
+          grid_position?: number | null
+          id?: string
+          notes?: string | null
+          participation_status?: string
+          penalty_time_delta_ms?: number
+          pit_stops?: number
+          points?: number
+          points_car_name?: string | null
+          points_owner_driver_id?: string | null
+          points_team_name?: string | null
+          race_time?: string | null
+          race_time_ms?: number | null
+          result_version_id?: string
+          row_order?: number
+          source_assignment_id?: string | null
+          team_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "result_version_rows_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_version_rows_points_owner_driver_id_fkey"
+            columns: ["points_owner_driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_version_rows_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      result_versions: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          change_reason: string
+          created_at: string
+          created_by: string | null
+          id: string
+          previous_version_id: string | null
+          race_id: string
+          source_import_id: string | null
+          status: string
+          superseded_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+          version_number: number
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          change_reason: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          previous_version_id?: string | null
+          race_id: string
+          source_import_id?: string | null
+          status?: string
+          superseded_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          version_number: number
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          change_reason?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          previous_version_id?: string | null
+          race_id?: string
+          source_import_id?: string | null
+          status?: string
+          superseded_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          version_number?: number
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "result_versions_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "result_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_versions_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          championship_code: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          game_key: string
+          game_label: string
+          id: string
+          is_active: boolean
+          league_id: string
+          name: string
+          slug: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          championship_code?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          game_key?: string
+          game_label?: string
+          id?: string
+          is_active?: boolean
+          league_id: string
+          name: string
+          slug: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          championship_code?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          game_key?: string
+          game_label?: string
+          id?: string
+          is_active?: boolean
+          league_id?: string
+          name?: string
+          slug?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
