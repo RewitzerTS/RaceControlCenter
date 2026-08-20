@@ -7,6 +7,8 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   error: string | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<'signed-in' | 'confirmation-required'>;
   signOut: () => Promise<void>;
 }
 
@@ -47,6 +49,15 @@ export function AuthProvider({ client, children }: PropsWithChildren<{ client: L
     user: session?.user ?? null,
     loading,
     error,
+    signIn: async (email, password) => {
+      const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+      if (signInError) throw signInError;
+    },
+    signUp: async (email, password) => {
+      const { data, error: signUpError } = await client.auth.signUp({ email, password });
+      if (signUpError) throw signUpError;
+      return data.session ? 'signed-in' : 'confirmation-required';
+    },
     signOut: async () => {
       const { error: signOutError } = await client.auth.signOut();
       if (signOutError) throw signOutError;

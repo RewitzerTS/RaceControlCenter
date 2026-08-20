@@ -1,6 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { BetaAccessPage } from '../auth/BetaAccessPage';
 import type { RuntimeEnvironment } from '../config/environment';
 import { DriverHomePage } from '../driver/DriverHomePage';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
@@ -140,9 +141,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
             {canNotify && <NavLink className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /></NavLink>}
             {canSteward && <NavLink className="mobile-steward-link" to="/stewarding" aria-label={t('nav.stewarding')}><NavIcon name="steward" /></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
-            <label className="language-control">
+            <label className="language-control" htmlFor="language-selector">
               <span>{t('language')}</span>
-              <select value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
+              <select id="language-selector" name="language" value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
                 {SUPPORTED_LANGUAGES.map((item) => (
                   <option key={item} value={item}>{t(('languageName.' + item) as MessageKey)}</option>
                 ))}
@@ -154,7 +155,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
                 <span>{t('shell.signOut')}</span>
               </button>
             ) : (
-              <span className="session-state">{t('signedOut')}</span>
+              <NavLink className="session-state session-state--link" to="/beta">{t('beta.action')}</NavLink>
             )}
           </div>
         </header>
@@ -165,6 +166,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/career" element={<RoutePlaceholder titleKey="route.careerTitle" copyKey="route.careerCopy" />} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<RoutePlaceholder titleKey="route.profileTitle" copyKey="route.profileCopy" />} />
+          <Route path="/beta" element={<BetaAccessPage />} />
           <Route path="/stewarding" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense>} />
           <Route path="/admin" element={canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/graphics" element={canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />

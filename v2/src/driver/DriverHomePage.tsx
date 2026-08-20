@@ -38,7 +38,13 @@ export function DriverHomePage() {
     return <DriverState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} />;
   }
   if (!user) {
-    return <DriverState title={t('home.signedOutTitle')} copy={t('home.signedOutCopy')} />;
+    return (
+      <DriverState
+        title={t('home.signedOutTitle')}
+        copy={t('home.signedOutCopy')}
+        action={<NavLink className="primary-action" to="/beta">{t('beta.action')}<span aria-hidden="true">→</span></NavLink>}
+      />
+    );
   }
   if (identityError || !identity || identity.status !== 'active') {
     return <DriverState title={t('home.identityTitle')} copy={t('home.identityCopy')} />;
