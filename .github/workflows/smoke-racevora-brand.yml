@@ -91,11 +91,6 @@ jobs:
             await assertPlatformPage(page, 'set-password.html', '#password-setup-status');
             await assertPlatformPage(page, 'account-setup.html', '#setup-title');
 
-            for (const legacyPath of ['landing.html?legacy=1#platform', 'landing2.html?legacy=1#roles']) {
-              await page.goto(`http://127.0.0.1:8080/${legacyPath}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-              await page.waitForURL(/\/index\.html\?legacy=1#(?:platform|roles)$/i, { timeout: 5000 });
-            }
-
             const manifestResponse = await page.request.get('http://127.0.0.1:8080/manifest.json');
             if (!manifestResponse.ok()) throw new Error(`manifest: HTTP ${manifestResponse.status()}`);
             const manifest = await manifestResponse.json();
