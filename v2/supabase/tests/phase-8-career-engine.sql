@@ -3,6 +3,12 @@
 
 begin;
 
+-- Isolate synthetic claims from persistent Staging deliveries; rollback restores them.
+update private.domain_event_processing
+set status = 'succeeded', locked_by = null, locked_at = null, last_error = null,
+    processed_at = coalesce(processed_at, now())
+where status in ('pending', 'processing', 'failed');
+
 do $$
 begin
   if has_table_privilege('anon', 'public.career_result_facts', 'select')
