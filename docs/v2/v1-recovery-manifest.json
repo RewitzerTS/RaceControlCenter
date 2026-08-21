@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "capturedAt": "2026-08-21",
   "repository": "RewitzerTS/RaceControlCenter",
   "v1Code": {
@@ -8,6 +8,13 @@
     "recoveryCommit": "2da639e9b4907e226c1a2c9858320e4b73bebee0",
     "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/2da639e9b4907e226c1a2c9858320e4b73bebee0",
     "description": "Current V1 Production after Phase 24 Performance Gate and before any V2 cutover."
+  },
+  "v2ReleaseCandidate": {
+    "sourceBranch": "v2-development",
+    "releaseBranch": "release/v2-cutover-candidate-2026-08-21",
+    "candidateCommit": "92da4515e1c90e802e1b264f7de559c5cf841dfe",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/92da4515e1c90e802e1b264f7de559c5cf841dfe",
+    "stagingUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
   },
   "v1Data": {
     "productionProjectRef": "kjccstcbqygxuqkvdaqw",
@@ -18,8 +25,21 @@
     "restoreDrill": {
       "status": "required",
       "verifiedAt": null,
-      "evidence": null
+      "evidence": null,
+      "lastAttempt": {
+        "attemptedAt": "2026-08-21",
+        "result": "capacity-blocked",
+        "reason": "Supabase Free organization already has two active projects (Production and V2 Staging).",
+        "productionTouched": false,
+        "stagingTouched": false
+      }
     }
+  },
+  "phaseProgress": {
+    "phase29PreparationStartedAt": "2026-08-21",
+    "phase29TrafficStatus": "locked",
+    "phase30PreservationStartedAt": "2026-08-21",
+    "phase30RetirementStatus": "locked"
   },
   "cutoverGates": {
     "phase29Authorized": false,

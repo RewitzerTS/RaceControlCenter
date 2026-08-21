@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: in progress. The V1 code recovery point is established and automatically guarded. The database restore drill in a separate non-production target remains mandatory.
+Status: in progress. The V1 code recovery point is established and automatically guarded. A separate restore project was explicitly approved and requested on 2026-08-21, but Supabase rejected its creation because the Free organization already has two active projects. Production and Staging were not changed.
 
 Production posture: V1 stays online. The productive `rcc` league remains unchanged and is never a restore-test target.
 
@@ -53,4 +53,10 @@ No database restore is executed against Production as part of Phase 28. Backup e
 - run final security, performance, accessibility and operational gates against the release candidate.
 
 Until every item is complete, Phase 29 and Phase 30 remain locked.
+
+## Capacity result and downstream preparation
+
+The attempted zero-cost restore-project allocation returned the Supabase Free-plan active-project limit. Production and the Beta Staging project remain active and unchanged; neither is paused or reused as a destructive restore target.
+
+The owner subsequently requested that Phase 29 and Phase 30 start. Their reversible preparation may proceed, but this does not waive the restore requirement: the V2 release candidate may be pinned, the cutover and rollback procedure may be prepared, and the V1 recovery surface may be preserved. Production traffic, destructive data operations and V1 shutdown remain locked.
 
