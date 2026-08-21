@@ -58,13 +58,23 @@
         "stagingDataReset": false
       },
       "fullRestorePreparation": {
-        "status": "ready-for-fresh-format-v2-backup",
+        "status": "fresh-format-v2-backup-verified",
         "backupFormatVersion": 2,
         "authDataArchive": "auth-data.dump",
         "authEvidence": "aggregate-user-identity-counts-and-credential-fingerprint",
         "storageRestore": "target-reset-upload-and-sha256-download-verification",
         "targetProjectRef": "lugedxtmfitxrkacmjpb",
         "requiredTargetSecret": "RESTORE_DRILL_SECRET_KEY",
+        "freshBackup": {
+          "createdAt": "2026-08-21T13:46:21Z",
+          "workflowRunUrl": "https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32488426222",
+          "workflowRunId": 32488426222,
+          "encryptedBytes": 709002,
+          "storageBuckets": 1,
+          "storageObjects": 4,
+          "authArchiveChecksumVerified": true,
+          "encryptedUploadVerified": true
+        },
         "productionTouched": false,
         "stagingPaused": false
       }

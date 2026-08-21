@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: in progress. The V1 code recovery point, clean V2 zero-state replay and encrypted V1 logical database restore are verified. Full Auth/Storage recovery automation is prepared but still requires a fresh format-v2 backup and an isolated execution before Production traffic may change.
+Status: in progress. The V1 code recovery point, clean V2 zero-state replay and encrypted V1 logical database restore are verified. A fresh format-v2 backup including Auth recovery data and Storage objects is verified; the isolated full restore execution remains required before Production traffic may change.
 
 Production posture: V1 stays online. The productive `rcc` league remains unchanged and is never a restore-test target.
 
@@ -83,7 +83,6 @@ Recorded evidence:
 
 ## Remaining Phase 28 exit criteria
 
-- run a fresh format-v2 encrypted backup that includes the prepared Auth data/evidence files;
 - execute and verify the prepared V1 Auth identity/credential recovery path rather than counting pre-existing target users;
 - restore the four archived Storage objects to isolated target buckets and validate object access;
 - validate Auth redirects/mail/CAPTCHA, Edge Function secrets, Realtime and bucket configuration in the target;
@@ -92,6 +91,10 @@ Recorded evidence:
 Until every item is complete, Phase 29 and Phase 30 remain locked.
 
 The external Auth/SMTP/CAPTCHA/redirect, Edge Function secret and Realtime proof is pinned in `v1-external-config-checklist.md`. It deliberately does not automate copying Production secrets into another project.
+
+## Fresh full-recovery backup
+
+GitHub Actions run `32488426222` created recovery format 2 on 2026-08-21 at `13:46:21Z`. The run completed every gate: database and separate Auth data export, Auth evidence checksum, one Storage bucket with four objects, AES-256 packaging, EU R2 upload, remote-size verification and runner cleanup. The encrypted object is 709,002 bytes. This proves the new recovery material exists and is intact; it does not by itself prove that Auth credentials and Storage objects can be restored.
 
 ## Capacity result and downstream preparation
 
