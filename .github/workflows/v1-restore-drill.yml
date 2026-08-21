@@ -1,0 +1,81 @@
+name: V1 Encrypted Restore Drill
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_target_reset:
+        description: Reset only the dedicated RaceVora V1 Restore Drill project
+        required: true
+        type: boolean
+        default: false
+  pull_request:
+    paths:
+      - '.github/workflows/v1-restore-drill.yml'
+      - 'scripts/restore-v1-drill.sh'
+      - 'docs/v2/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: racevora-v1-restore-drill
+  cancel-in-progress: false
+
+env:
+  R2_BUCKET: racevora-backups
+  R2_ENDPOINT: https://d6a0b4e37ee0e3c967648473dbe190e1.eu.r2.cloudflarestorage.com
+
+jobs:
+  validate-restore-definition:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate fail-closed target gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/restore-v1-drill.sh
+          grep -Fq "expected_target_ref='lugedxtmfitxrkacmjpb'" scripts/restore-v1-drill.sh
+          grep -Fq "production_ref='kjccstcbqygxuqkvdaqw'" scripts/restore-v1-drill.sh
+          grep -Fq "staging_ref='znnkwjogtvzwfkwnmawp'" scripts/restore-v1-drill.sh
+          grep -Fq 'TARGET_DB_URL does not identify the dedicated restore-drill project' scripts/restore-v1-drill.sh
+          grep -Fq 'protected rcc tenant is missing from restored data' scripts/restore-v1-drill.sh
+          forbidden_action='actions/upload''-artifact'
+          if grep -Fq "$forbidden_action" .github/workflows/v1-restore-drill.yml; then
+            echo 'Restore material must never be uploaded as a GitHub artifact.' >&2
+            exit 1
+          fi
+
+  restore-encrypted-backup:
+    needs: validate-restore-definition
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm_target_reset == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TARGET_DB_URL: ${{ secrets.RESTORE_DRILL_DB_URL }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install restore clients
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends postgresql-client gnupg curl unzip ca-certificates
+          if ! command -v aws >/dev/null 2>&1; then
+            curl --fail --silent --show-error --location --retry 3 \
+              'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' \
+              --output "${RUNNER_TEMP}/awscliv2.zip"
+            unzip -q "${RUNNER_TEMP}/awscliv2.zip" -d "${RUNNER_TEMP}/awscli-installer"
+            sudo "${RUNNER_TEMP}/awscli-installer/aws/install"
+          fi
+      - name: Restore latest encrypted V1 backup
+        shell: bash
+        run: bash scripts/restore-v1-drill.sh
+
