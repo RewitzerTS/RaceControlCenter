@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "capturedAt": "2026-08-21",
+  "repository": "RewitzerTS/RaceControlCenter",
+  "v1Code": {
+    "productionBranch": "main",
+    "recoveryBranch": "recovery/v1-production-2026-08-21",
+    "recoveryCommit": "2da639e9b4907e226c1a2c9858320e4b73bebee0",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/2da639e9b4907e226c1a2c9858320e4b73bebee0",
+    "description": "Current V1 Production after Phase 24 Performance Gate and before any V2 cutover."
+  },
+  "v1Data": {
+    "productionProjectRef": "kjccstcbqygxuqkvdaqw",
+    "protectedLeagueSlug": "rcc",
+    "backupWorkflow": ".github/workflows/encrypted-offsite-backup.yml",
+    "restoreRunbook": "docs/operations-runbook.md",
+    "restoreTargetPolicy": "separate-non-production-only",
+    "restoreDrill": {
+      "status": "required",
+      "verifiedAt": null,
+      "evidence": null
+    }
+  },
+  "cutoverGates": {
+    "phase29Authorized": false,
+    "phase30Authorized": false,
+    "v1ShutdownAllowed": false
+  }
+}
+
