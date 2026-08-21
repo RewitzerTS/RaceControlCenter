@@ -7,7 +7,7 @@ Die technische Backup-Automation ist in `.github/workflows/encrypted-offsite-bac
 ## Zielarchitektur
 
 - Quelle: produktives Supabase-Projekt `kjccstcbqygxuqkvdaqw`.
-- Datenbank: logischer Supabase-CLI-Dump von Rollen, Schema und Daten.
+- Datenbank: logischer Supabase-CLI-Dump von Rollen, Schema und Daten plus separater PostgreSQL-17-Auth-Datenexport im selben verschluesselten Archiv.
 - Storage: aktuell ein oeffentlicher Bucket `league-brand-assets`; am 17.08.2026 wurden 4 Objekte inventarisiert.
 - Verschluesselung: Backup wird auf dem temporaeren GitHub-Runner mit GnuPG/AES-256 symmetrisch verschluesselt, bevor es den Runner verlaesst.
 - Off-Site-Ziel: privater Cloudflare-R2-Bucket `racevora-backups` mit **EU-Jurisdiction**.
@@ -76,7 +76,7 @@ Der Workflow muss folgende Schritte erfolgreich abschliessen:
 
 1. Secret-Konfiguration pruefen.
 2. Supabase CLI bereitstellen.
-3. Rollen-/Schema-/Daten-Dump erstellen.
+3. Rollen-/Schema-/Daten-Dump und Auth-Datenexport erstellen.
 4. Storage-Buckets inventarisieren.
 5. Aktuell oeffentliche Storage-Objekte herunterladen.
 6. Backup lokal als `.tar.gz` paketieren.
@@ -121,7 +121,7 @@ Fuer einen Test:
 2. SHA-256 gegen die zugehoerige `.sha256`-Datei pruefen.
 3. Mit GnuPG entschluesseln; Passphrase interaktiv eingeben.
 4. Archiv in einer geschuetzten lokalen/testweisen Umgebung entpacken.
-5. Datenbank-Dumps und `storage/storage-manifest.json` pruefen.
+5. Backup-Format 2, Datenbank-/Auth-Dumps und `storage/storage-manifest.json` pruefen.
 6. Restore nur in ein getrenntes nichtproduktives Supabase-Ziel durchfuehren.
 
 Der eigentliche Datenbank-Restore und die anschliessende Auth-/Storage-Rekonfiguration sind in `docs/operations-runbook.md` beschrieben.
