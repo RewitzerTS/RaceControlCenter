@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: in progress. The V1 code recovery point is established and automatically guarded. A separate restore project was explicitly approved and requested on 2026-08-21, but Supabase rejected its creation because the Free organization already has two active projects. Production and Staging were not changed.
+Status: in progress. The V1 code recovery point is established and automatically guarded. The clean V2 zero-state replay is verified. A real encrypted V1 backup restore remains required before Production traffic may change.
 
 Production posture: V1 stays online. The productive `rcc` league remains unchanged and is never a restore-test target.
 
@@ -44,9 +44,23 @@ No database restore is executed against Production as part of Phase 28. Backup e
 - Phase 29, Phase 30 and V1 shutdown remain denied while the restore drill is unverified;
 - the Phase 27 Beta record is closed before production-readiness work advances.
 
+## Verified zero-state replay
+
+With explicit owner approval, V2 Staging was paused temporarily to free the second Supabase Free-plan project slot. A disposable project named `RaceVora V1 Restore Drill` was created in `eu-west-1`. No Production credentials or data were connected to it.
+
+The first clean replay exposed one real ordering defect: the Phase 16 foreign-key index correction recreated six indexes already present in the main Steward migration. The correction now uses `create index if not exists`. After both V2 schemas and migration history were reset in the disposable target, the full replay succeeded from zero:
+
+- 27 of 27 ordered migrations applied;
+- 18 of 18 transactional SQL regression suites passed and rolled back;
+- 44 public tables, all 44 with RLS enabled;
+- 2 private tables and 62 public/private functions present;
+- disposable project paused after evidence collection;
+- original V2 Staging restored to `ACTIVE_HEALTHY` with its Auth users, league, owner and demo fixtures intact.
+
+This proves the V2 schema can be reconstructed from the repository. It does not claim that encrypted V1 Production data was restored.
+
 ## Remaining Phase 28 exit criteria
 
-- replay all V2 migrations from zero in a disposable database and run the full transactional regression suite;
 - restore a recent V1 encrypted backup into a separate non-production Supabase project;
 - validate database, Auth, Storage and tenant isolation there;
 - record the resulting RPO/RTO evidence and update the manifest to `verified` through a reviewed change;
@@ -56,7 +70,7 @@ Until every item is complete, Phase 29 and Phase 30 remain locked.
 
 ## Capacity result and downstream preparation
 
-The attempted zero-cost restore-project allocation returned the Supabase Free-plan active-project limit. Production and the Beta Staging project remain active and unchanged; neither is paused or reused as a destructive restore target.
+The initial zero-cost restore-project allocation returned the Supabase Free-plan active-project limit. After explicit owner approval, Beta Staging was paused, the disposable project was used for the V2 clean replay, the disposable project was paused, and the original Staging project was restored. Production was never paused or modified.
 
 The owner subsequently requested that Phase 29 and Phase 30 start. Their reversible preparation may proceed, but this does not waive the restore requirement: the V2 release candidate may be pinned, the cutover and rollback procedure may be prepared, and the V1 recovery surface may be preserved. Production traffic, destructive data operations and V1 shutdown remain locked.
 

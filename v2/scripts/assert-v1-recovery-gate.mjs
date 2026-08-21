@@ -35,7 +35,10 @@ requireGate(manifest.v1Data.protectedLeagueSlug === 'rcc', 'productive rcc tenan
 requireGate(/^[a-z]{20}$/.test(manifest.v1Data.productionProjectRef), 'Production Supabase project is explicitly pinned');
 requireGate(manifest.v1Data.restoreTargetPolicy === 'separate-non-production-only', 'restore drill is isolated from Production');
 requireGate(manifest.v1Data.restoreDrill.status === 'required' && manifest.v1Data.restoreDrill.verifiedAt === null, 'unverified restore drill remains an explicit open gate');
-requireGate(manifest.v1Data.restoreDrill.lastAttempt.result === 'capacity-blocked' && manifest.v1Data.restoreDrill.lastAttempt.productionTouched === false && manifest.v1Data.restoreDrill.lastAttempt.stagingTouched === false, 'failed restore-project allocation changed neither Production nor Staging');
+requireGate(manifest.v1Data.restoreDrill.lastAttempt.result === 'v2-zero-state-replay-complete' && manifest.v1Data.restoreDrill.lastAttempt.v1BackupRestored === false, 'V2 replay evidence is not misrepresented as a V1 data restore');
+requireGate(manifest.v1Data.restoreDrill.lastAttempt.productionTouched === false && manifest.v1Data.restoreDrill.lastAttempt.stagingDataReset === false, 'replay changed neither Production nor Staging data');
+requireGate(manifest.v2ZeroStateReplay.status === 'verified' && manifest.v2ZeroStateReplay.migrationCount === 27 && manifest.v2ZeroStateReplay.transactionalTestCount === 18, 'clean V2 replay evidence is complete');
+requireGate(manifest.v2ZeroStateReplay.publicTableCount === manifest.v2ZeroStateReplay.publicRlsTableCount && manifest.v2ZeroStateReplay.stagingRestoredActiveHealthy === true, 'clean replay retained complete public RLS and restored Staging health');
 requireGate(Object.values(manifest.cutoverGates).every((value) => value === false), 'cutover and V1 shutdown stay denied');
 requireGate(manifest.phaseProgress.phase29TrafficStatus === 'locked' && manifest.phaseProgress.phase30RetirementStatus === 'locked', 'Phase 29 traffic and Phase 30 retirement remain locked');
 requireGate(Boolean(manifest.phaseProgress.phase29PreparationStartedAt) && Boolean(manifest.phaseProgress.phase30PreservationStartedAt), 'Phase 29 and Phase 30 safe preparation has started');
@@ -55,5 +58,5 @@ if (failures.length) {
   throw new Error(`Phase 28 V1 Recovery Gate failed: ${failures.join(', ')}`);
 }
 
-console.log(`V1 Recovery Gate passed: V1 is pinned at ${manifest.v1Code.recoveryCommit.slice(0, 12)}; Phase 29/30 preparation is active while traffic and retirement remain locked.`);
+console.log(`V1 Recovery Gate passed: V1 is pinned at ${manifest.v1Code.recoveryCommit.slice(0, 12)}; V2 zero-state replay is verified while V1 data restore, traffic and retirement remain locked.`);
 

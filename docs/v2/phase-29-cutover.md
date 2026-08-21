@@ -18,9 +18,9 @@ The recovery manifest currently denies Phase 29 authorization. Documentation or 
 ## Preparation started on 2026-08-21
 
 - V1 rollback source remains pinned to `recovery/v1-production-2026-08-21` at `2da639e9b4907e226c1a2c9858320e4b73bebee0`.
-- V2 release candidate is pinned to `release/v2-cutover-candidate-2026-08-21` at `92da4515e1c90e802e1b264f7de559c5cf841dfe`.
+- V2 release candidate revision 2 is pinned to `release/v2-cutover-candidate-2026-08-21-r2` at `c850b4291988d9c8cfec57d24a163ad0cf54a307`.
 - The candidate remains isolated on `racevora-v2-staging`; it is not connected to the Production Supabase project or `racevora.com`.
-- All 20 GitHub checks for the candidate passed before it was pinned.
+- The candidate includes the clean-replay index correction and passed the complete local/static contract suite plus the fresh-database migration and transactional regression suite before it was pinned.
 - Production traffic, DNS, Cloudflare routes, Supabase configuration and the `rcc` tenant remain unchanged.
 
 The next executable cutover action is intentionally absent until Phase 28 records restore evidence. This makes a premature domain switch fail closed instead of relying on an operator reminder.

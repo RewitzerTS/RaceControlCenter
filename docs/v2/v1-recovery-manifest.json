@@ -11,9 +11,9 @@
   },
   "v2ReleaseCandidate": {
     "sourceBranch": "v2-development",
-    "releaseBranch": "release/v2-cutover-candidate-2026-08-21",
-    "candidateCommit": "92da4515e1c90e802e1b264f7de559c5cf841dfe",
-    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/92da4515e1c90e802e1b264f7de559c5cf841dfe",
+    "releaseBranch": "release/v2-cutover-candidate-2026-08-21-r2",
+    "candidateCommit": "c850b4291988d9c8cfec57d24a163ad0cf54a307",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/c850b4291988d9c8cfec57d24a163ad0cf54a307",
     "stagingUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
   },
   "v1Data": {
@@ -28,12 +28,30 @@
       "evidence": null,
       "lastAttempt": {
         "attemptedAt": "2026-08-21",
-        "result": "capacity-blocked",
-        "reason": "Supabase Free organization already has two active projects (Production and V2 Staging).",
+        "result": "v2-zero-state-replay-complete",
+        "scope": "V2 schema and transactional tests only; this is not a V1 data restore.",
+        "v1BackupRestored": false,
+        "reason": "The encrypted V1 R2 backup and target database credentials are held outside the current automation access.",
         "productionTouched": false,
-        "stagingTouched": false
+        "stagingLifecycle": "paused-then-restored-active-healthy",
+        "stagingDataReset": false
       }
     }
+  },
+  "v2ZeroStateReplay": {
+    "status": "verified",
+    "verifiedAt": "2026-08-21",
+    "projectRef": "lugedxtmfitxrkacmjpb",
+    "projectStateAfterDrill": "INACTIVE",
+    "migrationCount": 27,
+    "transactionalTestCount": 18,
+    "publicTableCount": 44,
+    "privateTableCount": 2,
+    "publicRlsTableCount": 44,
+    "functionCount": 62,
+    "discoveredFix": "v2/supabase/migrations/20260820183300_v2_steward_fk_indexes.sql",
+    "productionTouched": false,
+    "stagingRestoredActiveHealthy": true
   },
   "phaseProgress": {
     "phase29PreparationStartedAt": "2026-08-21",
