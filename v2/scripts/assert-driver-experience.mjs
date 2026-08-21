@@ -24,6 +24,9 @@ if (!shell.includes('<Route path="/" element={<DriverHomePage />} />')) {
 if (!shell.includes('className="mobile-toggle"') || !shell.includes('main-navigation--open')) {
   violations.push('responsive V1 navigation drawer is missing');
 }
+if (shell.includes('<NavLink className="brand" to="/" aria-label=')) {
+  violations.push('brand link accessible name overrides its visible product label');
+}
 for (const responsiveContract of [
   'env(safe-area-inset-bottom)',
   '@media (max-width: 700px)',
@@ -65,3 +68,4 @@ if (violations.length) {
   process.exit(1);
 }
 console.log('V2 Driver Experience check passed. Career-first navigation, responsive V1 shell, RLS-bound reads, deterministic hero priority, and safe UI states are present.');
+

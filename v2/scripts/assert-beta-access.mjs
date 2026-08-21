@@ -23,6 +23,7 @@ requireGate(page.includes('minLength={8}') && page.includes('required'), 'minimu
 requireGate(page.includes("role={feedback === 'error' || feedback === 'captcha' ? 'alert' : 'status'}"), 'success and error feedback is announced accessibly');
 requireGate(page.includes('<TurnstileWidget') && auth.includes('captchaToken') && environment.includes('VITE_AUTH_CAPTCHA_ENABLED'), 'target-configured CAPTCHA is wired into every public Auth operation');
 requireGate(turnstile.includes('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit') && turnstile.includes("'expired-callback'") && turnstile.includes("'error-callback'"), 'Turnstile loads from the canonical origin and invalidates expired or failed tokens');
+requireGate(turnstile.includes('role="group"') && turnstile.includes('aria-label="Cloudflare Turnstile"'), 'Turnstile container uses a valid labelled accessibility role');
 requireGate(auth.includes('/auth/confirm') && auth.includes('/auth/reset') && shell.includes('<Route path="/auth/confirm"') && shell.includes('<Route path="/auth/reset"'), 'confirmation and recovery redirects stay inside V2 Staging');
 requireGate(authLink.includes('autoComplete="new-password"') && authLink.includes('minLength={8}') && !authLink.includes('error.message'), 'password reset has accessible validation and hides raw errors');
 requireGate(shell.includes('<Route path="/beta" element={<BetaAccessPage />} />'), 'Beta route is registered');

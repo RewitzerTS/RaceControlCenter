@@ -79,7 +79,7 @@ export function TurnstileWidget({
 
   if (!enabled) return null;
   return (
-    <div className="beta-captcha" aria-label="Cloudflare Turnstile">
+    <div className="beta-captcha" role="group" aria-label="Cloudflare Turnstile">
       <div ref={containerRef} />
       {loadFailed && <p className="beta-feedback beta-feedback--error" role="alert">{errorCopy}</p>}
     </div>

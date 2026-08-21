@@ -121,7 +121,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     <div className="app-shell">
       <header className="site-header">
         <div className="header-inner container">
-        <NavLink className="brand" to="/" aria-label={t('nav.home')} onClick={closeNavigation}>
+        <NavLink className="brand" to="/" onClick={closeNavigation}>
           <img className="brand-logo" src={trackVisionLogo} alt="TrackVision Studio" />
           <span className="brand-text">
             <strong className="brand-title">Race Control Center</strong>
