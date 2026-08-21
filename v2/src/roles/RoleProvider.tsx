@@ -23,11 +23,13 @@ export function RoleProvider({ client, user, children }: PropsWithChildren<{
 }>) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(Boolean(user));
+  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     setRole(null);
+    setResolvedUserId(null);
     setError(null);
     if (!user) {
       setLoading(false);
@@ -43,13 +45,17 @@ export function RoleProvider({ client, user, children }: PropsWithChildren<{
         if (active) setError('Die Berechtigung konnte nicht sicher bestätigt werden.');
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) {
+          setResolvedUserId(user.id);
+          setLoading(false);
+        }
       });
 
     return () => { active = false; };
   }, [client, user]);
 
-  const value = useMemo(() => ({ role, loading, error }), [error, loading, role]);
+  const safelyLoading = Boolean(user) && (loading || resolvedUserId !== user?.id);
+  const value = useMemo(() => ({ role, loading: safelyLoading, error }), [error, role, safelyLoading]);
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }
 
