@@ -103,6 +103,10 @@ if [ -f "$backup_dir/SHA256SUMS" ]; then
   (cd "$backup_dir" && sha256sum -c SHA256SUMS)
 fi
 
+# Hosted Supabase owns and protects its platform roles. The source roles dump is
+# integrity-checked above, but must not be replayed into another hosted project.
+echo 'Using the target project managed roles; verified roles.sql is not replayed.'
+
 psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --single-transaction <<'SQL'
 drop schema if exists private cascade;
 drop schema if exists public cascade;
@@ -116,7 +120,6 @@ SQL
 psql \
   --single-transaction \
   --variable ON_ERROR_STOP=1 \
-  --file "$backup_dir/roles.sql" \
   --file "$backup_dir/schema.sql" \
   --command 'SET session_replication_role = replica' \
   --file "$backup_dir/data.sql" \
