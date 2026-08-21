@@ -24,5 +24,16 @@ The recovery manifest currently denies Phase 29 authorization. Documentation or 
 - Production traffic, DNS, Cloudflare routes, Supabase configuration and the `rcc` tenant remain unchanged.
 - The encrypted V1 database, Auth credential and Storage object restore is verified. External project configuration and final release-candidate gates remain open in Phase 28.
 
-The next executable cutover action is intentionally absent until Phase 28 records restore evidence. This makes a premature domain switch fail closed instead of relying on an operator reminder.
+## Automated readiness gate
+
+The `V2 cutover readiness (no deployment)` workflow is readiness-only. It requires the exact pinned V2 release commit, the exact pinned V1 recovery commit and an explicit confirmation that this is a check only. It runs the complete V2 verification suite and a Cloudflare Worker dry-run, but performs no DNS, route or production deployment and does not use Production secrets.
+
+The gate fails while any traffic, retirement or V1-shutdown authorization remains enabled unexpectedly. Passing this workflow is evidence for review, not authorization to switch traffic. The actual cutover action remains intentionally absent until the remaining external-configuration evidence, final approval and rollback-window decision are recorded.
+
+## Staging advisor review on 2026-08-21
+
+- Supabase reports the Staging project as `ACTIVE_HEALTHY` with no security error and no actionable performance warning.
+- The 15 authenticated `SECURITY DEFINER` RPCs exactly match the reviewed Phase 25 allowlist and retain authentication, tenant and capability checks. Four RLS tables intentionally have no browser policy and therefore deny access by default.
+- The 106 unused-index notices are informational on this new, low-traffic Beta dataset. Indexes are not removed before representative production observation data exists.
+- Leaked-password protection remains an external Auth setting to confirm. This open item keeps actual cutover authorization denied.
 

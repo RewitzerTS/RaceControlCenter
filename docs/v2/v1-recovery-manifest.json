@@ -104,6 +104,31 @@
     "phase30PreservationStartedAt": "2026-08-21",
     "phase30RetirementStatus": "locked"
   },
+  "phase29Readiness": {
+    "mode": "readiness-only",
+    "workflow": ".github/workflows/v2-cutover-readiness.yml",
+    "gateScript": "v2/scripts/assert-phase-29-30-gates.mjs",
+    "productionTrafficChangeAllowed": false,
+    "requiresExactReleaseCommit": true,
+    "requiresExactV1RecoveryCommit": true,
+    "stagingAdvisorAudit": {
+      "reviewedAt": "2026-08-21",
+      "projectRef": "znnkwjogtvzwfkwnmawp",
+      "projectStatus": "ACTIVE_HEALTHY",
+      "securityErrorCount": 0,
+      "reviewedAuthenticatedDefinerRpcCount": 15,
+      "denyByDefaultRlsTableCount": 4,
+      "leakedPasswordProtectionExternalConfigOpen": true,
+      "performanceActionRequiredCount": 0,
+      "unusedIndexInfoCountOnLowTrafficStaging": 106
+    }
+  },
+  "phase30Preservation": {
+    "v1DeletionAllowed": false,
+    "v1PauseAllowed": false,
+    "recoveryBranchRequired": true,
+    "productionObservationWindowComplete": false
+  },
   "cutoverGates": {
     "phase29Authorized": false,
     "phase30Authorized": false,

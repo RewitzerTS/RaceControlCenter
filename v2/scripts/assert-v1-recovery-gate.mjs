@@ -25,6 +25,8 @@ const restoreScript = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.
 const storageRestoreScript = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.storageRestoreScript), 'utf8');
 const restoreRunbook = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.restoreRunbook), 'utf8');
 const externalConfigChecklist = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.externalConfigChecklist), 'utf8');
+const phase2930Gate = fs.readFileSync(path.join(repositoryRoot, manifest.phase29Readiness.gateScript), 'utf8');
+const cutoverReadinessWorkflow = fs.readFileSync(path.join(repositoryRoot, manifest.phase29Readiness.workflow), 'utf8');
 
 requireGate(manifest.schemaVersion === 2, 'recovery manifest schema is pinned');
 requireGate(manifest.repository === 'RewitzerTS/RaceControlCenter', 'recovery repository is exact');
@@ -49,6 +51,8 @@ requireGate(manifest.v2ZeroStateReplay.publicTableCount === manifest.v2ZeroState
 requireGate(Object.values(manifest.cutoverGates).every((value) => value === false), 'cutover and V1 shutdown stay denied');
 requireGate(manifest.phaseProgress.phase29TrafficStatus === 'locked' && manifest.phaseProgress.phase30RetirementStatus === 'locked', 'Phase 29 traffic and Phase 30 retirement remain locked');
 requireGate(Boolean(manifest.phaseProgress.phase29PreparationStartedAt) && Boolean(manifest.phaseProgress.phase30PreservationStartedAt), 'Phase 29 and Phase 30 safe preparation has started');
+requireGate(manifest.phase29Readiness.mode === 'readiness-only' && manifest.phase29Readiness.productionTrafficChangeAllowed === false, 'Phase 29 automation is readiness-only');
+requireGate(manifest.phase30Preservation.v1DeletionAllowed === false && manifest.phase30Preservation.v1PauseAllowed === false && manifest.phase30Preservation.recoveryBranchRequired === true, 'Phase 30 preserves an active recoverable V1');
 
 requireGate(backupWorkflow.includes("cron: '17 2 * * *'") && backupWorkflow.includes('RACEVORA_BACKUPS_ENABLED'), 'scheduled backup definition remains guarded and present');
 requireGate(backupWorkflow.includes('--cipher-algo AES256') && backupWorkflow.includes('sha256sum'), 'backup encryption and checksum controls remain present');
@@ -62,6 +66,8 @@ requireGate(restoreScript.includes('Auth user, identity or credential recovery e
 requireGate(storageRestoreScript.includes("expectedTargetRef = 'lugedxtmfitxrkacmjpb'") && storageRestoreScript.includes("`${bucketPath}/empty`") && storageRestoreScript.includes('sha256(restored)'), 'Storage restore resets only the drill target and verifies downloaded object hashes');
 requireGate(restoreRunbook.includes('getrennten nichtproduktiven Supabase-Projekt') && restoreRunbook.includes('rcc'), 'runbook requires an isolated restore target and protects rcc');
 requireGate(externalConfigChecklist.includes('RESTORE_DRILL_SECRET_KEY') && externalConfigChecklist.includes('Keep Phase 29 traffic'), 'external configuration remains an explicit fail-closed recovery gate');
+requireGate(phase2930Gate.includes('phase29Authorized === false') && phase2930Gate.includes('v1ShutdownAllowed === false'), 'Phase 29/30 code denies cutover and V1 shutdown by default');
+requireGate(cutoverReadinessWorkflow.includes('npm run deploy -- --dry-run') && !cutoverReadinessWorkflow.includes('cloudflare/wrangler-action'), 'cutover readiness builds without deploying');
 
 requireGate(/Status: complete\./.test(phase27), 'Phase 27 Beta is closed before Phase 28 advances');
 requireGate(phase28.includes('Phase 29') && phase28.includes('Phase 30') && phase28.includes('remain locked'), 'Phase 28 documents both downstream locks');
