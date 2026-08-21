@@ -1,9 +1,10 @@
 import { type FormEvent, useState } from 'react';
 import { Navigate, NavLink } from 'react-router-dom';
+import type { AppEnvironment } from '../config/environment';
 import { useI18n } from '../i18n/I18nProvider';
 import { useAuth } from './AuthProvider';
 
-export function AuthLinkPage({ mode }: { mode: 'confirm' | 'reset' }) {
+export function AuthLinkPage({ appEnvironment, mode }: { appEnvironment: AppEnvironment; mode: 'confirm' | 'reset' }) {
   const { loading, signOut, updatePassword, user } = useAuth();
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
@@ -28,13 +29,14 @@ export function AuthLinkPage({ mode }: { mode: 'confirm' | 'reset' }) {
   }
 
   const title = mode === 'confirm' ? t('beta.confirmLinkTitle') : t('beta.resetTitle');
+  const production = appEnvironment === 'production';
   return (
     <main className="beta-access dashboard-shell" id="main-content">
       <div className="beta-dashboard-grid">
         <section className="beta-access-intro hero-main">
-          <p className="hero-kicker">{t('beta.action')}</p>
+          <p className="hero-kicker">{t(production ? 'beta.productionAction' : 'beta.action')}</p>
           <h1>{title}</h1>
-          <p>{mode === 'confirm' ? t('beta.confirmLinkCopy') : t('beta.resetCopy')}</p>
+          <p>{mode === 'confirm' ? t('beta.confirmLinkCopy') : t(production ? 'beta.productionResetCopy' : 'beta.resetCopy')}</p>
         </section>
         <section className="beta-access-form hero-side" aria-live="polite">
           {loading && <p>{t('pending')}</p>}
@@ -50,7 +52,7 @@ export function AuthLinkPage({ mode }: { mode: 'confirm' | 'reset' }) {
           )}
           {feedback === 'complete' && <p className="beta-feedback" role="status">{t('beta.resetComplete')}</p>}
           {feedback === 'error' && <p className="beta-feedback beta-feedback--error" role="alert">{t('beta.error')}</p>}
-          {!loading && <NavLink className="text-action" to="/beta">{t('beta.backToAccess')}</NavLink>}
+          {!loading && <NavLink className="text-action" to="/beta">{t(production ? 'beta.productionBackToAccess' : 'beta.backToAccess')}</NavLink>}
         </section>
       </div>
     </main>

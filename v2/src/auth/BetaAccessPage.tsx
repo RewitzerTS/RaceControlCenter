@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { Navigate, NavLink } from 'react-router-dom';
+import type { AppEnvironment } from '../config/environment';
 import { useI18n } from '../i18n/I18nProvider';
 import { useAuth } from './AuthProvider';
 import { TurnstileWidget } from './TurnstileWidget';
@@ -7,7 +8,7 @@ import { TurnstileWidget } from './TurnstileWidget';
 type AccessMode = 'sign-in' | 'sign-up' | 'recovery';
 type Feedback = 'captcha' | 'confirmation' | 'error' | 'recovery' | null;
 
-export function BetaAccessPage() {
+export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironment }) {
   const { captcha, loading: authLoading, requestPasswordRecovery, signIn, signUp, user } = useAuth();
   const { t } = useI18n();
   const [mode, setMode] = useState<AccessMode>('sign-up');
@@ -48,8 +49,15 @@ export function BetaAccessPage() {
     }
   }
 
-  const titleKey = mode === 'sign-up' ? 'beta.signUpTitle' : mode === 'sign-in' ? 'beta.signInTitle' : 'beta.recoveryTitle';
-  const submitKey = mode === 'sign-up' ? 'beta.signUp' : mode === 'sign-in' ? 'beta.signIn' : 'beta.recoverySubmit';
+  const production = appEnvironment === 'production';
+  const titleKey = mode === 'sign-up'
+    ? production ? 'beta.productionSignUpTitle' : 'beta.signUpTitle'
+    : mode === 'sign-in'
+      ? production ? 'beta.productionSignInTitle' : 'beta.signInTitle'
+      : 'beta.recoveryTitle';
+  const submitKey = mode === 'sign-up'
+    ? production ? 'beta.productionSignUp' : 'beta.signUp'
+    : mode === 'sign-in' ? 'beta.signIn' : 'beta.recoverySubmit';
 
   function changeMode(nextMode: AccessMode) {
     setFeedback(null);
@@ -62,21 +70,21 @@ export function BetaAccessPage() {
       <div className="beta-dashboard-grid">
       <section className="beta-access-intro hero-main" aria-labelledby="beta-access-title">
         <div className="hero-topline">
-          <p className="hero-kicker">{t('beta.kicker')}</p>
-          <span className="live-badge">V2 Beta</span>
+          <p className="hero-kicker">{t(production ? 'beta.productionKicker' : 'beta.kicker')}</p>
+          <span className="live-badge">{production ? 'V2' : 'V2 Beta'}</span>
         </div>
         <h1 id="beta-access-title">{t(titleKey)}</h1>
-        <p className="hero-subcopy">{t('beta.copy')}</p>
+        <p className="hero-subcopy">{t(production ? 'beta.productionCopy' : 'beta.copy')}</p>
         <div className="beta-safety-note">
-          <strong>{t('protectedCopy')}</strong>
-          <span>{t('isolationDetails', { projectRef: 'staging' })}</span>
+          <strong>{t(production ? 'productionProtectedCopy' : 'protectedCopy')}</strong>
+          <span>{production ? t('productionDetails') : t('isolationDetails', { projectRef: 'staging' })}</span>
         </div>
         <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}<span aria-hidden="true">→</span></NavLink>
       </section>
 
       <form className="beta-access-form hero-side" onSubmit={(event) => void submit(event)}>
         <div className="beta-form-heading">
-          <p className="hero-kicker">{t('beta.action')}</p>
+          <p className="hero-kicker">{t(production ? 'beta.productionAction' : 'beta.action')}</p>
           <h2>{t(titleKey)}</h2>
         </div>
         <label htmlFor="beta-email">{t('beta.email')}</label>
@@ -107,7 +115,11 @@ export function BetaAccessPage() {
 
         {feedback && (
           <p className={feedback === 'error' || feedback === 'captcha' ? 'beta-feedback beta-feedback--error' : 'beta-feedback'} role={feedback === 'error' || feedback === 'captcha' ? 'alert' : 'status'}>
-            {t(feedback === 'confirmation' ? 'beta.confirmation' : feedback === 'recovery' ? 'beta.recoverySent' : feedback === 'captcha' ? 'beta.captchaRequired' : 'beta.error')}
+            {t(feedback === 'confirmation'
+              ? production ? 'beta.productionConfirmation' : 'beta.confirmation'
+              : feedback === 'recovery'
+                ? production ? 'beta.productionRecoverySent' : 'beta.recoverySent'
+                : feedback === 'captcha' ? 'beta.captchaRequired' : 'beta.error')}
           </p>
         )}
 
@@ -115,8 +127,8 @@ export function BetaAccessPage() {
           {busy ? t('pending') : t(submitKey)}
         </button>
         <div className="beta-mode-actions">
-          {mode !== 'sign-in' && <button className="text-action beta-mode" disabled={busy} onClick={() => changeMode('sign-in')} type="button">{t('beta.haveAccount')}</button>}
-          {mode !== 'sign-up' && <button className="text-action beta-mode" disabled={busy} onClick={() => changeMode('sign-up')} type="button">{t('beta.needAccount')}</button>}
+          {mode !== 'sign-in' && <button className="text-action beta-mode" disabled={busy} onClick={() => changeMode('sign-in')} type="button">{t(production ? 'beta.productionHaveAccount' : 'beta.haveAccount')}</button>}
+          {mode !== 'sign-up' && <button className="text-action beta-mode" disabled={busy} onClick={() => changeMode('sign-up')} type="button">{t(production ? 'beta.productionNeedAccount' : 'beta.needAccount')}</button>}
           {mode !== 'recovery' && <button className="text-action beta-mode" disabled={busy} onClick={() => changeMode('recovery')} type="button">{t('beta.forgotPassword')}</button>}
         </div>
       </form>

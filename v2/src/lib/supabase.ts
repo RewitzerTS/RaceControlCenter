@@ -6,7 +6,10 @@ export type LeagueSupabaseClient = SupabaseClient<Database>;
 
 const LEAGUE_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-export function createLeagueRequestHeaders(leagueSlug: string): Record<string, string> {
+export function createLeagueRequestHeaders(
+  leagueSlug: string,
+  appEnvironment: RuntimeEnvironment['appEnvironment'] = 'staging',
+): Record<string, string> {
   const normalizedSlug = leagueSlug.trim().toLowerCase();
   if (!LEAGUE_SLUG_PATTERN.test(normalizedSlug)) {
     throw new Error('Invalid league slug for the tenant request header.');
@@ -14,7 +17,7 @@ export function createLeagueRequestHeaders(leagueSlug: string): Record<string, s
 
   return {
     'x-rcc-league-slug': normalizedSlug,
-    'x-racevora-client': 'v2-staging',
+    'x-racevora-client': `v2-${appEnvironment}`,
   };
 }
 
@@ -27,7 +30,7 @@ export function createLeagueClient(environment: RuntimeEnvironment, leagueSlug: 
       storageKey: `racevora-v2:${environment.supabaseProjectRef}:auth`,
     },
     global: {
-      headers: createLeagueRequestHeaders(leagueSlug),
+      headers: createLeagueRequestHeaders(leagueSlug, environment.appEnvironment),
     },
   });
 }

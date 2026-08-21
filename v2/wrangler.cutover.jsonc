@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "racevora-v2-production",
+  "compatibility_date": "2026-08-20",
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "racevora.com/*",
+      "zone_name": "racevora.com"
+    },
+    {
+      "pattern": "www.racevora.com/*",
+      "zone_name": "racevora.com"
+    }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

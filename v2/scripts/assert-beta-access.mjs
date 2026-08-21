@@ -24,15 +24,16 @@ requireGate(page.includes("role={feedback === 'error' || feedback === 'captcha' 
 requireGate(page.includes('<TurnstileWidget') && auth.includes('captchaToken') && environment.includes('VITE_AUTH_CAPTCHA_ENABLED'), 'target-configured CAPTCHA is wired into every public Auth operation');
 requireGate(turnstile.includes('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit') && turnstile.includes("'expired-callback'") && turnstile.includes("'error-callback'"), 'Turnstile loads from the canonical origin and invalidates expired or failed tokens');
 requireGate(turnstile.includes('role="group"') && turnstile.includes('aria-label="Cloudflare Turnstile"'), 'Turnstile container uses a valid labelled accessibility role');
-requireGate(auth.includes('/auth/confirm') && auth.includes('/auth/reset') && shell.includes('<Route path="/auth/confirm"') && shell.includes('<Route path="/auth/reset"'), 'confirmation and recovery redirects stay inside V2 Staging');
+requireGate(auth.includes('/auth/confirm') && auth.includes('/auth/reset') && shell.includes('<Route path="/auth/confirm"') && shell.includes('<Route path="/auth/reset"'), 'confirmation and recovery redirects stay inside the active V2 target');
 requireGate(authLink.includes('autoComplete="new-password"') && authLink.includes('minLength={8}') && !authLink.includes('error.message'), 'password reset has accessible validation and hides raw errors');
-requireGate(shell.includes('<Route path="/beta" element={<BetaAccessPage />} />'), 'Beta route is registered');
+requireGate(shell.includes('<Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />'), 'environment-aware access route is registered');
 requireGate(shell.includes('htmlFor="language-selector"') && shell.includes('name="language"'), 'topbar language field has a stable label and name');
 requireGate(home.includes('to="/beta"') && shell.includes('to="/beta"'), 'signed-out Home and topbar expose Beta access');
 requireGate(shell.includes("assets/images/logo.png") && shell.includes('className="site-header"') && shell.includes('brand-title'), 'V1 tenant branding and horizontal product header are retained');
 requireGate(!shell.includes('className="app-rail"') && !shell.includes('className="brand-symbol"'), 'the divergent V2 rail and placeholder logo are absent');
 requireGate(shell.includes('status-strip v2-status-strip') && page.includes('beta-dashboard-grid'), 'V1 dashboard geometry is retained for the Beta entry');
 requireGate((messages.match(/"beta\.action"/g) ?? []).length === 4, 'Beta access copy exists in all four languages');
+requireGate((messages.match(/"beta\.productionAction"/g) ?? []).length === 4, 'Production access copy exists in all four languages');
 
 if (failures.length) {
   throw new Error(`Phase 27 Beta Access failed: ${failures.join(', ')}`);

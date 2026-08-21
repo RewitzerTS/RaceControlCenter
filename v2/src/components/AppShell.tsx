@@ -184,9 +184,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/career" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />
-          <Route path="/beta" element={<BetaAccessPage />} />
-          <Route path="/auth/confirm" element={<AuthLinkPage mode="confirm" />} />
-          <Route path="/auth/reset" element={<AuthLinkPage mode="reset" />} />
+          <Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
+          <Route path="/auth/confirm" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="confirm" />} />
+          <Route path="/auth/reset" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="reset" />} />
           <Route path="/stewarding" element={accessLoading ? <main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main> : canSteward ? <Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin" element={accessLoading ? <main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/graphics" element={accessLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />

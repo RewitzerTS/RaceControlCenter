@@ -12,6 +12,13 @@ describe('createLeagueRequestHeaders', () => {
     expect(headers).not.toHaveProperty('x-racevora-league');
   });
 
+  it('identifies production requests without changing the tenant header', () => {
+    expect(createLeagueRequestHeaders('rcc', 'production')).toEqual({
+      'x-rcc-league-slug': 'rcc',
+      'x-racevora-client': 'v2-production',
+    });
+  });
+
   it.each(['', 'demo_league', 'demo/league', 'demo?league=other'])('rejects invalid tenant slugs: %s', (slug) => {
     expect(() => createLeagueRequestHeaders(slug)).toThrow(/invalid league slug/i);
   });
