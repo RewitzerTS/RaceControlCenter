@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 2,
-  "capturedAt": "2026-08-21",
+  "schemaVersion": 3,
+  "capturedAt": "2026-08-22",
   "repository": "RewitzerTS/RaceControlCenter",
   "v1Code": {
     "productionBranch": "main",
@@ -15,6 +15,20 @@
     "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
     "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/50e6f76239915a25d1b0e932b8ee9bc33b394467",
     "stagingUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
+  },
+  "v2ProductionRelease": {
+    "sourceBranch": "v2-development",
+    "releaseBranch": "release/v2-r10-production-cutover",
+    "releaseCommit": "2ea5030ceba2343698cddb1ebaa7b4f669a1720a",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/2ea5030ceba2343698cddb1ebaa7b4f669a1720a",
+    "cloudflareWorker": "racevora-v2-production",
+    "cloudflareVersionId": "a9f1791b-fcb9-44a0-86ef-e3d72021f5a6",
+    "workerUrl": "https://racevora-v2-production.richard-rewitzerzwhe.workers.dev",
+    "productionUrls": [
+      "https://racevora.com",
+      "https://www.racevora.com"
+    ],
+    "activatedAt": "2026-08-21T22:24:00Z"
   },
   "v1Data": {
     "productionProjectRef": "kjccstcbqygxuqkvdaqw",
@@ -100,11 +114,14 @@
   },
   "phaseProgress": {
     "phase29PreparationStartedAt": "2026-08-21",
-    "phase29TrafficStatus": "locked",
+    "phase29TrafficStatus": "v2-active",
+    "phase29AuthorizedAt": "2026-08-21T22:22:00Z",
+    "phase29CutoverCompletedAt": "2026-08-21T22:24:00Z",
     "phase30PreservationStartedAt": "2026-08-21",
     "phase30OwnerApprovalReceivedAt": "2026-08-21T21:22:07Z",
     "phase30PreservationCompletedAt": "2026-08-21T21:22:07Z",
-    "phase30RetirementStatus": "locked"
+    "phase30RetirementStatus": "reversible-operational-retirement-complete",
+    "phase30RetirementCompletedAt": "2026-08-21T22:30:00Z"
   },
   "phase29Readiness": {
     "mode": "readiness-only",
@@ -233,11 +250,30 @@
   "phase30Preservation": {
     "ownerApprovalReceived": true,
     "ownerApprovalReceivedAt": "2026-08-21T21:22:07Z",
-    "preservationStatus": "complete-retirement-waiting-for-v2-production-observation",
+    "preservationStatus": "complete-v1-retained-for-rollback",
     "v1DeletionAllowed": false,
     "v1PauseAllowed": false,
     "recoveryBranchRequired": true,
-    "productionObservationWindowComplete": false,
+    "productionObservationWindowComplete": true,
+    "productionObservation": {
+      "startedAt": "2026-08-21T22:24:00Z",
+      "completedAt": "2026-08-21T22:30:00Z",
+      "scope": "initial cutover observation; continued operational monitoring remains active",
+      "coreRoutesPassed": 9,
+      "http5xxObserved": 0,
+      "normalNavigationConsoleErrors": 0,
+      "mobileFast4gCpu4x": {
+        "lcpMs": 833,
+        "ttfbMs": 54,
+        "cls": 0
+      },
+      "mobileLighthouse": {
+        "accessibilityScore": 100,
+        "bestPracticesScore": 92,
+        "seoScore": 100,
+        "cspSelfTestInterferenceReviewed": true
+      }
+    },
     "recoveryBranchVerification": {
       "verifiedAt": "2026-08-21T21:17:00Z",
       "branch": "recovery/v1-production-2026-08-21",
@@ -277,9 +313,54 @@
       "productionWritePerformed": false
     }
   },
+  "phase29Cutover": {
+    "status": "complete",
+    "routingMethod": "Cloudflare Worker route overlay",
+    "routes": [
+      "racevora.com/*",
+      "www.racevora.com/*"
+    ],
+    "rollback": "Deploy wrangler.production.jsonc for racevora-v2-production without route triggers; the preserved V1 custom-domain Worker resumes traffic.",
+    "liveRouteStatuses": {
+      "/": 200,
+      "/beta": 200,
+      "/racing": 200,
+      "/notifications": 200,
+      "/impressum.html": 200,
+      "/datenschutz.html": 200,
+      "/agb.html": 200,
+      "/widerruf.html": 200,
+      "/robots.txt": 200
+    },
+    "wwwCanonicalRedirectVerified": true,
+    "protectedRccParity": {
+      "v1": {
+        "leagues": 1,
+        "seasons": 1,
+        "races": 24,
+        "drivers": 20,
+        "raceResults": 451
+      },
+      "v2": {
+        "leagues": 1,
+        "seasons": 1,
+        "races": 24,
+        "drivers": 20,
+        "raceResults": 451
+      },
+      "matched": true,
+      "v1WritePerformed": false
+    },
+    "apiLogSample": {
+      "entries": 100,
+      "success200": 99,
+      "expected401": 1,
+      "http5xx": 0
+    }
+  },
   "cutoverGates": {
-    "phase29Authorized": false,
-    "phase30Authorized": false,
+    "phase29Authorized": true,
+    "phase30Authorized": true,
     "v1ShutdownAllowed": false
   }
 }
