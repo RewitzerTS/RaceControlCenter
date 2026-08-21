@@ -115,35 +115,35 @@ if ! [[ "$expected_auth_users" =~ ^[0-9]+$ && "$expected_auth_identities" =~ ^[0
   exit 1
 fi
 
-# Supabase CLI data dumps can contain managed Auth COPY blocks even though Auth
-# is restored and verified separately below. Remove only those table-data
-# blocks from the disposable copy used by this drill. Keeping the original
-# checksum-verified data.sql untouched preserves the backup evidence.
+# Supabase CLI data dumps can contain managed Auth and Storage COPY blocks even
+# though both are restored and verified separately below. Remove only those
+# table-data blocks from the disposable copy used by this drill. Keeping the
+# original checksum-verified data.sql untouched preserves the backup evidence.
 portable_data="$restore_root/portable-data.sql"
 awk '
-  BEGIN { skip_auth_copy = 0 }
-  skip_auth_copy {
+  BEGIN { skip_managed_copy = 0 }
+  skip_managed_copy {
     if ($0 == "\\.") {
-      skip_auth_copy = 0
+      skip_managed_copy = 0
     }
     next
   }
-  /^COPY[[:space:]]+(auth\.|"auth"\.)/ {
-    skip_auth_copy = 1
+  /^COPY[[:space:]]+((auth|storage)\.|"(auth|storage)"\.)/ {
+    skip_managed_copy = 1
     next
   }
   { print }
   END {
-    if (skip_auth_copy) {
+    if (skip_managed_copy) {
       exit 42
     }
   }
 ' "$backup_dir/data.sql" > "$portable_data" || {
-  echo '::error::Could not isolate managed Auth COPY data from the portable database restore.' >&2
+  echo '::error::Could not isolate managed Auth/Storage COPY data from the portable database restore.' >&2
   exit 1
 }
-if grep -Eq '^COPY[[:space:]]+(auth\.|"auth"\.)' "$portable_data"; then
-  echo '::error::Portable database restore still contains managed Auth table data.' >&2
+if grep -Eq '^COPY[[:space:]]+((auth|storage)\.|"(auth|storage)"\.)' "$portable_data"; then
+  echo '::error::Portable database restore still contains managed Auth/Storage table data.' >&2
   exit 1
 fi
 
