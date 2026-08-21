@@ -13,6 +13,7 @@ on:
       - '.github/workflows/encrypted-offsite-backup.yml'
       - 'scripts/backup-supabase.sh'
       - 'scripts/backup-public-storage.py'
+      - 'scripts/restore-public-storage.mjs'
       - 'docs/operations-runbook.md'
   push:
     branches:
@@ -21,6 +22,7 @@ on:
       - '.github/workflows/encrypted-offsite-backup.yml'
       - 'scripts/backup-supabase.sh'
       - 'scripts/backup-public-storage.py'
+      - 'scripts/restore-public-storage.mjs'
   schedule:
     - cron: '17 2 * * *'
 
@@ -48,11 +50,15 @@ jobs:
           workflow='.github/workflows/encrypted-offsite-backup.yml'
           bash -n scripts/backup-supabase.sh
           python3 -m py_compile scripts/backup-public-storage.py
+          node --check scripts/restore-public-storage.mjs
           grep -Fq "RACEVORA_BACKUPS_ENABLED == 'true'" "$workflow"
           grep -Fq 'supabase/setup-cli@v3' "$workflow"
           grep -Fq 'racevora-backups' "$workflow"
           grep -Fq '.eu.r2.cloudflarestorage.com' "$workflow"
           grep -Fq 'awscli.amazonaws.com' "$workflow"
+          grep -Fq 'auth-data.dump' scripts/backup-supabase.sh
+          grep -Fq 'backup-format-version.txt' scripts/backup-supabase.sh
+          grep -Fq 'postgres:17' scripts/backup-supabase.sh
 
           artifact_action='actions/upload''-artifact'
           elevated_service_key='SUPABASE_SERVICE''_ROLE_KEY'

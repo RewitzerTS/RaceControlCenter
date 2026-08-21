@@ -59,7 +59,7 @@ def safe_target(root: Path, bucket: str, object_name: str) -> Path:
     return target
 
 
-def download_object(bucket: str, object_name: str, target: Path) -> dict:
+def download_object(bucket: str, object_name: str, content_type: str | None, target: Path) -> dict:
     bucket_url = quote(bucket, safe="")
     object_url = quote(object_name, safe="/")
     url = f"{SUPABASE_URL}/storage/v1/object/public/{bucket_url}/{object_url}"
@@ -85,6 +85,7 @@ def download_object(bucket: str, object_name: str, target: Path) -> dict:
         "name": object_name,
         "bytes": size,
         "sha256": digest.hexdigest(),
+        "contentType": content_type or "application/octet-stream",
     }
 
 
@@ -105,7 +106,13 @@ def main() -> int:
         db_url,
         """
         select coalesce(
-          json_agg(json_build_object('id', id, 'name', name, 'public', public) order by name),
+          json_agg(json_build_object(
+            'id', id,
+            'name', name,
+            'public', public,
+            'fileSizeLimit', file_size_limit,
+            'allowedMimeTypes', allowed_mime_types
+          ) order by name),
           '[]'::json
         )::text
         from storage.buckets;
@@ -125,7 +132,11 @@ def main() -> int:
         db_url,
         """
         select coalesce(
-          json_agg(json_build_object('bucket', bucket_id, 'name', name) order by bucket_id, name),
+          json_agg(json_build_object(
+            'bucket', bucket_id,
+            'name', name,
+            'contentType', metadata ->> 'mimetype'
+          ) order by bucket_id, name),
           '[]'::json
         )::text
         from storage.objects;
@@ -143,14 +154,14 @@ def main() -> int:
         bucket = str(item["bucket"])
         object_name = str(item["name"])
         target = safe_target(storage_root, bucket, object_name)
-        manifest.append(download_object(bucket, object_name, target))
-        print(f"Backed up Storage object: {bucket}/{object_name}")
+        content_type = item.get("contentType")
+        manifest.append(download_object(bucket, object_name, content_type, target))
 
     (output_dir / "storage-manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(f"Storage backup completed: {len(manifest)} object(s).")
+    print(f"Storage backup completed: {len(buckets)} bucket(s), {len(manifest)} object(s).")
     return 0
 
 

@@ -58,7 +58,7 @@ Wenn dieser Backup-Rhythmus betrieblich nicht verlaesslich eingehalten werden ka
 
 ## 6. Logisches Datenbankbackup
 
-Supabase empfiehlt fuer einen portablen logischen Export getrennte Dumps fuer Rollen, Schema und Daten. Verbindung immer ueber einen lokal gesetzten Secret-Wert bereitstellen, zum Beispiel `SUPABASE_DB_URL`; den Wert niemals committen.
+Supabase empfiehlt fuer einen portablen logischen Export getrennte Dumps fuer Rollen, Schema und Daten. Verbindung immer ueber einen lokal gesetzten Secret-Wert bereitstellen, zum Beispiel `SUPABASE_DB_URL`; den Wert niemals committen. Der Standard-Dump schliesst verwaltete Auth-Daten aus. RaceVora Backup-Format 2 ergaenzt deshalb innerhalb desselben spaeter verschluesselten Archivs einen separaten PostgreSQL-17-Datenexport von `auth` sowie aggregierte Wiederherstellungsnachweise.
 
 Aktueller offizieller Grundablauf:
 
@@ -70,7 +70,7 @@ supabase db dump --db-url "$SUPABASE_DB_URL" -f data.sql --use-copy --data-only 
 
 Die erzeugten Dateien muessen nach dem Export in einen verschluesselten Off-Site-Speicher verschoben werden. Sie duerfen nicht in dieses Git-Repository eingecheckt werden.
 
-Wichtig: Ein Standard-CLI-Dump ist kein Ersatz fuer einen vollstaendigen Supabase-Projektklon. Auth-Konfiguration, API-Keys, Edge Functions, Realtime-/Projektsettings und Storage-Objekte muessen im Disaster-Recovery-Plan separat beruecksichtigt werden.
+Wichtig: Auch Backup-Format 2 ist kein vollstaendiger Supabase-Projektklon. Auth-/Projektkonfiguration, API-Keys, Edge Functions, Realtime-Einstellungen und Secrets muessen anhand der separaten Checkliste neu gesetzt und validiert werden. Alte Sessions werden nicht als Recovery-Ziel betrachtet; das Zielprojekt behaelt sein eigenes JWT-Secret und verlangt eine erneute Anmeldung.
 
 ## 7. Supabase Storage
 
@@ -132,6 +132,8 @@ psql \
 
 Dieser Ablauf darf nicht blind gegen die Produktion ausgefuehrt werden. Vorher muessen Zielprojekt, Extensions, Migration History, Auth-/Storage-Sonderfaelle und erforderliche Projektkonfigurationen geprueft werden.
 
+Bei einem Restore in ein anderes **Hosted Supabase**-Projekt werden die geschuetzten Plattformrollen des Zielprojekts beibehalten. `roles.sql` wird auf Integritaet geprueft, aber nicht gegen die von Supabase verwalteten Rollen eingespielt. Schema und Daten werden danach transaktional restauriert.
+
 ## 11. Recovery-Drill
 
 Vor einer breit beworbenen Self-Service-Beta sollte mindestens einmal ein kontrollierter Disaster-Recovery-Drill in einer nichtproduktiven Umgebung erfolgen:
@@ -144,3 +146,21 @@ Vor einer breit beworbenen Self-Service-Beta sollte mindestens einmal ein kontro
 - `rcc` niemals als destruktives Testziel verwenden.
 
 Danach den tatsaechlichen RPO/RTO und fehlende manuelle Schritte in diesem Runbook nachtragen.
+
+### Drill-Ergebnis 21.08.2026
+
+- Ziel: separates Projekt `lugedxtmfitxrkacmjpb`; Produktion wurde nicht verbunden oder veraendert.
+- Quelle: verschluesseltes Backup vom `2026-08-17T23:05:08Z`; beide SHA-256-Ebenen erfolgreich geprueft.
+- Datenbank-Restore: ca. 105 Sekunden bis PASS; 5 Ligen, genau ein `rcc`, 27 Tabellen und 27/27 RLS.
+- Beobachtetes RPO beim Drill: 3 Tage, 12 Stunden, 55 Minuten, 32 Sekunden. Dieser Wert ist fuer einen spaeteren Cutover zu alt und verlangt einen frischeren Backup-Punkt.
+- Auth: 9 Benutzer im Ziel beobachtet, aber der V1-Identitaets-/Credential-Restore ist damit nicht bewiesen.
+- Storage: 6 Dateien im verschluesselten Archiv vorhanden (2 Metadaten- und 4 Objektdateien), aber noch nicht in Ziel-Buckets zurueckgespielt.
+- Ergebnis: logische V1-Datenbankwiederherstellung verifiziert; vollstaendiger Disaster-Recovery-Gate bleibt bis Auth-, Storage- und Projektkonfigurations-Test offen.
+
+### Vorbereiteter Voll-Drill
+
+- Ein neuer Backup-Lauf erzeugt Format 2 mit `auth-data.dump`, aggregiertem Auth-Nachweis und den Storage-Objekten im verschluesselten Archiv.
+- Der Restore akzeptiert ausschliesslich das dedizierte Ziel `lugedxtmfitxrkacmjpb` und lehnt Produktion sowie Beta Staging ab.
+- Auth-Schema und Plattformmigrationen des Zielprojekts bleiben verwaltet; Auth-Tabellendaten werden im dedizierten Ziel zurueckgesetzt und eingespielt. Nutzer-/Identity-Anzahlen und Credential-Fingerprint muessen exakt uebereinstimmen.
+- Storage-Buckets im dedizierten Ziel werden gegen das Inventar abgeglichen, neu erstellt und jedes Objekt nach dem Upload erneut heruntergeladen und per SHA-256 geprueft.
+- Externe Konfiguration wird ohne Secret-Werte anhand von `docs/v2/v1-external-config-checklist.md` geprueft.
