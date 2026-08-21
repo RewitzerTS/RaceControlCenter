@@ -96,10 +96,13 @@ requireGate(stagingConfig.edgeFunctionCount === 0 && stagingConfig.realtimePubli
 requireGate(manifest.phase30Preservation.v1DeletionAllowed === false, 'V1 deletion remains denied');
 requireGate(manifest.phase30Preservation.v1PauseAllowed === false, 'V1 pause remains denied');
 requireGate(manifest.phase30Preservation.recoveryBranchRequired === true, 'V1 recovery branch must be retained');
+requireGate(manifest.phase30Preservation.ownerApprovalReceived === true && manifest.phase30Preservation.preservationStatus === 'complete-retirement-waiting-for-v2-production-observation', 'Phase 30 approval completed preservation without bypassing observation');
+requireGate(manifest.phase30Preservation.productionObservationWindowComplete === false && manifest.cutoverGates.v1ShutdownAllowed === false, 'missing V2 Production observation keeps V1 shutdown fail-closed');
+requireGate(manifest.phase30Preservation.latestEncryptedOffsiteBackup.status === 'success' && manifest.phase30Preservation.latestEncryptedOffsiteBackup.euR2UploadVerified === true, 'fresh Phase 30 off-site backup evidence is pinned');
 
 requireGate(/^Status: preparation in progress\. Traffic cutover: locked\./m.test(phase29), 'Phase 29 document keeps traffic locked');
 requireGate(phase29.includes('readiness-only') && phase29.includes('no DNS, route or production deployment'), 'Phase 29 documents the non-deploying gate');
-requireGate(/^Status: preservation in progress\. V1 retirement: locked\./m.test(phase30), 'Phase 30 document keeps retirement locked');
+requireGate(/^Status: preservation complete\. V1 retirement: locked\./m.test(phase30), 'Phase 30 document keeps retirement locked after preservation');
 requireGate(phase30.includes('No automated job may pause or delete V1'), 'Phase 30 documents the automation prohibition');
 
 requireGate(readinessWorkflow.includes('permissions:\n  contents: read'), 'readiness workflow is read-only');

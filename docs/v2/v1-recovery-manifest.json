@@ -102,6 +102,8 @@
     "phase29PreparationStartedAt": "2026-08-21",
     "phase29TrafficStatus": "locked",
     "phase30PreservationStartedAt": "2026-08-21",
+    "phase30OwnerApprovalReceivedAt": "2026-08-21T21:22:07Z",
+    "phase30PreservationCompletedAt": "2026-08-21T21:22:07Z",
     "phase30RetirementStatus": "locked"
   },
   "phase29Readiness": {
@@ -229,10 +231,51 @@
     }
   },
   "phase30Preservation": {
+    "ownerApprovalReceived": true,
+    "ownerApprovalReceivedAt": "2026-08-21T21:22:07Z",
+    "preservationStatus": "complete-retirement-waiting-for-v2-production-observation",
     "v1DeletionAllowed": false,
     "v1PauseAllowed": false,
     "recoveryBranchRequired": true,
-    "productionObservationWindowComplete": false
+    "productionObservationWindowComplete": false,
+    "recoveryBranchVerification": {
+      "verifiedAt": "2026-08-21T21:17:00Z",
+      "branch": "recovery/v1-production-2026-08-21",
+      "commit": "2da639e9b4907e226c1a2c9858320e4b73bebee0",
+      "remoteCommitMatched": true
+    },
+    "recoveryZip": {
+      "fileName": "RaceVora-V1-recovery-2da639e9b490.zip",
+      "bytes": 6836338,
+      "entryCount": 504,
+      "sha256": "5076DE7CCCD483685481F5680E1E65D892A10A0D26280E68E9A707E34E1A7132",
+      "verifiedAt": "2026-08-21T21:17:00Z"
+    },
+    "latestEncryptedOffsiteBackup": {
+      "workflowRunUrl": "https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32527928795",
+      "workflowRunId": 32527928795,
+      "repositoryCommit": "8bb9a621376989fa6614d4d1b6459affcea160d8",
+      "completedAt": "2026-08-21T21:21:11Z",
+      "status": "success",
+      "encryptedBytes": 709588,
+      "storageBuckets": 1,
+      "storageObjects": 4,
+      "euR2UploadVerified": true,
+      "localBackupMaterialRemoved": true
+    },
+    "livePreservationAudit": {
+      "verifiedAt": "2026-08-21T21:22:07Z",
+      "v1WorkerUrl": "https://racevora.com/",
+      "v1WorkerHealthy": true,
+      "v1ProjectRef": "kjccstcbqygxuqkvdaqw",
+      "v1ProjectStatus": "ACTIVE_HEALTHY",
+      "v2StagingProjectRef": "znnkwjogtvzwfkwnmawp",
+      "v2StagingProjectStatus": "ACTIVE_HEALTHY",
+      "protectedRccLeagueCount": 1,
+      "productionSecurityAdvisorErrorCount": 0,
+      "productionPerformanceAdvisorActionRequiredCount": 0,
+      "productionWritePerformed": false
+    }
   },
   "cutoverGates": {
     "phase29Authorized": false,

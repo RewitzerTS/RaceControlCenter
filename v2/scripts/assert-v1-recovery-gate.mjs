@@ -52,7 +52,12 @@ requireGate(Object.values(manifest.cutoverGates).every((value) => value === fals
 requireGate(manifest.phaseProgress.phase29TrafficStatus === 'locked' && manifest.phaseProgress.phase30RetirementStatus === 'locked', 'Phase 29 traffic and Phase 30 retirement remain locked');
 requireGate(Boolean(manifest.phaseProgress.phase29PreparationStartedAt) && Boolean(manifest.phaseProgress.phase30PreservationStartedAt), 'Phase 29 and Phase 30 safe preparation has started');
 requireGate(manifest.phase29Readiness.mode === 'readiness-only' && manifest.phase29Readiness.productionTrafficChangeAllowed === false, 'Phase 29 automation is readiness-only');
-requireGate(manifest.phase30Preservation.v1DeletionAllowed === false && manifest.phase30Preservation.v1PauseAllowed === false && manifest.phase30Preservation.recoveryBranchRequired === true, 'Phase 30 preserves an active recoverable V1');
+requireGate(manifest.phase30Preservation.ownerApprovalReceived === true && manifest.phase30Preservation.preservationStatus === 'complete-retirement-waiting-for-v2-production-observation', 'Phase 30 owner approval and completed preservation are recorded');
+requireGate(manifest.phase30Preservation.v1DeletionAllowed === false && manifest.phase30Preservation.v1PauseAllowed === false && manifest.phase30Preservation.recoveryBranchRequired === true && manifest.phase30Preservation.productionObservationWindowComplete === false, 'Phase 30 preserves an active recoverable V1 until Production observation');
+requireGate(manifest.phase30Preservation.recoveryBranchVerification.remoteCommitMatched === true && manifest.phase30Preservation.recoveryBranchVerification.commit === manifest.v1Code.recoveryCommit, 'remote V1 recovery branch still matches the pinned commit');
+requireGate(manifest.phase30Preservation.recoveryZip.entryCount === 504 && manifest.phase30Preservation.recoveryZip.sha256 === '5076DE7CCCD483685481F5680E1E65D892A10A0D26280E68E9A707E34E1A7132', 'V1 recovery ZIP content and checksum are pinned');
+requireGate(manifest.phase30Preservation.latestEncryptedOffsiteBackup.status === 'success' && manifest.phase30Preservation.latestEncryptedOffsiteBackup.euR2UploadVerified === true && manifest.phase30Preservation.latestEncryptedOffsiteBackup.storageBuckets === 1 && manifest.phase30Preservation.latestEncryptedOffsiteBackup.storageObjects === 4, 'fresh encrypted V1 backup is verified in private EU R2');
+requireGate(manifest.phase30Preservation.livePreservationAudit.v1WorkerHealthy === true && manifest.phase30Preservation.livePreservationAudit.v1ProjectStatus === 'ACTIVE_HEALTHY' && manifest.phase30Preservation.livePreservationAudit.v2StagingProjectStatus === 'ACTIVE_HEALTHY' && manifest.phase30Preservation.livePreservationAudit.protectedRccLeagueCount === 1 && manifest.phase30Preservation.livePreservationAudit.productionWritePerformed === false, 'live Phase 30 audit preserves healthy V1, healthy Staging and exactly one rcc without Production writes');
 
 requireGate(backupWorkflow.includes("cron: '17 2 * * *'") && backupWorkflow.includes('RACEVORA_BACKUPS_ENABLED'), 'scheduled backup definition remains guarded and present');
 requireGate(backupWorkflow.includes('--cipher-algo AES256') && backupWorkflow.includes('sha256sum'), 'backup encryption and checksum controls remain present');
@@ -72,7 +77,7 @@ requireGate(cutoverReadinessWorkflow.includes('npm run deploy -- --dry-run') && 
 requireGate(/Status: complete\./.test(phase27), 'Phase 27 Beta is closed before Phase 28 advances');
 requireGate(phase28.includes('Phase 29') && phase28.includes('Phase 30') && phase28.includes('remain locked'), 'Phase 28 documents both downstream locks');
 requireGate(/^Status: preparation in progress\. Traffic cutover: locked\./m.test(phase29), 'Phase 29 preparation is active while traffic stays locked');
-requireGate(/^Status: preservation in progress\. V1 retirement: locked\./m.test(phase30), 'Phase 30 preservation is active while retirement stays locked');
+requireGate(/^Status: preservation complete\. V1 retirement: locked\./m.test(phase30), 'Phase 30 preservation is complete while retirement stays locked');
 requireGate(phase30.includes('V1 retirement is not deletion'), 'V1 retirement preserves the recovery surface');
 
 if (failures.length) {
