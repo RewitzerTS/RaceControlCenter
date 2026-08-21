@@ -12,6 +12,9 @@ on:
     paths:
       - '.github/workflows/v1-restore-drill.yml'
       - 'scripts/restore-v1-drill.sh'
+      - 'scripts/restore-public-storage.mjs'
+      - 'scripts/backup-supabase.sh'
+      - 'scripts/backup-public-storage.py'
       - 'docs/v2/**'
 
 permissions:
@@ -36,6 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/restore-v1-drill.sh
+          node --check scripts/restore-public-storage.mjs
           if grep -q $'\r' scripts/restore-v1-drill.sh; then
             echo 'Restore helper must use Unix LF line endings.' >&2
             exit 1
@@ -47,6 +51,10 @@ jobs:
           grep -Fq 'TARGET_DB_URL does not identify the dedicated restore-drill project' scripts/restore-v1-drill.sh
           grep -Fq 'verified roles.sql is not replayed' scripts/restore-v1-drill.sh
           grep -Fq 'protected rcc tenant is missing from restored data' scripts/restore-v1-drill.sh
+          grep -Fq 'auth-data.dump' scripts/restore-v1-drill.sh
+          grep -Fq 'Auth user, identity or credential recovery evidence does not match' scripts/restore-v1-drill.sh
+          grep -Fq "expectedTargetRef = 'lugedxtmfitxrkacmjpb'" scripts/restore-public-storage.mjs
+          grep -Fq "forbiddenRefs = ['kjccstcbqygxuqkvdaqw', 'znnkwjogtvzwfkwnmawp']" scripts/restore-public-storage.mjs
           forbidden_action='actions/upload''-artifact'
           if grep -Fq "$forbidden_action" .github/workflows/v1-restore-drill.yml; then
             echo 'Restore material must never be uploaded as a GitHub artifact.' >&2
@@ -60,6 +68,7 @@ jobs:
     timeout-minutes: 30
     env:
       TARGET_DB_URL: ${{ secrets.RESTORE_DRILL_DB_URL }}
+      TARGET_SUPABASE_SECRET_KEY: ${{ secrets.RESTORE_DRILL_SECRET_KEY }}
       R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       BACKUP_ENCRYPTION_PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
@@ -68,6 +77,14 @@ jobs:
       AWS_DEFAULT_REGION: auto
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - name: Install pinned Storage client
+        shell: bash
+        run: npm ci --prefix v2 --ignore-scripts
       - name: Install restore clients
         shell: bash
         run: |

@@ -22,7 +22,9 @@
     "backupWorkflow": ".github/workflows/encrypted-offsite-backup.yml",
     "restoreWorkflow": ".github/workflows/v1-restore-drill.yml",
     "restoreScript": "scripts/restore-v1-drill.sh",
+    "storageRestoreScript": "scripts/restore-public-storage.mjs",
     "restoreRunbook": "docs/operations-runbook.md",
+    "externalConfigChecklist": "docs/v2/v1-external-config-checklist.md",
     "restoreTargetPolicy": "separate-non-production-only",
     "restoreDrill": {
       "status": "database-verified-full-dr-required",
@@ -54,6 +56,17 @@
         "productionTouched": false,
         "stagingLifecycle": "paused-then-restored-active-healthy",
         "stagingDataReset": false
+      },
+      "fullRestorePreparation": {
+        "status": "ready-for-fresh-format-v2-backup",
+        "backupFormatVersion": 2,
+        "authDataArchive": "auth-data.dump",
+        "authEvidence": "aggregate-user-identity-counts-and-credential-fingerprint",
+        "storageRestore": "target-reset-upload-and-sha256-download-verification",
+        "targetProjectRef": "lugedxtmfitxrkacmjpb",
+        "requiredTargetSecret": "RESTORE_DRILL_SECRET_KEY",
+        "productionTouched": false,
+        "stagingPaused": false
       }
     }
   },

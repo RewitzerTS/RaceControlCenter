@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: in progress. The V1 code recovery point, clean V2 zero-state replay and encrypted V1 logical database restore are verified. Auth recovery and Storage object restore remain required before Production traffic may change.
+Status: in progress. The V1 code recovery point, clean V2 zero-state replay and encrypted V1 logical database restore are verified. Full Auth/Storage recovery automation is prepared but still requires a fresh format-v2 backup and an isolated execution before Production traffic may change.
 
 Production posture: V1 stays online. The productive `rcc` league remains unchanged and is never a restore-test target.
 
@@ -61,9 +61,9 @@ This proves the V2 schema can be reconstructed from the repository. The separate
 
 ## Prepared encrypted V1 restore automation
 
-The manual GitHub workflow `.github/workflows/v1-restore-drill.yml` and helper `scripts/restore-v1-drill.sh` provide the guarded data proof. They fail closed unless `RESTORE_DRILL_DB_URL` identifies the dedicated project `lugedxtmfitxrkacmjpb`, reject both Production and Beta Staging refs, download only the latest encrypted backup from the private EU R2 prefix, verify both checksum layers, decrypt in runner-temporary storage, retain the target-managed Hosted Supabase roles, restore schema/data in one transaction, require the restored `rcc` tenant, report aggregate counts only, and remove all local restore material. GitHub validation also rejects CRLF-contaminated restore helpers.
+The manual GitHub workflow `.github/workflows/v1-restore-drill.yml` and helpers `scripts/restore-v1-drill.sh` and `scripts/restore-public-storage.mjs` provide the guarded data proof. They fail closed unless `RESTORE_DRILL_DB_URL` identifies the dedicated project `lugedxtmfitxrkacmjpb`, reject both Production and Beta Staging refs, accept only a fresh recovery-format-v2 archive, verify both checksum layers, retain the target-managed Hosted Supabase schemas/roles, restore V1 Auth data and app schema/data, compare aggregate user/identity counts and a credential fingerprint, reset only the drill Storage buckets, upload all manifest objects, verify every object by download/SHA-256, require the restored `rcc` tenant, report aggregate counts only, and remove all local restore material. Old sessions are intentionally cleared so the target uses its own JWT secret and requires a fresh login. GitHub validation also rejects CRLF-contaminated restore helpers.
 
-The database URL remains only in the GitHub Actions secret `RESTORE_DRILL_DB_URL`; it is never posted in issues, logs, commits or chat.
+The database URL remains only in `RESTORE_DRILL_DB_URL`; the target-only Storage/Admin key remains only in `RESTORE_DRILL_SECRET_KEY`. Neither is posted in issues, logs, commits or chat.
 
 ## Verified encrypted V1 database restore
 
@@ -77,18 +77,21 @@ Recorded evidence:
 - 5 restored leagues, including exactly one `rcc` tenant;
 - 27 public tables and 27/27 with RLS enabled;
 - 9 Auth users observed in the target, but not accepted as proof of V1 Auth credential recovery;
-- 6 Storage files present in the encrypted archive, but not yet restored to target buckets;
+- 6 Storage files present in the encrypted archive (2 metadata files and 4 object files), but not yet restored to target buckets;
 - Production and its live `rcc` data were never connected, reset or modified;
 - drill project paused after evidence collection; V2 Staging restored to `ACTIVE_HEALTHY` with 8 Auth users, 1 league, 1 platform owner, 6 demo profiles, 27 migrations and 44/44 public RLS tables intact.
 
 ## Remaining Phase 28 exit criteria
 
-- define and test the V1 Auth identity/credential recovery path rather than counting pre-existing target users;
-- restore the six archived Storage objects to isolated target buckets and validate object access;
+- run a fresh format-v2 encrypted backup that includes the prepared Auth data/evidence files;
+- execute and verify the prepared V1 Auth identity/credential recovery path rather than counting pre-existing target users;
+- restore the four archived Storage objects to isolated target buckets and validate object access;
 - validate Auth redirects/mail/CAPTCHA, Edge Function secrets, Realtime and bucket configuration in the target;
 - run final security, performance, accessibility and operational gates against the release candidate.
 
 Until every item is complete, Phase 29 and Phase 30 remain locked.
+
+The external Auth/SMTP/CAPTCHA/redirect, Edge Function secret and Realtime proof is pinned in `v1-external-config-checklist.md`. It deliberately does not automate copying Production secrets into another project.
 
 ## Capacity result and downstream preparation
 

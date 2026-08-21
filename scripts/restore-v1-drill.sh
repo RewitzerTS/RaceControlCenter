@@ -8,7 +8,7 @@ readonly production_ref='kjccstcbqygxuqkvdaqw'
 readonly staging_ref='znnkwjogtvzwfkwnmawp'
 readonly session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'
 
-for required_name in TARGET_DB_URL R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSPHRASE; do
+for required_name in TARGET_DB_URL TARGET_SUPABASE_SECRET_KEY R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSPHRASE; do
   if [ -z "${!required_name:-}" ]; then
     echo "::error::Missing required restore-drill secret: ${required_name}" >&2
     exit 1
@@ -94,8 +94,10 @@ tar -xzf "$archive" -C "$restore_root"
 rm -f "$archive"
 
 backup_dir="$(find "$restore_root" -mindepth 2 -maxdepth 2 -type f -name 'roles.sql' -printf '%h\n' | head -n 1)"
-if [ -z "$backup_dir" ] || [ ! -f "$backup_dir/schema.sql" ] || [ ! -f "$backup_dir/data.sql" ]; then
-  echo '::error::Decrypted backup does not contain roles.sql, schema.sql and data.sql.' >&2
+if [ -z "$backup_dir" ] || [ ! -f "$backup_dir/schema.sql" ] || [ ! -f "$backup_dir/data.sql" ] || \
+  [ ! -f "$backup_dir/auth-data.dump" ] || [ ! -f "$backup_dir/auth-evidence.txt" ] || \
+  [ "$(cat "$backup_dir/backup-format-version.txt" 2>/dev/null)" != '2' ]; then
+  echo '::error::Latest backup is not a complete RaceVora recovery format v2 archive.' >&2
   exit 1
 fi
 
@@ -107,6 +109,12 @@ fi
 # integrity-checked above, but must not be replayed into another hosted project.
 echo 'Using the target project managed roles; verified roles.sql is not replayed.'
 
+IFS='|' read -r expected_auth_users expected_auth_identities expected_credential_fingerprint < "$backup_dir/auth-evidence.txt"
+if ! [[ "$expected_auth_users" =~ ^[0-9]+$ && "$expected_auth_identities" =~ ^[0-9]+$ && "$expected_credential_fingerprint" =~ ^[0-9a-f]{32}$ ]]; then
+  echo '::error::Auth recovery evidence is malformed.' >&2
+  exit 1
+fi
+
 psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --single-transaction <<'SQL'
 drop schema if exists private cascade;
 drop schema if exists public cascade;
@@ -115,6 +123,56 @@ comment on schema public is 'standard public schema';
 grant usage on schema public to postgres, anon, authenticated, service_role;
 grant all on schema public to postgres, service_role;
 delete from supabase_migrations.schema_migrations;
+SQL
+
+# The target is a disposable, explicitly confirmed restore project. Keep its
+# managed Auth schema/migration state, clear only table data, then replay the
+# source Auth data. Public is already absent, so app foreign keys cannot cascade
+# unexpectedly into the restore.
+psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --single-transaction <<'SQL'
+do $reset_auth$
+declare
+  auth_table record;
+begin
+  for auth_table in
+    select tablename
+    from pg_tables
+    where schemaname = 'auth'
+      and tablename not in ('schema_migrations', 'instances')
+    order by tablename
+  loop
+    execute format('truncate table auth.%I cascade', auth_table.tablename);
+  end loop;
+end
+$reset_auth$;
+SQL
+
+pg_restore_major='0'
+if command -v pg_restore >/dev/null 2>&1; then
+  pg_restore_major="$(pg_restore --version | sed -E 's/.* ([0-9]+)(\..*)?$/\1/')"
+fi
+if [[ "$pg_restore_major" =~ ^[0-9]+$ ]] && [ "$pg_restore_major" -ge 17 ]; then
+  PGOPTIONS='-c session_replication_role=replica' \
+  pg_restore --exit-on-error --single-transaction --data-only \
+    --no-owner --no-privileges --dbname "$TARGET_DB_URL" "$backup_dir/auth-data.dump"
+elif command -v docker >/dev/null 2>&1; then
+  docker run --rm \
+    --env TARGET_DB_URL \
+    --env PGOPTIONS='-c session_replication_role=replica' \
+    --volume "${backup_dir}:/backup:ro" \
+    postgres:17 \
+    sh -ceu 'pg_restore --exit-on-error --single-transaction --data-only --no-owner --no-privileges --dbname "$TARGET_DB_URL" /backup/auth-data.dump'
+else
+  echo '::error::PostgreSQL 17 pg_restore (or Docker) is required for Auth recovery.' >&2
+  exit 1
+fi
+
+# A restore into a new project intentionally does not preserve old JWT validity.
+# Removing source sessions forces a clean password sign-in against the restored
+# credential hash and the target project's own JWT secret.
+psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --single-transaction <<'SQL'
+truncate table auth.sessions cascade;
+truncate table auth.refresh_tokens cascade;
 SQL
 
 psql \
@@ -147,6 +205,17 @@ select
   (select count(*) from pg_tables where schemaname = 'public' and rowsecurity) as restored_public_rls_tables;
 SQL
 
-storage_file_count="$(find "$backup_dir/storage" -type f 2>/dev/null | wc -l | tr -d ' ')"
-echo "PASS encrypted V1 database restore completed in dedicated target ${expected_target_ref}."
-echo "Storage backup files present in archive: ${storage_file_count}."
+actual_auth_evidence="$(psql "$TARGET_DB_URL" -X -qAt -v ON_ERROR_STOP=1 -c \
+  "select (select count(*) from auth.users)::text || '|' || (select count(*) from auth.identities)::text || '|' || coalesce((select md5(string_agg(id::text || ':' || coalesce(encrypted_password, ''), '|' order by id)) from auth.users), md5(''));")"
+expected_auth_evidence="${expected_auth_users}|${expected_auth_identities}|${expected_credential_fingerprint}"
+if [ "$actual_auth_evidence" != "$expected_auth_evidence" ]; then
+  echo '::error::Auth user, identity or credential recovery evidence does not match the source backup.' >&2
+  exit 1
+fi
+
+export TARGET_SUPABASE_URL="https://${expected_target_ref}.supabase.co"
+export RACEVORA_RESTORE_BACKUP_DIR="$backup_dir"
+node scripts/restore-public-storage.mjs
+unset TARGET_SUPABASE_SECRET_KEY TARGET_SUPABASE_URL RACEVORA_RESTORE_BACKUP_DIR
+
+echo "PASS encrypted V1 database, Auth credential and Storage restore completed in dedicated target ${expected_target_ref}."
