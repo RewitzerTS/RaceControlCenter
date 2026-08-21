@@ -96,7 +96,18 @@ export function RacingPage() {
   }, [client, selectedRace]);
 
   if (loading) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">24</span><div><h1>{t('home.loadingTitle')}</h1><p>{t('racing.loadingCopy')}</p></div></main>;
+    return (
+      <main className="racing-page dashboard-shell" id="main-content">
+        <section className="storyline-strip" aria-live="polite">
+          <strong>{t('route.racingTitle')}</strong>
+          <span>{t('racing.loadingCopy')}</span>
+        </section>
+        <section className="racing-layout racing-layout--loading" aria-busy="true">
+          <aside className="dashboard-card race-browser"><p className="section-label">{t('racing.calendar')}</p><h1>{t('home.loadingTitle')}</h1></aside>
+          <section className="dashboard-card race-result-card"><p className="section-label">{t('racing.officialResult')}</p><h2>{t('racing.resultsLoading')}</h2></section>
+        </section>
+      </main>
+    );
   }
 
   if (error && races.length === 0) {

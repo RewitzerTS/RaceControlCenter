@@ -1470,6 +1470,10 @@ body {
 
 .race-browser,
 .race-result-card { min-height: 620px; }
+.racing-layout--loading .race-browser,
+.racing-layout--loading .race-result-card {
+  background: #15181b;
+}
 .race-browser { padding: 20px; }
 .race-browser .section-heading h1 { margin: 0.25rem 0 0; font-size: 1.7rem; }
 .race-list { max-height: 525px; overflow: auto; margin: 1rem 0 0; padding: 0; list-style: none; }
@@ -1534,6 +1538,8 @@ body {
   .profile-summary,
   .profile-form { min-height: 0; }
   .race-list { max-height: 360px; }
+  .racing-layout--loading .race-browser,
+  .racing-layout--loading .race-result-card { min-height: 560px; }
 }
 
 @media (max-width: 700px) {

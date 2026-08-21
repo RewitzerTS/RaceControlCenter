@@ -6,6 +6,7 @@ import { BetaAccessPage } from '../auth/BetaAccessPage';
 import { AuthLinkPage } from '../auth/AuthLinkPage';
 import type { RuntimeEnvironment } from '../config/environment';
 import { DriverHomePage } from '../driver/DriverHomePage';
+import { RacingPage } from '../driver/RacingPage';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import {
   SUPPORTED_LANGUAGES,
@@ -17,7 +18,6 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 
 const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
-const RacingPage = lazy(() => import('../driver/RacingPage').then((module) => ({ default: module.RacingPage })));
 const CareerPage = lazy(() => import('../driver/CareerPage').then((module) => ({ default: module.CareerPage })));
 const ProfilePage = lazy(() => import('../driver/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const AdminWorkspacePage = lazy(() => import('../operations/AdminWorkspacePage').then((module) => ({ default: module.AdminWorkspacePage })));
@@ -179,7 +179,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
         <Routes>
           <Route path="/" element={<DriverHomePage />} />
-          <Route path="/racing" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">R</span><div><h1>{t('pending')}</h1></div></main>}><RacingPage /></Suspense>} />
+          <Route path="/racing" element={<RacingPage />} />
           <Route path="/career" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />

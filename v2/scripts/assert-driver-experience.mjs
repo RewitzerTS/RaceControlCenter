@@ -25,7 +25,7 @@ if (!shell.includes('<Route path="/" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
 for (const route of [
-  '<Route path="/racing" element={<Suspense',
+  '<Route path="/racing" element={<RacingPage />} />',
   '<Route path="/career" element={<Suspense',
   '<Route path="/profile" element={<Suspense',
 ]) {
