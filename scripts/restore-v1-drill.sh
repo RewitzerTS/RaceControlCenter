@@ -150,4 +150,3 @@ SQL
 storage_file_count="$(find "$backup_dir/storage" -type f 2>/dev/null | wc -l | tr -d ' ')"
 echo "PASS encrypted V1 database restore completed in dedicated target ${expected_target_ref}."
 echo "Storage backup files present in archive: ${storage_file_count}."
-
