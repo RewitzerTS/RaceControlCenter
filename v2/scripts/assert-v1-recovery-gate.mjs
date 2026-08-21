@@ -59,7 +59,7 @@ requireGate(restoreScript.includes("expected_target_ref='lugedxtmfitxrkacmjpb'")
 requireGate(restoreScript.includes('verified roles.sql is not replayed') && !restoreScript.includes('--file "$backup_dir/roles.sql"'), 'restore helper retains target-managed Supabase roles');
 requireGate(restoreScript.includes('sha256sum -c') && restoreScript.includes('protected rcc tenant is missing from restored data') && restoreScript.includes('--single-transaction'), 'restore helper verifies checksums, rcc and transactional recovery');
 requireGate(restoreScript.includes('Auth user, identity or credential recovery evidence does not match') && restoreScript.includes('TARGET_SUPABASE_SECRET_KEY'), 'restore helper verifies Auth credential recovery and requires a target-only secret');
-requireGate(storageRestoreScript.includes("expectedTargetRef = 'lugedxtmfitxrkacmjpb'") && storageRestoreScript.includes('emptyBucket') && storageRestoreScript.includes('sha256(restored)'), 'Storage restore resets only the drill target and verifies downloaded object hashes');
+requireGate(storageRestoreScript.includes("expectedTargetRef = 'lugedxtmfitxrkacmjpb'") && storageRestoreScript.includes("`${bucketPath}/empty`") && storageRestoreScript.includes('sha256(restored)'), 'Storage restore resets only the drill target and verifies downloaded object hashes');
 requireGate(restoreRunbook.includes('getrennten nichtproduktiven Supabase-Projekt') && restoreRunbook.includes('rcc'), 'runbook requires an isolated restore target and protects rcc');
 requireGate(externalConfigChecklist.includes('RESTORE_DRILL_SECRET_KEY') && externalConfigChecklist.includes('Keep Phase 29 traffic'), 'external configuration remains an explicit fail-closed recovery gate');
 

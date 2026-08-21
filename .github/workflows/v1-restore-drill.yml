@@ -80,11 +80,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: v2/package-lock.json
-      - name: Install pinned Storage client
-        shell: bash
-        run: npm ci --prefix v2 --ignore-scripts
       - name: Install restore clients
         shell: bash
         run: |

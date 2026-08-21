@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto';
-import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
-
-const requireFromV2 = createRequire(new URL('../v2/package.json', import.meta.url));
-const { createClient } = requireFromV2('@supabase/supabase-js');
 
 const expectedTargetRef = 'lugedxtmfitxrkacmjpb';
 const forbiddenRefs = ['kjccstcbqygxuqkvdaqw', 'znnkwjogtvzwfkwnmawp'];
@@ -41,6 +37,14 @@ function sha256(buffer) {
   return createHash('sha256').update(buffer).digest('hex');
 }
 
+function encodeObjectPath(bucket, name) {
+  return [bucket, ...name.split('/')].map(encodeURIComponent).join('/');
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 async function loadJson(file) {
   return JSON.parse(await readFile(file, 'utf8'));
 }
@@ -53,6 +57,32 @@ async function main() {
   if (!backupDir || !secretKey) fail('Restore backup directory and target secret key are required.');
   if (targetUrl !== expectedTargetUrl || forbiddenRefs.some((ref) => targetUrl?.includes(ref))) {
     fail('Storage restore target is not the dedicated V1 restore-drill project.');
+  }
+
+  const storageUrl = `${targetUrl}/storage/v1`;
+  const baseHeaders = {
+    apikey: secretKey,
+    authorization: `Bearer ${secretKey}`,
+  };
+  async function storageRequest(endpoint, { method = 'GET', body, raw = false, headers = {} } = {}) {
+    const response = await fetch(`${storageUrl}${endpoint}`, {
+      method,
+      headers: {
+        ...baseHeaders,
+        ...(body != null && !Buffer.isBuffer(body) ? { 'content-type': 'application/json' } : {}),
+        ...headers,
+      },
+      body: body == null ? undefined : Buffer.isBuffer(body) ? body : JSON.stringify(body),
+    });
+    if (!response.ok) {
+      const detail = (await response.text()).slice(0, 300).replace(/[\r\n]+/g, ' ');
+      const error = new Error(`Storage API ${method} ${endpoint} failed (${response.status}): ${detail}`);
+      error.status = response.status;
+      throw error;
+    }
+    if (raw) return Buffer.from(await response.arrayBuffer());
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
   }
 
   const storageDir = path.join(backupDir, 'storage');
@@ -84,38 +114,53 @@ async function main() {
     objectKeys.add(key);
   }
 
-  const client = createClient(targetUrl, secretKey, {
-    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-  });
-  const { data: targetBuckets, error: listError } = await client.storage.listBuckets();
-  if (listError) fail(`Could not inventory restore target buckets: ${listError.message}`);
+  const targetBuckets = await storageRequest('/bucket');
+  if (!Array.isArray(targetBuckets)) fail('Could not inventory restore target buckets.');
   const unknownBuckets = targetBuckets.filter((bucket) => !bucketIds.has(bucket.id));
   if (unknownBuckets.length > 0) fail('Dedicated restore target contains unexpected Storage buckets; refusing a partial reset.');
 
   for (const targetBucket of targetBuckets) {
-    const { error: emptyError } = await client.storage.emptyBucket(targetBucket.id);
-    if (emptyError) fail(`Could not empty a dedicated restore bucket: ${emptyError.message}`);
-    const { error: deleteError } = await client.storage.deleteBucket(targetBucket.id);
-    if (deleteError) fail(`Could not reset a dedicated restore bucket: ${deleteError.message}`);
+    const bucketPath = `/bucket/${encodeURIComponent(targetBucket.id)}`;
+    await storageRequest(`${bucketPath}/empty`, { method: 'POST', body: {} });
+    let deleted = false;
+    for (let attempt = 0; attempt < 90; attempt += 1) {
+      try {
+        await storageRequest(bucketPath, { method: 'DELETE', body: {} });
+        deleted = true;
+        break;
+      } catch (error) {
+        if (error?.status !== 409) throw error;
+        await wait(1000);
+      }
+    }
+    if (!deleted) fail('Dedicated restore bucket did not become empty within the guarded reset window.');
   }
 
   for (const bucket of buckets) {
-    const options = { public: bucket.public };
-    if (bucket.fileSizeLimit != null) options.fileSizeLimit = bucket.fileSizeLimit;
-    if (Array.isArray(bucket.allowedMimeTypes)) options.allowedMimeTypes = bucket.allowedMimeTypes;
-    const { error } = await client.storage.createBucket(bucket.id, options);
-    if (error) fail(`Could not create a restore bucket: ${error.message}`);
+    await storageRequest('/bucket', {
+      method: 'POST',
+      body: {
+        id: bucket.id,
+        name: bucket.id,
+        public: bucket.public,
+        file_size_limit: bucket.fileSizeLimit ?? null,
+        allowed_mime_types: Array.isArray(bucket.allowedMimeTypes) ? bucket.allowedMimeTypes : null,
+      },
+    });
   }
 
   for (const item of objects) {
-    const { error: uploadError } = await client.storage.from(item.bucket).upload(item.name, item.bytesBuffer, {
-      contentType: item.contentType || 'application/octet-stream',
-      upsert: false,
+    const objectPath = encodeObjectPath(item.bucket, item.name);
+    await storageRequest(`/object/${objectPath}`, {
+      method: 'POST',
+      body: item.bytesBuffer,
+      headers: {
+        'content-type': item.contentType || 'application/octet-stream',
+        'cache-control': 'max-age=3600',
+        'x-upsert': 'false',
+      },
     });
-    if (uploadError) fail(`Could not restore a Storage object: ${uploadError.message}`);
-    const { data, error: downloadError } = await client.storage.from(item.bucket).download(item.name);
-    if (downloadError) fail(`Could not verify a restored Storage object: ${downloadError.message}`);
-    const restored = Buffer.from(await data.arrayBuffer());
+    const restored = await storageRequest(`/object/${objectPath}`, { raw: true });
     if (restored.length !== item.bytes || sha256(restored) !== item.sha256) {
       fail('Restored Storage object failed end-to-end integrity verification.');
     }
