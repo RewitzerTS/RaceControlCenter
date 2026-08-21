@@ -36,10 +36,16 @@ jobs:
         run: |
           set -euo pipefail
           bash -n scripts/restore-v1-drill.sh
+          if grep -q $'\r' scripts/restore-v1-drill.sh; then
+            echo 'Restore helper must use Unix LF line endings.' >&2
+            exit 1
+          fi
           grep -Fq "expected_target_ref='lugedxtmfitxrkacmjpb'" scripts/restore-v1-drill.sh
           grep -Fq "production_ref='kjccstcbqygxuqkvdaqw'" scripts/restore-v1-drill.sh
           grep -Fq "staging_ref='znnkwjogtvzwfkwnmawp'" scripts/restore-v1-drill.sh
+          grep -Fq "session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'" scripts/restore-v1-drill.sh
           grep -Fq 'TARGET_DB_URL does not identify the dedicated restore-drill project' scripts/restore-v1-drill.sh
+          grep -Fq 'verified roles.sql is not replayed' scripts/restore-v1-drill.sh
           grep -Fq 'protected rcc tenant is missing from restored data' scripts/restore-v1-drill.sh
           forbidden_action='actions/upload''-artifact'
           if grep -Fq "$forbidden_action" .github/workflows/v1-restore-drill.yml; then
@@ -78,4 +84,3 @@ jobs:
       - name: Restore latest encrypted V1 backup
         shell: bash
         run: bash scripts/restore-v1-drill.sh
-

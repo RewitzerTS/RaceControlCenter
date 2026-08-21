@@ -6,6 +6,7 @@ umask 077
 readonly expected_target_ref='lugedxtmfitxrkacmjpb'
 readonly production_ref='kjccstcbqygxuqkvdaqw'
 readonly staging_ref='znnkwjogtvzwfkwnmawp'
+readonly session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'
 
 for required_name in TARGET_DB_URL R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSPHRASE; do
   if [ -z "${!required_name:-}" ]; then
@@ -22,6 +23,31 @@ if [[ "$TARGET_DB_URL" == *"$production_ref"* || "$TARGET_DB_URL" == *"$staging_
   echo '::error::Production and Beta Staging are forbidden restore targets.' >&2
   exit 1
 fi
+
+# GitHub-hosted runners are IPv4-only. Accept the dashboard's direct Drill URI,
+# but rewrite only that exact host and role to the pinned IPv4 Session Pooler.
+case "$TARGET_DB_URL" in
+  postgresql://postgres:*@db.${expected_target_ref}.supabase.co:5432/*)
+    TARGET_DB_URL="${TARGET_DB_URL/postgresql:\/\/postgres:/postgresql:\/\/postgres.${expected_target_ref}:}"
+    TARGET_DB_URL="${TARGET_DB_URL/@db.${expected_target_ref}.supabase.co:5432/@${session_pooler_host}:5432}"
+    ;;
+  postgres://postgres:*@db.${expected_target_ref}.supabase.co:5432/*)
+    TARGET_DB_URL="${TARGET_DB_URL/postgres:\/\/postgres:/postgres:\/\/postgres.${expected_target_ref}:}"
+    TARGET_DB_URL="${TARGET_DB_URL/@db.${expected_target_ref}.supabase.co:5432/@${session_pooler_host}:5432}"
+    ;;
+esac
+
+case "$TARGET_DB_URL" in
+  postgresql://postgres.${expected_target_ref}:*@${session_pooler_host}:5432/* | \
+  postgres://postgres.${expected_target_ref}:*@${session_pooler_host}:5432/*)
+    ;;
+  *)
+    echo '::error::TARGET_DB_URL must resolve to the pinned Drill Session Pooler role and host.' >&2
+    exit 1
+    ;;
+esac
+
+psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --tuples-only --command 'select 1' >/dev/null
 
 readonly restore_root="${RUNNER_TEMP:?RUNNER_TEMP is required}/racevora-v1-restore-drill"
 rm -rf "$restore_root"
@@ -77,6 +103,10 @@ if [ -f "$backup_dir/SHA256SUMS" ]; then
   (cd "$backup_dir" && sha256sum -c SHA256SUMS)
 fi
 
+# Hosted Supabase owns and protects its platform roles. The source roles dump is
+# integrity-checked above, but must not be replayed into another hosted project.
+echo 'Using the target project managed roles; verified roles.sql is not replayed.'
+
 psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --single-transaction <<'SQL'
 drop schema if exists private cascade;
 drop schema if exists public cascade;
@@ -90,7 +120,6 @@ SQL
 psql \
   --single-transaction \
   --variable ON_ERROR_STOP=1 \
-  --file "$backup_dir/roles.sql" \
   --file "$backup_dir/schema.sql" \
   --command 'SET session_replication_role = replica' \
   --file "$backup_dir/data.sql" \
@@ -121,4 +150,3 @@ SQL
 storage_file_count="$(find "$backup_dir/storage" -type f 2>/dev/null | wc -l | tr -d ' ')"
 echo "PASS encrypted V1 database restore completed in dedicated target ${expected_target_ref}."
 echo "Storage backup files present in archive: ${storage_file_count}."
-

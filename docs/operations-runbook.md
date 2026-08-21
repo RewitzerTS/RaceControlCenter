@@ -132,6 +132,8 @@ psql \
 
 Dieser Ablauf darf nicht blind gegen die Produktion ausgefuehrt werden. Vorher muessen Zielprojekt, Extensions, Migration History, Auth-/Storage-Sonderfaelle und erforderliche Projektkonfigurationen geprueft werden.
 
+Bei einem Restore in ein anderes **Hosted Supabase**-Projekt werden die geschuetzten Plattformrollen des Zielprojekts beibehalten. `roles.sql` wird auf Integritaet geprueft, aber nicht gegen die von Supabase verwalteten Rollen eingespielt. Schema und Daten werden danach transaktional restauriert.
+
 ## 11. Recovery-Drill
 
 Vor einer breit beworbenen Self-Service-Beta sollte mindestens einmal ein kontrollierter Disaster-Recovery-Drill in einer nichtproduktiven Umgebung erfolgen:
@@ -144,3 +146,13 @@ Vor einer breit beworbenen Self-Service-Beta sollte mindestens einmal ein kontro
 - `rcc` niemals als destruktives Testziel verwenden.
 
 Danach den tatsaechlichen RPO/RTO und fehlende manuelle Schritte in diesem Runbook nachtragen.
+
+### Drill-Ergebnis 21.08.2026
+
+- Ziel: separates Projekt `lugedxtmfitxrkacmjpb`; Produktion wurde nicht verbunden oder veraendert.
+- Quelle: verschluesseltes Backup vom `2026-08-17T23:05:08Z`; beide SHA-256-Ebenen erfolgreich geprueft.
+- Datenbank-Restore: ca. 105 Sekunden bis PASS; 5 Ligen, genau ein `rcc`, 27 Tabellen und 27/27 RLS.
+- Beobachtetes RPO beim Drill: 3 Tage, 12 Stunden, 55 Minuten, 32 Sekunden. Dieser Wert ist fuer einen spaeteren Cutover zu alt und verlangt einen frischeren Backup-Punkt.
+- Auth: 9 Benutzer im Ziel beobachtet, aber der V1-Identitaets-/Credential-Restore ist damit nicht bewiesen.
+- Storage: 6 Dateien im verschluesselten Archiv vorhanden, aber noch nicht in Ziel-Buckets zurueckgespielt.
+- Ergebnis: logische V1-Datenbankwiederherstellung verifiziert; vollstaendiger Disaster-Recovery-Gate bleibt bis Auth-, Storage- und Projektkonfigurations-Test offen.

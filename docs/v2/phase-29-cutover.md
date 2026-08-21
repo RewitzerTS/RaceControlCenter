@@ -2,7 +2,7 @@
 
 Status: preparation in progress. Traffic cutover: locked.
 
-Phase 29 may begin only after Phase 28 records a successful clean V2 replay and a successful V1 backup restore in a separate non-production environment.
+Phase 29 traffic may begin only after Phase 28 records a successful clean V2 replay and complete database, Auth, Storage and configuration recovery evidence in a separate non-production environment.
 
 ## Required cutover properties
 
@@ -22,6 +22,6 @@ The recovery manifest currently denies Phase 29 authorization. Documentation or 
 - The candidate remains isolated on `racevora-v2-staging`; it is not connected to the Production Supabase project or `racevora.com`.
 - The candidate includes the clean-replay index correction and passed the complete local/static contract suite plus the fresh-database migration and transactional regression suite before it was pinned.
 - Production traffic, DNS, Cloudflare routes, Supabase configuration and the `rcc` tenant remain unchanged.
+- The encrypted V1 logical database restore is verified, but Auth credential recovery and Storage object replay remain open Phase 28 gates.
 
 The next executable cutover action is intentionally absent until Phase 28 records restore evidence. This makes a premature domain switch fail closed instead of relying on an operator reminder.
-

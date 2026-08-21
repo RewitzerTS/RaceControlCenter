@@ -36,9 +36,11 @@ requireGate(manifest.v2ReleaseCandidate.stagingUrl.includes('racevora-v2-staging
 requireGate(manifest.v1Data.protectedLeagueSlug === 'rcc', 'productive rcc tenant is explicitly protected');
 requireGate(/^[a-z]{20}$/.test(manifest.v1Data.productionProjectRef), 'Production Supabase project is explicitly pinned');
 requireGate(manifest.v1Data.restoreTargetPolicy === 'separate-non-production-only', 'restore drill is isolated from Production');
-requireGate(manifest.v1Data.restoreDrill.status === 'required' && manifest.v1Data.restoreDrill.verifiedAt === null, 'unverified restore drill remains an explicit open gate');
-requireGate(manifest.v1Data.restoreDrill.lastAttempt.result === 'v2-zero-state-replay-complete' && manifest.v1Data.restoreDrill.lastAttempt.v1BackupRestored === false, 'V2 replay evidence is not misrepresented as a V1 data restore');
+requireGate(manifest.v1Data.restoreDrill.status === 'database-verified-full-dr-required' && manifest.v1Data.restoreDrill.verifiedAt === null, 'partial database recovery remains an explicit open full-DR gate');
+requireGate(manifest.v1Data.restoreDrill.lastAttempt.result === 'encrypted-v1-database-restore-verified' && manifest.v1Data.restoreDrill.lastAttempt.v1BackupRestored === true, 'encrypted V1 logical database restore is recorded truthfully');
 requireGate(manifest.v1Data.restoreDrill.lastAttempt.productionTouched === false && manifest.v1Data.restoreDrill.lastAttempt.stagingDataReset === false, 'replay changed neither Production nor Staging data');
+requireGate(manifest.v1Data.restoreDrill.evidence.restoredRccLeagues === 1 && manifest.v1Data.restoreDrill.evidence.restoredPublicTables === manifest.v1Data.restoreDrill.evidence.restoredPublicRlsTables, 'database evidence contains one rcc tenant and complete public RLS');
+requireGate(manifest.v1Data.restoreDrill.evidence.authRecoveryProven === false && manifest.v1Data.restoreDrill.evidence.storageObjectsRestored === false, 'unproven Auth and Storage recovery keep the gate locked');
 requireGate(manifest.v2ZeroStateReplay.status === 'verified' && manifest.v2ZeroStateReplay.migrationCount === 27 && manifest.v2ZeroStateReplay.transactionalTestCount === 18, 'clean V2 replay evidence is complete');
 requireGate(manifest.v2ZeroStateReplay.publicTableCount === manifest.v2ZeroStateReplay.publicRlsTableCount && manifest.v2ZeroStateReplay.stagingRestoredActiveHealthy === true, 'clean replay retained complete public RLS and restored Staging health');
 requireGate(Object.values(manifest.cutoverGates).every((value) => value === false), 'cutover and V1 shutdown stay denied');
@@ -49,7 +51,8 @@ requireGate(backupWorkflow.includes("cron: '17 2 * * *'") && backupWorkflow.incl
 requireGate(backupWorkflow.includes('--cipher-algo AES256') && backupWorkflow.includes('sha256sum'), 'backup encryption and checksum controls remain present');
 requireGate(backupWorkflow.includes('.eu.r2.cloudflarestorage.com') && !backupWorkflow.includes('actions/upload-artifact'), 'off-site backup stays in private EU R2 and outside Actions artifacts');
 requireGate(restoreWorkflow.includes('workflow_dispatch') && restoreWorkflow.includes('RESTORE_DRILL_DB_URL') && !restoreWorkflow.includes('actions/upload-artifact'), 'encrypted restore remains manual, secret-backed and outside Actions artifacts');
-requireGate(restoreScript.includes("expected_target_ref='lugedxtmfitxrkacmjpb'") && restoreScript.includes(`production_ref='${manifest.v1Data.productionProjectRef}'`) && restoreScript.includes("staging_ref='znnkwjogtvzwfkwnmawp'"), 'restore helper pins the only allowed target and rejects Production and Staging');
+requireGate(restoreScript.includes("expected_target_ref='lugedxtmfitxrkacmjpb'") && restoreScript.includes(`production_ref='${manifest.v1Data.productionProjectRef}'`) && restoreScript.includes("staging_ref='znnkwjogtvzwfkwnmawp'") && restoreScript.includes("session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'"), 'restore helper pins the only allowed target and its IPv4 Session Pooler while rejecting Production and Staging');
+requireGate(restoreScript.includes('verified roles.sql is not replayed') && !restoreScript.includes('--file "$backup_dir/roles.sql"'), 'restore helper retains target-managed Supabase roles');
 requireGate(restoreScript.includes('sha256sum -c') && restoreScript.includes('protected rcc tenant is missing from restored data') && restoreScript.includes('--single-transaction'), 'restore helper verifies checksums, rcc and transactional recovery');
 requireGate(restoreRunbook.includes('getrennten nichtproduktiven Supabase-Projekt') && restoreRunbook.includes('rcc'), 'runbook requires an isolated restore target and protects rcc');
 
@@ -64,4 +67,3 @@ if (failures.length) {
 }
 
 console.log(`V1 Recovery Gate passed: V1 is pinned at ${manifest.v1Code.recoveryCommit.slice(0, 12)}; V2 zero-state replay is verified while V1 data restore, traffic and retirement remain locked.`);
-

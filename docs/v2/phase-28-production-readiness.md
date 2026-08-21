@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: in progress. The V1 code recovery point is established and automatically guarded. The clean V2 zero-state replay is verified. A real encrypted V1 backup restore remains required before Production traffic may change.
+Status: in progress. The V1 code recovery point, clean V2 zero-state replay and encrypted V1 logical database restore are verified. Auth recovery and Storage object restore remain required before Production traffic may change.
 
 Production posture: V1 stays online. The productive `rcc` league remains unchanged and is never a restore-test target.
 
@@ -24,7 +24,7 @@ The production database and the productive league are recovered separately from 
 
 1. identify the latest encrypted off-site backup and its SHA-256 companion;
 2. verify the encrypted object checksum before decryption;
-3. restore roles, schema and data only into a separate non-production Supabase target;
+3. retain the target project's protected Hosted Supabase roles and restore schema/data only into a separate non-production Supabase target;
 4. validate central row counts, Auth identities, RLS, RPC grants and the `rcc` tenant contract;
 5. restore and verify Storage objects separately;
 6. reconfigure Auth, redirects, CAPTCHA, Edge Functions, secrets and Realtime explicitly;
@@ -57,19 +57,35 @@ The first clean replay exposed one real ordering defect: the Phase 16 foreign-ke
 - disposable project paused after evidence collection;
 - original V2 Staging restored to `ACTIVE_HEALTHY` with its Auth users, league, owner and demo fixtures intact.
 
-This proves the V2 schema can be reconstructed from the repository. It does not claim that encrypted V1 Production data was restored.
+This proves the V2 schema can be reconstructed from the repository. The separate V1 database restore evidence below now covers the encrypted logical backup.
 
 ## Prepared encrypted V1 restore automation
 
-The manual GitHub workflow `.github/workflows/v1-restore-drill.yml` and helper `scripts/restore-v1-drill.sh` now prepare the final data proof. They fail closed unless `RESTORE_DRILL_DB_URL` identifies the dedicated project `lugedxtmfitxrkacmjpb`, reject both Production and Beta Staging refs, download only the latest encrypted backup from the private EU R2 prefix, verify both checksum layers, decrypt in runner-temporary storage, restore roles/schema/data in one transaction, require the restored `rcc` tenant and Auth users, report aggregate counts only, and remove all local restore material.
+The manual GitHub workflow `.github/workflows/v1-restore-drill.yml` and helper `scripts/restore-v1-drill.sh` provide the guarded data proof. They fail closed unless `RESTORE_DRILL_DB_URL` identifies the dedicated project `lugedxtmfitxrkacmjpb`, reject both Production and Beta Staging refs, download only the latest encrypted backup from the private EU R2 prefix, verify both checksum layers, decrypt in runner-temporary storage, retain the target-managed Hosted Supabase roles, restore schema/data in one transaction, require the restored `rcc` tenant, report aggregate counts only, and remove all local restore material. GitHub validation also rejects CRLF-contaminated restore helpers.
 
-The workflow is manual and cannot run until the target project is active and its database URL is stored as the GitHub Actions secret `RESTORE_DRILL_DB_URL`. The URL must never be posted in issues, logs, commits or chat.
+The database URL remains only in the GitHub Actions secret `RESTORE_DRILL_DB_URL`; it is never posted in issues, logs, commits or chat.
+
+## Verified encrypted V1 database restore
+
+The guarded workflow restored `racevora-backup-20260817T230508Z.tar.gz.gpg` into the dedicated project on 2026-08-21. The outer encrypted-object checksum and the inner `roles.sql`, `schema.sql` and `data.sql` checksums all passed. Hosted Supabase correctly refused modification of its protected platform roles in the first real attempt; the helper was corrected to verify but not replay those roles. The subsequent database restore reached PASS before a harmless trailing CR byte marked the job red; direct Supabase SQL independently confirmed the committed result. The CR byte was removed and CI now rejects any recurrence.
+
+Recorded evidence:
+
+- source recovery point: `2026-08-17T23:05:08Z`;
+- observed backup age/RPO at validation: 305,732 seconds (3 days, 12 hours, 55 minutes, 32 seconds);
+- database restore execution: approximately 105 seconds from verified archive to PASS;
+- 5 restored leagues, including exactly one `rcc` tenant;
+- 27 public tables and 27/27 with RLS enabled;
+- 9 Auth users observed in the target, but not accepted as proof of V1 Auth credential recovery;
+- 6 Storage files present in the encrypted archive, but not yet restored to target buckets;
+- Production and its live `rcc` data were never connected, reset or modified;
+- drill project paused after evidence collection; V2 Staging restored to `ACTIVE_HEALTHY` with 8 Auth users, 1 league, 1 platform owner, 6 demo profiles, 27 migrations and 44/44 public RLS tables intact.
 
 ## Remaining Phase 28 exit criteria
 
-- restore a recent V1 encrypted backup into a separate non-production Supabase project;
-- validate database, Auth, Storage and tenant isolation there;
-- record the resulting RPO/RTO evidence and update the manifest to `verified` through a reviewed change;
+- define and test the V1 Auth identity/credential recovery path rather than counting pre-existing target users;
+- restore the six archived Storage objects to isolated target buckets and validate object access;
+- validate Auth redirects/mail/CAPTCHA, Edge Function secrets, Realtime and bucket configuration in the target;
 - run final security, performance, accessibility and operational gates against the release candidate.
 
 Until every item is complete, Phase 29 and Phase 30 remain locked.
@@ -79,4 +95,3 @@ Until every item is complete, Phase 29 and Phase 30 remain locked.
 The initial zero-cost restore-project allocation returned the Supabase Free-plan active-project limit. After explicit owner approval, Beta Staging was paused, the disposable project was used for the V2 clean replay, the disposable project was paused, and the original Staging project was restored. Production was never paused or modified.
 
 The owner subsequently requested that Phase 29 and Phase 30 start. Their reversible preparation may proceed, but this does not waive the restore requirement: the V2 release candidate may be pinned, the cutover and rollback procedure may be prepared, and the V1 recovery surface may be preserved. Production traffic, destructive data operations and V1 shutdown remain locked.
-

@@ -22,6 +22,6 @@ The recovery manifest currently denies Phase 30 authorization and V1 shutdown. T
 - Existing production health checks, encrypted off-site backups and the recovery runbook remain active.
 - The V1 application, migrations, assets and legal/public routes remain in the repository.
 - No Cloudflare Worker, production domain, Supabase project, user, Storage object or `rcc` record is deleted or paused.
+- The V1 logical database recovery proof is retained; incomplete Auth and Storage recovery keeps retirement locked.
 
 Phase 30 is therefore underway only as preservation work. Retirement cannot proceed until a successful V2 production observation window exists, and V1 shutdown remains explicitly denied.
-

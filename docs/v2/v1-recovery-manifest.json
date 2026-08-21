@@ -25,15 +25,32 @@
     "restoreRunbook": "docs/operations-runbook.md",
     "restoreTargetPolicy": "separate-non-production-only",
     "restoreDrill": {
-      "status": "required",
+      "status": "database-verified-full-dr-required",
       "verifiedAt": null,
-      "evidence": null,
+      "evidence": {
+        "databaseVerifiedAt": "2026-08-21T12:00:40Z",
+        "workflowRunUrl": "https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32479654942",
+        "workflowJobId": 96763122277,
+        "targetProjectRef": "lugedxtmfitxrkacmjpb",
+        "sourceBackupCreatedAt": "2026-08-17T23:05:08Z",
+        "observedRpoSeconds": 305732,
+        "databaseRestoreSeconds": 105,
+        "authUsersObserved": 9,
+        "restoredLeagues": 5,
+        "restoredRccLeagues": 1,
+        "restoredPublicTables": 27,
+        "restoredPublicRlsTables": 27,
+        "storageFilesInArchive": 6,
+        "authRecoveryProven": false,
+        "storageObjectsRestored": false,
+        "productionTouched": false
+      },
       "lastAttempt": {
-        "attemptedAt": "2026-08-21",
-        "result": "v2-zero-state-replay-complete",
-        "scope": "V2 schema and transactional tests only; this is not a V1 data restore.",
-        "v1BackupRestored": false,
-        "reason": "The encrypted V1 R2 backup and target database credentials are held outside the current automation access.",
+        "attemptedAt": "2026-08-21T12:00:40Z",
+        "result": "encrypted-v1-database-restore-verified",
+        "scope": "V1 logical database schema and public data only; Auth recovery and Storage object restore remain unproven.",
+        "v1BackupRestored": true,
+        "reason": "Database recovery passed, but the standard logical dump does not prove V1 Auth credential recovery and the six archived Storage files were not restored to buckets.",
         "productionTouched": false,
         "stagingLifecycle": "paused-then-restored-active-healthy",
         "stagingDataReset": false
@@ -67,4 +84,3 @@
     "v1ShutdownAllowed": false
   }
 }
-
