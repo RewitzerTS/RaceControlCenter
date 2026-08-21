@@ -12,6 +12,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string, captchaToken: string | null) => Promise<void>;
   signUp: (email: string, password: string, captchaToken: string | null) => Promise<'signed-in' | 'confirmation-required'>;
   signOut: () => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
 }
 
@@ -92,6 +93,12 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
     signOut: async () => {
       const { error: signOutError } = await client.auth.signOut();
       if (signOutError) throw signOutError;
+    },
+    updateDisplayName: async (displayName) => {
+      const { error: updateError } = await client.auth.updateUser({
+        data: { display_name: displayName },
+      });
+      if (updateError) throw updateError;
     },
     updatePassword: async (password) => {
       const { error: updateError } = await client.auth.updateUser({ password });

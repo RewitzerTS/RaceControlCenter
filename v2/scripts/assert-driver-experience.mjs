@@ -6,6 +6,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const shell = await readFile(resolve(root, 'src/components/AppShell.tsx'), 'utf8');
 const home = await readFile(resolve(root, 'src/driver/DriverHomePage.tsx'), 'utf8');
 const data = await readFile(resolve(root, 'src/driver/driverHome.ts'), 'utf8');
+const racing = await readFile(resolve(root, 'src/driver/RacingPage.tsx'), 'utf8');
+const career = await readFile(resolve(root, 'src/driver/CareerPage.tsx'), 'utf8');
+const profile = await readFile(resolve(root, 'src/driver/ProfilePage.tsx'), 'utf8');
 const styles = await readFile(resolve(root, 'src/styles.css'), 'utf8');
 const violations = [];
 
@@ -21,6 +24,14 @@ for (const nav of [
 if (!shell.includes('<Route path="/" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
+for (const route of [
+  '<Route path="/racing" element={<Suspense',
+  '<Route path="/career" element={<Suspense',
+  '<Route path="/profile" element={<Suspense',
+]) {
+  if (!shell.includes(route)) violations.push(`missing functional Driver route: ${route}`);
+}
+if (shell.includes('RoutePlaceholder')) violations.push('Driver core route still uses a placeholder');
 if (!shell.includes('className="mobile-toggle"') || !shell.includes('main-navigation--open')) {
   violations.push('responsive V1 navigation drawer is missing');
 }
@@ -48,6 +59,18 @@ for (const table of [
 }
 for (const forbiddenMutation of ['.insert(', '.update(', '.delete(', ['service', 'role'].join('_')]) {
   if (data.includes(forbiddenMutation)) violations.push(`Driver Home contains forbidden client mutation or credential: ${forbiddenMutation}`);
+}
+for (const table of ['races', 'race_results']) {
+  if (!racing.includes(`.from('${table}')`)) violations.push(`Racing does not read ${table}`);
+}
+if (!racing.includes(".eq('result_version_id', selectedRace.current_result_version_id)")) {
+  violations.push('Racing does not pin results to the current official version');
+}
+if (!career.includes('useDriverHome') || !career.includes('identity.linkedDriverCount === 0')) {
+  violations.push('Career does not use confirmed projections or protect the unlinked-driver state');
+}
+if (!profile.includes('updateDisplayName') || !profile.includes('identity?.linkedDriverCount')) {
+  violations.push('Profile does not provide account settings and driver-link status');
 }
 if (
   data.indexOf("if (snapshot.career?.last_race_date) return 'result'") >

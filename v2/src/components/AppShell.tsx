@@ -17,6 +17,9 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 
 const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
+const RacingPage = lazy(() => import('../driver/RacingPage').then((module) => ({ default: module.RacingPage })));
+const CareerPage = lazy(() => import('../driver/CareerPage').then((module) => ({ default: module.CareerPage })));
+const ProfilePage = lazy(() => import('../driver/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const AdminWorkspacePage = lazy(() => import('../operations/AdminWorkspacePage').then((module) => ({ default: module.AdminWorkspacePage })));
 const OwnerControlPage = lazy(() => import('../operations/OwnerControlPage').then((module) => ({ default: module.OwnerControlPage })));
 const NotificationCenterPage = lazy(() => import('../operations/NotificationCenterPage').then((module) => ({ default: module.NotificationCenterPage })));
@@ -83,24 +86,6 @@ function roleLabel(role: ReturnType<typeof useRole>['role'], t: ReturnType<typeo
   if (role === 'league_admin') return t('leagueAdminRole');
   if (role === 'platform_owner') return t('platformOwnerRole');
   return t('noRole');
-}
-
-function RoutePlaceholder({
-  copyKey,
-  titleKey,
-}: {
-  copyKey: MessageKey;
-  titleKey: MessageKey;
-}) {
-  const { t } = useI18n();
-  return (
-    <main className="route-placeholder" id="main-content">
-      <p className="section-label">{t('staging')}</p>
-      <h1>{t(titleKey)}</h1>
-      <p>{t(copyKey)}</p>
-      <NavLink className="text-link" to="/">{t('route.backHome')}<span aria-hidden="true">→</span></NavLink>
-    </main>
-  );
 }
 
 export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
@@ -194,10 +179,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
         <Routes>
           <Route path="/" element={<DriverHomePage />} />
-          <Route path="/racing" element={<RoutePlaceholder titleKey="route.racingTitle" copyKey="route.racingCopy" />} />
-          <Route path="/career" element={<RoutePlaceholder titleKey="route.careerTitle" copyKey="route.careerCopy" />} />
+          <Route path="/racing" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">R</span><div><h1>{t('pending')}</h1></div></main>}><RacingPage /></Suspense>} />
+          <Route path="/career" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
-          <Route path="/profile" element={<RoutePlaceholder titleKey="route.profileTitle" copyKey="route.profileCopy" />} />
+          <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />
           <Route path="/beta" element={<BetaAccessPage />} />
           <Route path="/auth/confirm" element={<AuthLinkPage mode="confirm" />} />
           <Route path="/auth/reset" element={<AuthLinkPage mode="reset" />} />

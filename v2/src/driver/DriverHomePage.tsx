@@ -46,7 +46,7 @@ export function DriverHomePage() {
       />
     );
   }
-  if (identityError || !identity || identity.status !== 'active') {
+  if (identityError || !identity || identity.status !== 'active' || identity.linkedDriverCount === 0) {
     return <DriverState title={t('home.identityTitle')} copy={t('home.identityCopy')} />;
   }
   if (loading) {
