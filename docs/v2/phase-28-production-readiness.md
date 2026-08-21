@@ -59,6 +59,12 @@ The first clean replay exposed one real ordering defect: the Phase 16 foreign-ke
 
 This proves the V2 schema can be reconstructed from the repository. It does not claim that encrypted V1 Production data was restored.
 
+## Prepared encrypted V1 restore automation
+
+The manual GitHub workflow `.github/workflows/v1-restore-drill.yml` and helper `scripts/restore-v1-drill.sh` now prepare the final data proof. They fail closed unless `RESTORE_DRILL_DB_URL` identifies the dedicated project `lugedxtmfitxrkacmjpb`, reject both Production and Beta Staging refs, download only the latest encrypted backup from the private EU R2 prefix, verify both checksum layers, decrypt in runner-temporary storage, restore roles/schema/data in one transaction, require the restored `rcc` tenant and Auth users, report aggregate counts only, and remove all local restore material.
+
+The workflow is manual and cannot run until the target project is active and its database URL is stored as the GitHub Actions secret `RESTORE_DRILL_DB_URL`. The URL must never be posted in issues, logs, commits or chat.
+
 ## Remaining Phase 28 exit criteria
 
 - restore a recent V1 encrypted backup into a separate non-production Supabase project;

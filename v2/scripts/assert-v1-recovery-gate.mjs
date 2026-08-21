@@ -20,6 +20,8 @@ const phase28 = fs.readFileSync(phase28Path, 'utf8');
 const phase29 = fs.readFileSync(phase29Path, 'utf8');
 const phase30 = fs.readFileSync(phase30Path, 'utf8');
 const backupWorkflow = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.backupWorkflow), 'utf8');
+const restoreWorkflow = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.restoreWorkflow), 'utf8');
+const restoreScript = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.restoreScript), 'utf8');
 const restoreRunbook = fs.readFileSync(path.join(repositoryRoot, manifest.v1Data.restoreRunbook), 'utf8');
 
 requireGate(manifest.schemaVersion === 2, 'recovery manifest schema is pinned');
@@ -46,6 +48,9 @@ requireGate(Boolean(manifest.phaseProgress.phase29PreparationStartedAt) && Boole
 requireGate(backupWorkflow.includes("cron: '17 2 * * *'") && backupWorkflow.includes('RACEVORA_BACKUPS_ENABLED'), 'scheduled backup definition remains guarded and present');
 requireGate(backupWorkflow.includes('--cipher-algo AES256') && backupWorkflow.includes('sha256sum'), 'backup encryption and checksum controls remain present');
 requireGate(backupWorkflow.includes('.eu.r2.cloudflarestorage.com') && !backupWorkflow.includes('actions/upload-artifact'), 'off-site backup stays in private EU R2 and outside Actions artifacts');
+requireGate(restoreWorkflow.includes('workflow_dispatch') && restoreWorkflow.includes('RESTORE_DRILL_DB_URL') && !restoreWorkflow.includes('actions/upload-artifact'), 'encrypted restore remains manual, secret-backed and outside Actions artifacts');
+requireGate(restoreScript.includes("expected_target_ref='lugedxtmfitxrkacmjpb'") && restoreScript.includes(`production_ref='${manifest.v1Data.productionProjectRef}'`) && restoreScript.includes("staging_ref='znnkwjogtvzwfkwnmawp'"), 'restore helper pins the only allowed target and rejects Production and Staging');
+requireGate(restoreScript.includes('sha256sum -c') && restoreScript.includes('protected rcc tenant is missing from restored data') && restoreScript.includes('--single-transaction'), 'restore helper verifies checksums, rcc and transactional recovery');
 requireGate(restoreRunbook.includes('getrennten nichtproduktiven Supabase-Projekt') && restoreRunbook.includes('rcc'), 'runbook requires an isolated restore target and protects rcc');
 
 requireGate(/Status: complete\./.test(phase27), 'Phase 27 Beta is closed before Phase 28 advances');

@@ -20,6 +20,8 @@
     "productionProjectRef": "kjccstcbqygxuqkvdaqw",
     "protectedLeagueSlug": "rcc",
     "backupWorkflow": ".github/workflows/encrypted-offsite-backup.yml",
+    "restoreWorkflow": ".github/workflows/v1-restore-drill.yml",
+    "restoreScript": "scripts/restore-v1-drill.sh",
     "restoreRunbook": "docs/operations-runbook.md",
     "restoreTargetPolicy": "separate-non-production-only",
     "restoreDrill": {
