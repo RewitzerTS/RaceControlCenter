@@ -84,7 +84,6 @@ Recorded evidence:
 ## Remaining Phase 28 exit criteria
 
 - repeat the external configuration proof in the dedicated recovery target when Free-plan capacity permits;
-- run final security, performance, accessibility and operational gates against the release candidate.
 
 Until every item is complete, Phase 29 and Phase 30 remain locked.
 
@@ -99,6 +98,14 @@ The V2 frontend implements sign-up confirmation, password recovery, password upd
 The branch build for commit `4db1c77f2a3616c0ccc4191580d0266cc83864db` was repeated successfully with the target-only variables. The live `/beta` form rendered Turnstile and completed a managed verification. Supabase rejected the first diagnostic attempts because the secret had been duplicated in the dashboard field; the value was corrected, compared internally with the newly created Cloudflare secret, saved and reloaded. A subsequent `/recover` request passed CAPTCHA and Supabase accepted the Recovery dispatch at `2026-08-21T18:36:46Z`.
 
 The existing Beta account uses an iCloud address while the connected mailbox available to this task is Gmail. The user confirmed receipt and opened the Recovery message. Supabase Auth then recorded a successful `/verify` exchange for the exact Staging `/auth/reset` route at `2026-08-21T18:41:25Z`, a successful password update (`PUT /user`, status 200) at `18:43:52Z`, and a clean logout immediately afterward. This is the required end-to-end Recovery-session proof; no password value was read or handled by the task. Supabase leaked-password protection is unavailable on the current Free plan, so this advisor warning is recorded as plan-blocked rather than falsely marked fixed. V2 Staging currently has no Edge Functions, Realtime publication tables or Storage buckets, so there are no associated V2 secrets or resource policies to reconstruct at this revision.
+
+## Final live release-candidate gates
+
+Release candidate revision 3 is pinned at `3e7edf689bc1ad85e8c5b4c45998c5504a6647b2`. Its Cloudflare Staging build `39e67f62-8396-404e-bf49-28eea7f4582d` passed, all 26 GitHub checks passed, and the complete local verification suite passed 9 test files with 38 tests plus every contract, isolation, recovery and Phase 29/30 readiness gate.
+
+Chrome DevTools measured the live `/beta` candidate at 391 ms LCP, 51 ms TTFB and 0.00 CLS. The only render-blocking stylesheet and the Turnstile cache observation both had 0 ms estimated LCP/FCP savings, so no speculative resource rewrite was made. The targeted accessibility repair removed the invalid ARIA use on the Turnstile container and the visible-label mismatch on the product link; the repeated mobile Lighthouse audit reached 100 Accessibility with zero application accessibility failures. A real `robots.txt` now preserves the deliberate Staging-wide `Disallow: /`. The remaining Lighthouse findings are the intentional Staging `noindex` policy and Cloudflare Turnstile's third-party cookie behavior, not RaceVora application defects.
+
+Production and Staging both remained `ACTIVE_HEALTHY`. A read-only Production count returned exactly one `rcc`, and no Production write, route or deployment occurred.
 
 ## Fresh full-recovery backup
 

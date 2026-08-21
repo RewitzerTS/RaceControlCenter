@@ -11,9 +11,9 @@
   },
   "v2ReleaseCandidate": {
     "sourceBranch": "v2-development",
-    "releaseBranch": "release/v2-cutover-candidate-2026-08-21-r2",
-    "candidateCommit": "c850b4291988d9c8cfec57d24a163ad0cf54a307",
-    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/c850b4291988d9c8cfec57d24a163ad0cf54a307",
+    "releaseBranch": "release/v2-cutover-candidate-2026-08-21-r3",
+    "candidateCommit": "3e7edf689bc1ad85e8c5b4c45998c5504a6647b2",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/3e7edf689bc1ad85e8c5b4c45998c5504a6647b2",
     "stagingUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
   },
   "v1Data": {
@@ -121,6 +121,34 @@
       "leakedPasswordProtectionExternalConfigOpen": true,
       "performanceActionRequiredCount": 0,
       "unusedIndexInfoCountOnLowTrafficStaging": 106
+    },
+    "liveReleaseGate": {
+      "verifiedAt": "2026-08-21T18:56:46Z",
+      "candidateCommit": "3e7edf689bc1ad85e8c5b4c45998c5504a6647b2",
+      "cloudflareBuildId": "39e67f62-8396-404e-bf49-28eea7f4582d",
+      "cloudflareBuildPassed": true,
+      "githubChecksPassed": 26,
+      "githubChecksFailed": 0,
+      "localTestFilesPassed": 9,
+      "localTestsPassed": 38,
+      "performance": {
+        "lcpMs": 391,
+        "ttfbMs": 51,
+        "cls": 0,
+        "renderBlockingEstimatedLcpSavingsMs": 0,
+        "cacheEstimatedLcpSavingsMs": 0
+      },
+      "mobileLighthouse": {
+        "accessibilityScore": 100,
+        "robotsTxtValid": true,
+        "applicationAccessibilityFailures": 0,
+        "intentionalStagingNoIndex": true,
+        "turnstileThirdPartyCookieFindingAccepted": true
+      },
+      "productionProjectStatus": "ACTIVE_HEALTHY",
+      "stagingProjectStatus": "ACTIVE_HEALTHY",
+      "productionRccCount": 1,
+      "productionTouched": false
     },
     "stagingExternalConfiguration": {
       "reviewedAt": "2026-08-21",

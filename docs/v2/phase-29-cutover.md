@@ -18,11 +18,11 @@ The recovery manifest currently denies Phase 29 authorization. Documentation or 
 ## Preparation started on 2026-08-21
 
 - V1 rollback source remains pinned to `recovery/v1-production-2026-08-21` at `2da639e9b4907e226c1a2c9858320e4b73bebee0`.
-- V2 release candidate revision 2 is pinned to `release/v2-cutover-candidate-2026-08-21-r2` at `c850b4291988d9c8cfec57d24a163ad0cf54a307`.
+- V2 release candidate revision 3 is pinned to `release/v2-cutover-candidate-2026-08-21-r3` at `3e7edf689bc1ad85e8c5b4c45998c5504a6647b2`.
 - The candidate remains isolated on `racevora-v2-staging`; it is not connected to the Production Supabase project or `racevora.com`.
 - The candidate includes the clean-replay index correction and passed the complete local/static contract suite plus the fresh-database migration and transactional regression suite before it was pinned.
 - Production traffic, DNS, Cloudflare routes, Supabase configuration and the `rcc` tenant remain unchanged.
-- The encrypted V1 database, Auth credential and Storage object restore is verified. External project configuration and final release-candidate gates remain open in Phase 28.
+- The encrypted V1 database, Auth credential and Storage object restore is verified. The final live security, performance, accessibility and operational gates are green; external project configuration proof in the dedicated recovery target remains open in Phase 28.
 
 ## Automated readiness gate
 
@@ -45,4 +45,5 @@ The gate fails while any traffic, retirement or V1-shutdown authorization remain
 - V2 contains the complete Turnstile-aware sign-in/sign-up/recovery frontend, exact Auth-link routes and restrictive CSP. The persistent managed widget is limited to the exact Staging Worker hostname; its public site key is a Staging build variable and its secret is held only by Supabase Staging Auth.
 - This V2 revision requires no Edge Function, Realtime publication or Storage bucket configuration. Live Staging reports zero of each.
 - A protected Recovery request passed Turnstile and Supabase accepted the mail dispatch. The user confirmed receipt in iCloud and completed the flow. Supabase Auth recorded the Staging reset-link verification, a successful password update and a clean logout; the end-to-end Recovery gate is passed without exposing the password. Traffic authorization nevertheless stays denied until the remaining release and cutover gates are explicitly satisfied.
+- Release candidate revision 3 passed its Cloudflare Staging build, all 26 GitHub checks and the full local suite. The live Chrome DevTools gate measured 391 ms LCP, 51 ms TTFB and 0.00 CLS; mobile Lighthouse Accessibility is 100 after the two confirmed ARIA/name issues were repaired. Production stayed `ACTIVE_HEALTHY` with exactly one `rcc`.
 
