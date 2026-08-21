@@ -2,7 +2,7 @@
 
 Date: 2026-08-21
 
-Status: in progress. The V1 code recovery point, clean V2 zero-state replay and encrypted V1 logical database restore are verified. A fresh format-v2 backup including Auth recovery data and Storage objects is verified; the isolated full restore execution remains required before Production traffic may change.
+Status: in progress. The V1 code recovery point, clean V2 zero-state replay and the isolated encrypted V1 database/Auth/Storage restore are verified. External project configuration and final release-candidate gates remain required before Production traffic may change.
 
 Production posture: V1 stays online. The productive `rcc` league remains unchanged and is never a restore-test target.
 
@@ -83,8 +83,6 @@ Recorded evidence:
 
 ## Remaining Phase 28 exit criteria
 
-- execute and verify the prepared V1 Auth identity/credential recovery path rather than counting pre-existing target users;
-- restore the four archived Storage objects to isolated target buckets and validate object access;
 - validate Auth redirects/mail/CAPTCHA, Edge Function secrets, Realtime and bucket configuration in the target;
 - run final security, performance, accessibility and operational gates against the release candidate.
 
@@ -96,8 +94,17 @@ The external Auth/SMTP/CAPTCHA/redirect, Edge Function secret and Realtime proof
 
 GitHub Actions run `32488426222` created recovery format 2 on 2026-08-21 at `13:46:21Z`. The run completed every gate: database and separate Auth data export, Auth evidence checksum, one Storage bucket with four objects, AES-256 packaging, EU R2 upload, remote-size verification and runner cleanup. The encrypted object is 709,002 bytes. This proves the new recovery material exists and is intact; it does not by itself prove that Auth credentials and Storage objects can be restored.
 
+## Verified full V1 restore
+
+GitHub Actions run `32494480356` restored the fresh format-v2 backup into the dedicated project `lugedxtmfitxrkacmjpb` on 2026-08-21. Both checksum layers passed. The workflow restored and matched 1 Auth user, 1 identity and the aggregate credential fingerprint; restored 2 leagues including exactly one `rcc`; restored 29 public tables with 29/29 RLS; recreated 1 Storage bucket; and downloaded/hash-verified all 4 restored objects. The guarded job completed in about 165 seconds, with an observed recovery-point age of 4,132 seconds at completion.
+
+The real drill exposed and fixed three portability details: Supabase CLI's portable data dump included managed Auth COPY data, included managed Storage metadata, and the Storage API encoded `ResourceNotEmpty` as HTTP 400 with an embedded 409 while asynchronous emptying settled. The restore now removes only managed Auth/Storage COPY blocks from a temporary replay copy, preserves the checksum-verified original dump, restores Auth and Storage through their dedicated paths, and retries bucket deletion within a bounded window.
+
+After evidence collection the drill project was paused. V2 Staging returned to `ACTIVE_HEALTHY` with 8 Auth users, 1 isolated Beta league, 1 platform owner, 6 demo profiles, 27 migrations and 44/44 public RLS tables. The Beta registration/login surface loaded successfully. Production remained `ACTIVE_HEALTHY`; it still contains exactly one protected `rcc` league and was never used as a restore target.
+
 ## Capacity result and downstream preparation
 
 The initial zero-cost restore-project allocation returned the Supabase Free-plan active-project limit. After explicit owner approval, Beta Staging was paused, the disposable project was used for the V2 clean replay, the disposable project was paused, and the original Staging project was restored. Production was never paused or modified.
 
 The owner subsequently requested that Phase 29 and Phase 30 start. Their reversible preparation may proceed, but this does not waive the restore requirement: the V2 release candidate may be pinned, the cutover and rollback procedure may be prepared, and the V1 recovery surface may be preserved. Production traffic, destructive data operations and V1 shutdown remain locked.
+

@@ -38,12 +38,12 @@ requireGate(manifest.v2ReleaseCandidate.stagingUrl.includes('racevora-v2-staging
 requireGate(manifest.v1Data.protectedLeagueSlug === 'rcc', 'productive rcc tenant is explicitly protected');
 requireGate(/^[a-z]{20}$/.test(manifest.v1Data.productionProjectRef), 'Production Supabase project is explicitly pinned');
 requireGate(manifest.v1Data.restoreTargetPolicy === 'separate-non-production-only', 'restore drill is isolated from Production');
-requireGate(manifest.v1Data.restoreDrill.status === 'database-verified-full-dr-required' && manifest.v1Data.restoreDrill.verifiedAt === null, 'partial database recovery remains an explicit open full-DR gate');
-requireGate(manifest.v1Data.restoreDrill.lastAttempt.result === 'encrypted-v1-database-restore-verified' && manifest.v1Data.restoreDrill.lastAttempt.v1BackupRestored === true, 'encrypted V1 logical database restore is recorded truthfully');
+requireGate(manifest.v1Data.restoreDrill.status === 'database-auth-storage-verified-external-config-required' && manifest.v1Data.restoreDrill.verifiedAt === null, 'verified data recovery remains locked on external configuration evidence');
+requireGate(manifest.v1Data.restoreDrill.lastAttempt.result === 'encrypted-v1-database-auth-storage-restore-verified' && manifest.v1Data.restoreDrill.lastAttempt.v1BackupRestored === true, 'encrypted V1 database, Auth and Storage restore is recorded truthfully');
 requireGate(manifest.v1Data.restoreDrill.lastAttempt.productionTouched === false && manifest.v1Data.restoreDrill.lastAttempt.stagingDataReset === false, 'replay changed neither Production nor Staging data');
 requireGate(manifest.v1Data.restoreDrill.evidence.restoredRccLeagues === 1 && manifest.v1Data.restoreDrill.evidence.restoredPublicTables === manifest.v1Data.restoreDrill.evidence.restoredPublicRlsTables, 'database evidence contains one rcc tenant and complete public RLS');
-requireGate(manifest.v1Data.restoreDrill.evidence.authRecoveryProven === false && manifest.v1Data.restoreDrill.evidence.storageObjectsRestored === false, 'unproven Auth and Storage recovery keep the gate locked');
-requireGate(manifest.v1Data.restoreDrill.fullRestorePreparation.status === 'fresh-format-v2-backup-verified' && manifest.v1Data.restoreDrill.fullRestorePreparation.freshBackup.authArchiveChecksumVerified === true && manifest.v1Data.restoreDrill.fullRestorePreparation.freshBackup.encryptedUploadVerified === true && manifest.v1Data.restoreDrill.fullRestorePreparation.productionTouched === false && manifest.v1Data.restoreDrill.fullRestorePreparation.stagingPaused === false, 'fresh full-recovery backup is verified without touching Production or pausing Staging');
+requireGate(manifest.v1Data.restoreDrill.evidence.authRecoveryProven === true && manifest.v1Data.restoreDrill.evidence.authCredentialFingerprintMatched === true && manifest.v1Data.restoreDrill.evidence.storageObjectsRestored === 4 && manifest.v1Data.restoreDrill.evidence.storageObjectHashesMatched === true, 'Auth credentials and every archived Storage object are proven');
+requireGate(manifest.v1Data.restoreDrill.fullRestorePreparation.status === 'full-restore-verified-external-config-open' && manifest.v1Data.restoreDrill.fullRestorePreparation.freshBackup.authArchiveChecksumVerified === true && manifest.v1Data.restoreDrill.fullRestorePreparation.freshBackup.encryptedUploadVerified === true && manifest.v1Data.restoreDrill.fullRestorePreparation.productionTouched === false && manifest.v1Data.restoreDrill.fullRestorePreparation.stagingPaused === false, 'full recovery is verified without touching Production and Staging is restored');
 requireGate(manifest.v2ZeroStateReplay.status === 'verified' && manifest.v2ZeroStateReplay.migrationCount === 27 && manifest.v2ZeroStateReplay.transactionalTestCount === 18, 'clean V2 replay evidence is complete');
 requireGate(manifest.v2ZeroStateReplay.publicTableCount === manifest.v2ZeroStateReplay.publicRlsTableCount && manifest.v2ZeroStateReplay.stagingRestoredActiveHealthy === true, 'clean replay retained complete public RLS and restored Staging health');
 requireGate(Object.values(manifest.cutoverGates).every((value) => value === false), 'cutover and V1 shutdown stay denied');
@@ -73,4 +73,5 @@ if (failures.length) {
   throw new Error(`Phase 28 V1 Recovery Gate failed: ${failures.join(', ')}`);
 }
 
-console.log(`V1 Recovery Gate passed: V1 is pinned at ${manifest.v1Code.recoveryCommit.slice(0, 12)}; V2 zero-state replay is verified while V1 data restore, traffic and retirement remain locked.`);
+console.log(`V1 Recovery Gate passed: V1 is pinned at ${manifest.v1Code.recoveryCommit.slice(0, 12)}; V2 replay plus V1 database/Auth/Storage recovery are verified while external configuration, traffic and retirement remain locked.`);
+

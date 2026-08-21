@@ -22,6 +22,7 @@ The recovery manifest currently denies Phase 29 authorization. Documentation or 
 - The candidate remains isolated on `racevora-v2-staging`; it is not connected to the Production Supabase project or `racevora.com`.
 - The candidate includes the clean-replay index correction and passed the complete local/static contract suite plus the fresh-database migration and transactional regression suite before it was pinned.
 - Production traffic, DNS, Cloudflare routes, Supabase configuration and the `rcc` tenant remain unchanged.
-- The encrypted V1 logical database restore is verified, but Auth credential recovery and Storage object replay remain open Phase 28 gates.
+- The encrypted V1 database, Auth credential and Storage object restore is verified. External project configuration and final release-candidate gates remain open in Phase 28.
 
 The next executable cutover action is intentionally absent until Phase 28 records restore evidence. This makes a premature domain switch fail closed instead of relying on an operator reminder.
+

@@ -75,9 +75,20 @@ async function main() {
       body: body == null ? undefined : Buffer.isBuffer(body) ? body : JSON.stringify(body),
     });
     if (!response.ok) {
-      const detail = (await response.text()).slice(0, 300).replace(/[\r\n]+/g, ' ');
+      const responseText = await response.text();
+      let effectiveStatus = response.status;
+      let errorCode;
+      try {
+        const payload = JSON.parse(responseText);
+        if (Number.isInteger(payload?.statusCode)) effectiveStatus = payload.statusCode;
+        if (typeof payload?.code === 'string') errorCode = payload.code;
+      } catch {
+        // Preserve the HTTP status when the Storage API does not return JSON.
+      }
+      const detail = responseText.slice(0, 300).replace(/[\r\n]+/g, ' ');
       const error = new Error(`Storage API ${method} ${endpoint} failed (${response.status}): ${detail}`);
-      error.status = response.status;
+      error.status = effectiveStatus;
+      error.code = errorCode;
       throw error;
     }
     if (raw) return Buffer.from(await response.arrayBuffer());
@@ -173,3 +184,4 @@ main().catch((error) => {
   console.error(`::error::${error instanceof Error ? error.message : 'Storage restore failed.'}`);
   process.exitCode = 1;
 });
+

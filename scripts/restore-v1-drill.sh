@@ -115,6 +115,38 @@ if ! [[ "$expected_auth_users" =~ ^[0-9]+$ && "$expected_auth_identities" =~ ^[0
   exit 1
 fi
 
+# Supabase CLI data dumps can contain managed Auth and Storage COPY blocks even
+# though both are restored and verified separately below. Remove only those
+# table-data blocks from the disposable copy used by this drill. Keeping the
+# original checksum-verified data.sql untouched preserves the backup evidence.
+portable_data="$restore_root/portable-data.sql"
+awk '
+  BEGIN { skip_managed_copy = 0 }
+  skip_managed_copy {
+    if ($0 == "\\.") {
+      skip_managed_copy = 0
+    }
+    next
+  }
+  /^COPY[[:space:]]+((auth|storage)\.|"(auth|storage)"\.)/ {
+    skip_managed_copy = 1
+    next
+  }
+  { print }
+  END {
+    if (skip_managed_copy) {
+      exit 42
+    }
+  }
+' "$backup_dir/data.sql" > "$portable_data" || {
+  echo '::error::Could not isolate managed Auth/Storage COPY data from the portable database restore.' >&2
+  exit 1
+}
+if grep -Eq '^COPY[[:space:]]+((auth|storage)\.|"(auth|storage)"\.)' "$portable_data"; then
+  echo '::error::Portable database restore still contains managed Auth/Storage table data.' >&2
+  exit 1
+fi
+
 psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 --single-transaction <<'SQL'
 drop schema if exists private cascade;
 drop schema if exists public cascade;
@@ -180,7 +212,7 @@ psql \
   --variable ON_ERROR_STOP=1 \
   --file "$backup_dir/schema.sql" \
   --command 'SET session_replication_role = replica' \
-  --file "$backup_dir/data.sql" \
+  --file "$portable_data" \
   --dbname "$TARGET_DB_URL"
 
 psql "$TARGET_DB_URL" --variable ON_ERROR_STOP=1 <<'SQL'
@@ -219,3 +251,4 @@ node scripts/restore-public-storage.mjs
 unset TARGET_SUPABASE_SECRET_KEY TARGET_SUPABASE_URL RACEVORA_RESTORE_BACKUP_DIR
 
 echo "PASS encrypted V1 database, Auth credential and Storage restore completed in dedicated target ${expected_target_ref}."
+

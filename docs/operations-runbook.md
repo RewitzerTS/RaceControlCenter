@@ -164,3 +164,15 @@ Danach den tatsaechlichen RPO/RTO und fehlende manuelle Schritte in diesem Runbo
 - Auth-Schema und Plattformmigrationen des Zielprojekts bleiben verwaltet; Auth-Tabellendaten werden im dedizierten Ziel zurueckgesetzt und eingespielt. Nutzer-/Identity-Anzahlen und Credential-Fingerprint muessen exakt uebereinstimmen.
 - Storage-Buckets im dedizierten Ziel werden gegen das Inventar abgeglichen, neu erstellt und jedes Objekt nach dem Upload erneut heruntergeladen und per SHA-256 geprueft.
 - Externe Konfiguration wird ohne Secret-Werte anhand von `docs/v2/v1-external-config-checklist.md` geprueft.
+
+### Verifizierter Voll-Drill 21.08.2026
+
+- Erfolgreicher Lauf: `https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32494480356`.
+- Quelle: frisches Recovery-Format-2-Backup vom `2026-08-21T13:46:21Z`; beobachtetes RPO bei Abschluss 4.132 Sekunden.
+- Ziel: ausschliesslich `lugedxtmfitxrkacmjpb`; Laufzeit des vollstaendigen Restore-Jobs ca. 165 Sekunden.
+- Datenbank: 2 Ligen, genau ein `rcc`, 29 Tabellen und 29/29 RLS.
+- Auth: 1 Benutzer, 1 Identity und Credential-Fingerprint stimmen mit dem verschluesselten Quellnachweis ueberein; alte Sessions wurden absichtlich entfernt.
+- Storage: 1 Bucket und 4 Objekte wiederhergestellt; jedes Objekt nach Upload erneut heruntergeladen und per Bytezahl/SHA-256 verifiziert.
+- Produktion blieb `ACTIVE_HEALTHY` und unveraendert. Das Drill-Projekt wurde danach pausiert; V2 Staging wurde zu `ACTIVE_HEALTHY` mit 8 Auth-Nutzern und allen Demo-Daten wiederhergestellt.
+- Offen bleiben die zielprojektspezifischen Auth-/SMTP-/CAPTCHA-, Function-Secret- und Realtime-Nachweise der externen Konfigurationscheckliste. Phase 29/30 und V1-Abschaltung bleiben bis dahin gesperrt.
+
