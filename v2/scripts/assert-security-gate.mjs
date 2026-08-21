@@ -41,6 +41,7 @@ function requireGate(condition, label) {
 requireGate(/sourcemap:\s*false/.test(vite), 'production source maps are disabled');
 requireGate(!headers.includes('*.supabase.co'), 'CSP has no wildcard Supabase destination');
 requireGate(headers.includes(`https://${expectedProject}`) && headers.includes(`wss://${expectedProject}`), 'CSP is pinned to V2 Staging Supabase');
+requireGate(headers.includes("script-src 'self' https://challenges.cloudflare.com") && headers.includes('frame-src https://challenges.cloudflare.com'), 'CSP permits only the canonical Turnstile script and frame origin');
 requireGate(headers.includes("object-src 'none'"), 'CSP blocks plugin objects');
 requireGate(headers.includes("frame-ancestors 'none'"), 'CSP blocks framing');
 requireGate(headers.includes('X-Frame-Options: DENY'), 'legacy frame protection is present');
@@ -60,3 +61,4 @@ if (failures.length) {
 }
 
 console.log('Phase 25 Security Gate passed: source maps, CSP, browser sinks, private RLS and privileged RPC contracts are hardened.');
+

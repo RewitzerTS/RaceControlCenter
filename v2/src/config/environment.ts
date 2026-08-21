@@ -16,6 +16,10 @@ export interface RuntimeEnvironment {
   supabasePublishableKey: string;
   supabaseProjectRef: string;
   defaultLeagueSlug: string;
+  authCaptcha: {
+    enabled: boolean;
+    turnstileSiteKey: string | null;
+  };
   features: FeatureFlags;
 }
 
@@ -40,6 +44,16 @@ function parseBoolean(value: string | boolean | undefined, defaultValue = false)
   if (value === undefined) return defaultValue;
   if (typeof value === 'boolean') return value;
   return value?.trim().toLowerCase() === 'true';
+}
+
+function authCaptcha(source: EnvironmentSource) {
+  const enabled = parseBoolean(source.VITE_AUTH_CAPTCHA_ENABLED);
+  const rawSiteKey = source.VITE_TURNSTILE_SITE_KEY;
+  const turnstileSiteKey = typeof rawSiteKey === 'string' && rawSiteKey.trim() ? rawSiteKey.trim() : null;
+  if (enabled && (!turnstileSiteKey || isPlaceholder(turnstileSiteKey))) {
+    throw new Error('V2 CAPTCHA is enabled without a target-specific Turnstile site key.');
+  }
+  return { enabled, turnstileSiteKey };
 }
 
 export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment {
@@ -74,6 +88,7 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
       supabasePublishableKey,
       supabaseProjectRef: 'local',
       defaultLeagueSlug,
+      authCaptcha: authCaptcha(source),
       features: {
         stewardWorkspace: parseBoolean(source.VITE_FEATURE_STEWARD_WORKSPACE),
         leagueAdmin: parseBoolean(source.VITE_FEATURE_LEAGUE_ADMIN),
@@ -99,6 +114,7 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
     supabasePublishableKey,
     supabaseProjectRef: projectRef,
     defaultLeagueSlug,
+    authCaptcha: authCaptcha(source),
     features: {
       stewardWorkspace: parseBoolean(source.VITE_FEATURE_STEWARD_WORKSPACE),
       leagueAdmin: parseBoolean(source.VITE_FEATURE_LEAGUE_ADMIN),
@@ -112,3 +128,4 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
 export function loadEnvironment(): RuntimeEnvironment {
   return parseEnvironment(import.meta.env);
 }
+

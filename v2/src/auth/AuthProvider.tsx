@@ -7,14 +7,20 @@ interface AuthContextValue {
   user: User | null;
   loading: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<'signed-in' | 'confirmation-required'>;
+  captcha: { enabled: boolean; turnstileSiteKey: string | null };
+  requestPasswordRecovery: (email: string, captchaToken: string | null) => Promise<void>;
+  signIn: (email: string, password: string, captchaToken: string | null) => Promise<void>;
+  signUp: (email: string, password: string, captchaToken: string | null) => Promise<'signed-in' | 'confirmation-required'>;
   signOut: () => Promise<void>;
+  updatePassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ client, children }: PropsWithChildren<{ client: LeagueSupabaseClient }>) {
+export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
+  captcha: AuthContextValue['captcha'];
+  client: LeagueSupabaseClient;
+}>) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,17 +50,42 @@ export function AuthProvider({ client, children }: PropsWithChildren<{ client: L
     };
   }, [client]);
 
+  const captchaOptions = (captchaToken: string | null) => {
+    if (!captcha.enabled) return {};
+    if (!captchaToken) throw new Error('Captcha token required.');
+    return { captchaToken };
+  };
+
   const value = useMemo<AuthContextValue>(() => ({
     session,
     user: session?.user ?? null,
     loading,
     error,
-    signIn: async (email, password) => {
-      const { error: signInError } = await client.auth.signInWithPassword({ email, password });
+    captcha,
+    requestPasswordRecovery: async (email, captchaToken) => {
+      const { error: recoveryError } = await client.auth.resetPasswordForEmail(email, {
+        ...captchaOptions(captchaToken),
+        redirectTo: `${window.location.origin}/auth/reset`,
+      });
+      if (recoveryError) throw recoveryError;
+    },
+    signIn: async (email, password, captchaToken) => {
+      const { error: signInError } = await client.auth.signInWithPassword({
+        email,
+        password,
+        options: captchaOptions(captchaToken),
+      });
       if (signInError) throw signInError;
     },
-    signUp: async (email, password) => {
-      const { data, error: signUpError } = await client.auth.signUp({ email, password });
+    signUp: async (email, password, captchaToken) => {
+      const { data, error: signUpError } = await client.auth.signUp({
+        email,
+        password,
+        options: {
+          ...captchaOptions(captchaToken),
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        },
+      });
       if (signUpError) throw signUpError;
       return data.session ? 'signed-in' : 'confirmation-required';
     },
@@ -62,7 +93,11 @@ export function AuthProvider({ client, children }: PropsWithChildren<{ client: L
       const { error: signOutError } = await client.auth.signOut();
       if (signOutError) throw signOutError;
     },
-  }), [client, error, loading, session]);
+    updatePassword: async (password) => {
+      const { error: updateError } = await client.auth.updateUser({ password });
+      if (updateError) throw updateError;
+    },
+  }), [captcha, client, error, loading, session]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -72,3 +107,4 @@ export function useAuth(): AuthContextValue {
   if (!context) throw new Error('useAuth must be used inside AuthProvider.');
   return context;
 }
+

@@ -125,16 +125,21 @@
     "stagingExternalConfiguration": {
       "reviewedAt": "2026-08-21",
       "siteUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
-      "redirectAllowlist": [
-        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
-      ],
+        "redirectAllowlist": [
+          "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+          "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/confirm",
+          "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/reset"
+        ],
       "localhostRemoved": true,
       "emailConfirmationRequired": true,
       "secureEmailChangeEnabled": true,
       "securePasswordChangeEnabled": true,
       "minimumPasswordLength": 8,
       "leakedPasswordProtection": "plan-blocked-free",
-      "captcha": "open-target-keys-required",
+        "captcha": "open-target-keys-required",
+        "captchaFrontendReady": true,
+        "captchaCspReady": true,
+        "authLinkRoutesImplemented": true,
       "endToEndEmailLinkVerified": false,
       "edgeFunctionCount": 0,
       "realtimePublicationTableCount": 0,

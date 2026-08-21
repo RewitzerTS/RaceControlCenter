@@ -7,6 +7,7 @@ const validSource = {
   VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_staging_test_key',
   VITE_DEFAULT_LEAGUE_SLUG: 'demo-league',
   VITE_FEATURE_STEWARD_WORKSPACE: 'true',
+  VITE_AUTH_CAPTCHA_ENABLED: 'false',
 };
 
 describe('parseEnvironment', () => {
@@ -49,4 +50,18 @@ describe('parseEnvironment', () => {
       VITE_FEATURE_NOTIFICATIONS_V2: 'false',
     }).features).toMatchObject({ ownerControl: false, notificationsV2: false });
   });
+
+  it('requires a target-specific Turnstile key when CAPTCHA is enabled', () => {
+    expect(() => parseEnvironment({
+      ...validSource,
+      VITE_AUTH_CAPTCHA_ENABLED: 'true',
+      VITE_TURNSTILE_SITE_KEY: '',
+    })).toThrow(/target-specific Turnstile site key/i);
+    expect(parseEnvironment({
+      ...validSource,
+      VITE_AUTH_CAPTCHA_ENABLED: 'true',
+      VITE_TURNSTILE_SITE_KEY: '0x4AAA-staging-only',
+    }).authCaptcha).toEqual({ enabled: true, turnstileSiteKey: '0x4AAA-staging-only' });
+  });
 });
+

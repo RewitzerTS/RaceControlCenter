@@ -93,7 +93,9 @@ The external Auth/SMTP/CAPTCHA/redirect, Edge Function secret and Realtime proof
 
 ## Verified Staging external configuration
 
-The Staging Auth review on 2026-08-21 found and removed the stale `http://localhost:3000` Site URL that had caused confirmation links to leave the Beta environment. The Site URL and redirect allowlist now contain only the exact `racevora-v2-staging.richard-rewitzerzwhe.workers.dev` origin. E-mail confirmation and secure e-mail change remain enabled. Secure password change is enabled and the minimum password length is eight characters, matching the V2 form contract.
+The Staging Auth review on 2026-08-21 found and removed the stale `http://localhost:3000` Site URL that had caused confirmation links to leave the Beta environment. The Site URL is the exact `racevora-v2-staging.richard-rewitzerzwhe.workers.dev` origin. The redirect allowlist contains that origin plus only the exact `/auth/confirm` and `/auth/reset` V2 routes. E-mail confirmation and secure e-mail change remain enabled. Secure password change is enabled and the minimum password length is eight characters, matching the V2 form contract.
+
+The V2 frontend now implements sign-up confirmation, password recovery, password update, token reset after every Auth request and a fail-closed Cloudflare Turnstile component. Its CSP permits only Cloudflare's canonical challenge script/frame origin. CAPTCHA remains disabled until a Staging-only widget and secret have been created and saved in Cloudflare/Supabase; neither key is committed.
 
 Supabase leaked-password protection is unavailable on the current Free plan, so this advisor warning is recorded as plan-blocked rather than falsely marked fixed. CAPTCHA still requires target-only keys, and an authorized confirmation/recovery-link journey remains open. V2 Staging currently has no Edge Functions, Realtime publication tables or Storage buckets, so there are no associated V2 secrets or resource policies to reconstruct at this revision.
 

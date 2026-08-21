@@ -3,6 +3,7 @@ import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
 import trackVisionLogo from '../../../assets/images/logo.png';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
+import { AuthLinkPage } from '../auth/AuthLinkPage';
 import type { RuntimeEnvironment } from '../config/environment';
 import { DriverHomePage } from '../driver/DriverHomePage';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
@@ -198,6 +199,8 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<RoutePlaceholder titleKey="route.profileTitle" copyKey="route.profileCopy" />} />
           <Route path="/beta" element={<BetaAccessPage />} />
+          <Route path="/auth/confirm" element={<AuthLinkPage mode="confirm" />} />
+          <Route path="/auth/reset" element={<AuthLinkPage mode="reset" />} />
           <Route path="/stewarding" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense>} />
           <Route path="/admin" element={roleLoading ? <main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/graphics" element={roleLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
@@ -215,3 +218,4 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     </div>
   );
 }
+

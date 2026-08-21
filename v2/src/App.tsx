@@ -41,8 +41,9 @@ export default function App() {
 function AuthBridge({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
   const { client } = useLeague();
   return (
-    <AuthProvider client={client}>
+    <AuthProvider captcha={environment.authCaptcha} client={client}>
       <AuthorizedShell environment={environment} />
     </AuthProvider>
   );
 }
+

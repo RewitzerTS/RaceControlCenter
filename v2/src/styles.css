@@ -325,6 +325,12 @@ h2 {
 .beta-submit { width: 100%; justify-content: center; margin-top: 0.8rem; border: 0; cursor: pointer; }
 .beta-submit:disabled, .beta-mode:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .beta-mode { justify-self: start; }
+.beta-mode-actions { display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem; }
+.beta-captcha { min-width: 0; margin-top: 0.6rem; overflow: hidden; }
+.beta-captcha > div:first-child { max-width: 100%; }
+.beta-reset-form { display: grid; gap: 0.7rem; }
+.beta-reset-form .primary-action { width: 100%; justify-content: center; margin-top: 0.8rem; border: 0; }
+.beta-access-form .primary-action:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 .beta-feedback { margin: 0.65rem 0 0; padding: 0.8rem; border: 1px solid rgba(45, 192, 141, 0.42); color: #a9efd7; }
 .beta-feedback--error { border-color: rgba(235, 102, 122, 0.48); color: #ffd2d9; }
 
@@ -1961,3 +1967,4 @@ p { color: var(--muted); }
   .dashboard-card,
   .beta-access-form.hero-side { padding: 20px; }
 }
+

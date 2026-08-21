@@ -39,9 +39,10 @@ The gate fails while any traffic, retirement or V1-shutdown authorization remain
 
 ## External Staging configuration progress
 
-- The stale localhost Auth Site URL is removed. Site URL and the redirect allowlist now point only to the exact V2 Staging Worker origin.
+- The stale localhost Auth Site URL is removed. The Site URL points to the exact V2 Staging Worker origin; the allowlist contains only that origin and its exact `/auth/confirm` and `/auth/reset` routes.
 - E-mail confirmation, secure e-mail change and secure password change are enabled; the password minimum is eight characters.
 - Leaked-password protection is unavailable on the Supabase Free plan and is recorded as plan-blocked. CAPTCHA needs target-only keys and remains open.
+- V2 now contains the complete Turnstile-aware sign-in/sign-up/recovery frontend, exact Auth-link routes and restrictive CSP; target-only Cloudflare/Supabase keys and the live link journey remain the last Auth activation steps.
 - This V2 revision requires no Edge Function, Realtime publication or Storage bucket configuration. Live Staging reports zero of each.
 - One authorized e-mail confirmation/recovery journey is still required before traffic authorization can change.
 

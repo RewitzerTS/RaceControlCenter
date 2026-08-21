@@ -21,6 +21,10 @@ const landingCleanupWorkflow = fs.readFileSync(
   path.join(repositoryRoot, '.github', 'workflows', 'test2-landing-smoke.yml'),
   'utf8',
 );
+const authProvider = fs.readFileSync(path.join(v2Root, 'src', 'auth', 'AuthProvider.tsx'), 'utf8');
+const betaAccess = fs.readFileSync(path.join(v2Root, 'src', 'auth', 'BetaAccessPage.tsx'), 'utf8');
+const turnstileWidget = fs.readFileSync(path.join(v2Root, 'src', 'auth', 'TurnstileWidget.tsx'), 'utf8');
+const v2Headers = fs.readFileSync(path.join(v2Root, 'public', '_headers'), 'utf8');
 const failures = [];
 
 function requireGate(condition, label) {
@@ -53,10 +57,11 @@ requireGate(manifest.phase29Readiness.stagingAdvisorAudit.securityErrorCount ===
 requireGate(manifest.phase29Readiness.stagingAdvisorAudit.reviewedAuthenticatedDefinerRpcCount === 15 && manifest.phase29Readiness.stagingAdvisorAudit.leakedPasswordProtectionExternalConfigOpen === true, 'reviewed RPC allowlist and open Auth configuration are recorded truthfully');
 const stagingConfig = manifest.phase29Readiness.stagingExternalConfiguration;
 const stagingOrigin = 'https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev';
-requireGate(stagingConfig.siteUrl === stagingOrigin && stagingConfig.redirectAllowlist?.length === 1 && stagingConfig.redirectAllowlist[0] === stagingOrigin && stagingConfig.localhostRemoved === true, 'Staging Auth URLs are pinned without localhost');
+requireGate(stagingConfig.siteUrl === stagingOrigin && JSON.stringify(stagingConfig.redirectAllowlist) === JSON.stringify([stagingOrigin, `${stagingOrigin}/auth/confirm`, `${stagingOrigin}/auth/reset`]) && stagingConfig.localhostRemoved === true, 'Staging Auth URLs are pinned without localhost');
 requireGate(stagingConfig.emailConfirmationRequired === true && stagingConfig.secureEmailChangeEnabled === true && stagingConfig.securePasswordChangeEnabled === true && stagingConfig.minimumPasswordLength === 8, 'Staging email and password controls are recorded');
 requireGate(stagingConfig.leakedPasswordProtection === 'plan-blocked-free', 'leaked-password protection plan blocker is recorded truthfully');
 requireGate(stagingConfig.captcha === 'open-target-keys-required' && stagingConfig.endToEndEmailLinkVerified === false, 'open CAPTCHA and email-link gates keep cutover fail-closed');
+requireGate(stagingConfig.captchaFrontendReady === true && stagingConfig.captchaCspReady === true && stagingConfig.authLinkRoutesImplemented === true, 'V2 CAPTCHA and Auth-link frontend readiness is recorded');
 requireGate(stagingConfig.edgeFunctionCount === 0 && stagingConfig.realtimePublicationTableCount === 0 && stagingConfig.storageBucketCount === 0, 'unused Supabase runtime surfaces are recorded as empty');
 requireGate(manifest.phase30Preservation.v1DeletionAllowed === false, 'V1 deletion remains denied');
 requireGate(manifest.phase30Preservation.v1PauseAllowed === false, 'V1 pause remains denied');
@@ -78,6 +83,9 @@ requireGate(!readinessWorkflow.includes('actions/upload-artifact'), 'readiness e
 requireGate(!fs.existsSync(path.join(repositoryRoot, 'landing.html')) && !fs.existsSync(path.join(repositoryRoot, 'landing2.html')), 'removed legacy landing pages remain absent');
 requireGate(brandingWorkflow.includes("legacyResponse.status() !== 404") && landingCleanupWorkflow.includes('Keep index as the only landing page'), 'branding and cleanup workflows agree on the single landing page');
 requireGate(landingStyles.includes('font-size:clamp(2.75rem,13vw,5rem)') && landingStyles.includes('overflow-wrap:anywhere'), 'mobile final heading remains overflow-safe');
+requireGate(authProvider.includes('resetPasswordForEmail') && authProvider.includes('/auth/confirm') && authProvider.includes('/auth/reset'), 'V2 Auth provider keeps confirmation and recovery inside Staging');
+requireGate(betaAccess.includes('<TurnstileWidget') && turnstileWidget.includes('challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'), 'V2 public Auth forms use the canonical Turnstile frontend');
+requireGate(v2Headers.includes("script-src 'self' https://challenges.cloudflare.com") && v2Headers.includes('frame-src https://challenges.cloudflare.com'), 'V2 CSP permits only the canonical Turnstile script and frame origin');
 
 if (manualCheck) {
   requireGate(exactReleaseCommit === manifest.v2ReleaseCandidate.candidateCommit, 'manual release commit matches the manifest');
