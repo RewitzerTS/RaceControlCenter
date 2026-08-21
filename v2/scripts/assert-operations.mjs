@@ -25,7 +25,7 @@ for (const contract of [
   "dep.processor = 'notifications'",
   "race-summary:",
 ]) if (!processors.includes(contract)) violations.push('missing Notification processor contract: ' + contract);
-for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canAdmin', 'canOwner', 'canNotify']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
+for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canAdmin', 'canOwner', 'canNotify', 'loading: authLoading', 'authLoading ?']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
 for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
 for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);

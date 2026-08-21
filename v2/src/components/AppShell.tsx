@@ -94,7 +94,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const { leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
-  const { signOut, user } = useAuth();
+  const { loading: authLoading, signOut, user } = useAuth();
   const canSteward = features.stewardWorkspace && (role === 'steward' || role === 'league_admin' || role === 'platform_owner');
   const canAdmin = features.leagueAdmin && (role === 'league_admin' || role === 'platform_owner');
   const canOwner = features.ownerControl && role === 'platform_owner';
@@ -191,7 +191,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/admin/graphics" element={roleLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
           <Route path="/owner" element={roleLoading ? <main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/owner/demo" element={roleLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/notifications" element={canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/notifications" element={authLoading ? <main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main> : canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Routes>
 
