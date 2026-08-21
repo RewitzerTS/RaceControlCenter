@@ -11,9 +11,9 @@
   },
   "v2ReleaseCandidate": {
     "sourceBranch": "v2-development",
-    "releaseBranch": "release/v2-cutover-candidate-2026-08-21-r3",
-    "candidateCommit": "3e7edf689bc1ad85e8c5b4c45998c5504a6647b2",
-    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/3e7edf689bc1ad85e8c5b4c45998c5504a6647b2",
+    "releaseBranch": "release/v2-cutover-candidate-2026-08-21-r9",
+    "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/50e6f76239915a25d1b0e932b8ee9bc33b394467",
     "stagingUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
   },
   "v1Data": {
@@ -123,17 +123,17 @@
       "unusedIndexInfoCountOnLowTrafficStaging": 106
     },
     "liveReleaseGate": {
-      "verifiedAt": "2026-08-21T18:56:46Z",
-      "candidateCommit": "3e7edf689bc1ad85e8c5b4c45998c5504a6647b2",
-      "cloudflareBuildId": "39e67f62-8396-404e-bf49-28eea7f4582d",
+      "verifiedAt": "2026-08-21T21:07:36Z",
+      "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+      "cloudflareBuildId": "d054c85e-b95e-4a70-bfb8-eabfba0de576",
       "cloudflareBuildPassed": true,
       "githubChecksPassed": 26,
       "githubChecksFailed": 0,
       "localTestFilesPassed": 9,
-      "localTestsPassed": 38,
+      "localTestsPassed": 39,
       "performance": {
-        "lcpMs": 391,
-        "ttfbMs": 51,
+        "lcpMs": 658,
+        "ttfbMs": 82,
         "cls": 0,
         "renderBlockingEstimatedLcpSavingsMs": 0,
         "cacheEstimatedLcpSavingsMs": 0
@@ -148,6 +148,44 @@
       "productionProjectStatus": "ACTIVE_HEALTHY",
       "stagingProjectStatus": "ACTIVE_HEALTHY",
       "productionRccCount": 1,
+      "productionTouched": false
+    },
+    "authenticatedFunctionalGate": {
+      "verifiedAt": "2026-08-21T20:45:00Z",
+      "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+      "passedRoutes": [
+        "/",
+        "/career",
+        "/profile",
+        "/vora",
+        "/racing",
+        "/notifications",
+        "/owner",
+        "/stewarding"
+      ],
+      "disabledLeagueAdminDenied": true,
+      "rccRaceCount": 24,
+      "latestRaceDriverCount": 20,
+      "notificationCount": 24,
+      "notificationReadMutationVerified": true,
+      "rccProcessingDeliveriesSucceeded": 266,
+      "rccProcessingDeliveriesFailed": 0,
+      "productionTouched": false
+    },
+    "legalRouteGate": {
+      "verifiedAt": "2026-08-21T21:05:00Z",
+      "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+      "routesPassed": [
+        "/impressum.html",
+        "/datenschutz.html",
+        "/agb.html",
+        "/widerruf.html"
+      ],
+      "v1PresentationPreserved": true,
+      "stagingWithdrawalMode": "mailto-production-isolated",
+      "withdrawalPageOwnOriginRequests": 4,
+      "withdrawalPageProductionOrExternalRequests": 0,
+      "productionElectronicWithdrawalCutoverApprovalOpen": true,
       "productionTouched": false
     },
     "stagingExternalConfiguration": {
