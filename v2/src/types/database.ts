@@ -2541,6 +2541,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_league: {
+        Args: { p_is_public?: boolean; p_name: string; p_slug: string }
+        Returns: Json
+      }
       add_steward_evidence: {
         Args: {
           p_case_id: string
@@ -2639,6 +2643,18 @@ export type Database = {
       }
       submit_steward_appeal: {
         Args: { p_case_id: string; p_idempotency_key: string; p_reason: string }
+        Returns: Json
+      }
+      update_league_branding: {
+        Args: {
+          p_description: string
+          p_discord_url: string
+          p_logo_url: string
+          p_name: string
+          p_subtitle: string
+          p_theme_preset: number
+          p_website_url: string
+        }
         Returns: Json
       }
     }

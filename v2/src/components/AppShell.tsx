@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
-import trackVisionLogo from '../../../assets/images/logo.png';
+import raceVoraMark from '../../../assets/images/racevora-mark.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
 import { AuthLinkPage } from '../auth/AuthLinkPage';
@@ -21,6 +21,8 @@ const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePa
 const CareerPage = lazy(() => import('../driver/CareerPage').then((module) => ({ default: module.CareerPage })));
 const ProfilePage = lazy(() => import('../driver/ProfilePage').then((module) => ({ default: module.ProfilePage })));
 const AdminWorkspacePage = lazy(() => import('../operations/AdminWorkspacePage').then((module) => ({ default: module.AdminWorkspacePage })));
+const LeagueBrandingPage = lazy(() => import('../operations/LeagueBrandingPage').then((module) => ({ default: module.LeagueBrandingPage })));
+const LeagueCreatePage = lazy(() => import('../operations/LeagueCreatePage').then((module) => ({ default: module.LeagueCreatePage })));
 const OwnerControlPage = lazy(() => import('../operations/OwnerControlPage').then((module) => ({ default: module.OwnerControlPage })));
 const NotificationCenterPage = lazy(() => import('../operations/NotificationCenterPage').then((module) => ({ default: module.NotificationCenterPage })));
 const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ default: module.VoraPage })));
@@ -108,10 +110,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <header className="site-header">
         <div className="header-inner container">
         <NavLink className="brand" to="/" onClick={closeNavigation}>
-          <img className="brand-logo" src={trackVisionLogo} alt="TrackVision Studio" />
+          <img className="brand-logo" src={raceVoraMark} alt="RaceVora" />
           <span className="brand-text">
-            <strong className="brand-title">Race Control Center</strong>
-            <small className="brand-subtitle">TrackVision Studio</small>
+            <strong className="brand-title">RaceVora</strong>
+            <small className="brand-subtitle">Race Management Platform</small>
           </span>
         </NavLink>
 
@@ -189,8 +191,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/auth/reset" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="reset" />} />
           <Route path="/stewarding" element={accessLoading ? <main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main> : canSteward ? <Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin" element={accessLoading ? <main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/branding" element={accessLoading ? <main className="driver-state"><span className="state-mark">B</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">B</span><div><h1>{t('pending')}</h1></div></main>}><LeagueBrandingPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/graphics" element={accessLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
           <Route path="/owner" element={accessLoading ? <main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/owner/leagues/new" element={accessLoading ? <main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main>}><LeagueCreatePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/owner/demo" element={accessLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/notifications" element={authLoading ? <main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main> : canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="*" element={<Navigate replace to="/" />} />

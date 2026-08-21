@@ -10,6 +10,7 @@ const requiredTail = [
   'v2_tenant_helper_anon_boundary',
   'v2_notification_vora_processors',
   'v2_consumer_withdrawals',
+  'v2_v1_admin_league_branding',
 ];
 const failures = [];
 
@@ -27,7 +28,7 @@ function requireGate(condition, label) {
   if (!condition) failures.push(label);
 }
 
-requireGate(migrations.length === 29, 'exactly 29 reviewed V2 migrations are present');
+requireGate(migrations.length === 30, 'exactly 30 reviewed V2 migrations are present');
 requireGate(new Set(migrations.map((name) => name.slice(0, 14))).size === migrations.length, 'migration versions are unique');
 requireGate(new Set(migrationNames).size === migrations.length, 'migration names are unique');
 requireGate(requiredTail.every((name, index) => migrationNames.at(index - requiredTail.length) === name), 'Demo, Security, tenant-boundary, delivery-processor and consumer-withdrawal migrations remain the ordered tail');

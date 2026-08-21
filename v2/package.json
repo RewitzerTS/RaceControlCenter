@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/copy-legal-routes.mjs",
+    "build:staging": "node scripts/build-staging.mjs",
     "build:production": "node scripts/build-production.mjs",
     "check": "tsc -b --pretty false",
     "test": "vitest run",
