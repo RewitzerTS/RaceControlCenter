@@ -60,7 +60,23 @@ const stagingOrigin = 'https://racevora-v2-staging.richard-rewitzerzwhe.workers.
 requireGate(stagingConfig.siteUrl === stagingOrigin && JSON.stringify(stagingConfig.redirectAllowlist) === JSON.stringify([stagingOrigin, `${stagingOrigin}/auth/confirm`, `${stagingOrigin}/auth/reset`]) && stagingConfig.localhostRemoved === true, 'Staging Auth URLs are pinned without localhost');
 requireGate(stagingConfig.emailConfirmationRequired === true && stagingConfig.secureEmailChangeEnabled === true && stagingConfig.securePasswordChangeEnabled === true && stagingConfig.minimumPasswordLength === 8, 'Staging email and password controls are recorded');
 requireGate(stagingConfig.leakedPasswordProtection === 'plan-blocked-free', 'leaked-password protection plan blocker is recorded truthfully');
-requireGate(stagingConfig.captcha === 'open-target-keys-required' && stagingConfig.endToEndEmailLinkVerified === false, 'open CAPTCHA and email-link gates keep cutover fail-closed');
+requireGate(
+  stagingConfig.captcha === 'enabled-staging-target-only-live-verified'
+    && stagingConfig.captchaWidget?.hostname === 'racevora-v2-staging.richard-rewitzerzwhe.workers.dev'
+    && stagingConfig.captchaWidget?.mode === 'managed'
+    && stagingConfig.captchaWidget?.productionDomainsIncluded === false
+    && stagingConfig.captchaWidget?.secretLocation === 'supabase-staging-auth-only',
+  'Staging-only CAPTCHA activation is recorded without Production domains or committed secrets',
+);
+requireGate(
+  stagingConfig.recoveryEmailDispatchVerified === true
+    && stagingConfig.endToEndEmailLinkVerified === true
+    && typeof stagingConfig.recoveryLinkVerifiedAt === 'string'
+    && typeof stagingConfig.passwordUpdateVerifiedAt === 'string'
+    && stagingConfig.recoverySessionClosedAfterTest === true
+    && stagingConfig.emailLinkOpenBlocker === null,
+  'Recovery dispatch, reset-link exchange, password update and clean logout are proven end to end',
+);
 requireGate(stagingConfig.captchaFrontendReady === true && stagingConfig.captchaCspReady === true && stagingConfig.authLinkRoutesImplemented === true, 'V2 CAPTCHA and Auth-link frontend readiness is recorded');
 requireGate(stagingConfig.edgeFunctionCount === 0 && stagingConfig.realtimePublicationTableCount === 0 && stagingConfig.storageBucketCount === 0, 'unused Supabase runtime surfaces are recorded as empty');
 requireGate(manifest.phase30Preservation.v1DeletionAllowed === false, 'V1 deletion remains denied');

@@ -125,22 +125,38 @@
     "stagingExternalConfiguration": {
       "reviewedAt": "2026-08-21",
       "siteUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
-        "redirectAllowlist": [
-          "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
-          "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/confirm",
-          "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/reset"
-        ],
+      "redirectAllowlist": [
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/confirm",
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/reset"
+      ],
       "localhostRemoved": true,
       "emailConfirmationRequired": true,
       "secureEmailChangeEnabled": true,
       "securePasswordChangeEnabled": true,
       "minimumPasswordLength": 8,
       "leakedPasswordProtection": "plan-blocked-free",
-        "captcha": "open-target-keys-required",
-        "captchaFrontendReady": true,
-        "captchaCspReady": true,
-        "authLinkRoutesImplemented": true,
-      "endToEndEmailLinkVerified": false,
+      "captcha": "enabled-staging-target-only-live-verified",
+      "captchaWidget": {
+        "provider": "cloudflare-turnstile",
+        "name": "RaceVora V2 Staging",
+        "hostname": "racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+        "mode": "managed",
+        "preClearanceEnabled": false,
+        "productionDomainsIncluded": false,
+        "siteKeyLocation": "cloudflare-staging-build-variable-only",
+        "secretLocation": "supabase-staging-auth-only",
+        "verifiedAt": "2026-08-21T18:36:46Z"
+      },
+      "captchaFrontendReady": true,
+      "captchaCspReady": true,
+      "authLinkRoutesImplemented": true,
+      "recoveryEmailDispatchVerified": true,
+      "endToEndEmailLinkVerified": true,
+      "recoveryLinkVerifiedAt": "2026-08-21T18:41:25Z",
+      "passwordUpdateVerifiedAt": "2026-08-21T18:43:52Z",
+      "recoverySessionClosedAfterTest": true,
+      "emailLinkOpenBlocker": null,
       "edgeFunctionCount": 0,
       "realtimePublicationTableCount": 0,
       "storageBucketCount": 0

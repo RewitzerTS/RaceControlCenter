@@ -83,7 +83,6 @@ Recorded evidence:
 
 ## Remaining Phase 28 exit criteria
 
-- complete one authorized confirmation/recovery-link journey and configure CAPTCHA with target-only keys;
 - repeat the external configuration proof in the dedicated recovery target when Free-plan capacity permits;
 - run final security, performance, accessibility and operational gates against the release candidate.
 
@@ -95,9 +94,11 @@ The external Auth/SMTP/CAPTCHA/redirect, Edge Function secret and Realtime proof
 
 The Staging Auth review on 2026-08-21 found and removed the stale `http://localhost:3000` Site URL that had caused confirmation links to leave the Beta environment. The Site URL is the exact `racevora-v2-staging.richard-rewitzerzwhe.workers.dev` origin. The redirect allowlist contains that origin plus only the exact `/auth/confirm` and `/auth/reset` V2 routes. E-mail confirmation and secure e-mail change remain enabled. Secure password change is enabled and the minimum password length is eight characters, matching the V2 form contract.
 
-The V2 frontend now implements sign-up confirmation, password recovery, password update, token reset after every Auth request and a fail-closed Cloudflare Turnstile component. Its CSP permits only Cloudflare's canonical challenge script/frame origin. CAPTCHA remains disabled until a Staging-only widget and secret have been created and saved in Cloudflare/Supabase; neither key is committed.
+The V2 frontend implements sign-up confirmation, password recovery, password update, token reset after every Auth request and a fail-closed Cloudflare Turnstile component. Its CSP permits only Cloudflare's canonical challenge script/frame origin. A persistent `RaceVora V2 Staging` Turnstile widget is now active in managed mode and restricted to the exact Staging Worker hostname. The public site key exists only as a Cloudflare Staging build variable; the secret exists only in Supabase Staging Auth. No Production hostname is attached and neither key is committed.
 
-Supabase leaked-password protection is unavailable on the current Free plan, so this advisor warning is recorded as plan-blocked rather than falsely marked fixed. CAPTCHA still requires target-only keys, and an authorized confirmation/recovery-link journey remains open. V2 Staging currently has no Edge Functions, Realtime publication tables or Storage buckets, so there are no associated V2 secrets or resource policies to reconstruct at this revision.
+The branch build for commit `4db1c77f2a3616c0ccc4191580d0266cc83864db` was repeated successfully with the target-only variables. The live `/beta` form rendered Turnstile and completed a managed verification. Supabase rejected the first diagnostic attempts because the secret had been duplicated in the dashboard field; the value was corrected, compared internally with the newly created Cloudflare secret, saved and reloaded. A subsequent `/recover` request passed CAPTCHA and Supabase accepted the Recovery dispatch at `2026-08-21T18:36:46Z`.
+
+The existing Beta account uses an iCloud address while the connected mailbox available to this task is Gmail. The user confirmed receipt and opened the Recovery message. Supabase Auth then recorded a successful `/verify` exchange for the exact Staging `/auth/reset` route at `2026-08-21T18:41:25Z`, a successful password update (`PUT /user`, status 200) at `18:43:52Z`, and a clean logout immediately afterward. This is the required end-to-end Recovery-session proof; no password value was read or handled by the task. Supabase leaked-password protection is unavailable on the current Free plan, so this advisor warning is recorded as plan-blocked rather than falsely marked fixed. V2 Staging currently has no Edge Functions, Realtime publication tables or Storage buckets, so there are no associated V2 secrets or resource policies to reconstruct at this revision.
 
 ## Fresh full-recovery backup
 
