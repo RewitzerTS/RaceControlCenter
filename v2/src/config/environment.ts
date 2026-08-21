@@ -1,6 +1,7 @@
 export const PRODUCTION_PROJECT_REFS = ['kjccstcbqygxuqkvdaqw'] as const;
+export const V2_PROJECT_REFS = ['znnkwjogtvzwfkwnmawp'] as const;
 
-export type AppEnvironment = 'local' | 'staging';
+export type AppEnvironment = 'local' | 'staging' | 'production';
 
 export interface FeatureFlags {
   stewardWorkspace: boolean;
@@ -58,8 +59,8 @@ function authCaptcha(source: EnvironmentSource) {
 
 export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment {
   const appEnvironment = required(source, 'VITE_APP_ENV');
-  if (appEnvironment !== 'local' && appEnvironment !== 'staging') {
-    throw new Error('V2 currently accepts only local or staging environments.');
+  if (appEnvironment !== 'local' && appEnvironment !== 'staging' && appEnvironment !== 'production') {
+    throw new Error('V2 accepts only local, staging or production environments.');
   }
 
   const supabaseUrl = required(source, 'VITE_SUPABASE_URL');
@@ -67,7 +68,7 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
   const defaultLeagueSlug = required(source, 'VITE_DEFAULT_LEAGUE_SLUG').toLowerCase();
 
   if (isPlaceholder(supabaseUrl) || isPlaceholder(supabasePublishableKey)) {
-    throw new Error('Replace all V2 environment placeholders with staging-only values.');
+    throw new Error('Replace all V2 environment placeholders with target-specific values.');
   }
   if (!LEAGUE_SLUG_PATTERN.test(defaultLeagueSlug)) {
     throw new Error('VITE_DEFAULT_LEAGUE_SLUG must be a lowercase URL-safe slug.');
@@ -100,12 +101,16 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
   }
 
   if (parsedUrl.protocol !== 'https:' || !parsedUrl.hostname.endsWith('.supabase.co')) {
-    throw new Error('Staging must use an HTTPS Supabase project URL.');
+    throw new Error('Hosted V2 environments must use an HTTPS Supabase project URL.');
   }
 
   const projectRef = parsedUrl.hostname.split('.')[0];
   if (!projectRef || PRODUCTION_PROJECT_REFS.includes(projectRef as (typeof PRODUCTION_PROJECT_REFS)[number])) {
     throw new Error('Blocked: V2 cannot connect to the Production Supabase project.');
+  }
+  if (appEnvironment === 'production'
+      && !V2_PROJECT_REFS.includes(projectRef as (typeof V2_PROJECT_REFS)[number])) {
+    throw new Error('Blocked: V2 Production must use the dedicated V2 Supabase project.');
   }
 
   return {

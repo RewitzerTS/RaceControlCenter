@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PRODUCTION_PROJECT_REFS, parseEnvironment } from './environment';
+import { PRODUCTION_PROJECT_REFS, V2_PROJECT_REFS, parseEnvironment } from './environment';
 
 const validSource = {
   VITE_APP_ENV: 'staging',
@@ -25,6 +25,25 @@ describe('parseEnvironment', () => {
       ...validSource,
       VITE_SUPABASE_URL: `https://${PRODUCTION_PROJECT_REFS[0]}.supabase.co`,
     })).toThrow(/cannot connect to the Production/i);
+  });
+
+  it('accepts Production only on the dedicated V2 project', () => {
+    expect(parseEnvironment({
+      ...validSource,
+      VITE_APP_ENV: 'production',
+      VITE_SUPABASE_URL: `https://${V2_PROJECT_REFS[0]}.supabase.co`,
+      VITE_DEFAULT_LEAGUE_SLUG: 'rcc',
+    })).toMatchObject({
+      appEnvironment: 'production',
+      defaultLeagueSlug: 'rcc',
+      supabaseProjectRef: V2_PROJECT_REFS[0],
+    });
+
+    expect(() => parseEnvironment({
+      ...validSource,
+      VITE_APP_ENV: 'production',
+      VITE_SUPABASE_URL: 'https://anotherprojectref.supabase.co',
+    })).toThrow(/dedicated V2 Supabase project/i);
   });
 
   it('rejects placeholders and missing values', () => {

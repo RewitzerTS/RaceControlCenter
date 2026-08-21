@@ -37,6 +37,14 @@ The gate fails while any traffic, retirement or V1-shutdown authorization remain
 - The 106 unused-index notices are informational on this new, low-traffic Beta dataset. Indexes are not removed before representative production observation data exists.
 - Leaked-password protection remains an external Auth setting to confirm. This open item keeps actual cutover authorization denied.
 
+## Verified `rcc` import on 2026-08-21
+
+- After explicit user authorization, the real `rcc` league was copied read-only from V1 Production into the separate V2 Supabase project.
+- The atomic import created 1 league, 1 season, 24 races, 20 drivers, 451 projected race results, 24 active result versions and 451 immutable version rows.
+- Deterministic source/target checksums match for every common league, season, race, driver and result field. V1 remained unchanged.
+- Detailed non-sensitive evidence is recorded in `docs/v2/phase-29-rcc-import-evidence.md`.
+- Production traffic remains locked until the isolated V2 production Worker and the complete compatibility, Auth, rollback and performance gates pass.
+
 ## External Staging configuration progress
 
 - The stale localhost Auth Site URL is removed. The Site URL points to the exact V2 Staging Worker origin; the allowlist contains only that origin and its exact `/auth/confirm` and `/auth/reset` routes.
