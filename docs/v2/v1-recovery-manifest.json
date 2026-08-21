@@ -121,6 +121,24 @@
       "leakedPasswordProtectionExternalConfigOpen": true,
       "performanceActionRequiredCount": 0,
       "unusedIndexInfoCountOnLowTrafficStaging": 106
+    },
+    "stagingExternalConfiguration": {
+      "reviewedAt": "2026-08-21",
+      "siteUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+      "redirectAllowlist": [
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
+      ],
+      "localhostRemoved": true,
+      "emailConfirmationRequired": true,
+      "secureEmailChangeEnabled": true,
+      "securePasswordChangeEnabled": true,
+      "minimumPasswordLength": 8,
+      "leakedPasswordProtection": "plan-blocked-free",
+      "captcha": "open-target-keys-required",
+      "endToEndEmailLinkVerified": false,
+      "edgeFunctionCount": 0,
+      "realtimePublicationTableCount": 0,
+      "storageBucketCount": 0
     }
   },
   "phase30Preservation": {

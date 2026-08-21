@@ -12,6 +12,9 @@ const readinessWorkflow = fs.readFileSync(
   path.join(repositoryRoot, '.github', 'workflows', 'v2-cutover-readiness.yml'),
   'utf8',
 );
+const legacyLanding = fs.readFileSync(path.join(repositoryRoot, 'landing.html'), 'utf8');
+const legacyLanding2 = fs.readFileSync(path.join(repositoryRoot, 'landing2.html'), 'utf8');
+const landingStyles = fs.readFileSync(path.join(repositoryRoot, 'test-landing', 'style.css'), 'utf8');
 const failures = [];
 
 function requireGate(condition, label) {
@@ -42,6 +45,13 @@ requireGate(manifest.phase29Readiness.productionTrafficChangeAllowed === false, 
 requireGate(manifest.phase29Readiness.stagingAdvisorAudit.projectRef === 'znnkwjogtvzwfkwnmawp' && manifest.phase29Readiness.stagingAdvisorAudit.projectStatus === 'ACTIVE_HEALTHY', 'Staging advisor evidence is pinned to the healthy V2 project');
 requireGate(manifest.phase29Readiness.stagingAdvisorAudit.securityErrorCount === 0 && manifest.phase29Readiness.stagingAdvisorAudit.performanceActionRequiredCount === 0, 'Staging advisor audit has no unreviewed actionable finding');
 requireGate(manifest.phase29Readiness.stagingAdvisorAudit.reviewedAuthenticatedDefinerRpcCount === 15 && manifest.phase29Readiness.stagingAdvisorAudit.leakedPasswordProtectionExternalConfigOpen === true, 'reviewed RPC allowlist and open Auth configuration are recorded truthfully');
+const stagingConfig = manifest.phase29Readiness.stagingExternalConfiguration;
+const stagingOrigin = 'https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev';
+requireGate(stagingConfig.siteUrl === stagingOrigin && stagingConfig.redirectAllowlist?.length === 1 && stagingConfig.redirectAllowlist[0] === stagingOrigin && stagingConfig.localhostRemoved === true, 'Staging Auth URLs are pinned without localhost');
+requireGate(stagingConfig.emailConfirmationRequired === true && stagingConfig.secureEmailChangeEnabled === true && stagingConfig.securePasswordChangeEnabled === true && stagingConfig.minimumPasswordLength === 8, 'Staging email and password controls are recorded');
+requireGate(stagingConfig.leakedPasswordProtection === 'plan-blocked-free', 'leaked-password protection plan blocker is recorded truthfully');
+requireGate(stagingConfig.captcha === 'open-target-keys-required' && stagingConfig.endToEndEmailLinkVerified === false, 'open CAPTCHA and email-link gates keep cutover fail-closed');
+requireGate(stagingConfig.edgeFunctionCount === 0 && stagingConfig.realtimePublicationTableCount === 0 && stagingConfig.storageBucketCount === 0, 'unused Supabase runtime surfaces are recorded as empty');
 requireGate(manifest.phase30Preservation.v1DeletionAllowed === false, 'V1 deletion remains denied');
 requireGate(manifest.phase30Preservation.v1PauseAllowed === false, 'V1 pause remains denied');
 requireGate(manifest.phase30Preservation.recoveryBranchRequired === true, 'V1 recovery branch must be retained');
@@ -58,6 +68,11 @@ requireGate(readinessWorkflow.includes('npm run deploy -- --dry-run'), 'Worker b
 requireGate(!readinessWorkflow.includes('cloudflare/wrangler-action'), 'readiness workflow has no Cloudflare deployment action');
 requireGate(!readinessWorkflow.includes('supabase db push'), 'readiness workflow has no database deployment');
 requireGate(!readinessWorkflow.includes('actions/upload-artifact'), 'readiness evidence does not expose build artifacts');
+
+for (const [name, source] of [['landing.html', legacyLanding], ['landing2.html', legacyLanding2]]) {
+  requireGate(source.includes('location.replace') && source.includes('location.search') && source.includes('location.hash'), `${name} preserves query and hash while redirecting`);
+}
+requireGate(landingStyles.includes('font-size:clamp(2.75rem,13vw,5rem)') && landingStyles.includes('overflow-wrap:anywhere'), 'mobile final heading remains overflow-safe');
 
 if (manualCheck) {
   requireGate(exactReleaseCommit === manifest.v2ReleaseCandidate.candidateCommit, 'manual release commit matches the manifest');

@@ -37,3 +37,11 @@ The gate fails while any traffic, retirement or V1-shutdown authorization remain
 - The 106 unused-index notices are informational on this new, low-traffic Beta dataset. Indexes are not removed before representative production observation data exists.
 - Leaked-password protection remains an external Auth setting to confirm. This open item keeps actual cutover authorization denied.
 
+## External Staging configuration progress
+
+- The stale localhost Auth Site URL is removed. Site URL and the redirect allowlist now point only to the exact V2 Staging Worker origin.
+- E-mail confirmation, secure e-mail change and secure password change are enabled; the password minimum is eight characters.
+- Leaked-password protection is unavailable on the Supabase Free plan and is recorded as plan-blocked. CAPTCHA needs target-only keys and remains open.
+- This V2 revision requires no Edge Function, Realtime publication or Storage bucket configuration. Live Staging reports zero of each.
+- One authorized e-mail confirmation/recovery journey is still required before traffic authorization can change.
+

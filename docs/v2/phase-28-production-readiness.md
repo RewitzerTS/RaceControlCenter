@@ -83,12 +83,19 @@ Recorded evidence:
 
 ## Remaining Phase 28 exit criteria
 
-- validate Auth redirects/mail/CAPTCHA, Edge Function secrets, Realtime and bucket configuration in the target;
+- complete one authorized confirmation/recovery-link journey and configure CAPTCHA with target-only keys;
+- repeat the external configuration proof in the dedicated recovery target when Free-plan capacity permits;
 - run final security, performance, accessibility and operational gates against the release candidate.
 
 Until every item is complete, Phase 29 and Phase 30 remain locked.
 
 The external Auth/SMTP/CAPTCHA/redirect, Edge Function secret and Realtime proof is pinned in `v1-external-config-checklist.md`. It deliberately does not automate copying Production secrets into another project.
+
+## Verified Staging external configuration
+
+The Staging Auth review on 2026-08-21 found and removed the stale `http://localhost:3000` Site URL that had caused confirmation links to leave the Beta environment. The Site URL and redirect allowlist now contain only the exact `racevora-v2-staging.richard-rewitzerzwhe.workers.dev` origin. E-mail confirmation and secure e-mail change remain enabled. Secure password change is enabled and the minimum password length is eight characters, matching the V2 form contract.
+
+Supabase leaked-password protection is unavailable on the current Free plan, so this advisor warning is recorded as plan-blocked rather than falsely marked fixed. CAPTCHA still requires target-only keys, and an authorized confirmation/recovery-link journey remains open. V2 Staging currently has no Edge Functions, Realtime publication tables or Storage buckets, so there are no associated V2 secrets or resource policies to reconstruct at this revision.
 
 ## Fresh full-recovery backup
 
