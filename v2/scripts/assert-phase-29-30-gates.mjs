@@ -12,9 +12,15 @@ const readinessWorkflow = fs.readFileSync(
   path.join(repositoryRoot, '.github', 'workflows', 'v2-cutover-readiness.yml'),
   'utf8',
 );
-const legacyLanding = fs.readFileSync(path.join(repositoryRoot, 'landing.html'), 'utf8');
-const legacyLanding2 = fs.readFileSync(path.join(repositoryRoot, 'landing2.html'), 'utf8');
 const landingStyles = fs.readFileSync(path.join(repositoryRoot, 'test-landing', 'style.css'), 'utf8');
+const brandingWorkflow = fs.readFileSync(
+  path.join(repositoryRoot, '.github', 'workflows', 'smoke-racevora-brand.yml'),
+  'utf8',
+);
+const landingCleanupWorkflow = fs.readFileSync(
+  path.join(repositoryRoot, '.github', 'workflows', 'test2-landing-smoke.yml'),
+  'utf8',
+);
 const failures = [];
 
 function requireGate(condition, label) {
@@ -69,9 +75,8 @@ requireGate(!readinessWorkflow.includes('cloudflare/wrangler-action'), 'readines
 requireGate(!readinessWorkflow.includes('supabase db push'), 'readiness workflow has no database deployment');
 requireGate(!readinessWorkflow.includes('actions/upload-artifact'), 'readiness evidence does not expose build artifacts');
 
-for (const [name, source] of [['landing.html', legacyLanding], ['landing2.html', legacyLanding2]]) {
-  requireGate(source.includes('location.replace') && source.includes('location.search') && source.includes('location.hash'), `${name} preserves query and hash while redirecting`);
-}
+requireGate(!fs.existsSync(path.join(repositoryRoot, 'landing.html')) && !fs.existsSync(path.join(repositoryRoot, 'landing2.html')), 'removed legacy landing pages remain absent');
+requireGate(brandingWorkflow.includes("legacyResponse.status() !== 404") && landingCleanupWorkflow.includes('Keep index as the only landing page'), 'branding and cleanup workflows agree on the single landing page');
 requireGate(landingStyles.includes('font-size:clamp(2.75rem,13vw,5rem)') && landingStyles.includes('overflow-wrap:anywhere'), 'mobile final heading remains overflow-safe');
 
 if (manualCheck) {

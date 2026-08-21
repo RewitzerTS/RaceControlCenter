@@ -91,9 +91,9 @@ jobs:
             await assertPlatformPage(page, 'set-password.html', '#password-setup-status');
             await assertPlatformPage(page, 'account-setup.html', '#setup-title');
 
-            for (const legacyPath of ['landing.html?legacy=1#platform', 'landing2.html?legacy=1#roles']) {
-              await page.goto(`http://127.0.0.1:8080/${legacyPath}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-              await page.waitForURL(/\/index\.html\?legacy=1#(?:platform|roles)$/i, { timeout: 5000 });
+            for (const legacyPath of ['landing.html', 'landing2.html']) {
+              const legacyResponse = await page.request.get(`http://127.0.0.1:8080/${legacyPath}`);
+              if (legacyResponse.status() !== 404) throw new Error(`${legacyPath}: removed legacy landing page unexpectedly exists`);
             }
 
             const manifestResponse = await page.request.get('http://127.0.0.1:8080/manifest.json');
@@ -124,3 +124,4 @@ jobs:
             process.exit(1);
           });
           NODE
+
