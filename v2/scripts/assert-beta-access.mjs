@@ -21,8 +21,9 @@ requireGate(page.includes("role={feedback === 'error' ? 'alert' : 'status'}"), '
 requireGate(shell.includes('<Route path="/beta" element={<BetaAccessPage />} />'), 'Beta route is registered');
 requireGate(shell.includes('htmlFor="language-selector"') && shell.includes('name="language"'), 'topbar language field has a stable label and name');
 requireGate(home.includes('to="/beta"') && shell.includes('to="/beta"'), 'signed-out Home and topbar expose Beta access');
-requireGate(shell.includes('racevora-mark.svg') && shell.includes('className="site-header"'), 'V1 RaceVora branding and horizontal product header are retained');
+requireGate(shell.includes("assets/images/logo.png") && shell.includes('className="site-header"') && shell.includes('brand-title'), 'V1 tenant branding and horizontal product header are retained');
 requireGate(!shell.includes('className="app-rail"') && !shell.includes('className="brand-symbol"'), 'the divergent V2 rail and placeholder logo are absent');
+requireGate(shell.includes('status-strip v2-status-strip') && page.includes('beta-dashboard-grid'), 'V1 dashboard geometry is retained for the Beta entry');
 requireGate((messages.match(/"beta\.action"/g) ?? []).length === 4, 'Beta access copy exists in all four languages');
 
 if (failures.length) {

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
-import raceVoraMark from '../../../assets/images/racevora-mark.svg';
+import trackVisionLogo from '../../../assets/images/logo.png';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
 import type { RuntimeEnvironment } from '../config/environment';
@@ -119,10 +119,13 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   return (
     <div className="app-shell">
       <header className="site-header">
-        <div className="header-inner">
+        <div className="header-inner container">
         <NavLink className="brand" to="/" aria-label={t('nav.home')} onClick={closeNavigation}>
-          <img className="brand-logo" src={raceVoraMark} alt="" />
-          <span className="brand-copy"><strong>{t('product')}</strong><small>Race Management Platform</small></span>
+          <img className="brand-logo" src={trackVisionLogo} alt="TrackVision Studio" />
+          <span className="brand-text">
+            <strong className="brand-title">Race Control Center</strong>
+            <small className="brand-subtitle">TrackVision Studio</small>
+          </span>
         </NavLink>
 
         <button
@@ -133,10 +136,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           onClick={() => setNavigationOpen((current) => !current)}
           type="button"
         >
-          <span /><span /><span />
+          <span className="mobile-toggle__icon"><span /><span /><span /></span>
         </button>
 
-        <nav className={navigationOpen ? 'main-navigation main-navigation--open' : 'main-navigation'} id="main-navigation" aria-label={t('nav.driver')}>
+        <nav className={navigationOpen ? 'main-navigation main-nav main-navigation--open' : 'main-navigation main-nav'} id="main-navigation" aria-label={t('nav.driver')}>
           <DriverNavigation onNavigate={closeNavigation} />
           <div className="privileged-navigation">
             {canSteward && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active steward-nav-item' : 'nav-item steward-nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
@@ -167,11 +170,24 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </div>
       </header>
 
-      <div className="context-strip" aria-label={t('shell.leagueContext')}>
-        <span className="context-pill"><i aria-hidden="true" />{t('shell.leagueContext')} <strong>{leagueSlug}</strong></span>
-        <span className="context-pill"><i aria-hidden="true" />{roleLoading ? t('pending') : roleLabel(role, t)}</span>
-        <span className="context-pill context-pill--environment"><i aria-hidden="true" />{environment.appEnvironment}</span>
-      </div>
+      <section className="status-strip v2-status-strip" aria-label={t('shell.leagueContext')}>
+        <article className="status-pill-card">
+          <i className="status-dot" aria-hidden="true" />
+          <span className="status-copy"><strong>{t('shell.leagueContext')}</strong><span>{leagueSlug}</span></span>
+        </article>
+        <article className="status-pill-card">
+          <i className="status-dot violet" aria-hidden="true" />
+          <span className="status-copy"><strong>{t('authorization')}</strong><span>{roleLoading ? t('pending') : roleLabel(role, t)}</span></span>
+        </article>
+        <article className="status-pill-card">
+          <i className="status-dot gold" aria-hidden="true" />
+          <span className="status-copy"><strong>{t('environment')}</strong><span>{environment.appEnvironment}</span></span>
+        </article>
+        <article className="status-pill-card">
+          <i className={user ? 'status-dot' : 'status-dot inactive'} aria-hidden="true" />
+          <span className="status-copy"><strong>{t('session')}</strong><span>{user ? roleLabel(role, t) : t('signedOut')}</span></span>
+        </article>
+      </section>
 
       <div className="shell-frame">
 

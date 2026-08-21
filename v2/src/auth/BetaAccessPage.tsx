@@ -37,15 +37,27 @@ export function BetaAccessPage() {
   }
 
   return (
-    <main className="beta-access" id="main-content">
-      <section className="beta-access-intro" aria-labelledby="beta-access-title">
-        <p className="section-label">{t('beta.kicker')}</p>
+    <main className="beta-access dashboard-shell" id="main-content">
+      <div className="beta-dashboard-grid">
+      <section className="beta-access-intro hero-main" aria-labelledby="beta-access-title">
+        <div className="hero-topline">
+          <p className="hero-kicker">{t('beta.kicker')}</p>
+          <span className="live-badge">V2 Beta</span>
+        </div>
         <h1 id="beta-access-title">{t(mode === 'sign-up' ? 'beta.signUpTitle' : 'beta.signInTitle')}</h1>
-        <p>{t('beta.copy')}</p>
-        <NavLink className="text-link" to="/">{t('route.backHome')}<span aria-hidden="true">→</span></NavLink>
+        <p className="hero-subcopy">{t('beta.copy')}</p>
+        <div className="beta-safety-note">
+          <strong>{t('protectedCopy')}</strong>
+          <span>{t('isolationDetails', { projectRef: 'staging' })}</span>
+        </div>
+        <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}<span aria-hidden="true">→</span></NavLink>
       </section>
 
-      <form className="beta-access-form" onSubmit={(event) => void submit(event)}>
+      <form className="beta-access-form hero-side" onSubmit={(event) => void submit(event)}>
+        <div className="beta-form-heading">
+          <p className="hero-kicker">{t('beta.action')}</p>
+          <h2>{t(mode === 'sign-up' ? 'beta.signUpTitle' : 'beta.signInTitle')}</h2>
+        </div>
         <label htmlFor="beta-email">{t('beta.email')}</label>
         <input
           autoComplete="email"
@@ -87,6 +99,7 @@ export function BetaAccessPage() {
           {t(mode === 'sign-up' ? 'beta.haveAccount' : 'beta.needAccount')}
         </button>
       </form>
+      </div>
     </main>
   );
 }

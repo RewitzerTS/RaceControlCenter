@@ -21,7 +21,7 @@ for (const nav of [
 if (!shell.includes('<Route path="/" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
-if (!shell.includes('className="mobile-toggle"') || !shell.includes("'main-navigation main-navigation--open'")) {
+if (!shell.includes('className="mobile-toggle"') || !shell.includes('main-navigation--open')) {
   violations.push('responsive V1 navigation drawer is missing');
 }
 for (const responsiveContract of [
