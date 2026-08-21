@@ -108,4 +108,46 @@ begin
 end;
 $$;
 
+set local role service_role;
+do $$
+declare
+  test_event_id uuid;
+  notification_processing_id uuid;
+  vora_processing_id uuid;
+  worker_id constant text := 'phase29-processor-regression';
+begin
+  test_event_id := private.emit_domain_event(
+    'system.test', 'system', gen_random_uuid(),
+    'f1720000-0000-0000-0000-000000000001', '{}'::jsonb,
+    'phase29-notification-vora-processor-regression'
+  );
+
+  select id into notification_processing_id
+  from private.domain_event_processing
+  where event_id = test_event_id and processor = 'notifications';
+  update private.domain_event_processing
+  set status = 'processing', attempts = attempts + 1,
+      locked_by = worker_id, locked_at = now()
+  where id = notification_processing_id;
+  perform private.process_notification_event(notification_processing_id, worker_id);
+
+  select id into vora_processing_id
+  from private.domain_event_processing
+  where event_id = test_event_id and processor = 'vora';
+  update private.domain_event_processing
+  set status = 'processing', attempts = attempts + 1,
+      locked_by = worker_id, locked_at = now()
+  where id = vora_processing_id;
+  perform private.process_vora_event(vora_processing_id, worker_id);
+
+  if exists (
+    select 1 from private.domain_event_processing
+    where id in (notification_processing_id, vora_processing_id)
+      and status <> 'succeeded'
+  ) then
+    raise exception 'notification or Vora processor left a claimed delivery incomplete';
+  end if;
+end;
+$$;
+
 rollback;

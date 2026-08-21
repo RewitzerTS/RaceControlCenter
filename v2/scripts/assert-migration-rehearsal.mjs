@@ -8,6 +8,7 @@ const requiredTail = [
   'v2_demo_full_e2e',
   'v2_security_gate',
   'v2_tenant_helper_anon_boundary',
+  'v2_notification_vora_processors',
 ];
 const failures = [];
 
@@ -25,14 +26,14 @@ function requireGate(condition, label) {
   if (!condition) failures.push(label);
 }
 
-requireGate(migrations.length === 27, 'exactly 27 reviewed V2 migrations are present');
+requireGate(migrations.length === 28, 'exactly 28 reviewed V2 migrations are present');
 requireGate(new Set(migrations.map((name) => name.slice(0, 14))).size === migrations.length, 'migration versions are unique');
 requireGate(new Set(migrationNames).size === migrations.length, 'migration names are unique');
-requireGate(requiredTail.every((name, index) => migrationNames.at(index - requiredTail.length) === name), 'Demo, Security and tenant-boundary migrations remain the ordered tail');
+requireGate(requiredTail.every((name, index) => migrationNames.at(index - requiredTail.length) === name), 'Demo, Security, tenant-boundary and delivery-processor migrations remain the ordered tail');
 requireGate(!migrationSql.some((sql) => /\bdrop\s+(?:table|schema|function)\b|\btruncate\b|\balter\s+table\b[\s\S]{0,120}\bdrop\s+column\b/i.test(sql)), 'migration set contains no destructive object/data DDL');
 requireGate(testSql.every((sql) => /(^|\n)begin;\s/i.test(sql) && /rollback;\s*$/i.test(sql)), 'every database regression is transactional and rolls back');
 
-const boundaryMigration = migrationSql.at(-1);
+const boundaryMigration = migrationSql[migrationNames.indexOf('v2_tenant_helper_anon_boundary')];
 const phase26Regression = fs.readFileSync(path.join(testDir, 'phase-26-migration-rehearsal.sql'), 'utf8');
 requireGate(/language\s+plpgsql/i.test(boundaryMigration) && !/security\s+definer/i.test(boundaryMigration), 'tenant helper keeps separate anonymous and authenticated invoker paths');
 const privilegedRole = ['service', 'role'].join('_');

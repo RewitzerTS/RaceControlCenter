@@ -3,13 +3,15 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [migration, page, client, shell, test] = await Promise.all([
+const [migration, processors, page, client, shell, test] = await Promise.all([
   'supabase/migrations/20260820193000_v2_vora_context_service.sql',
+  'supabase/migrations/20260821201612_v2_notification_vora_processors.sql',
   'src/vora/VoraPage.tsx', 'src/vora/vora.ts', 'src/components/AppShell.tsx',
   'supabase/tests/phase-20-vora.sql',
 ].map((path) => readFile(resolve(root, path), 'utf8')));
 const violations = [];
 for (const contract of ['get_vora_companion_snapshot', 'auth.uid()', 'platform_feature_flags', "'deterministic_v1'", 'context_fields', 'vora_context_audit_protect_history', 'revoke all on function', 'grant execute on function public.get_vora_companion_snapshot() to authenticated']) if (!migration.includes(contract)) violations.push('missing Vora data contract: ' + contract);
+for (const contract of ['create or replace function private.process_vora_event', "dep.processor = 'vora'", "complete_domain_event_processing(p_processing_id, 'vora'"]) if (!processors.includes(contract)) violations.push('missing Vora processor contract: ' + contract);
 for (const forbidden of ['p_query', 'execute p_']) if (migration.toLowerCase().includes(forbidden)) violations.push('Vora received a forbidden free-query path: ' + forbidden);
 for (const contract of ['loadVoraSnapshot', 'context_fields', 'deterministic_v1']) if (!client.includes(contract)) violations.push('missing Vora client contract: ' + contract);
 for (const contract of ["t('vora.contextTitle')", 'snapshot.insight.title_key', 'CONTEXT_LABELS']) if (!page.includes(contract)) violations.push('missing Vora transparency contract: ' + contract);
