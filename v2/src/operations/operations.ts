@@ -80,6 +80,14 @@ function optionalText(value: Json | undefined): string {
   return typeof value === 'string' ? value : '';
 }
 
+function firstText(settings: Record<string, Json | undefined>, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = optionalText(settings[key]);
+    if (value) return value;
+  }
+  return '';
+}
+
 export async function createLeague(
   client: LeagueSupabaseClient,
   input: { name: string; slug: string; isPublic: boolean },
@@ -102,11 +110,11 @@ export async function loadLeagueBranding(client: LeagueSupabaseClient, leagueSlu
     name: response.data.name,
     slug: response.data.slug,
     logoUrl: response.data.logo_url ?? '',
-    subtitle: optionalText(settings.subtitle),
-    description: optionalText(settings.description),
-    websiteUrl: optionalText(settings.website_url),
-    discordUrl: optionalText(settings.discord_url),
-    themePreset: typeof settings.theme_preset === 'number' ? settings.theme_preset : 1,
+    subtitle: firstText(settings, 'brand_subtitle', 'subtitle'),
+    description: firstText(settings, 'public_description', 'description'),
+    websiteUrl: firstText(settings, 'public_website', 'website_url'),
+    discordUrl: firstText(settings, 'public_discord', 'discord_url'),
+    themePreset: Number(firstText(settings, 'theme_id') || settings.theme_preset || 1),
   };
 }
 
@@ -127,25 +135,26 @@ export async function updateLeagueBranding(
   input: Omit<LeagueBranding, 'id' | 'slug'>,
 ): Promise<LeagueBranding> {
   const response = await client.rpc('update_league_branding', {
-    p_name: input.name,
+    p_brand_name: input.name,
+    p_brand_subtitle: input.subtitle,
+    p_public_description: input.description,
+    p_public_website: input.websiteUrl,
+    p_public_discord: input.discordUrl,
     p_logo_url: input.logoUrl,
-    p_subtitle: input.subtitle,
-    p_description: input.description,
-    p_website_url: input.websiteUrl,
-    p_discord_url: input.discordUrl,
-    p_theme_preset: input.themePreset,
+    p_theme_id: String(input.themePreset),
   });
   if (response.error) throw response.error;
   const data = object(response.data);
+  const settings = object(data.settings ?? null);
   return {
     id: String(data.id ?? ''),
     slug: String(data.slug ?? ''),
     name: String(data.name ?? input.name),
     logoUrl: String(data.logo_url ?? input.logoUrl),
-    subtitle: String(data.subtitle ?? input.subtitle),
-    description: String(data.description ?? input.description),
-    websiteUrl: String(data.website_url ?? input.websiteUrl),
-    discordUrl: String(data.discord_url ?? input.discordUrl),
-    themePreset: Number(data.theme_preset ?? input.themePreset),
+    subtitle: firstText(settings, 'brand_subtitle') || input.subtitle,
+    description: firstText(settings, 'public_description') || input.description,
+    websiteUrl: firstText(settings, 'public_website') || input.websiteUrl,
+    discordUrl: firstText(settings, 'public_discord') || input.discordUrl,
+    themePreset: Number(firstText(settings, 'theme_id') || input.themePreset),
   };
 }

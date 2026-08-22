@@ -2647,13 +2647,13 @@ export type Database = {
       }
       update_league_branding: {
         Args: {
-          p_description: string
-          p_discord_url: string
+          p_brand_name: string
+          p_brand_subtitle?: string
           p_logo_url: string
-          p_name: string
-          p_subtitle: string
-          p_theme_preset: number
-          p_website_url: string
+          p_public_description?: string
+          p_public_discord?: string
+          p_public_website?: string
+          p_theme_id?: string
         }
         Returns: Json
       }
