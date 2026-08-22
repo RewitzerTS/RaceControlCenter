@@ -50,6 +50,10 @@ const newsBackend = await readFile(resolve(distRoot, 'v1-assets', 'js', 'service
 if (!newsBackend.includes("const ENDPOINT = '/api/f1-news';") || newsBackend.includes('.supabase.co/functions/v1/f1-news')) {
   throw new Error('V2 Race Hub news must use the isolated same-origin Worker endpoint.');
 }
+const raceHub = await readFile(resolve(distRoot, 'race-hub.html'), 'utf8');
+if (!raceHub.includes('/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')) {
+  throw new Error('V2 Race Hub must cache-bust the restored news backend.');
+}
 
 const newsWorker = await readFile(resolve(process.cwd(), 'worker', 'news-worker.js'), 'utf8');
 if (!newsWorker.includes("url.pathname === '/api/f1-news'") || !newsWorker.includes('environment.ASSETS.fetch(request)') || newsWorker.includes('SUPABASE_SERVICE_ROLE_KEY')) {

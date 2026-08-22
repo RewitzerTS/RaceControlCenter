@@ -52,6 +52,7 @@ function transformHtml(source, includeBase = false) {
     .replaceAll('assets/', '/v1-assets/')
     .replaceAll('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/v1-assets/vendor/supabase.js')
     .replaceAll('https://cdn.jsdelivr.net/npm/chart.js', '/v1-assets/vendor/chart.umd.min.js')
+    .replaceAll('/v1-assets/js/services/rcc-f1-news-backend.js', '/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')
     .replace(/\s*<script>\s*if \(location\.hash === '#wm-dynamics'\) document\.documentElement\.classList\.add\('wm-dynamics-preview'\);\s*<\/script>/g, '\n  <script src="/v1-assets/js/results-preview.js"></script>')
     .replace(/\s*<link rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net" crossorigin>\s*/g, '\n')
     .replace(/href="admin\.html([^"#]*)"/g, 'href="/admin$1"')
