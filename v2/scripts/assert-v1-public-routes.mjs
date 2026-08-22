@@ -65,12 +65,12 @@ const layout = await readFile(resolve(distRoot, 'v1-assets', 'js', 'layout.js'),
 if (!layout.includes("parsed.querySelectorAll('script')")) {
   throw new Error('V2 layout partials must discard scripts injected into Cloudflare HTML fragments.');
 }
-if (!layout.includes('const reactRoute=') || !layout.includes("if(reactRoute)return `${url.pathname}${url.search}${url.hash}`")) {
+if (!layout.includes('const reactRoute=') || !layout.includes('(?:race-hub|racing|career|vora|profile|admin') || !layout.includes("if(reactRoute)return `${url.pathname}${url.search}${url.hash}`")) {
   throw new Error('V2 platform navigation must retain the active league context.');
 }
 
 const restoredHeader = await readFile(resolve(distRoot, 'components', 'header.html'), 'utf8');
-for (const href of ['href="/"', 'href="/racing"', 'href="/career"', 'href="/vora"', 'href="/profile"', 'href="race-hub.html"']) {
+for (const href of ['href="/"', 'href="/racing"', 'href="/career"', 'href="/vora"', 'href="/profile"', 'href="/race-hub"']) {
   if (!restoredHeader.includes(href)) throw new Error(`Restored public header is missing global navigation target ${href}.`);
 }
 for (const href of ['kalender.html', 'ergebnisse.html', 'fahrer-wm.html', 'team-wm.html', 'regeln-faq.html', 'grid.html', 'hall-of-fame.html']) {

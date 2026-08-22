@@ -86,7 +86,7 @@ function transformV1Header(source) {
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6"></path></svg>
         <span class="nav-label">Profil</span>
       </a>
-      <a href="race-hub.html" class="nav-primary-link active" aria-current="page">
+      <a href="/race-hub" class="nav-primary-link active" aria-current="page">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
         <span class="nav-label">Liga</span>
       </a>
@@ -97,7 +97,7 @@ function transformV1Header(source) {
   );
 
   const leagueMenuStart = `        <div class="nav-more-menu" data-nav-more-menu>
-          <a href="race-hub.html" data-nav-link="index"><span class="nav-label">Übersicht</span></a>
+          <a href="/race-hub" data-nav-link="index"><span class="nav-label">Übersicht</span></a>
           <a href="kalender.html" data-nav-link="kalender"><span class="nav-label">Kalender</span></a>
           <a href="ergebnisse.html" data-nav-link="ergebnisse"><span class="nav-label">Ergebnisse</span></a>
           <a href="fahrer-wm.html" data-nav-link="fahrer-wm"><span class="nav-label">Fahrer-WM</span></a>`;
@@ -143,7 +143,7 @@ async function transformJavaScriptTree(directory) {
       );
       source = source.replace(
         "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/'))return href;url.searchParams.set('league',slug);const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
-        "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;const reactRoute=/^\\/(?:racing|career|vora|profile|admin(?:\\/.*)?|stewarding(?:\\/.*)?|owner(?:\\/.*)?|notifications)?$/.test(url.pathname);if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/')&&!reactRoute)return href;url.searchParams.set('league',slug);if(reactRoute)return `${url.pathname}${url.search}${url.hash}`;const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
+        "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;const reactRoute=/^\\/(?:race-hub|racing|career|vora|profile|admin(?:\\/.*)?|stewarding(?:\\/.*)?|owner(?:\\/.*)?|notifications)?$/.test(url.pathname);if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/')&&!reactRoute)return href;url.searchParams.set('league',slug);if(reactRoute)return `${url.pathname}${url.search}${url.hash}`;const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
       );
     }
     await writeFile(path, source, 'utf8');
