@@ -23,7 +23,7 @@ for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
 await access(resolve(distRoot, 'v1-assets', 'js', 'results-preview.js'));
 
 const manifest = JSON.parse(await readFile(resolve(distRoot, 'manifest.json'), 'utf8'));
-if (manifest.start_url !== '/race-hub.html' || manifest.scope !== '/' || !manifest.icons?.every((icon) => String(icon.src).startsWith('/v1-assets/'))) {
+if (manifest.start_url !== '/home' || manifest.scope !== '/' || !manifest.icons?.every((icon) => String(icon.src).startsWith('/v1-assets/'))) {
   throw new Error('V2 public manifest does not point to the restored RaceVora public experience.');
 }
 
@@ -70,7 +70,7 @@ if (!layout.includes('const reactRoute=') || !layout.includes('(?:race-hub|racin
 }
 
 const restoredHeader = await readFile(resolve(distRoot, 'components', 'header.html'), 'utf8');
-for (const href of ['href="/"', 'href="/racing"', 'href="/career"', 'href="/vora"', 'href="/profile"', 'href="/race-hub"']) {
+for (const href of ['href="/home"', 'href="/racing"', 'href="/career"', 'href="/vora"', 'href="/profile"', 'href="/race-hub"']) {
   if (!restoredHeader.includes(href)) throw new Error(`Restored public header is missing global navigation target ${href}.`);
 }
 for (const href of ['kalender.html', 'ergebnisse.html', 'fahrer-wm.html', 'team-wm.html', 'regeln-faq.html', 'grid.html', 'hall-of-fame.html']) {
@@ -78,6 +78,25 @@ for (const href of ['kalender.html', 'ergebnisse.html', 'fahrer-wm.html', 'team-
 }
 if (!restoredHeader.includes('Liga-Menü') || !restoredHeader.includes('nav-primary-link active')) {
   throw new Error('Restored public header must keep Liga active and expose the complete league menu.');
+}
+
+const landing = await readFile(resolve(distRoot, 'landing.html'), 'utf8');
+for (const href of ['/login?mode=signin', '/login?mode=signup', '/race-hub?league=rcc']) {
+  if (!landing.includes(`href="${href}"`)) throw new Error(`V1 landing page is missing the V2 entry target ${href}.`);
+}
+if (landing.includes('landing-login-modal') || landing.includes('assets/js/pages/landing.js') || landing.includes('assets/js/supabase-client.js')) {
+  throw new Error('V1 landing page still contains the retired V1 authentication flow.');
+}
+await access(resolve(distRoot, 'v1-landing', 'style.css'));
+await access(resolve(distRoot, 'v1-landing', 'script.js'));
+
+const productionWorker = await readFile(resolve(process.cwd(), 'worker', 'news-worker.js'), 'utf8');
+if (!productionWorker.includes("url.pathname === '/'") || !productionWorker.includes("new URL('/landing.html', url)")) {
+  throw new Error('Production Worker does not serve the V1 landing page at the public root.');
+}
+const productionConfig = await readFile(resolve(process.cwd(), 'wrangler.production.jsonc'), 'utf8');
+if (!productionConfig.includes('"run_worker_first": ["/", "/api/*"]')) {
+  throw new Error('Production Worker is not configured to handle the public root before the SPA fallback.');
 }
 
 const brandingSource = await readFile(resolve(process.cwd(), 'src', 'league', 'leagueBranding.ts'), 'utf8');
@@ -88,6 +107,19 @@ if (!brandingSource.includes("id: 0, name: 'RaceVora'") || brandingSource.includ
 const appStyles = await readFile(resolve(process.cwd(), 'src', 'styles.css'), 'utf8');
 if (appStyles.includes('linear-gradient(#060809, #040506)') || appStyles.includes('background: #141719;')) {
   throw new Error('V2 must not override selected league branding with fixed production colors.');
+}
+
+const resultImportSource = await readFile(resolve(process.cwd(), 'src', 'operations', 'V1CompletionPages.tsx'), 'utf8');
+const aiImportSource = await readFile(resolve(process.cwd(), 'src', 'operations', 'imageResultImport.ts'), 'utf8');
+const aiQuotaMigration = await readFile(resolve(process.cwd(), 'supabase', 'migrations', '20260822190000_v2_ai_result_import_quota.sql'), 'utf8');
+for (const marker of ['KI-Bildimport', 'Bilder mit KI auslesen', 'analysisToReviewCsv']) {
+  if (!resultImportSource.includes(marker)) throw new Error(`V2 result import is missing the restored AI workflow marker ${marker}.`);
+}
+if (!aiImportSource.includes("functions.invoke('analyze-race-result-images'") || !aiImportSource.includes("'PRÜFEN'")) {
+  throw new Error('V2 AI image import must invoke the isolated analyzer and force human point verification.');
+}
+if (!aiQuotaMigration.includes('consume_ai_analysis_quota') || !aiQuotaMigration.includes('pg_advisory_xact_lock')) {
+  throw new Error('V2 AI image import is missing its atomic tenant quota migration.');
 }
 
 console.log(`V1 public route contract passed (${requiredPages.length} core pages, ${trackMaps.length} track maps, isolated V2 backend).`);

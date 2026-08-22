@@ -99,6 +99,10 @@ async function newsResponse(request, context) {
 export default {
   async fetch(request, environment, context) {
     const url = new URL(request.url);
+    if (url.pathname === '/') {
+      const landingUrl = new URL('/landing.html', url);
+      return environment.ASSETS.fetch(new Request(landingUrl, request));
+    }
     if (url.pathname === '/api/f1-news') {
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: RESPONSE_HEADERS });
       if (request.method !== 'GET') return new Response(JSON.stringify({ error: 'method_not_allowed' }), { status: 405, headers: RESPONSE_HEADERS });

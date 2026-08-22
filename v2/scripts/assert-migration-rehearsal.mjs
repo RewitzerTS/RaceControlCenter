@@ -15,6 +15,7 @@ const requiredTail = [
   'v2_admin_audit_league_scope',
   'v2_v1_admin_races_standings',
   'v2_v1_migration_completion',
+  'v2_ai_result_import_quota',
 ];
 const failures = [];
 
@@ -32,10 +33,10 @@ function requireGate(condition, label) {
   if (!condition) failures.push(label);
 }
 
-requireGate(migrations.length === 34, 'exactly 34 reviewed V2 migrations are present');
+requireGate(migrations.length === 35, 'exactly 35 reviewed V2 migrations are present');
 requireGate(new Set(migrations.map((name) => name.slice(0, 14))).size === migrations.length, 'migration versions are unique');
 requireGate(new Set(migrationNames).size === migrations.length, 'migration names are unique');
-requireGate(requiredTail.every((name, index) => migrationNames.at(index - requiredTail.length) === name), 'Demo, Security, tenant-boundary, delivery-processor and consumer-withdrawal migrations remain the ordered tail');
+requireGate(requiredTail.every((name, index) => migrationNames.at(index - requiredTail.length) === name), 'Demo, Security, tenant-boundary, V1 completion and AI quota migrations remain the ordered tail');
 requireGate(!migrationSql.some((sql) => /\bdrop\s+(?:table|schema|function)\b|\btruncate\b|\balter\s+table\b[\s\S]{0,120}\bdrop\s+column\b/i.test(sql)), 'migration set contains no destructive object/data DDL');
 requireGate(testSql.every((sql) => /(^|\n)begin;\s/i.test(sql) && /rollback;\s*$/i.test(sql)), 'every database regression is transactional and rolls back');
 

@@ -16,7 +16,7 @@ export function CareerPage() {
     return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('home.loadingTitle')}</h1><p>{t('home.loadingCopy')}</p></div></main>;
   }
   if (!user) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('home.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/beta">{t('beta.action')}<span aria-hidden="true">→</span></NavLink></div></main>;
+    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('home.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}<span aria-hidden="true">→</span></NavLink></div></main>;
   }
   if (!identity || identity.status !== 'active' || identity.linkedDriverCount === 0) {
     return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('career.linkTitle')}</h1><p>{t('career.linkCopy')}</p><NavLink className="text-link" to="/profile">{t('route.profileTitle')}<span aria-hidden="true">→</span></NavLink></div></main>;

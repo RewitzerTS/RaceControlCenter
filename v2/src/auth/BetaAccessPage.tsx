@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from 'react';
-import { Navigate, NavLink } from 'react-router-dom';
+import { Navigate, NavLink, useSearchParams } from 'react-router-dom';
 import type { AppEnvironment } from '../config/environment';
 import { useI18n } from '../i18n/I18nProvider';
 import { useAuth } from './AuthProvider';
@@ -9,15 +9,17 @@ type AccessMode = 'sign-in' | 'sign-up' | 'recovery';
 type Feedback = 'captcha' | 'confirmation' | 'error' | 'recovery' | null;
 
 export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironment }) {
+  const [searchParams] = useSearchParams();
   const { captcha, loading: authLoading, requestPasswordRecovery, signIn, signUp, user } = useAuth();
   const { t } = useI18n();
-  const [mode, setMode] = useState<AccessMode>('sign-up');
+  const requestedMode = searchParams.get('mode');
+  const [mode, setMode] = useState<AccessMode>(requestedMode === 'signup' ? 'sign-up' : requestedMode === 'recovery' ? 'recovery' : 'sign-in');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
-  if (!authLoading && user) return <Navigate replace to="/" />;
+  if (!authLoading && user) return <Navigate replace to="/home" />;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

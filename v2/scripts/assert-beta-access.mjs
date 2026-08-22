@@ -26,9 +26,9 @@ requireGate(turnstile.includes('https://challenges.cloudflare.com/turnstile/v0/a
 requireGate(turnstile.includes('role="group"') && turnstile.includes('aria-label="Cloudflare Turnstile"'), 'Turnstile container uses a valid labelled accessibility role');
 requireGate(auth.includes('/auth/confirm') && auth.includes('/auth/reset') && shell.includes('<Route path="/auth/confirm"') && shell.includes('<Route path="/auth/reset"'), 'confirmation and recovery redirects stay inside the active V2 target');
 requireGate(authLink.includes('autoComplete="new-password"') && authLink.includes('minLength={8}') && !authLink.includes('error.message'), 'password reset has accessible validation and hides raw errors');
-requireGate(shell.includes('<Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />'), 'environment-aware access route is registered');
+requireGate(shell.includes('<Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />') && shell.includes('<Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />'), 'environment-aware access route and compatibility alias are registered');
 requireGate(shell.includes('htmlFor="language-selector"') && shell.includes('name="language"'), 'topbar language field has a stable label and name');
-requireGate(home.includes('to="/beta"') && shell.includes('to="/beta"'), 'signed-out Home and topbar expose Beta access');
+requireGate(home.includes('to="/login?mode=signin"') && shell.includes('to="/login?mode=signin"'), 'signed-out Home and topbar expose the production login');
 requireGate(shell.includes("assets/images/racevora-mark.svg") && shell.includes('className="site-header"') && shell.includes('brand-title') && shell.includes('Race Management Platform'), 'V1 tenant branding and horizontal product header are retained');
 requireGate(!shell.includes('className="app-rail"') && !shell.includes('className="brand-symbol"'), 'the divergent V2 rail and placeholder logo are absent');
 requireGate(shell.includes('status-strip v2-status-strip') && page.includes('beta-dashboard-grid'), 'V1 dashboard geometry is retained for the Beta entry');

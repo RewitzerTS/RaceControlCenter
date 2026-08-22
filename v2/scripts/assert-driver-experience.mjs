@@ -13,7 +13,7 @@ const styles = await readFile(resolve(root, 'src/styles.css'), 'utf8');
 const violations = [];
 
 for (const nav of [
-  "{ icon: 'home', key: 'nav.home', path: '/' }",
+  "{ icon: 'home', key: 'nav.home', path: '/home' }",
   "{ icon: 'racing', key: 'nav.racing', path: '/racing' }",
   "{ icon: 'career', key: 'nav.career', path: '/career' }",
   "{ icon: 'vora', key: 'nav.vora', path: '/vora' }",
@@ -21,7 +21,7 @@ for (const nav of [
 ]) {
   if (!shell.includes(nav)) violations.push(`missing Driver navigation contract: ${nav}`);
 }
-if (!shell.includes('<Route path="/" element={<DriverHomePage />} />')) {
+if (!shell.includes('<Route path="/home" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
 for (const route of [
@@ -35,7 +35,7 @@ if (shell.includes('RoutePlaceholder')) violations.push('Driver core route still
 if (!shell.includes('className="mobile-toggle"') || !shell.includes('main-navigation--open')) {
   violations.push('responsive V1 navigation drawer is missing');
 }
-if (shell.includes('<NavLink className="brand" to="/" aria-label=')) {
+if (shell.includes('<NavLink className="brand" to="/home" aria-label=')) {
   violations.push('brand link accessible name overrides its visible product label');
 }
 for (const responsiveContract of [

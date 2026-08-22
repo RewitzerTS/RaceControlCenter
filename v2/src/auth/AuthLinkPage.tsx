@@ -10,7 +10,7 @@ export function AuthLinkPage({ appEnvironment, mode }: { appEnvironment: AppEnvi
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<'complete' | 'error' | null>(null);
 
-  if (mode === 'confirm' && !loading && user) return <Navigate replace to="/" />;
+  if (mode === 'confirm' && !loading && user) return <Navigate replace to="/home" />;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -52,7 +52,7 @@ export function AuthLinkPage({ appEnvironment, mode }: { appEnvironment: AppEnvi
           )}
           {feedback === 'complete' && <p className="beta-feedback" role="status">{t('beta.resetComplete')}</p>}
           {feedback === 'error' && <p className="beta-feedback beta-feedback--error" role="alert">{t('beta.error')}</p>}
-          {!loading && <NavLink className="text-action" to="/beta">{t(production ? 'beta.productionBackToAccess' : 'beta.backToAccess')}</NavLink>}
+          {!loading && <NavLink className="text-action" to="/login?mode=signin">{t(production ? 'beta.productionBackToAccess' : 'beta.backToAccess')}</NavLink>}
         </section>
       </div>
     </main>

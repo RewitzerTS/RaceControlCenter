@@ -61,12 +61,26 @@ function transformHtml(source, includeBase = false) {
   return output;
 }
 
+function transformLanding(source) {
+  return source
+    .replace(/<button class="text-link" type="button" data-login-open><span data-login-button-label>Login<\/span><\/button>/, '<a class="text-link" href="/login?mode=signin">Login</a>')
+    .replaceAll('href="register.html"', 'href="/login?mode=signup"')
+    .replaceAll('href="race-hub.html?league=racevora-demo"', 'href="/race-hub?league=rcc"')
+    .replaceAll('href="impressum.html"', 'href="/impressum"')
+    .replaceAll('href="datenschutz.html"', 'href="/datenschutz"')
+    .replaceAll('href="agb.html"', 'href="/agb"')
+    .replaceAll('href="widerruf.html"', 'href="/widerruf"')
+    .replace(/\s*<div class="login-modal"[\s\S]*?<script src="assets\/js\/pages\/landing\.js"><\/script>/, '')
+    .replaceAll('test-landing/', '/v1-landing/')
+    .replaceAll('assets/', '/v1-assets/');
+}
+
 function transformV1Header(source) {
   let output = transformHtml(source)
     .replace('<a class="brand" href="race-hub.html">', '<a class="brand" href="/">')
     .replace('<span>Mehr</span>', '<span>Liga-Menü</span>');
 
-  const globalNavigation = `      <a href="/" class="nav-primary-link">
+  const globalNavigation = `      <a href="/home" class="nav-primary-link">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10.5V20h13v-9.5M9.5 20v-6h5v6"></path></svg>
         <span class="nav-label">Home</span>
       </a>
@@ -159,6 +173,10 @@ await writeFile(
   'utf8',
 );
 
+await cp(resolve(repositoryRoot, 'test-landing'), resolve(distRoot, 'v1-landing'), { recursive: true, force: true });
+const landingSource = await readFile(resolve(repositoryRoot, 'index.html'), 'utf8');
+await writeFile(resolve(distRoot, 'landing.html'), transformLanding(landingSource), 'utf8');
+
 const vendorDestination = resolve(v1AssetsDestination, 'vendor');
 await mkdir(vendorDestination, { recursive: true });
 await copyFile(resolve(v2Root, 'node_modules', '@supabase', 'supabase-js', 'dist', 'umd', 'supabase.js'), resolve(vendorDestination, 'supabase.js'));
@@ -172,7 +190,7 @@ for (const component of ['header.html', 'footer.html']) {
 }
 
 const manifest = JSON.parse(await readFile(resolve(repositoryRoot, 'manifest.json'), 'utf8'));
-manifest.start_url = '/race-hub.html';
+manifest.start_url = '/home';
 manifest.scope = '/';
 manifest.icons = (manifest.icons || []).map((icon) => ({
   ...icon,

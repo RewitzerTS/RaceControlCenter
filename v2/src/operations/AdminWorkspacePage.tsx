@@ -40,7 +40,7 @@ export function AdminWorkspacePage() {
 
   return <main className="operations-page" id="main-content">
     {role === 'platform_owner' && <div className="owner-mode" role="status">{t('owner.mode')}</div>}
-    <header className="operations-header"><div><p className="section-label">{t('admin.eyebrow')}</p><h1>{snapshot.league.name}</h1><p>{t('admin.copy')}</p></div><NavLink className="text-link" to="/">{t('admin.exit')}<span aria-hidden="true">→</span></NavLink></header>
+    <header className="operations-header"><div><p className="section-label">{t('admin.eyebrow')}</p><h1>{snapshot.league.name}</h1><p>{t('admin.copy')}</p></div><NavLink className="text-link" to="/home">{t('admin.exit')}<span aria-hidden="true">→</span></NavLink></header>
     <section className="operations-metrics" aria-label={t('overview')}>{metrics.map(([key, value]) => <div key={key}><strong>{formatNumber(value)}</strong><span>{t(key)}</span></div>)}</section>
     <div className="operations-layout">
       <nav className="operations-menu" aria-label={t('admin.navigation')}>{ADMIN_AREAS.map((area) => <section key={area.title}><h2>{t(area.title)}</h2>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}<span aria-hidden="true">→</span></NavLink>)}</section>)}</nav>

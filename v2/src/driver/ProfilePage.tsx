@@ -22,7 +22,7 @@ export function ProfilePage() {
     return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('home.loadingTitle')}</h1><p>{t('home.loadingCopy')}</p></div></main>;
   }
   if (!user) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('profile.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/beta">{t('beta.action')}<span aria-hidden="true">→</span></NavLink></div></main>;
+    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('profile.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}<span aria-hidden="true">→</span></NavLink></div></main>;
   }
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {

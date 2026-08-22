@@ -42,7 +42,7 @@ export function DriverHomePage() {
       <DriverState
         title={t('home.signedOutTitle')}
         copy={t('home.signedOutCopy')}
-        action={<NavLink className="primary-action" to="/beta">{t('beta.action')}<span aria-hidden="true">→</span></NavLink>}
+        action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}<span aria-hidden="true">→</span></NavLink>}
       />
     );
   }
@@ -129,7 +129,10 @@ export function DriverHomePage() {
               {raceStart ? ' · ' + formatTime(raceStart) : ''}
             </small>
           </div>
-          <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}<span aria-hidden="true">→</span></NavLink>
+          <div className="driver-hero-actions">
+            <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}<span aria-hidden="true">→</span></NavLink>
+            <a className="btn-secondary-ghost text-link" href={`/race-hub?league=${encodeURIComponent(leagueSlug)}`}>{t('home.openLeague')}</a>
+          </div>
         </article>
 
         <aside className="hero-side" aria-labelledby="career-numbers-title">

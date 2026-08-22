@@ -43,7 +43,7 @@ export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   key: MessageKey;
   path: string;
 }> = [
-  { icon: 'home', key: 'nav.home', path: '/' },
+  { icon: 'home', key: 'nav.home', path: '/home' },
   { icon: 'racing', key: 'nav.racing', path: '/racing' },
   { icon: 'career', key: 'nav.career', path: '/career' },
   { icon: 'vora', key: 'nav.vora', path: '/vora' },
@@ -78,7 +78,7 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
       {DRIVER_NAV_ITEMS.map((item) => (
         <NavLink
           className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
-          end={item.path === '/'}
+          end={item.path === '/home'}
           key={item.path}
           onClick={onNavigate}
           to={item.path}
@@ -89,7 +89,7 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
       ))}
       <a className="nav-item nav-item--public" href={`/race-hub?league=${encodeURIComponent(leagueSlug)}`} onClick={onNavigate}>
         <NavIcon name="league" />
-        <span>Liga</span>
+        <span>{t('nav.league')}</span>
       </a>
     </div>
   );
@@ -124,7 +124,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     <div className="app-shell">
       <header className="site-header">
         <div className="header-inner container">
-        <NavLink className="brand" to="/" onClick={closeNavigation}>
+        <NavLink className="brand" to="/home" onClick={closeNavigation}>
           <img className="brand-logo" src={branding.logoUrl || raceVoraMark} alt="" />
           <span className="brand-text">
             <strong className="brand-title">{branding.name || 'RaceVora'}</strong>
@@ -167,7 +167,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
                 <span>{t('shell.signOut')}</span>
               </button>
             ) : (
-              <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/beta">{t('beta.action')}</NavLink>
+              <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/login?mode=signin">{t('beta.action')}</NavLink>
             )}
           </div>
         </nav>
@@ -196,15 +196,17 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <div className="shell-frame">
 
         <Routes>
-          <Route path="/" element={<DriverHomePage />} />
+          <Route path="/" element={<Navigate replace to="/home" />} />
+          <Route path="/home" element={<DriverHomePage />} />
           <Route path="/racing" element={<RacingPage />} />
           <Route path="/career" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />
+          <Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/auth/confirm" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="confirm" />} />
           <Route path="/auth/reset" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="reset" />} />
-          <Route path="/stewarding" element={accessLoading ? <main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main> : canSteward ? <Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/stewarding" element={accessLoading ? <main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main> : canSteward ? <Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense> : <Navigate replace to="/home" />} />
           <Route path="/admin" element={accessLoading ? <main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/branding" element={accessLoading ? <main className="driver-state"><span className="state-mark">B</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">B</span><div><h1>{t('pending')}</h1></div></main>}><LeagueBrandingPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/users" element={accessLoading ? <main className="driver-state"><span className="state-mark">U</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">U</span><div><h1>{t('pending')}</h1></div></main>}><LeagueMembersPage /></Suspense> : <Navigate replace to="/" />} />
@@ -221,7 +223,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/owner/leagues/new" element={accessLoading ? <main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main>}><LeagueCreatePage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/owner/demo" element={accessLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/notifications" element={authLoading ? <main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main> : canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="*" element={<Navigate replace to="/" />} />
+          <Route path="*" element={<Navigate replace to="/home" />} />
         </Routes>
 
         <footer className="footer">
