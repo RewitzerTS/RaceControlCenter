@@ -22,6 +22,11 @@ for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
 }
 await access(resolve(distRoot, 'v1-assets', 'js', 'results-preview.js'));
 
+const manifest = JSON.parse(await readFile(resolve(distRoot, 'manifest.json'), 'utf8'));
+if (manifest.start_url !== '/race-hub.html' || manifest.scope !== '/' || !manifest.icons?.every((icon) => String(icon.src).startsWith('/v1-assets/'))) {
+  throw new Error('V2 public manifest does not point to the restored RaceVora public experience.');
+}
+
 const trackMaps = (await readdir(resolve(distRoot, 'v1-assets', 'trackmaps'))).filter((name) => /\.(png|webp|svg)$/i.test(name));
 if (trackMaps.length < 24) throw new Error(`Expected at least 24 V1 track maps, found ${trackMaps.length}.`);
 

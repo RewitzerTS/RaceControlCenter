@@ -116,6 +116,15 @@ for (const component of ['header.html', 'footer.html']) {
   await writeFile(resolve(componentsDestination, component), transformHtml(source), 'utf8');
 }
 
+const manifest = JSON.parse(await readFile(resolve(repositoryRoot, 'manifest.json'), 'utf8'));
+manifest.start_url = '/race-hub.html';
+manifest.scope = '/';
+manifest.icons = (manifest.icons || []).map((icon) => ({
+  ...icon,
+  src: String(icon.src || '').replace(/^\.?\/?assets\//, '/v1-assets/'),
+}));
+await writeFile(resolve(distRoot, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+
 for (const page of publicPages) {
   const source = await readFile(resolve(repositoryRoot, `${page}.html`), 'utf8');
   await writeFile(resolve(distRoot, `${page}.html`), transformHtml(source), 'utf8');
