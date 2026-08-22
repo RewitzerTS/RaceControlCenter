@@ -91,7 +91,7 @@ await access(resolve(distRoot, 'v1-landing', 'style.css'));
 await access(resolve(distRoot, 'v1-landing', 'script.js'));
 
 const productionWorker = await readFile(resolve(process.cwd(), 'worker', 'news-worker.js'), 'utf8');
-if (!productionWorker.includes("url.pathname === '/'") || !productionWorker.includes("new URL('/landing.html', url)")) {
+if (!productionWorker.includes("url.pathname === '/'") || !productionWorker.includes("new URL('/landing', url)")) {
   throw new Error('Production Worker does not serve the V1 landing page at the public root.');
 }
 const productionConfig = await readFile(resolve(process.cwd(), 'wrangler.production.jsonc'), 'utf8');

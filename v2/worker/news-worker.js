@@ -100,7 +100,9 @@ export default {
   async fetch(request, environment, context) {
     const url = new URL(request.url);
     if (url.pathname === '/') {
-      const landingUrl = new URL('/landing.html', url);
+      // Cloudflare Assets canonicalizes *.html to extensionless URLs. Fetch the
+      // canonical asset internally so the public root stays at racevora.com/.
+      const landingUrl = new URL('/landing', url);
       return environment.ASSETS.fetch(new Request(landingUrl, request));
     }
     if (url.pathname === '/api/f1-news') {
