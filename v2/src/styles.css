@@ -1810,6 +1810,10 @@ body {
   --purple-bright: var(--brand-primary);
   --teal: var(--brand-accent);
   --teal-bright: var(--brand-accent-2);
+  --brand-gradient: linear-gradient(90deg, var(--brand-accent), var(--brand-primary));
+  --control-background: color-mix(in srgb, var(--brand-surface) 84%, var(--brand-background));
+  --control-background-focus: color-mix(in srgb, var(--brand-surface) 74%, var(--brand-primary));
+  --control-border: color-mix(in srgb, var(--brand-text) 16%, transparent);
   --v1-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   --v1-radius: 22px;
   --v1-max: 1280px;
@@ -2120,14 +2124,20 @@ p { color: var(--muted); }
   border: 0;
   border-radius: 999px;
   color: var(--brand-on-primary);
-  background: var(--brand-primary);
+  background-color: var(--brand-primary);
+  background-image: var(--brand-gradient);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+  background-origin: border-box;
+  background-clip: border-box;
   box-shadow: 0 0 26px color-mix(in srgb, var(--brand-primary) 36%, transparent);
   font-weight: 800;
 }
 .primary-action:hover,
 .action-button:hover,
 .beta-submit:hover,
-.btn-primary-glow:hover { background: color-mix(in srgb, var(--brand-primary) 82%, var(--brand-accent)); box-shadow: 0 0 30px color-mix(in srgb, var(--brand-primary) 48%, transparent); transform: translateY(-1px); }
+.btn-primary-glow:hover { filter: brightness(1.07); box-shadow: 0 0 30px color-mix(in srgb, var(--brand-primary) 48%, transparent); transform: translateY(-1px); }
 .driver-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
 .text-link,
 .text-action,
@@ -2310,5 +2320,69 @@ p { color: var(--muted); }
   .hero-side,
   .dashboard-card,
   .beta-access-form.hero-side { padding: 20px; }
+}
+
+/* Tenant branding must cover every interactive surface, not only cards. */
+.app-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  color: var(--text);
+  border-color: var(--control-border);
+  background-color: var(--control-background);
+}
+.app-shell :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: color-mix(in srgb, var(--brand-primary) 68%, var(--brand-text));
+  background-color: var(--control-background-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
+}
+.app-shell :where(input, textarea)::placeholder {
+  color: color-mix(in srgb, var(--brand-text) 48%, var(--brand-surface));
+}
+
+.vora-insight {
+  background:
+    radial-gradient(circle at 12% 50%, color-mix(in srgb, var(--brand-primary) 22%, transparent), transparent 30%),
+    linear-gradient(120deg,
+      color-mix(in srgb, var(--brand-surface) 88%, var(--brand-background)),
+      color-mix(in srgb, var(--brand-surface) 84%, var(--brand-accent)));
+}
+.vora-racing-line {
+  background: color-mix(in srgb, var(--brand-surface) 90%, var(--brand-background));
+}
+
+.career-page .level-meter > span,
+.career-page .challenge-progress i b {
+  transform-origin: left center;
+  animation: career-meter-fill 720ms cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes career-meter-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.career-number-grid .career-number {
+  min-height: 74px;
+  padding: 9px 11px;
+  border-radius: 15px;
+}
+.career-number-grid .career-number strong {
+  margin-top: 5px;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .career-page :is(.hero-main, .hero-side, .dashboard-card) { padding: 16px; }
+  .career-number-grid { gap: 8px; margin-top: 16px; }
+  .career-number-grid .career-number { min-height: 68px; padding: 8px 10px; border-radius: 14px; }
+  .career-number-grid .career-number strong { font-size: 1.3rem; }
+  .career-detail-grid { width: calc(100% - 20px); gap: 14px; }
+  .career-page .storyline-strip { overflow-x: auto; }
+  .career-page .challenge-list li { min-width: 0; }
+  .career-page .challenge-progress { width: 100%; justify-items: stretch; }
+  .career-page .challenge-progress > span { text-align: right; }
+  .career-page .challenge-progress i { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .career-page .level-meter > span,
+  .career-page .challenge-progress i b { animation: none; }
 }
 
