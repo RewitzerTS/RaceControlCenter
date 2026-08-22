@@ -2607,6 +2607,7 @@ export type Database = {
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_member_admin_workspace: { Args: never; Returns: Json }
       get_league_race_admin_workspace: { Args: never; Returns: Json }
+      get_league_configuration_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
       get_social_graphics_workspace: { Args: never; Returns: Json }
       get_vora_companion_snapshot: { Args: never; Returns: Json }
@@ -2649,6 +2650,10 @@ export type Database = {
         Args: { p_role: string; p_user_id: string }
         Returns: Json
       }
+      update_league_rules: { Args: { p_faqs?: Json; p_rules: Json }; Returns: Json }
+      rename_league_team: { Args: { p_car_name?: string; p_current_name: string; p_new_name: string }; Returns: Json }
+      create_league_result_draft: { Args: { p_change_reason: string; p_race_id: string; p_rows: Json }; Returns: Json }
+      publish_league_result_draft: { Args: { p_result_version_id: string }; Returns: Json }
       set_platform_feature_flag: {
         Args: { p_enabled: boolean; p_flag_key: string }
         Returns: Json

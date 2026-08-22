@@ -67,6 +67,10 @@ export type LeagueRace = {
 export type DriverStanding = { driver_id: string; display_name: string; gamertag: string | null; points: number; wins: number; podiums: number; starts: number };
 export type TeamStanding = { team_name: string; points: number; wins: number; podiums: number };
 export type RaceAdminWorkspace = { league: OwnerLeague; seasons: LeagueSeason[]; races: LeagueRace[]; driver_standings: DriverStanding[]; team_standings: TeamStanding[] };
+export type LeagueFaq = { question: string; answer: string };
+export type ResultDraft = { id: string; race_id: string; race_name: string; version_number: number; status: string; change_reason: string; created_at: string; row_count: number };
+export type ConfigurationWorkspace = { league: OwnerLeague; rules: Record<string, Json | undefined>; faqs: LeagueFaq[]; audit: Array<AuditItem & { entity_id: string | null; metadata: Json }>; result_drafts: ResultDraft[] };
+export type ImportedResultRow = { driver_id?: string; driver_name: string; finish_position: number; grid_position?: number; points: number; team_name?: string; car_name?: string };
 export type LeagueDriverInput = {
   id?: string;
   displayName: string;
@@ -155,6 +159,32 @@ export async function loadRaceAdminWorkspace(client: LeagueSupabaseClient): Prom
   const response = await client.rpc('get_league_race_admin_workspace');
   if (response.error) throw response.error;
   return object(response.data) as unknown as RaceAdminWorkspace;
+}
+
+export async function loadConfigurationWorkspace(client: LeagueSupabaseClient): Promise<ConfigurationWorkspace> {
+  const response = await client.rpc('get_league_configuration_workspace');
+  if (response.error) throw response.error;
+  return object(response.data) as unknown as ConfigurationWorkspace;
+}
+
+export async function saveLeagueRules(client: LeagueSupabaseClient, rules: Record<string, string>, faqs: LeagueFaq[]) {
+  const response = await client.rpc('update_league_rules', { p_rules: rules, p_faqs: faqs });
+  if (response.error) throw response.error;
+}
+
+export async function renameLeagueTeam(client: LeagueSupabaseClient, currentName: string, newName: string, carName: string) {
+  const response = await client.rpc('rename_league_team', { p_current_name: currentName, p_new_name: newName, p_car_name: carName });
+  if (response.error) throw response.error;
+}
+
+export async function createLeagueResultDraft(client: LeagueSupabaseClient, raceId: string, rows: ImportedResultRow[], reason: string) {
+  const response = await client.rpc('create_league_result_draft', { p_race_id: raceId, p_rows: rows as unknown as Json, p_change_reason: reason });
+  if (response.error) throw response.error;
+}
+
+export async function publishLeagueResultDraft(client: LeagueSupabaseClient, versionId: string) {
+  const response = await client.rpc('publish_league_result_draft', { p_result_version_id: versionId });
+  if (response.error) throw response.error;
 }
 
 export async function upsertLeagueDriver(client: LeagueSupabaseClient, input: LeagueDriverInput) {

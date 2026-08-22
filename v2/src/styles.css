@@ -793,6 +793,20 @@ h2 {
 .admin-status--completed { color: #a9efd7; border-color: rgba(44, 143, 166, 0.48); }
 .admin-status--cancelled { color: #ff9dac; border-color: rgba(235, 102, 122, 0.48); }
 .standings-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr); gap: 1.25rem; }
+.team-admin-list, .workflow-list { display: grid; }
+.team-admin-list > article, .workflow-list > article { min-height: 84px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.team-admin-list h3, .workflow-list h3 { margin: 0 0 0.25rem; font-size: 0.92rem; }
+.team-admin-list p, .workflow-list p { margin: 0 0 0.2rem; color: var(--muted); font-size: 0.74rem; }
+.team-admin-list small, .workflow-list small { color: var(--muted); }
+.team-admin-list button { min-height: 44px; padding: 0.55rem 0.8rem; border: 1px solid var(--line-strong); background: transparent; color: var(--teal-bright); cursor: pointer; }
+.team-edit-fields { display: grid; grid-template-columns: repeat(2,minmax(150px,1fr)) auto auto; align-items: end; gap: 0.55rem; }
+.team-edit-fields label { display: grid; gap: 0.35rem; font-size: 0.7rem; }
+.team-edit-fields input, .result-import-form select { min-height: 44px; padding: 0.6rem 0.7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: #061b30; color: var(--text); }
+.faq-edit-row { display: grid; grid-template-columns: minmax(220px,0.7fr) minmax(0,1.3fr) auto; align-items: end; gap: 0.7rem; padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.audit-list { margin: 0; padding: 0; list-style: none; }
+.audit-list li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--line); }
+.audit-list li div { display: grid; gap: 0.2rem; }
+.audit-list span, .audit-list time { color: var(--muted); font-size: 0.72rem; }
 .branding-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 1.5rem; }
 .branding-preview { position: sticky; top: 1rem; display: grid; place-items: center; min-height: 360px; margin-top: 2rem; padding: 2rem; border: 1px solid var(--preview-primary); background: radial-gradient(circle at top, color-mix(in srgb, var(--preview-secondary) 26%, transparent), transparent 60%), #071626; text-align: center; }
 .branding-preview p { justify-self: start; align-self: start; margin: 0; color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; }
@@ -821,6 +835,8 @@ h2 {
   .admin-race-metrics { grid-template-columns: repeat(2, 1fr); }
   .admin-view-tabs { overflow-x: auto; }
   .standings-grid { grid-template-columns: 1fr; }
+  .team-admin-list > article, .workflow-list > article { align-items: stretch; flex-direction: column; }
+  .team-edit-fields, .faq-edit-row { grid-template-columns: 1fr; }
 }
 .notification-page { width: min(980px, 100%); }
 .notification-list { margin-top: 2rem; border-top: 1px solid var(--line); }
