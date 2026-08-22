@@ -34,7 +34,7 @@ export type LeagueBrandingRuntime = {
   theme: ThemePreset;
 };
 
-const DEFAULT_THEME = THEME_PRESETS[1];
+const DEFAULT_THEME = THEME_PRESETS[0];
 const COLOR_PATTERN = /^#[0-9a-f]{6}$/i;
 
 function record(value: unknown): Record<string, unknown> {
@@ -105,4 +105,25 @@ export async function loadLeagueBrandingRuntime(client: LeagueSupabaseClient, le
 
 export function fallbackLeagueBranding(slug: string): LeagueBrandingRuntime {
   return { id: '', name: 'RaceVora', slug, logoUrl: '', subtitle: 'Race Management Platform', theme: DEFAULT_THEME };
+}
+
+export function shouldUseStandardRaceVoraBranding({
+  authenticated,
+  authLoading,
+  leagueSlug,
+  pathname,
+  search,
+}: {
+  authenticated: boolean;
+  authLoading: boolean;
+  leagueSlug: string;
+  pathname: string;
+  search: string;
+}): boolean {
+  const params = new URLSearchParams(search);
+  const demoMode = params.get('demo') === '1'
+    || leagueSlug === 'demo'
+    || leagueSlug === 'racevora-demo'
+    || pathname === '/owner/demo';
+  return authLoading || !authenticated || demoMode;
 }

@@ -1,14 +1,16 @@
 (() => {
   const CACHE_KEY = 'rcc.brand.theme.v2';
-  const DEFAULT_SLUG = 'rcc';
-
-  function requestedSlug() {
-    const params = new URLSearchParams(window.location.search);
-    const query = params.get('league');
-    if (query) return String(query).trim().toLowerCase().replace(/[^a-z0-9-]/g, '') || DEFAULT_SLUG;
-    const path = window.location.pathname.match(/(?:^|\/)l\/([a-z0-9-]+)(?:\/|$)/i);
-    return path?.[1] ? String(path[1]).toLowerCase() : DEFAULT_SLUG;
-  }
+  const STANDARD_SETTINGS = Object.freeze({
+    theme_id: '0',
+    background_color: '#021B34',
+    primary_color: '#35246A',
+    secondary_color: '#5A32A3',
+    accent_color: '#2C8FA6',
+    accent_2_color: '#2F6F8A',
+    surface_color: '#0A1F37',
+    text_color: '#FFFFFF',
+    text_on_primary_color: '#FFFFFF'
+  });
 
   function validHex(value) {
     const color = String(value || '').trim();
@@ -55,23 +57,10 @@
     root.dataset.leagueThemePrepaint = 'true';
   }
 
-  function persistFreshCache() {
-    try {
-      const raw = sessionStorage.getItem(CACHE_KEY);
-      if (!raw) return;
-      const cached = JSON.parse(raw);
-      if (!cached || cached.slug !== requestedSlug() || !cached.settings) return;
-      localStorage.setItem(CACHE_KEY, raw);
-    } catch (_) {}
-  }
-
-  try {
-    const raw = localStorage.getItem(CACHE_KEY) || sessionStorage.getItem(CACHE_KEY);
-    if (raw) {
-      const cached = JSON.parse(raw);
-      if (cached && cached.slug === requestedSlug() && cached.settings) apply(cached.settings);
-    }
-  } catch (_) {}
-
-  window.addEventListener('rcc:league-branding-applied', persistFreshCache);
+  // Authentication is not known during prepaint. Start every request in the
+  // public RaceVora palette so a cached tenant theme can never leak into a
+  // logged-out or demo view. Authenticated tenant branding is applied later by
+  // rcc-branding.js after Supabase has confirmed the session.
+  apply(STANDARD_SETTINGS);
+  try { localStorage.removeItem(CACHE_KEY); } catch (_) {}
 })();

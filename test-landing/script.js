@@ -14,10 +14,54 @@
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = window.matchMedia('(max-width: 700px)');
   const images = new Map();
+  const authDrawer = document.querySelector('#racevora-auth-drawer');
+  const authFrame = authDrawer?.querySelector('[data-auth-frame]');
+  const authTitle = authDrawer?.querySelector('[data-auth-title]');
+  const authCopy = authDrawer?.querySelector('[data-auth-copy]');
+  const authTriggers = [...document.querySelectorAll('[data-auth-open]')];
+  let authReturnFocus = null;
   let activeChapter = 0;
   let lastFrame = -1;
   let started = false;
   let raf = 0;
+
+  function closeAuthDrawer() {
+    if (!authDrawer?.open) return;
+    authDrawer.close();
+  }
+
+  function openAuthDrawer(event) {
+    const trigger = event.currentTarget;
+    if (!(trigger instanceof HTMLAnchorElement) || !(authDrawer instanceof HTMLDialogElement) || typeof authDrawer.showModal !== 'function') return;
+    event.preventDefault();
+    const mode = trigger.dataset.authOpen === 'signup' ? 'signup' : 'signin';
+    const target = new URL(trigger.href, window.location.href);
+    target.searchParams.set('embed', '1');
+    authReturnFocus = trigger;
+    if (authTitle) authTitle.textContent = mode === 'signup' ? 'Account erstellen' : 'Anmelden';
+    if (authCopy) authCopy.textContent = mode === 'signup'
+      ? 'Erstelle deinen Account und starte anschließend direkt mit RaceVora.'
+      : 'Melde dich an, ohne die RaceVora Landingpage zu verlassen.';
+    if (authFrame instanceof HTMLIFrameElement) authFrame.src = target.toString();
+    document.body.classList.add('modal-open');
+    authDrawer.showModal();
+  }
+
+  authTriggers.forEach((trigger) => trigger.addEventListener('click', openAuthDrawer));
+  authDrawer?.querySelector('[data-auth-close]')?.addEventListener('click', closeAuthDrawer);
+  authDrawer?.addEventListener('click', (event) => {
+    if (event.target === authDrawer) closeAuthDrawer();
+  });
+  authDrawer?.addEventListener('close', () => {
+    document.body.classList.remove('modal-open');
+    if (authFrame instanceof HTMLIFrameElement) authFrame.src = 'about:blank';
+    authReturnFocus?.focus?.();
+    authReturnFocus = null;
+  });
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin || event.data?.type !== 'racevora:auth-success') return;
+    window.location.assign('/home');
+  });
 
   const frameSrc = (index) => `${ASSET_ROOT}/frames/frame-${String(index).padStart(3, '0')}.webp`;
 

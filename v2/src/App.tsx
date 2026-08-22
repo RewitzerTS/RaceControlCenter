@@ -1,4 +1,5 @@
-import { BrowserRouter } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './components/AppShell';
 import { EnvironmentGate } from './components/EnvironmentGate';
@@ -6,11 +7,25 @@ import { DriverIdentityProvider } from './driver/DriverIdentityProvider';
 import { FeatureFlagProvider } from './features/FeatureFlagProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
+import { applyLeagueBranding, fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
 import { RoleProvider } from './roles/RoleProvider';
 
 function AuthorizedShell({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
-  const { client } = useLeague();
-  const { user } = useAuth();
+  const location = useLocation();
+  const { branding, client, leagueSlug } = useLeague();
+  const { loading: authLoading, user } = useAuth();
+  const useStandardBranding = shouldUseStandardRaceVoraBranding({
+    authenticated: Boolean(user),
+    authLoading,
+    leagueSlug,
+    pathname: location.pathname,
+    search: location.search,
+  });
+
+  useEffect(() => {
+    applyLeagueBranding(useStandardBranding ? fallbackLeagueBranding('racevora') : branding);
+  }, [branding, useStandardBranding]);
+
   return (
     <DriverIdentityProvider client={client} user={user}>
       <RoleProvider client={client} user={user}>

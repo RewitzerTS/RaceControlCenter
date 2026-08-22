@@ -8,6 +8,7 @@
   const DASHBOARD_VIEW_MAX_AGE_MS = 1000 * 60 * 30;
   const BRAND_THEME_CACHE_KEY = 'rcc.brand.theme.v2';
   let applyPromise = null;
+  let tenantBrandingAllowed = false;
 
   const THEME_PRESETS = [
     {
@@ -125,6 +126,29 @@
     return match?.[1] ? String(match[1]).toLowerCase() : DEFAULT_LEAGUE_SLUG;
   }
 
+  function isDemoView() {
+    const params = new URLSearchParams(location.search);
+    const slug = getRequestedSlugEarly();
+    return params.get('demo') === '1'
+      || slug === 'demo'
+      || slug === 'racevora-demo'
+      || location.pathname === '/owner/demo';
+  }
+
+  async function refreshTenantBrandingPermission() {
+    if (isDemoView()) {
+      tenantBrandingAllowed = false;
+      return false;
+    }
+    try {
+      const { data, error } = await window.supabaseClient?.auth?.getSession?.() || { data: null, error: null };
+      tenantBrandingAllowed = !error && Boolean(data?.session?.user?.id);
+    } catch (_) {
+      tenantBrandingAllowed = false;
+    }
+    return tenantBrandingAllowed;
+  }
+
   function setThemeColor(rawSettings = {}) {
     const settings = resolveThemeSettings(rawSettings);
     const background = normalizeHexColor(settings.background_color);
@@ -164,14 +188,8 @@
   }
 
   function applyCachedThemeEarly() {
-    try {
-      const raw = sessionStorage.getItem(BRAND_THEME_CACHE_KEY);
-      if (!raw) return;
-      const cached = JSON.parse(raw);
-      if (cached?.slug !== getRequestedSlugEarly()) return;
-      setThemeColor(cached.settings || {});
-      document.documentElement.dataset.leagueBrandingApplied = 'true';
-    } catch (_) {}
+    setThemeColor(themeToSettings('0'));
+    document.documentElement.dataset.leagueBrandingApplied = 'true';
   }
   applyCachedThemeEarly();
 
@@ -342,7 +360,9 @@
     const league = snapshot?.league;
     if (!league) return false;
     const rawSettings = league.settings && typeof league.settings === 'object' ? league.settings : {};
-    const settings = resolveThemeSettings(rawSettings);
+    const settings = tenantBrandingAllowed
+      ? resolveThemeSettings(rawSettings)
+      : { ...rawSettings, ...themeToSettings('0') };
     const name = String(settings.brand_name || league.name || 'Race Control Center').trim();
     const subtitle = String(settings.brand_subtitle || (league.slug === DEFAULT_LEAGUE_SLUG ? DEFAULT_SUBTITLE : FALLBACK_SUBTITLE)).trim();
     const logo = normalizeLogoUrl(settings.brand_logo_url || league.logo_url) || DEFAULT_LOGO_URL;
@@ -386,6 +406,7 @@
     applyPromise = (async () => {
       const api = window.RCCLeagueContext;
       if (!api?.initialize) return false;
+      await refreshTenantBrandingPermission();
       let snapshot = api.snapshot?.();
       if (!snapshot?.league || options.forceRefresh === true) snapshot = await api.initialize({ forceRefresh: options.forceRefresh === true });
       return applySnapshot(snapshot);
@@ -414,7 +435,20 @@
       try { sessionStorage.setItem(DASHBOARD_VIEW_OWNER_KEY, getRequestedSlugEarly()); } catch (_) {}
     }
   });
-  addEventListener('rcc:league-context-ready', (event) => { if (event?.detail?.league) applySnapshot(event.detail); });
+  addEventListener('rcc:league-context-ready', (event) => {
+    if (!event?.detail?.league) return;
+    void refreshTenantBrandingPermission().then(() => applySnapshot(event.detail));
+  });
+  window.supabaseClient?.auth?.onAuthStateChange?.((_event, session) => {
+    const nextAllowed = !isDemoView() && Boolean(session?.user?.id);
+    if (nextAllowed === tenantBrandingAllowed) return;
+    tenantBrandingAllowed = nextAllowed;
+    setTimeout(() => {
+      const snapshot = window.RCCLeagueContext?.snapshot?.();
+      if (snapshot?.league) applySnapshot(snapshot);
+      else void apply({ forceRefresh: true });
+    }, 0);
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => apply());
   else apply();
   if (document.readyState === 'complete') loadAdminBrandingEditor();

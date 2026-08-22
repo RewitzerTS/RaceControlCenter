@@ -81,8 +81,14 @@ if (!restoredHeader.includes('Liga-Menü') || !restoredHeader.includes('nav-prim
 }
 
 const landing = await readFile(resolve(distRoot, 'landing.html'), 'utf8');
-for (const href of ['/login?mode=signin', '/login?mode=signup', '/race-hub?league=rcc']) {
+for (const href of ['/login?mode=signin', '/login?mode=signup', '/race-hub?league=rcc&demo=1']) {
   if (!landing.includes(`href="${href}"`)) throw new Error(`V1 landing page is missing the V2 entry target ${href}.`);
+}
+for (const marker of ['data-auth-open="signin"', 'data-auth-open="signup"', 'id="racevora-auth-drawer"', 'data-auth-frame']) {
+  if (!landing.includes(marker)) throw new Error(`V1 landing page is missing the embedded access marker ${marker}.`);
+}
+if ((landing.match(/Jetzt starten/g) || []).length < 3 || landing.includes('Liga starten') || landing.includes('Eigene Liga starten')) {
+  throw new Error('V1 landing page does not use the unified Jetzt starten call to action.');
 }
 if (landing.includes('landing-login-modal') || landing.includes('assets/js/pages/landing.js') || landing.includes('assets/js/supabase-client.js')) {
   throw new Error('V1 landing page still contains the retired V1 authentication flow.');
@@ -102,6 +108,18 @@ if (!productionConfig.includes('"run_worker_first": ["/", "/api/*"]')) {
 const brandingSource = await readFile(resolve(process.cwd(), 'src', 'league', 'leagueBranding.ts'), 'utf8');
 if (!brandingSource.includes("id: 0, name: 'RaceVora'") || brandingSource.includes("name: 'Midnight'")) {
   throw new Error('Theme 0 must be named RaceVora and Midnight must no longer be exposed.');
+}
+if (!brandingSource.includes('const DEFAULT_THEME = THEME_PRESETS[0]') || !brandingSource.includes('shouldUseStandardRaceVoraBranding')) {
+  throw new Error('Logged-out and Demo views must use the RaceVora standard theme.');
+}
+
+const restoredBranding = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-branding.js'), 'utf8');
+const restoredPrepaint = await readFile(resolve(distRoot, 'v1-assets', 'js', 'theme-prepaint.js'), 'utf8');
+for (const marker of ['tenantBrandingAllowed', "params.get('demo') === '1'", 'refreshTenantBrandingPermission']) {
+  if (!restoredBranding.includes(marker)) throw new Error(`Restored public branding is missing the access guard ${marker}.`);
+}
+if (!restoredPrepaint.includes('apply(STANDARD_SETTINGS)') || restoredPrepaint.includes('apply(cached.settings)')) {
+  throw new Error('Restored public pages must prepaint in RaceVora standard colors without cached tenant leakage.');
 }
 
 const appStyles = await readFile(resolve(process.cwd(), 'src', 'styles.css'), 'utf8');

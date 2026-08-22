@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState, type ReactNode } from 'react';
-import { Navigate, NavLink, Route, Routes } from 'react-router-dom';
+import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import raceVoraMark from '../../../assets/images/racevora-mark.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
@@ -15,6 +15,7 @@ import {
   type MessageKey,
 } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from '../league/leagueBranding';
 import { useRole } from '../roles/RoleProvider';
 
 const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
@@ -104,12 +105,20 @@ function roleLabel(role: ReturnType<typeof useRole>['role'], t: ReturnType<typeo
 }
 
 export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
+  const location = useLocation();
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { language, setLanguage, t } = useI18n();
   const { branding, leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
   const { loading: authLoading, signOut, user } = useAuth();
+  const displayBranding = shouldUseStandardRaceVoraBranding({
+    authenticated: Boolean(user),
+    authLoading,
+    leagueSlug,
+    pathname: location.pathname,
+    search: location.search,
+  }) ? fallbackLeagueBranding('racevora') : branding;
   const canSteward = features.stewardWorkspace && (role === 'steward' || role === 'league_admin' || role === 'platform_owner');
   // V1 administration is now core product functionality. The resolved role
   // gates the routes here; every mutation is authorized again by its RPC.
@@ -118,17 +127,18 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const canNotify = features.notificationsV2 && Boolean(user);
   const canCreateGraphics = canAdmin && features.socialGraphics;
   const accessLoading = authLoading || roleLoading;
+  const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
   const closeNavigation = () => setNavigationOpen(false);
 
   return (
-    <div className="app-shell">
-      <header className="site-header">
+    <div className={embeddedAccess ? 'app-shell app-shell--embedded-access' : 'app-shell'}>
+      {!embeddedAccess && <header className="site-header">
         <div className="header-inner container">
         <NavLink className="brand" to="/home" onClick={closeNavigation}>
-          <img className="brand-logo" src={branding.logoUrl || raceVoraMark} alt="" />
+          <img className="brand-logo" src={displayBranding.logoUrl || raceVoraMark} alt="" />
           <span className="brand-text">
-            <strong className="brand-title">{branding.name || 'RaceVora'}</strong>
-            <small className="brand-subtitle">{branding.subtitle || 'Race Management Platform'}</small>
+            <strong className="brand-title">{displayBranding.name || 'RaceVora'}</strong>
+            <small className="brand-subtitle">{displayBranding.subtitle || 'Race Management Platform'}</small>
           </span>
         </NavLink>
 
@@ -172,9 +182,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           </div>
         </nav>
         </div>
-      </header>
+      </header>}
 
-      <section className="status-strip v2-status-strip" aria-label={t('shell.leagueContext')}>
+      {!embeddedAccess && <section className="status-strip v2-status-strip" aria-label={t('shell.leagueContext')}>
         <article className="status-pill-card">
           <i className="status-dot" aria-hidden="true" />
           <span className="status-copy"><strong>{t('shell.leagueContext')}</strong><span>{leagueSlug}</span></span>
@@ -191,9 +201,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <i className={user ? 'status-dot' : 'status-dot inactive'} aria-hidden="true" />
           <span className="status-copy"><strong>{t('session')}</strong><span>{user ? roleLabel(role, t) : t('signedOut')}</span></span>
         </article>
-      </section>
+      </section>}
 
-      <div className="shell-frame">
+      <div className={embeddedAccess ? 'shell-frame shell-frame--embedded-access' : 'shell-frame'}>
 
         <Routes>
           <Route path="/" element={<Navigate replace to="/home" />} />
@@ -226,10 +236,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="*" element={<Navigate replace to="/home" />} />
         </Routes>
 
-        <footer className="footer">
+        {!embeddedAccess && <footer className="footer">
           <span>{t('footerTitle')}</span>
           <span>{t('shell.footerCopy')}</span>
-        </footer>
+        </footer>}
       </div>
     </div>
   );

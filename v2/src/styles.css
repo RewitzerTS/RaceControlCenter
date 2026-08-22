@@ -1562,18 +1562,47 @@ body {
   .footer { flex-direction: column; }
 }
 
+.app-shell--embedded-access,
+.shell-frame--embedded-access {
+  min-height: 100vh;
+  display: block;
+  background: var(--brand-background);
+}
+
+.beta-access--embedded.dashboard-shell {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+}
+
+.beta-access--embedded .beta-dashboard-grid {
+  width: 100%;
+  min-height: 100vh;
+  display: block;
+  margin: 0;
+}
+
+.beta-access--embedded .beta-access-form.hero-side {
+  width: 100%;
+  min-height: 100vh;
+  padding: clamp(24px, 6vw, 38px);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Tenant branding is applied once at the application root. Every V2 view uses
    the same semantic V1 tokens, so a saved league theme changes the shell,
    backgrounds, cards, highlights and actions instead of only the preview. */
 :root {
-  --brand-primary: #27f4d2;
-  --brand-secondary: #0b0d10;
-  --brand-accent: #c5c7c9;
-  --brand-accent-2: #ffffff;
-  --brand-background: #060809;
-  --brand-surface: #15181b;
-  --brand-text: #f4f7f8;
-  --brand-on-primary: #08110f;
+  --brand-primary: #35246a;
+  --brand-secondary: #5a32a3;
+  --brand-accent: #2c8fa6;
+  --brand-accent-2: #2f6f8a;
+  --brand-background: #021b34;
+  --brand-surface: #0a1f37;
+  --brand-text: #ffffff;
+  --brand-on-primary: #ffffff;
   --bg: var(--brand-background);
   --bg-main: var(--brand-background);
   --surface: var(--brand-surface);

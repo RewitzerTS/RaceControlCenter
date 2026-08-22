@@ -41,10 +41,10 @@ function requireGate(condition, label) {
 requireGate(/sourcemap:\s*false/.test(vite), 'production source maps are disabled');
 requireGate(!headers.includes('*.supabase.co'), 'CSP has no wildcard Supabase destination');
 requireGate(headers.includes(`https://${expectedProject}`) && headers.includes(`wss://${expectedProject}`), 'CSP is pinned to V2 Staging Supabase');
-requireGate(headers.includes("script-src 'self' https://challenges.cloudflare.com") && headers.includes('frame-src https://challenges.cloudflare.com'), 'CSP permits only the canonical Turnstile script and frame origin');
+requireGate(headers.includes("script-src 'self' https://challenges.cloudflare.com") && headers.includes("frame-src 'self' https://challenges.cloudflare.com"), 'CSP permits only same-origin access views and the canonical Turnstile frame');
 requireGate(headers.includes("object-src 'none'"), 'CSP blocks plugin objects');
-requireGate(headers.includes("frame-ancestors 'none'"), 'CSP blocks framing');
-requireGate(headers.includes('X-Frame-Options: DENY'), 'legacy frame protection is present');
+requireGate(headers.includes("frame-ancestors 'self'"), 'CSP limits framing to the same RaceVora origin');
+requireGate(headers.includes('X-Frame-Options: SAMEORIGIN'), 'legacy frame protection limits embedding to RaceVora');
 requireGate(headers.includes('Strict-Transport-Security: max-age=31536000; includeSubDomains'), 'HSTS is present');
 requireGate(headers.includes('Cross-Origin-Opener-Policy: same-origin'), 'COOP is present');
 requireGate(headers.includes('Cross-Origin-Resource-Policy: same-origin'), 'CORP is present');

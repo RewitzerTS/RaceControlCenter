@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Navigate, NavLink, useSearchParams } from 'react-router-dom';
 import type { AppEnvironment } from '../config/environment';
 import { useI18n } from '../i18n/I18nProvider';
@@ -13,13 +13,32 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
   const { captcha, loading: authLoading, requestPasswordRecovery, signIn, signUp, user } = useAuth();
   const { t } = useI18n();
   const requestedMode = searchParams.get('mode');
+  const embedded = searchParams.get('embed') === '1';
   const [mode, setMode] = useState<AccessMode>(requestedMode === 'signup' ? 'sign-up' : requestedMode === 'recovery' ? 'recovery' : 'sign-in');
   const [busy, setBusy] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
-  if (!authLoading && user) return <Navigate replace to="/home" />;
+  useEffect(() => {
+    if (!embedded || authLoading || !user || window.parent === window) return;
+    window.parent.postMessage({ type: 'racevora:auth-success' }, window.location.origin);
+  }, [authLoading, embedded, user]);
+
+  if (!authLoading && user) {
+    if (embedded) {
+      return (
+        <main className="beta-access beta-access--embedded dashboard-shell" id="main-content">
+          <section className="beta-access-success" role="status" aria-live="polite">
+            <p className="eyebrow">RaceVora</p>
+            <h1>Anmeldung erfolgreich</h1>
+            <p>Du wirst jetzt zu deinem persönlichen Bereich weitergeleitet.</p>
+          </section>
+        </main>
+      );
+    }
+    return <Navigate replace to="/home" />;
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -68,9 +87,9 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
   }
 
   return (
-    <main className="beta-access dashboard-shell" id="main-content">
+    <main className={embedded ? 'beta-access beta-access--embedded dashboard-shell' : 'beta-access dashboard-shell'} id="main-content">
       <div className="beta-dashboard-grid">
-      <section className="beta-access-intro hero-main" aria-labelledby="beta-access-title">
+      {!embedded && <section className="beta-access-intro hero-main" aria-labelledby="beta-access-title">
         <div className="hero-topline">
           <p className="hero-kicker">{t(production ? 'beta.productionKicker' : 'beta.kicker')}</p>
           <span className="live-badge">{production ? 'V2' : 'V2 Beta'}</span>
@@ -82,7 +101,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
           <span>{production ? t('productionDetails') : t('isolationDetails', { projectRef: 'staging' })}</span>
         </div>
         <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}<span aria-hidden="true">→</span></NavLink>
-      </section>
+      </section>}
 
       <form className="beta-access-form hero-side" onSubmit={(event) => void submit(event)}>
         <div className="beta-form-heading">

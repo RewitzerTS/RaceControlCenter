@@ -62,17 +62,34 @@ function transformHtml(source, includeBase = false) {
 }
 
 function transformLanding(source) {
+  const authDrawer = `
+  <dialog class="auth-drawer" id="racevora-auth-drawer" aria-labelledby="racevora-auth-title">
+    <div class="auth-drawer__panel">
+      <header class="auth-drawer__header">
+        <div class="auth-drawer__brand">
+          <img src="/v1-assets/images/racevora-mark.svg" alt="" width="48" height="48">
+          <div><span>RACEVORA ACCOUNT</span><strong id="racevora-auth-title" data-auth-title>Anmelden</strong></div>
+        </div>
+        <button class="auth-drawer__close" type="button" data-auth-close aria-label="Anmeldung schließen">×</button>
+      </header>
+      <p class="auth-drawer__copy" data-auth-copy>Melde dich an, ohne die RaceVora Landingpage zu verlassen.</p>
+      <iframe class="auth-drawer__frame" title="RaceVora Anmeldung" data-auth-frame src="about:blank"></iframe>
+      <noscript><p class="auth-drawer__noscript">JavaScript ist deaktiviert. <a href="/login?mode=signin">Anmeldung direkt öffnen</a></p></noscript>
+    </div>
+  </dialog>`;
+
   return source
-    .replace(/<button class="text-link" type="button" data-login-open><span data-login-button-label>Login<\/span><\/button>/, '<a class="text-link" href="/login?mode=signin">Login</a>')
-    .replaceAll('href="register.html"', 'href="/login?mode=signup"')
-    .replaceAll('href="race-hub.html?league=racevora-demo"', 'href="/race-hub?league=rcc"')
+    .replace(/<button class="text-link" type="button" data-login-open><span data-login-button-label>Login<\/span><\/button>/, '<a class="text-link" href="/login?mode=signin" data-auth-open="signin">Login</a>')
+    .replaceAll('href="register.html"', 'href="/login?mode=signup" data-auth-open="signup"')
+    .replaceAll('href="race-hub.html?league=racevora-demo"', 'href="/race-hub?league=rcc&demo=1"')
     .replaceAll('href="impressum.html"', 'href="/impressum"')
     .replaceAll('href="datenschutz.html"', 'href="/datenschutz"')
     .replaceAll('href="agb.html"', 'href="/agb"')
     .replaceAll('href="widerruf.html"', 'href="/widerruf"')
     .replace(/\s*<div class="login-modal"[\s\S]*?<script src="assets\/js\/pages\/landing\.js"><\/script>/, '')
     .replaceAll('test-landing/', '/v1-landing/')
-    .replaceAll('assets/', '/v1-assets/');
+    .replaceAll('assets/', '/v1-assets/')
+    .replace('</body>', `${authDrawer}\n</body>`);
 }
 
 function transformV1Header(source) {

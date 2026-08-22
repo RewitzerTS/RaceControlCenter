@@ -1,7 +1,7 @@
 import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { RuntimeEnvironment } from '../config/environment';
 import { createLeagueClient, type LeagueSupabaseClient } from '../lib/supabase';
-import { applyLeagueBranding, fallbackLeagueBranding, loadLeagueBrandingRuntime, type LeagueBrandingRuntime } from './leagueBranding';
+import { fallbackLeagueBranding, loadLeagueBrandingRuntime, type LeagueBrandingRuntime } from './leagueBranding';
 
 interface LeagueContextValue {
   leagueSlug: string;
@@ -31,11 +31,9 @@ export function LeagueProvider({ environment, children }: PropsWithChildren<{ en
     try {
       const nextBranding = await loadLeagueBrandingRuntime(client, leagueSlug);
       setBranding(nextBranding);
-      applyLeagueBranding(nextBranding);
     } catch (reason) {
       const fallback = fallbackLeagueBranding(leagueSlug);
       setBranding(fallback);
-      applyLeagueBranding(fallback);
       console.warn('Liga-Branding konnte nicht geladen werden.', reason);
     } finally {
       setBrandingLoading(false);
