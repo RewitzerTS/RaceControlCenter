@@ -46,6 +46,16 @@ if (!driverContext.includes('global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === tr
   throw new Error('V2 driver context does not respect the disabled legacy assignment relation.');
 }
 
+const newsBackend = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-f1-news-backend.js'), 'utf8');
+if (!newsBackend.includes("const ENDPOINT = '/api/f1-news';") || newsBackend.includes('.supabase.co/functions/v1/f1-news')) {
+  throw new Error('V2 Race Hub news must use the isolated same-origin Worker endpoint.');
+}
+
+const newsWorker = await readFile(resolve(process.cwd(), 'worker', 'news-worker.js'), 'utf8');
+if (!newsWorker.includes("url.pathname === '/api/f1-news'") || !newsWorker.includes('environment.ASSETS.fetch(request)') || newsWorker.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+  throw new Error('V2 news Worker must serve the same-origin feed without privileged Supabase credentials.');
+}
+
 const layout = await readFile(resolve(distRoot, 'v1-assets', 'js', 'layout.js'), 'utf8');
 if (!layout.includes("parsed.querySelectorAll('script')")) {
   throw new Error('V2 layout partials must discard scripts injected into Cloudflare HTML fragments.');

@@ -85,6 +85,12 @@ async function transformJavaScriptTree(directory) {
         'if (!global.supabaseClient || global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === true) return [];',
       );
     }
+    if (entry.name === 'rcc-f1-news-backend.js') {
+      source = source.replace(
+        /const ENDPOINT = '[^']+';/,
+        "const ENDPOINT = '/api/f1-news';",
+      );
+    }
     if (entry.name === 'layout.js') {
       source = source.replace(
         'target.innerHTML=await response.text();',
