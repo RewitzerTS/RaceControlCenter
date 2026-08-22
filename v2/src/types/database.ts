@@ -2604,6 +2604,8 @@ export type Database = {
       }
       get_demo_full_e2e_snapshot: { Args: never; Returns: Json }
       get_league_admin_workspace: { Args: never; Returns: Json }
+      get_league_driver_admin_workspace: { Args: never; Returns: Json }
+      get_league_member_admin_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
       get_social_graphics_workspace: { Args: never; Returns: Json }
       get_vora_companion_snapshot: { Args: never; Returns: Json }
@@ -2636,7 +2638,16 @@ export type Database = {
         }
         Returns: string
       }
+      add_existing_league_member_by_email: {
+        Args: { p_email: string; p_role?: string }
+        Returns: Json
+      }
+      remove_league_member: { Args: { p_user_id: string }; Returns: Json }
       requested_league_slug: { Args: never; Returns: string }
+      set_league_member_role: {
+        Args: { p_role: string; p_user_id: string }
+        Returns: Json
+      }
       set_platform_feature_flag: {
         Args: { p_enabled: boolean; p_flag_key: string }
         Returns: Json
@@ -2654,6 +2665,19 @@ export type Database = {
           p_public_discord?: string
           p_public_website?: string
           p_theme_id?: string
+        }
+        Returns: Json
+      }
+      upsert_league_driver: {
+        Args: {
+          p_car_name?: string
+          p_display_name: string
+          p_driver_id?: string
+          p_gamertag?: string
+          p_is_active?: boolean
+          p_league_team?: string
+          p_nationality_code?: string
+          p_number?: number
         }
         Returns: Json
       }

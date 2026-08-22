@@ -7,10 +7,10 @@ import { loadAdminSnapshot, type AdminSnapshot } from './operations';
 
 const ADMIN_AREAS: Array<{ title: MessageKey; items: Array<{ key: MessageKey; to?: string }> }> = [
   { title: 'admin.raceOps', items: ['admin.races', 'admin.results', 'admin.import', 'admin.standings', 'admin.championship'].map((key) => ({ key: key as MessageKey })) },
-  { title: 'admin.participants', items: ['admin.drivers', 'admin.teams', 'admin.users'].map((key) => ({ key: key as MessageKey })) },
+  { title: 'admin.participants', items: [{ key: 'admin.drivers', to: '/admin/drivers' }, { key: 'admin.teams' }, { key: 'admin.users', to: '/admin/users' }] },
   { title: 'admin.stewarding', items: ['admin.cases', 'admin.rules'].map((key) => ({ key: key as MessageKey })) },
   { title: 'admin.content', items: [{ key: 'admin.graphics', to: '/admin/graphics' }, { key: 'admin.publishing' }] },
-  { title: 'admin.league', items: [{ key: 'admin.settings', to: '/admin/branding' }, { key: 'admin.branding', to: '/admin/branding' }, { key: 'admin.permissions' }, { key: 'admin.audit' }] },
+  { title: 'admin.league', items: [{ key: 'admin.settings', to: '/admin/branding' }, { key: 'admin.branding', to: '/admin/branding' }, { key: 'admin.permissions', to: '/admin/users' }, { key: 'admin.audit' }] },
 ];
 
 export function AdminWorkspacePage() {

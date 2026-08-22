@@ -29,6 +29,44 @@ export type LeagueBranding = {
   discordUrl: string;
   themePreset: number;
 };
+export type LeagueMemberRole = 'driver' | 'steward' | 'league_admin';
+export type LeagueMember = {
+  user_id: string;
+  email: string;
+  role: LeagueMemberRole;
+  joined_at: string;
+  identity_status: string;
+  driver_id: string | null;
+  driver_name: string | null;
+};
+export type MemberAdminWorkspace = { league: OwnerLeague; members: LeagueMember[] };
+export type LeagueDriver = {
+  id: string;
+  display_name: string;
+  gamertag: string | null;
+  number: number | null;
+  nationality_code: string | null;
+  league_team: string | null;
+  car_name: string | null;
+  is_active: boolean;
+  identity_linked: boolean;
+  result_count: number;
+};
+export type DriverAdminWorkspace = {
+  league: OwnerLeague;
+  counts: { total: number; active: number; linked: number };
+  drivers: LeagueDriver[];
+};
+export type LeagueDriverInput = {
+  id?: string;
+  displayName: string;
+  gamertag: string;
+  number: number | null;
+  nationalityCode: string;
+  leagueTeam: string;
+  carName: string;
+  isActive: boolean;
+};
 export type InboxNotification = {
   id: string;
   notification_kind: string;
@@ -73,6 +111,47 @@ export async function loadInbox(client: LeagueSupabaseClient): Promise<InboxNoti
 
 export async function markInboxItemRead(client: LeagueSupabaseClient, id: string) {
   const response = await client.rpc('mark_notification_read', { p_notification_id: id });
+  if (response.error) throw response.error;
+}
+
+export async function loadMemberAdminWorkspace(client: LeagueSupabaseClient): Promise<MemberAdminWorkspace> {
+  const response = await client.rpc('get_league_member_admin_workspace');
+  if (response.error) throw response.error;
+  return object(response.data) as unknown as MemberAdminWorkspace;
+}
+
+export async function addLeagueMember(client: LeagueSupabaseClient, email: string, role: LeagueMemberRole) {
+  const response = await client.rpc('add_existing_league_member_by_email', { p_email: email, p_role: role });
+  if (response.error) throw response.error;
+}
+
+export async function setLeagueMemberRole(client: LeagueSupabaseClient, userId: string, role: LeagueMemberRole) {
+  const response = await client.rpc('set_league_member_role', { p_user_id: userId, p_role: role });
+  if (response.error) throw response.error;
+}
+
+export async function removeLeagueMember(client: LeagueSupabaseClient, userId: string) {
+  const response = await client.rpc('remove_league_member', { p_user_id: userId });
+  if (response.error) throw response.error;
+}
+
+export async function loadDriverAdminWorkspace(client: LeagueSupabaseClient): Promise<DriverAdminWorkspace> {
+  const response = await client.rpc('get_league_driver_admin_workspace');
+  if (response.error) throw response.error;
+  return object(response.data) as unknown as DriverAdminWorkspace;
+}
+
+export async function upsertLeagueDriver(client: LeagueSupabaseClient, input: LeagueDriverInput) {
+  const response = await client.rpc('upsert_league_driver', {
+    p_display_name: input.displayName,
+    p_driver_id: input.id,
+    p_gamertag: input.gamertag,
+    p_number: input.number ?? undefined,
+    p_nationality_code: input.nationalityCode,
+    p_league_team: input.leagueTeam,
+    p_car_name: input.carName,
+    p_is_active: input.isActive,
+  });
   if (response.error) throw response.error;
 }
 
