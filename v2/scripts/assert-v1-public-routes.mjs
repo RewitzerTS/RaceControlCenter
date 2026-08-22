@@ -12,11 +12,15 @@ for (const page of requiredPages) {
   if (source.includes('cdn.jsdelivr.net/npm/@supabase/supabase-js') || source.includes('cdn.jsdelivr.net/npm/chart.js')) {
     throw new Error(`${page}.html still loads a runtime dependency from jsDelivr.`);
   }
+  if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(source)) {
+    throw new Error(`${page}.html still contains an inline runtime script blocked by the production CSP.`);
+  }
 }
 
 for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
   await access(resolve(distRoot, 'v1-assets', 'vendor', vendorFile));
 }
+await access(resolve(distRoot, 'v1-assets', 'js', 'results-preview.js'));
 
 const trackMaps = (await readdir(resolve(distRoot, 'v1-assets', 'trackmaps'))).filter((name) => /\.(png|webp|svg)$/i.test(name));
 if (trackMaps.length < 24) throw new Error(`Expected at least 24 V1 track maps, found ${trackMaps.length}.`);
