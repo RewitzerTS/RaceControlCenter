@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { copyFile, cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -50,6 +50,9 @@ if (supabaseUrl.includes(legacyProjectRef)) {
 function transformHtml(source, includeBase = false) {
   let output = source
     .replaceAll('assets/', '/v1-assets/')
+    .replaceAll('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/v1-assets/vendor/supabase.js')
+    .replaceAll('https://cdn.jsdelivr.net/npm/chart.js', '/v1-assets/vendor/chart.umd.min.js')
+    .replace(/\s*<link rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net" crossorigin>\s*/g, '\n')
     .replace(/href="admin\.html([^"#]*)"/g, 'href="/admin$1"')
     .replace(/href="stewards\.html([^"#]*)"/g, 'href="/stewarding$1"');
   if (includeBase && !output.includes('<base ')) output = output.replace(/<head([^>]*)>/i, '<head$1>\n  <base href="/">');
@@ -81,6 +84,11 @@ async function transformJavaScriptTree(directory) {
 const v1AssetsDestination = resolve(distRoot, 'v1-assets');
 await cp(resolve(repositoryRoot, 'assets'), v1AssetsDestination, { recursive: true, force: true });
 await transformJavaScriptTree(resolve(v1AssetsDestination, 'js'));
+
+const vendorDestination = resolve(v1AssetsDestination, 'vendor');
+await mkdir(vendorDestination, { recursive: true });
+await copyFile(resolve(v2Root, 'node_modules', '@supabase', 'supabase-js', 'dist', 'umd', 'supabase.js'), resolve(vendorDestination, 'supabase.js'));
+await copyFile(resolve(v2Root, 'node_modules', 'chart.js', 'dist', 'chart.umd.min.js'), resolve(vendorDestination, 'chart.umd.min.js'));
 
 const componentsDestination = resolve(distRoot, 'components');
 await mkdir(componentsDestination, { recursive: true });

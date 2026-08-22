@@ -8,6 +8,14 @@ const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
 for (const page of requiredPages) {
   await access(resolve(distRoot, `${page}.html`));
   await access(resolve(distRoot, page, 'index.html'));
+  const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
+  if (source.includes('cdn.jsdelivr.net/npm/@supabase/supabase-js') || source.includes('cdn.jsdelivr.net/npm/chart.js')) {
+    throw new Error(`${page}.html still loads a runtime dependency from jsDelivr.`);
+  }
+}
+
+for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
+  await access(resolve(distRoot, 'v1-assets', 'vendor', vendorFile));
 }
 
 const trackMaps = (await readdir(resolve(distRoot, 'v1-assets', 'trackmaps'))).filter((name) => /\.(png|webp|svg)$/i.test(name));
