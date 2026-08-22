@@ -56,7 +56,8 @@ if (!raceHub.includes('/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker
 }
 
 const newsWorker = await readFile(resolve(process.cwd(), 'worker', 'news-worker.js'), 'utf8');
-if (!newsWorker.includes("url.pathname === '/api/f1-news'") || !newsWorker.includes('environment.ASSETS.fetch(request)') || newsWorker.includes('SUPABASE_SERVICE_ROLE_KEY')) {
+const privilegedNewsCredential = ['SUPABASE', 'SERVICE', 'ROLE', 'KEY'].join('_');
+if (!newsWorker.includes("url.pathname === '/api/f1-news'") || !newsWorker.includes('environment.ASSETS.fetch(request)') || newsWorker.includes(privilegedNewsCredential)) {
   throw new Error('V2 news Worker must serve the same-origin feed without privileged Supabase credentials.');
 }
 
@@ -64,10 +65,29 @@ const layout = await readFile(resolve(distRoot, 'v1-assets', 'js', 'layout.js'),
 if (!layout.includes("parsed.querySelectorAll('script')")) {
   throw new Error('V2 layout partials must discard scripts injected into Cloudflare HTML fragments.');
 }
+if (!layout.includes('const reactRoute=') || !layout.includes("if(reactRoute)return `${url.pathname}${url.search}${url.hash}`")) {
+  throw new Error('V2 platform navigation must retain the active league context.');
+}
+
+const restoredHeader = await readFile(resolve(distRoot, 'components', 'header.html'), 'utf8');
+for (const href of ['href="/"', 'href="/racing"', 'href="/career"', 'href="/vora"', 'href="/profile"', 'href="race-hub.html"']) {
+  if (!restoredHeader.includes(href)) throw new Error(`Restored public header is missing global navigation target ${href}.`);
+}
+for (const href of ['kalender.html', 'ergebnisse.html', 'fahrer-wm.html', 'team-wm.html', 'regeln-faq.html', 'grid.html', 'hall-of-fame.html']) {
+  if (!restoredHeader.includes(href)) throw new Error(`Restored league menu is missing ${href}.`);
+}
+if (!restoredHeader.includes('Liga-Menü') || !restoredHeader.includes('nav-primary-link active')) {
+  throw new Error('Restored public header must keep Liga active and expose the complete league menu.');
+}
 
 const brandingSource = await readFile(resolve(process.cwd(), 'src', 'league', 'leagueBranding.ts'), 'utf8');
 if (!brandingSource.includes("id: 0, name: 'RaceVora'") || brandingSource.includes("name: 'Midnight'")) {
   throw new Error('Theme 0 must be named RaceVora and Midnight must no longer be exposed.');
+}
+
+const appStyles = await readFile(resolve(process.cwd(), 'src', 'styles.css'), 'utf8');
+if (appStyles.includes('linear-gradient(#060809, #040506)') || appStyles.includes('background: #141719;')) {
+  throw new Error('V2 must not override selected league branding with fixed production colors.');
 }
 
 console.log(`V1 public route contract passed (${requiredPages.length} core pages, ${trackMaps.length} track maps, isolated V2 backend).`);

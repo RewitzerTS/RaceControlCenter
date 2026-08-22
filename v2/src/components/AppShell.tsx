@@ -87,7 +87,7 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
           <span>{t(item.key)}</span>
         </NavLink>
       ))}
-      <a className="nav-item nav-item--public" href={`/race-hub.html?league=${encodeURIComponent(leagueSlug)}`} onClick={onNavigate}>
+      <a className="nav-item nav-item--public" href={`/race-hub?league=${encodeURIComponent(leagueSlug)}`} onClick={onNavigate}>
         <NavIcon name="league" />
         <span>Liga</span>
       </a>
