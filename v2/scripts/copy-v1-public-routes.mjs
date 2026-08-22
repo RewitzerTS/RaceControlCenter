@@ -1,0 +1,100 @@
+import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { dirname, extname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const v2Root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const repositoryRoot = resolve(v2Root, '..');
+const distRoot = resolve(v2Root, 'dist');
+const appEnvironment = String(process.env.VITE_APP_ENV || 'staging').trim().toLowerCase();
+const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
+
+const publicPages = [
+  'race-hub',
+  'kalender',
+  'ergebnisse',
+  'fahrer-wm',
+  'team-wm',
+  'grid',
+  'regeln-faq',
+  'strecken',
+  'strecken-profil',
+  'rennen-detail',
+  'hall-of-fame',
+  'fahrer-profil',
+  'team-profil',
+  'head-to-head',
+  'rekorde',
+  'saison-archiv',
+];
+
+async function readExampleEnvironment() {
+  const path = resolve(v2Root, appEnvironment === 'production' ? '.env.production.example' : '.env.staging.example');
+  const source = await readFile(path, 'utf8');
+  return Object.fromEntries(source.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith('#') && line.includes('=')).map((line) => {
+    const split = line.indexOf('=');
+    return [line.slice(0, split), line.slice(split + 1)];
+  }));
+}
+
+const exampleEnvironment = await readExampleEnvironment();
+const supabaseUrl = String(process.env.VITE_SUPABASE_URL || exampleEnvironment.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+const publishableKey = String(process.env.VITE_SUPABASE_PUBLISHABLE_KEY || exampleEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+
+if (!/^https:\/\/[a-z0-9]+\.supabase\.co$/i.test(supabaseUrl) || !publishableKey.startsWith('sb_publishable_')) {
+  throw new Error('V1 public-route build requires the dedicated V2 Supabase URL and publishable key.');
+}
+if (supabaseUrl.includes(legacyProjectRef)) {
+  throw new Error('V1 source Supabase must never be bundled into V2 public routes.');
+}
+
+function transformHtml(source, includeBase = false) {
+  let output = source
+    .replaceAll('assets/', '/v1-assets/')
+    .replace(/href="admin\.html([^"#]*)"/g, 'href="/admin$1"')
+    .replace(/href="stewards\.html([^"#]*)"/g, 'href="/stewarding$1"');
+  if (includeBase && !output.includes('<base ')) output = output.replace(/<head([^>]*)>/i, '<head$1>\n  <base href="/">');
+  return output;
+}
+
+async function transformJavaScriptTree(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = resolve(directory, entry.name);
+    if (entry.isDirectory()) {
+      await transformJavaScriptTree(path);
+      continue;
+    }
+    if (extname(entry.name) !== '.js') continue;
+    let source = await readFile(path, 'utf8');
+    source = source
+      .replaceAll('assets/', '/v1-assets/')
+      .replaceAll(`https://${legacyProjectRef}.supabase.co`, supabaseUrl);
+    if (entry.name === 'supabase-client.js') {
+      source = source
+        .replace(/const SUPABASE_URL = '[^']+';/, `const SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`)
+        .replace(/const SUPABASE_ANON_KEY = '[^']+';/, `const SUPABASE_ANON_KEY = ${JSON.stringify(publishableKey)};`)
+        .replaceAll("new URL('admin.html', window.location.href)", "new URL('/admin', window.location.href)");
+    }
+    await writeFile(path, source, 'utf8');
+  }
+}
+
+const v1AssetsDestination = resolve(distRoot, 'v1-assets');
+await cp(resolve(repositoryRoot, 'assets'), v1AssetsDestination, { recursive: true, force: true });
+await transformJavaScriptTree(resolve(v1AssetsDestination, 'js'));
+
+const componentsDestination = resolve(distRoot, 'components');
+await mkdir(componentsDestination, { recursive: true });
+for (const component of ['header.html', 'footer.html']) {
+  const source = await readFile(resolve(repositoryRoot, 'components', component), 'utf8');
+  await writeFile(resolve(componentsDestination, component), transformHtml(source), 'utf8');
+}
+
+for (const page of publicPages) {
+  const source = await readFile(resolve(repositoryRoot, `${page}.html`), 'utf8');
+  await writeFile(resolve(distRoot, `${page}.html`), transformHtml(source), 'utf8');
+  const cleanRoute = resolve(distRoot, page, 'index.html');
+  await mkdir(dirname(cleanRoute), { recursive: true });
+  await writeFile(cleanRoute, transformHtml(source, true), 'utf8');
+}
+
+console.log(`Restored ${publicPages.length} complete V1 public views inside V2, including track maps and track information.`);

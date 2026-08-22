@@ -1,11 +1,15 @@
-import { createContext, type PropsWithChildren, useContext, useMemo, useState } from 'react';
+import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { RuntimeEnvironment } from '../config/environment';
 import { createLeagueClient, type LeagueSupabaseClient } from '../lib/supabase';
+import { applyLeagueBranding, fallbackLeagueBranding, loadLeagueBrandingRuntime, type LeagueBrandingRuntime } from './leagueBranding';
 
 interface LeagueContextValue {
   leagueSlug: string;
   setLeagueSlug: (slug: string) => void;
   client: LeagueSupabaseClient;
+  branding: LeagueBrandingRuntime;
+  brandingLoading: boolean;
+  refreshBranding: () => Promise<void>;
 }
 
 const LeagueContext = createContext<LeagueContextValue | null>(null);
@@ -19,6 +23,26 @@ function initialSlug(fallback: string): string {
 export function LeagueProvider({ environment, children }: PropsWithChildren<{ environment: RuntimeEnvironment }>) {
   const [leagueSlug, setLeagueSlugState] = useState(() => initialSlug(environment.defaultLeagueSlug));
   const client = useMemo(() => createLeagueClient(environment, leagueSlug), [environment, leagueSlug]);
+  const [branding, setBranding] = useState<LeagueBrandingRuntime>(() => fallbackLeagueBranding(leagueSlug));
+  const [brandingLoading, setBrandingLoading] = useState(true);
+
+  const refreshBranding = useCallback(async () => {
+    setBrandingLoading(true);
+    try {
+      const nextBranding = await loadLeagueBrandingRuntime(client, leagueSlug);
+      setBranding(nextBranding);
+      applyLeagueBranding(nextBranding);
+    } catch (reason) {
+      const fallback = fallbackLeagueBranding(leagueSlug);
+      setBranding(fallback);
+      applyLeagueBranding(fallback);
+      console.warn('Liga-Branding konnte nicht geladen werden.', reason);
+    } finally {
+      setBrandingLoading(false);
+    }
+  }, [client, leagueSlug]);
+
+  useEffect(() => { void refreshBranding(); }, [refreshBranding]);
 
   function setLeagueSlug(slug: string) {
     const normalized = slug.trim().toLowerCase();
@@ -26,7 +50,7 @@ export function LeagueProvider({ environment, children }: PropsWithChildren<{ en
     setLeagueSlugState(normalized);
   }
 
-  const value = useMemo(() => ({ leagueSlug, setLeagueSlug, client }), [client, leagueSlug]);
+  const value = useMemo(() => ({ leagueSlug, setLeagueSlug, client, branding, brandingLoading, refreshBranding }), [branding, brandingLoading, client, leagueSlug, refreshBranding]);
   return <LeagueContext.Provider value={value}>{children}</LeagueContext.Provider>;
 }
 

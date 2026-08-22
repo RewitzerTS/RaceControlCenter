@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && node scripts/copy-legal-routes.mjs",
+    "build": "tsc -b && vite build && node scripts/copy-legal-routes.mjs && node scripts/copy-v1-public-routes.mjs",
     "build:staging": "node scripts/build-staging.mjs",
     "build:production": "node scripts/build-production.mjs",
     "check": "tsc -b --pretty false",
@@ -39,7 +39,8 @@
     "v1-recovery-gate": "node scripts/assert-v1-recovery-gate.mjs",
     "phase-29-30-gate": "node scripts/assert-phase-29-30-gates.mjs",
     "legal-route-contract": "node scripts/assert-legal-routes.mjs",
-    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run driver-identity-contract && npm run role-model-contract && npm run result-versioning-contract && npm run domain-events-contract && npm run career-engine-contract && npm run xp-level-rank-contract && npm run achievements-contract && npm run credits-garage-contract && npm run challenges-contract && npm run i18n-contract && npm run driver-experience-contract && npm run steward-experience-contract && npm run operations-contract && npm run vora-contract && npm run social-graphics-contract && npm run demo-full-e2e-contract && npm run user-journey-e2e-contract && npm run security-gate-contract && npm run migration-rehearsal-contract && npm run beta-access-contract && npm run v1-recovery-gate && npm run phase-29-30-gate && npm run build && npm run legal-route-contract",
+    "v1-public-route-contract": "node scripts/assert-v1-public-routes.mjs",
+    "verify": "npm run check && npm run test && npm run isolation && npm run database-contract && npm run driver-identity-contract && npm run role-model-contract && npm run result-versioning-contract && npm run domain-events-contract && npm run career-engine-contract && npm run xp-level-rank-contract && npm run achievements-contract && npm run credits-garage-contract && npm run challenges-contract && npm run i18n-contract && npm run driver-experience-contract && npm run steward-experience-contract && npm run operations-contract && npm run vora-contract && npm run social-graphics-contract && npm run demo-full-e2e-contract && npm run user-journey-e2e-contract && npm run security-gate-contract && npm run migration-rehearsal-contract && npm run beta-access-contract && npm run v1-recovery-gate && npm run phase-29-30-gate && npm run build && npm run legal-route-contract && npm run v1-public-route-contract",
     "deploy": "wrangler deploy",
     "deploy:production": "npm run build:production && wrangler deploy --config wrangler.production.jsonc",
     "deploy:cutover": "npm run build:production && wrangler deploy --config wrangler.cutover.jsonc",

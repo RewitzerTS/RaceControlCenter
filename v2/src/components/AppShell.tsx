@@ -36,7 +36,7 @@ const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ defau
 const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').then((module) => ({ default: module.GraphicsStudioPage })));
 const DemoE2EPage = lazy(() => import('../demo/DemoE2EPage').then((module) => ({ default: module.DemoE2EPage })));
 
-type IconName = 'admin' | 'bell' | 'career' | 'home' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
+type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
 
 export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   icon: IconName;
@@ -57,6 +57,7 @@ function NavIcon({ name }: { name: IconName }) {
     career: <><path d="M4 20V9" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M3 20h18" /></>,
     vora: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5Z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7Z" /></>,
     profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6" /></>,
+    league: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
     steward: <><path d="M12 3 5 6v5c0 4.5 2.7 8 7 10 4.3-2 7-5.5 7-10V6Z" /><path d="m9 12 2 2 4-5" /></>,
     admin: <><path d="M4 5h16v14H4Z" /><path d="M4 9h16M9 9v10" /></>,
     owner: <><path d="m12 3 2.2 4.6 5.1.7-3.7 3.6.9 5.1-4.5-2.4L7.5 17l.9-5.1-3.7-3.6 5.1-.7Z" /></>,
@@ -71,6 +72,7 @@ function NavIcon({ name }: { name: IconName }) {
 
 function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useI18n();
+  const { leagueSlug } = useLeague();
   return (
     <div className="driver-navigation" aria-label={t('nav.driver')}>
       {DRIVER_NAV_ITEMS.map((item) => (
@@ -85,6 +87,10 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
           <span>{t(item.key)}</span>
         </NavLink>
       ))}
+      <a className="nav-item nav-item--public" href={`/race-hub.html?league=${encodeURIComponent(leagueSlug)}`} onClick={onNavigate}>
+        <NavIcon name="league" />
+        <span>Liga</span>
+      </a>
     </div>
   );
 }
@@ -100,7 +106,7 @@ function roleLabel(role: ReturnType<typeof useRole>['role'], t: ReturnType<typeo
 export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const { language, setLanguage, t } = useI18n();
-  const { leagueSlug } = useLeague();
+  const { branding, leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
   const { loading: authLoading, signOut, user } = useAuth();
@@ -119,10 +125,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       <header className="site-header">
         <div className="header-inner container">
         <NavLink className="brand" to="/" onClick={closeNavigation}>
-          <img className="brand-logo" src={raceVoraMark} alt="RaceVora" />
+          <img className="brand-logo" src={branding.logoUrl || raceVoraMark} alt="" />
           <span className="brand-text">
-            <strong className="brand-title">RaceVora</strong>
-            <small className="brand-subtitle">Race Management Platform</small>
+            <strong className="brand-title">{branding.name || 'RaceVora'}</strong>
+            <small className="brand-subtitle">{branding.subtitle || 'Race Management Platform'}</small>
           </span>
         </NavLink>
 

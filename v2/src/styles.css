@@ -1554,6 +1554,109 @@ body {
   .footer { flex-direction: column; }
 }
 
+/* Tenant branding is applied once at the application root. Every V2 view uses
+   the same semantic V1 tokens, so a saved league theme changes the shell,
+   backgrounds, cards, highlights and actions instead of only the preview. */
+:root {
+  --brand-primary: #27f4d2;
+  --brand-secondary: #0b0d10;
+  --brand-accent: #c5c7c9;
+  --brand-accent-2: #ffffff;
+  --brand-background: #060809;
+  --brand-surface: #15181b;
+  --brand-text: #f4f7f8;
+  --brand-on-primary: #08110f;
+  --bg: var(--brand-background);
+  --bg-main: var(--brand-background);
+  --surface: var(--brand-surface);
+  --surface-soft: color-mix(in srgb, var(--brand-surface) 88%, transparent);
+  --surface-strong: color-mix(in srgb, var(--brand-surface) 78%, var(--brand-secondary));
+  --text: var(--brand-text);
+  --muted: color-mix(in srgb, var(--brand-text) 72%, var(--brand-surface));
+  --purple: var(--brand-secondary);
+  --purple-bright: var(--brand-accent);
+  --teal: var(--brand-primary);
+  --teal-bright: var(--brand-primary);
+}
+
+body {
+  color: var(--brand-text);
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--brand-primary) 16%, transparent), transparent 30%),
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand-accent) 13%, transparent), transparent 24%),
+    linear-gradient(var(--brand-background), color-mix(in srgb, var(--brand-background) 84%, #000));
+}
+
+.site-header,
+.main-navigation.main-nav,
+.v2-status-strip .status-pill-card,
+.footer {
+  background: color-mix(in srgb, var(--brand-surface) 92%, var(--brand-background));
+}
+
+.brand-subtitle,
+.main-navigation .nav-item,
+.main-navigation .topbar-icon-link,
+.section-label,
+.storyline-strip strong {
+  color: var(--brand-accent);
+}
+
+.main-navigation .nav-item--active {
+  color: var(--brand-text);
+  border-color: color-mix(in srgb, var(--brand-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--brand-accent) 20%, var(--brand-surface));
+}
+
+.status-dot,
+.status-dot.violet {
+  background: var(--brand-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--brand-primary) 65%, transparent);
+}
+
+.storyline-strip {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--brand-primary) 11%, transparent),
+    color-mix(in srgb, var(--brand-accent) 10%, transparent),
+    color-mix(in srgb, var(--brand-surface) 95%, transparent));
+}
+
+.hero-main,
+.dashboard-card,
+.admin-card,
+.operations-panel,
+.admin-form,
+.branding-preview,
+.driver-state,
+.race-list-item {
+  background-color: var(--brand-surface);
+}
+
+.primary-action,
+.btn-primary-glow,
+.branding-preview button,
+.admin-form-actions .primary-action {
+  color: var(--brand-on-primary);
+  background: var(--brand-primary);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--brand-primary) 32%, transparent);
+}
+
+.primary-action:hover,
+.btn-primary-glow:hover,
+.branding-preview button:hover {
+  color: var(--brand-on-primary);
+  background: color-mix(in srgb, var(--brand-primary) 82%, var(--brand-text));
+}
+
+.theme-option--active,
+.race-list-item--active {
+  border-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 9%, var(--brand-surface));
+}
+
+.theme-option > span:last-child { display: grid; gap: 0.2rem; }
+.theme-option > span:last-child small { color: var(--muted); font-weight: 500; }
+
 /* Driver core routes: V1 cockpit language with live V2 data. */
 .racing-page,
 .career-page,
