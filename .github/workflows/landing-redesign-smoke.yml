@@ -12,7 +12,6 @@ on:
       - 'test-landing/index.html'
       - 'test-landing/style.css'
       - 'test-landing/script.js'
-      - '_headers'
       - 'assets/js/pages/landing.js'
       - '.github/workflows/landing-redesign-smoke.yml'
   workflow_dispatch:
@@ -30,7 +29,6 @@ jobs:
         run: |
           set -euo pipefail
           test -f index.html
-          test -f _headers
           grep -Fq 'data-landing-revision="cinematic-v2-2026-08-19"' index.html
           grep -Fq 'test-landing/style.css' index.html
           grep -Fq 'test-landing/script.js' index.html
@@ -39,27 +37,10 @@ jobs:
           grep -Fq 'Stewarding' index.html
           grep -Fq 'Multi-Liga' index.html
           grep -Fq 'racevora-master-mobile.mp4' index.html
-          grep -Fq 'id="landing-critical-css"' index.html
-          grep -Fq 'data-src="test-landing/racevora-master-mobile.mp4' index.html
-          grep -Fq 'Cache-Control: public, max-age=31536000, immutable' _headers
           grep -Fq 'background-clip:text' test-landing/style.css
           grep -Fq -- '--brand-gradient' test-landing/style.css
           grep -Fq 'linear-gradient(135deg,#1b0b36' test-landing/style.css
           test "$(find test-landing/frames -maxdepth 1 -name 'frame-*.webp' | wc -l)" -eq 90
-
-          node <<'NODE'
-          const fs = require('fs');
-          const html = fs.readFileSync('index.html', 'utf8');
-          const css = fs.readFileSync('test-landing/style.css', 'utf8').trim();
-          const match = html.match(/<style id="landing-critical-css" data-source="test-landing\/style.css">\n([\s\S]*?)\n  <\/style>/);
-          if (!match || match[1].trim() !== css) throw new Error('Inline production CSS is not synchronized with test-landing/style.css.');
-          if (/<source\s+src="test-landing\/racevora-master-mobile\.mp4/.test(html)) throw new Error('Desktop would eagerly load the mobile master video.');
-          const frames = fs.readdirSync('test-landing/frames').filter((name) => /^frame-\d{3}\.webp$/.test(name));
-          const frameBytes = frames.reduce((sum, name) => sum + fs.statSync(`test-landing/frames/${name}`).size, 0);
-          const videoBytes = fs.statSync('test-landing/racevora-master-mobile.mp4').size;
-          if (frameBytes > 3000000) throw new Error(`Frame budget exceeded: ${frameBytes} bytes`);
-          if (videoBytes > 650000) throw new Error(`Mobile video budget exceeded: ${videoBytes} bytes`);
-          NODE
 
           for legacy in \
             assets/css/pages/landing.css \

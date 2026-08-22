@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 3,
+  "capturedAt": "2026-08-22",
+  "repository": "RewitzerTS/RaceControlCenter",
+  "v1Code": {
+    "productionBranch": "main",
+    "recoveryBranch": "recovery/v1-production-2026-08-21",
+    "recoveryCommit": "2da639e9b4907e226c1a2c9858320e4b73bebee0",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/2da639e9b4907e226c1a2c9858320e4b73bebee0",
+    "description": "Current V1 Production after Phase 24 Performance Gate and before any V2 cutover."
+  },
+  "v2ReleaseCandidate": {
+    "sourceBranch": "v2-development",
+    "releaseBranch": "release/v2-cutover-candidate-2026-08-21-r9",
+    "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/50e6f76239915a25d1b0e932b8ee9bc33b394467",
+    "stagingUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev"
+  },
+  "v2ProductionRelease": {
+    "sourceBranch": "v2-development",
+    "releaseBranch": "release/v2-r10-production-cutover",
+    "releaseCommit": "2ea5030ceba2343698cddb1ebaa7b4f669a1720a",
+    "commitUrl": "https://github.com/RewitzerTS/RaceControlCenter/commit/2ea5030ceba2343698cddb1ebaa7b4f669a1720a",
+    "cloudflareWorker": "racevora-v2-production",
+    "cloudflareVersionId": "a9f1791b-fcb9-44a0-86ef-e3d72021f5a6",
+    "workerUrl": "https://racevora-v2-production.richard-rewitzerzwhe.workers.dev",
+    "productionUrls": [
+      "https://racevora.com",
+      "https://www.racevora.com"
+    ],
+    "activatedAt": "2026-08-21T22:24:00Z"
+  },
+  "v1Data": {
+    "productionProjectRef": "kjccstcbqygxuqkvdaqw",
+    "protectedLeagueSlug": "rcc",
+    "backupWorkflow": ".github/workflows/encrypted-offsite-backup.yml",
+    "restoreWorkflow": ".github/workflows/v1-restore-drill.yml",
+    "restoreScript": "scripts/restore-v1-drill.sh",
+    "storageRestoreScript": "scripts/restore-public-storage.mjs",
+    "restoreRunbook": "docs/operations-runbook.md",
+    "externalConfigChecklist": "docs/v2/v1-external-config-checklist.md",
+    "restoreTargetPolicy": "separate-non-production-only",
+    "restoreDrill": {
+      "status": "database-auth-storage-verified-external-config-required",
+      "verifiedAt": null,
+      "evidence": {
+        "databaseVerifiedAt": "2026-08-21T14:55:13Z",
+        "workflowRunUrl": "https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32494480356",
+        "workflowJobId": 96809606727,
+        "targetProjectRef": "lugedxtmfitxrkacmjpb",
+        "sourceBackupCreatedAt": "2026-08-21T13:46:21Z",
+        "observedRpoSeconds": 4132,
+        "fullRestoreSeconds": 165,
+        "authUsersRestored": 1,
+        "authIdentitiesRestored": 1,
+        "restoredLeagues": 2,
+        "restoredRccLeagues": 1,
+        "restoredPublicTables": 29,
+        "restoredPublicRlsTables": 29,
+        "storageBucketsRestored": 1,
+        "storageObjectsRestored": 4,
+        "authCredentialFingerprintMatched": true,
+        "authRecoveryProven": true,
+        "storageObjectHashesMatched": true,
+        "productionTouched": false
+      },
+      "lastAttempt": {
+        "attemptedAt": "2026-08-21T14:55:13Z",
+        "result": "encrypted-v1-database-auth-storage-restore-verified",
+        "scope": "V1 logical database, Auth identities/credential fingerprint and all archived Storage objects in the dedicated target.",
+        "v1BackupRestored": true,
+        "reason": "Database, Auth and Storage recovery passed. External Auth/SMTP/CAPTCHA, Function secret and Realtime configuration evidence remains a separate manual gate.",
+        "productionTouched": false,
+        "stagingLifecycle": "paused-then-restored-active-healthy",
+        "stagingDataReset": false
+      },
+      "fullRestorePreparation": {
+        "status": "full-restore-verified-external-config-open",
+        "backupFormatVersion": 2,
+        "authDataArchive": "auth-data.dump",
+        "authEvidence": "aggregate-user-identity-counts-and-credential-fingerprint",
+        "storageRestore": "target-reset-upload-and-sha256-download-verification",
+        "targetProjectRef": "lugedxtmfitxrkacmjpb",
+        "requiredTargetSecret": "RESTORE_DRILL_SECRET_KEY",
+        "freshBackup": {
+          "createdAt": "2026-08-21T13:46:21Z",
+          "workflowRunUrl": "https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32488426222",
+          "workflowRunId": 32488426222,
+          "encryptedBytes": 709002,
+          "storageBuckets": 1,
+          "storageObjects": 4,
+          "authArchiveChecksumVerified": true,
+          "encryptedUploadVerified": true
+        },
+        "productionTouched": false,
+        "stagingPaused": false
+      }
+    }
+  },
+  "v2ZeroStateReplay": {
+    "status": "verified",
+    "verifiedAt": "2026-08-21",
+    "projectRef": "lugedxtmfitxrkacmjpb",
+    "projectStateAfterDrill": "INACTIVE",
+    "migrationCount": 27,
+    "transactionalTestCount": 18,
+    "publicTableCount": 44,
+    "privateTableCount": 2,
+    "publicRlsTableCount": 44,
+    "functionCount": 62,
+    "discoveredFix": "v2/supabase/migrations/20260820183300_v2_steward_fk_indexes.sql",
+    "productionTouched": false,
+    "stagingRestoredActiveHealthy": true
+  },
+  "phaseProgress": {
+    "phase29PreparationStartedAt": "2026-08-21",
+    "phase29TrafficStatus": "v2-active",
+    "phase29AuthorizedAt": "2026-08-21T22:22:00Z",
+    "phase29CutoverCompletedAt": "2026-08-21T22:24:00Z",
+    "phase30PreservationStartedAt": "2026-08-21",
+    "phase30OwnerApprovalReceivedAt": "2026-08-21T21:22:07Z",
+    "phase30PreservationCompletedAt": "2026-08-21T21:22:07Z",
+    "phase30RetirementStatus": "reversible-operational-retirement-complete",
+    "phase30RetirementCompletedAt": "2026-08-21T22:30:00Z"
+  },
+  "phase29Readiness": {
+    "mode": "readiness-only",
+    "workflow": ".github/workflows/v2-cutover-readiness.yml",
+    "gateScript": "v2/scripts/assert-phase-29-30-gates.mjs",
+    "productionTrafficChangeAllowed": false,
+    "requiresExactReleaseCommit": true,
+    "requiresExactV1RecoveryCommit": true,
+    "stagingAdvisorAudit": {
+      "reviewedAt": "2026-08-21",
+      "projectRef": "znnkwjogtvzwfkwnmawp",
+      "projectStatus": "ACTIVE_HEALTHY",
+      "securityErrorCount": 0,
+      "reviewedAuthenticatedDefinerRpcCount": 15,
+      "denyByDefaultRlsTableCount": 4,
+      "leakedPasswordProtectionExternalConfigOpen": true,
+      "performanceActionRequiredCount": 0,
+      "unusedIndexInfoCountOnLowTrafficStaging": 106
+    },
+    "liveReleaseGate": {
+      "verifiedAt": "2026-08-21T21:07:36Z",
+      "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+      "cloudflareBuildId": "d054c85e-b95e-4a70-bfb8-eabfba0de576",
+      "cloudflareBuildPassed": true,
+      "githubChecksPassed": 26,
+      "githubChecksFailed": 0,
+      "localTestFilesPassed": 9,
+      "localTestsPassed": 39,
+      "performance": {
+        "lcpMs": 658,
+        "ttfbMs": 82,
+        "cls": 0,
+        "renderBlockingEstimatedLcpSavingsMs": 0,
+        "cacheEstimatedLcpSavingsMs": 0
+      },
+      "mobileLighthouse": {
+        "accessibilityScore": 100,
+        "robotsTxtValid": true,
+        "applicationAccessibilityFailures": 0,
+        "intentionalStagingNoIndex": true,
+        "turnstileThirdPartyCookieFindingAccepted": true
+      },
+      "productionProjectStatus": "ACTIVE_HEALTHY",
+      "stagingProjectStatus": "ACTIVE_HEALTHY",
+      "productionRccCount": 1,
+      "productionTouched": false
+    },
+    "authenticatedFunctionalGate": {
+      "verifiedAt": "2026-08-21T20:45:00Z",
+      "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+      "passedRoutes": [
+        "/",
+        "/career",
+        "/profile",
+        "/vora",
+        "/racing",
+        "/notifications",
+        "/owner",
+        "/stewarding"
+      ],
+      "disabledLeagueAdminDenied": true,
+      "rccRaceCount": 24,
+      "latestRaceDriverCount": 20,
+      "notificationCount": 24,
+      "notificationReadMutationVerified": true,
+      "rccProcessingDeliveriesSucceeded": 266,
+      "rccProcessingDeliveriesFailed": 0,
+      "productionTouched": false
+    },
+    "legalRouteGate": {
+      "verifiedAt": "2026-08-21T21:05:00Z",
+      "candidateCommit": "50e6f76239915a25d1b0e932b8ee9bc33b394467",
+      "routesPassed": [
+        "/impressum.html",
+        "/datenschutz.html",
+        "/agb.html",
+        "/widerruf.html"
+      ],
+      "v1PresentationPreserved": true,
+      "stagingWithdrawalMode": "mailto-production-isolated",
+      "withdrawalPageOwnOriginRequests": 4,
+      "withdrawalPageProductionOrExternalRequests": 0,
+      "productionElectronicWithdrawalCutoverApprovalOpen": true,
+      "productionTouched": false
+    },
+    "stagingExternalConfiguration": {
+      "reviewedAt": "2026-08-21",
+      "siteUrl": "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+      "redirectAllowlist": [
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/confirm",
+        "https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev/auth/reset"
+      ],
+      "localhostRemoved": true,
+      "emailConfirmationRequired": true,
+      "secureEmailChangeEnabled": true,
+      "securePasswordChangeEnabled": true,
+      "minimumPasswordLength": 8,
+      "leakedPasswordProtection": "plan-blocked-free",
+      "captcha": "enabled-staging-target-only-live-verified",
+      "captchaWidget": {
+        "provider": "cloudflare-turnstile",
+        "name": "RaceVora V2 Staging",
+        "hostname": "racevora-v2-staging.richard-rewitzerzwhe.workers.dev",
+        "mode": "managed",
+        "preClearanceEnabled": false,
+        "productionDomainsIncluded": false,
+        "siteKeyLocation": "cloudflare-staging-build-variable-only",
+        "secretLocation": "supabase-staging-auth-only",
+        "verifiedAt": "2026-08-21T18:36:46Z"
+      },
+      "captchaFrontendReady": true,
+      "captchaCspReady": true,
+      "authLinkRoutesImplemented": true,
+      "recoveryEmailDispatchVerified": true,
+      "endToEndEmailLinkVerified": true,
+      "recoveryLinkVerifiedAt": "2026-08-21T18:41:25Z",
+      "passwordUpdateVerifiedAt": "2026-08-21T18:43:52Z",
+      "recoverySessionClosedAfterTest": true,
+      "emailLinkOpenBlocker": null,
+      "edgeFunctionCount": 0,
+      "realtimePublicationTableCount": 0,
+      "storageBucketCount": 0
+    }
+  },
+  "phase30Preservation": {
+    "ownerApprovalReceived": true,
+    "ownerApprovalReceivedAt": "2026-08-21T21:22:07Z",
+    "preservationStatus": "complete-v1-retained-for-rollback",
+    "v1DeletionAllowed": false,
+    "v1PauseAllowed": false,
+    "recoveryBranchRequired": true,
+    "productionObservationWindowComplete": true,
+    "productionObservation": {
+      "startedAt": "2026-08-21T22:24:00Z",
+      "completedAt": "2026-08-21T22:30:00Z",
+      "scope": "initial cutover observation; continued operational monitoring remains active",
+      "coreRoutesPassed": 9,
+      "http5xxObserved": 0,
+      "normalNavigationConsoleErrors": 0,
+      "mobileFast4gCpu4x": {
+        "lcpMs": 833,
+        "ttfbMs": 54,
+        "cls": 0
+      },
+      "mobileLighthouse": {
+        "accessibilityScore": 100,
+        "bestPracticesScore": 92,
+        "seoScore": 100,
+        "cspSelfTestInterferenceReviewed": true
+      }
+    },
+    "recoveryBranchVerification": {
+      "verifiedAt": "2026-08-21T21:17:00Z",
+      "branch": "recovery/v1-production-2026-08-21",
+      "commit": "2da639e9b4907e226c1a2c9858320e4b73bebee0",
+      "remoteCommitMatched": true
+    },
+    "recoveryZip": {
+      "fileName": "RaceVora-V1-recovery-2da639e9b490.zip",
+      "bytes": 6836338,
+      "entryCount": 504,
+      "sha256": "5076DE7CCCD483685481F5680E1E65D892A10A0D26280E68E9A707E34E1A7132",
+      "verifiedAt": "2026-08-21T21:17:00Z"
+    },
+    "latestEncryptedOffsiteBackup": {
+      "workflowRunUrl": "https://github.com/RewitzerTS/RaceControlCenter/actions/runs/32527928795",
+      "workflowRunId": 32527928795,
+      "repositoryCommit": "8bb9a621376989fa6614d4d1b6459affcea160d8",
+      "completedAt": "2026-08-21T21:21:11Z",
+      "status": "success",
+      "encryptedBytes": 709588,
+      "storageBuckets": 1,
+      "storageObjects": 4,
+      "euR2UploadVerified": true,
+      "localBackupMaterialRemoved": true
+    },
+    "livePreservationAudit": {
+      "verifiedAt": "2026-08-21T21:22:07Z",
+      "v1WorkerUrl": "https://racevora.com/",
+      "v1WorkerHealthy": true,
+      "v1ProjectRef": "kjccstcbqygxuqkvdaqw",
+      "v1ProjectStatus": "ACTIVE_HEALTHY",
+      "v2StagingProjectRef": "znnkwjogtvzwfkwnmawp",
+      "v2StagingProjectStatus": "ACTIVE_HEALTHY",
+      "protectedRccLeagueCount": 1,
+      "productionSecurityAdvisorErrorCount": 0,
+      "productionPerformanceAdvisorActionRequiredCount": 0,
+      "productionWritePerformed": false
+    }
+  },
+  "phase29Cutover": {
+    "status": "complete",
+    "routingMethod": "Cloudflare Worker route overlay",
+    "routes": [
+      "racevora.com/*",
+      "www.racevora.com/*"
+    ],
+    "rollback": "Deploy wrangler.production.jsonc for racevora-v2-production without route triggers; the preserved V1 custom-domain Worker resumes traffic.",
+    "liveRouteStatuses": {
+      "/": 200,
+      "/beta": 200,
+      "/racing": 200,
+      "/notifications": 200,
+      "/impressum.html": 200,
+      "/datenschutz.html": 200,
+      "/agb.html": 200,
+      "/widerruf.html": 200,
+      "/robots.txt": 200
+    },
+    "wwwCanonicalRedirectVerified": true,
+    "protectedRccParity": {
+      "v1": {
+        "leagues": 1,
+        "seasons": 1,
+        "races": 24,
+        "drivers": 20,
+        "raceResults": 451
+      },
+      "v2": {
+        "leagues": 1,
+        "seasons": 1,
+        "races": 24,
+        "drivers": 20,
+        "raceResults": 451
+      },
+      "matched": true,
+      "v1WritePerformed": false
+    },
+    "apiLogSample": {
+      "entries": 100,
+      "success200": 99,
+      "expected401": 1,
+      "http5xx": 0
+    }
+  },
+  "cutoverGates": {
+    "phase29Authorized": true,
+    "phase30Authorized": true,
+    "v1ShutdownAllowed": false
+  }
+}
+

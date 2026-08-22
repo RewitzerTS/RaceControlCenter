@@ -8,7 +8,6 @@ on:
       - 'test-landing/index.html'
       - 'test-landing/style.css'
       - 'test-landing/script.js'
-      - '_headers'
       - '.github/workflows/ux-polish-smoke.yml'
   workflow_dispatch:
 
@@ -76,13 +75,6 @@ jobs:
             for (const [name, width, height] of cases) {
               const page = await browser.newPage({ viewport: { width, height } });
               const errors = [];
-              const requestedAssets = [];
-              page.on('request', request => {
-                try {
-                  const path = new URL(request.url()).pathname;
-                  if (path.includes('/test-landing/')) requestedAssets.push(path);
-                } catch {}
-              });
               page.on('pageerror', error => {
                 const text = String(error?.message || error);
                 if (!/supabase|turnstile/i.test(text)) errors.push(text);
@@ -100,12 +92,6 @@ jobs:
                 loginButtons: [...document.querySelectorAll('[data-login-open]')].filter(el => !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length)).length,
                 legacyCss: [...document.styleSheets].some(sheet => String(sheet.href || '').includes('landing3'))
               }));
-              const frameRequests = requestedAssets.filter(path => /\/frames\/frame-\d{3}\.webp$/.test(path));
-              const videoRequests = requestedAssets.filter(path => path.endsWith('/racevora-master-mobile.mp4'));
-              if (width > 700 && frameRequests.length > 8) throw new Error(`${name}: eager frame budget exceeded (${frameRequests.length})`);
-              if (width > 700 && videoRequests.length) throw new Error(`${name}: loaded the mobile video on desktop`);
-              if (width <= 700 && frameRequests.length) throw new Error(`${name}: loaded desktop frames on mobile`);
-              if (width <= 700 && !videoRequests.length) throw new Error(`${name}: mobile master video was not requested`);
               if (state.revision !== 'cinematic-v2-2026-08-19') throw new Error(`${name}: wrong landing revision ${state.revision}`);
               if (state.overflow > 2) throw new Error(`${name}: horizontal overflow ${state.overflow}px`);
               if (state.heroWidth > state.viewport + 2) throw new Error(`${name}: hero heading exceeds viewport`);

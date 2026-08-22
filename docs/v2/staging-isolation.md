@@ -1,0 +1,71 @@
+# V2 staging isolation
+
+## Objective
+
+V2 is developed and verified without changing the Production website or Production Supabase project. Production project reference `kjccstcbqygxuqkvdaqw` is a protected identifier and is rejected by the V2 runtime.
+
+## Required external topology
+
+| Concern | Production V1 | V2 staging |
+|---|---|---|
+| Git | `main` | `v2-development` and short-lived feature branches |
+| Cloudflare hosting | Existing project and domains | New, dedicated static-assets Worker |
+| Supabase | Existing `Race Control Center` project | New, separate project in the same organization |
+| Secrets | Existing Production values | New staging-only URL and publishable key |
+| Public URL | Existing live domains | Dedicated `workers.dev` staging and preview URLs until cutover approval |
+
+Current staging URL: `https://racevora-v2-staging.richard-rewitzerzwhe.workers.dev`.
+
+Supabase database branching is not used for the initial staging environment because persistent branches require a paid plan. A separate project gives V2 distinct credentials and a hard blast-radius boundary.
+
+## Cloudflare Workers settings
+
+- Repository: the same repository, connected to a new Worker named `racevora-v2-staging`.
+- Production branch for the staging project: `v2-development` (configured after creation under Settings → Build → Branch control when the creation form omits the branch selector).
+- Root path: `v2`.
+- Build command: `npm run build`.
+- Deploy command: `npm run deploy`.
+- Non-production deploy command: `npm run deploy:preview`.
+- Static output directory: `dist`, defined in `v2/wrangler.jsonc`.
+- Environment variables: `VITE_APP_ENV=staging`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_PUBLISHABLE_KEY` using only the staging project.
+- Preview URLs remain enabled. The included `_headers` file prevents indexing.
+
+Do not attach an existing Production custom domain to this project.
+
+## Supabase staging setup
+
+1. Create a second project after cost confirmation.
+2. Set allowed redirect URLs only to the V2 Worker staging and preview origins.
+3. reconstruct the schema from a reviewed, complete migration baseline; do not copy browser credentials from Production.
+4. Seed only synthetic or explicitly approved test data.
+5. Deploy only V2-reviewed Edge Functions and secrets.
+6. Verify RLS and RPC grants before enabling authenticated testing.
+
+The repository currently does not contain a complete migration history for the live database. Creating a migration baseline is therefore a separate reviewed step, not an automatic inference from partial files.
+
+## Tenant request contract
+
+- Browser and Edge Function requests use the canonical `x-rcc-league-slug` header.
+- V2 normalizes the slug and rejects malformed values before creating the Supabase client.
+- The deprecated/noncanonical `x-racevora-league` header must not be sent.
+- The Production database currently falls back to `rcc` when the canonical header is absent, so header compatibility is security-critical even though V2 also rejects the Production project reference.
+
+## Local setup
+
+```bash
+cd v2
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+Replace placeholders with staging-only values. The application fails closed if values are missing, malformed, or point at Production.
+
+## Verification gates
+
+- `npm run check` passes TypeScript checks.
+- `npm test` verifies environment rejection, role mapping, and the canonical tenant header contract.
+- `npm run build` produces an isolated static bundle.
+- `npm run deploy -- --dry-run` validates the Cloudflare Worker package without publishing it.
+- `npm run isolation` confirms the Production project reference occurs only in the runtime deny-list and that no service-role credential is present.
+- V1 protected files remain unchanged in the branch diff.
