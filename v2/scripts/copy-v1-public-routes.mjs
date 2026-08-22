@@ -85,6 +85,12 @@ async function transformJavaScriptTree(directory) {
         'if (!global.supabaseClient || global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === true) return [];',
       );
     }
+    if (entry.name === 'layout.js') {
+      source = source.replace(
+        'target.innerHTML=await response.text();',
+        "const markup=await response.text();const parsed=new DOMParser().parseFromString(markup,'text/html');parsed.querySelectorAll('script').forEach((script)=>script.remove());target.innerHTML=parsed.body.innerHTML;",
+      );
+    }
     await writeFile(path, source, 'utf8');
   }
 }

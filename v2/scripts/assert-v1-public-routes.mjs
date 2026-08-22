@@ -41,6 +41,11 @@ if (!driverContext.includes('global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === tr
   throw new Error('V2 driver context does not respect the disabled legacy assignment relation.');
 }
 
+const layout = await readFile(resolve(distRoot, 'v1-assets', 'js', 'layout.js'), 'utf8');
+if (!layout.includes("parsed.querySelectorAll('script')")) {
+  throw new Error('V2 layout partials must discard scripts injected into Cloudflare HTML fragments.');
+}
+
 const brandingSource = await readFile(resolve(process.cwd(), 'src', 'league', 'leagueBranding.ts'), 'utf8');
 if (!brandingSource.includes("id: 0, name: 'RaceVora'") || brandingSource.includes("name: 'Midnight'")) {
   throw new Error('Theme 0 must be named RaceVora and Midnight must no longer be exposed.');
