@@ -28,6 +28,14 @@ if (client.includes(legacyProjectRef) || client.includes('7aojXjXa4nfHRiT8CrGo6t
 if (!client.includes('sb_publishable_') || !client.includes('znnkwjogtvzwfkwnmawp.supabase.co')) {
   throw new Error('V2 public routes are not connected to the dedicated V2 backend.');
 }
+if (!client.includes('RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true')) {
+  throw new Error('V2 public routes must disable the unavailable legacy driver assignment relation.');
+}
+
+const driverContext = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-context.js'), 'utf8');
+if (!driverContext.includes('global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === true')) {
+  throw new Error('V2 driver context does not respect the disabled legacy assignment relation.');
+}
 
 const brandingSource = await readFile(resolve(process.cwd(), 'src', 'league', 'leagueBranding.ts'), 'utf8');
 if (!brandingSource.includes("id: 0, name: 'RaceVora'") || brandingSource.includes("name: 'Midnight'")) {

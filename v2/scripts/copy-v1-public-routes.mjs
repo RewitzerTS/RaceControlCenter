@@ -76,6 +76,13 @@ async function transformJavaScriptTree(directory) {
         .replace(/const SUPABASE_URL = '[^']+';/, `const SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`)
         .replace(/const SUPABASE_ANON_KEY = '[^']+';/, `const SUPABASE_ANON_KEY = ${JSON.stringify(publishableKey)};`)
         .replaceAll("new URL('admin.html', window.location.href)", "new URL('/admin', window.location.href)");
+      source = `window.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true;\n${source}`;
+    }
+    if (entry.name === 'rcc-driver-context.js') {
+      source = source.replace(
+        'if (!global.supabaseClient) return [];',
+        'if (!global.supabaseClient || global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === true) return [];',
+      );
     }
     await writeFile(path, source, 'utf8');
   }
