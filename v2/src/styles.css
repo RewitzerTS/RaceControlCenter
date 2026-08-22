@@ -783,6 +783,16 @@ h2 {
 .admin-driver-form { margin-bottom: 1.5rem; }
 .admin-driver-form .admin-panel-heading { margin-bottom: 0; }
 .row-inactive { opacity: 0.58; }
+.admin-view-tabs { display: flex; gap: 0.35rem; margin-top: 1.7rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
+.admin-view-tabs a { min-height: 44px; display: grid; place-items: center; padding: 0.55rem 1rem; border: 1px solid transparent; border-radius: 999px; color: var(--muted); font-weight: 800; text-decoration: none; }
+.admin-view-tabs a:hover,
+.admin-view-tabs a[aria-current="page"] { border-color: var(--line-strong); background: rgba(44, 143, 166, 0.12); color: var(--text); }
+.admin-race-metrics { grid-template-columns: repeat(4, 1fr); }
+.admin-race-metrics > div:last-child strong { overflow: hidden; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+.admin-status { display: inline-flex; min-height: 28px; align-items: center; padding: 0.25rem 0.65rem; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--muted); font-size: 0.7rem; font-weight: 800; }
+.admin-status--completed { color: #a9efd7; border-color: rgba(44, 143, 166, 0.48); }
+.admin-status--cancelled { color: #ff9dac; border-color: rgba(235, 102, 122, 0.48); }
+.standings-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr); gap: 1.25rem; }
 .branding-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 1.5rem; }
 .branding-preview { position: sticky; top: 1rem; display: grid; place-items: center; min-height: 360px; margin-top: 2rem; padding: 2rem; border: 1px solid var(--preview-primary); background: radial-gradient(circle at top, color-mix(in srgb, var(--preview-secondary) 26%, transparent), transparent 60%), #071626; text-align: center; }
 .branding-preview p { justify-self: start; align-self: start; margin: 0; color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; }
@@ -808,6 +818,9 @@ h2 {
   .admin-inline-form { grid-template-columns: 1fr; }
   .admin-header-actions { width: 100%; align-items: stretch; flex-direction: column; }
   .admin-driver-metrics { grid-template-columns: 1fr; }
+  .admin-race-metrics { grid-template-columns: repeat(2, 1fr); }
+  .admin-view-tabs { overflow-x: auto; }
+  .standings-grid { grid-template-columns: 1fr; }
 }
 .notification-page { width: min(980px, 100%); }
 .notification-list { margin-top: 2rem; border-top: 1px solid var(--line); }

@@ -2606,6 +2606,7 @@ export type Database = {
       get_league_admin_workspace: { Args: never; Returns: Json }
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_member_admin_workspace: { Args: never; Returns: Json }
+      get_league_race_admin_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
       get_social_graphics_workspace: { Args: never; Returns: Json }
       get_vora_companion_snapshot: { Args: never; Returns: Json }

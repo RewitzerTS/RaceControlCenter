@@ -28,7 +28,7 @@ for (const contract of [
   "race-summary:",
 ]) if (!processors.includes(contract)) violations.push('missing Notification processor contract: ' + contract);
 for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canSteward', 'canAdmin', 'canOwner', 'canNotify', 'loading: authLoading', 'accessLoading ?']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
-for (const contract of ['path="/admin/users"', 'path="/admin/drivers"']) if (!shell.includes(contract)) violations.push('missing V1 admin route: ' + contract);
+for (const contract of ['path="/admin/users"', 'path="/admin/drivers"', 'path="/admin/races"', 'path="/admin/results"', 'path="/admin/standings"']) if (!shell.includes(contract)) violations.push('missing V1 admin route: ' + contract);
 for (const contract of ['resolvedUserId', 'resolvedUserId !== user?.id']) if (!roleProvider.includes(contract)) violations.push('missing restored-session role gate: ' + contract);
 for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
 for (const contract of ['get_league_member_admin_workspace', 'add_existing_league_member_by_email', 'set_league_member_role', 'remove_league_member', 'get_league_driver_admin_workspace', 'upsert_league_driver']) if (!adminParity.includes(contract)) violations.push('missing V1 admin parity RPC: ' + contract);

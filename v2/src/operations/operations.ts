@@ -57,6 +57,16 @@ export type DriverAdminWorkspace = {
   counts: { total: number; active: number; linked: number };
   drivers: LeagueDriver[];
 };
+export type LeagueSeason = { id: string; name: string; slug: string; is_active: boolean; game_label: string; start_date: string | null; end_date: string | null };
+export type LeagueRace = {
+  id: string; season_id: string; season_name: string; round_number: number;
+  grand_prix_name: string; circuit_name: string | null; country_code: string | null;
+  race_date: string | null; race_start_at: string | null; status: string; has_sprint: boolean;
+  result_count: number; result_version: number | null; result_status: string | null; result_activated_at: string | null;
+};
+export type DriverStanding = { driver_id: string; display_name: string; gamertag: string | null; points: number; wins: number; podiums: number; starts: number };
+export type TeamStanding = { team_name: string; points: number; wins: number; podiums: number };
+export type RaceAdminWorkspace = { league: OwnerLeague; seasons: LeagueSeason[]; races: LeagueRace[]; driver_standings: DriverStanding[]; team_standings: TeamStanding[] };
 export type LeagueDriverInput = {
   id?: string;
   displayName: string;
@@ -139,6 +149,12 @@ export async function loadDriverAdminWorkspace(client: LeagueSupabaseClient): Pr
   const response = await client.rpc('get_league_driver_admin_workspace');
   if (response.error) throw response.error;
   return object(response.data) as unknown as DriverAdminWorkspace;
+}
+
+export async function loadRaceAdminWorkspace(client: LeagueSupabaseClient): Promise<RaceAdminWorkspace> {
+  const response = await client.rpc('get_league_race_admin_workspace');
+  if (response.error) throw response.error;
+  return object(response.data) as unknown as RaceAdminWorkspace;
 }
 
 export async function upsertLeagueDriver(client: LeagueSupabaseClient, input: LeagueDriverInput) {
