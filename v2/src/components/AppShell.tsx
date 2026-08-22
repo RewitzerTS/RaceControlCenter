@@ -105,7 +105,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const features = useFeatureFlags();
   const { loading: authLoading, signOut, user } = useAuth();
   const canSteward = features.stewardWorkspace && (role === 'steward' || role === 'league_admin' || role === 'platform_owner');
-  const canAdmin = features.leagueAdmin && (role === 'league_admin' || role === 'platform_owner');
+  // V1 administration is now core product functionality. The resolved role
+  // gates the routes here; every mutation is authorized again by its RPC.
+  const canAdmin = role === 'league_admin' || role === 'platform_owner';
   const canOwner = features.ownerControl && role === 'platform_owner';
   const canNotify = features.notificationsV2 && Boolean(user);
   const canCreateGraphics = canAdmin && features.socialGraphics;

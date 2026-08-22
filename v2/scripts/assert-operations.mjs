@@ -30,6 +30,7 @@ for (const contract of [
   "race-summary:",
 ]) if (!processors.includes(contract)) violations.push('missing Notification processor contract: ' + contract);
 for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canSteward', 'canAdmin', 'canOwner', 'canNotify', 'loading: authLoading', 'accessLoading ?']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
+if (shell.includes('features.leagueAdmin &&')) violations.push('obsolete V1 admin rollout gate is still active');
 for (const contract of ['path="/admin/users"', 'path="/admin/drivers"', 'path="/admin/races"', 'path="/admin/results"', 'path="/admin/standings"', 'path="/admin/teams"', 'path="/admin/rules"', 'path="/admin/results/import"', 'path="/admin/audit"']) if (!shell.includes(contract)) violations.push('missing V1 admin route: ' + contract);
 for (const contract of ['resolvedUserId', 'resolvedUserId !== user?.id']) if (!roleProvider.includes(contract)) violations.push('missing restored-session role gate: ' + contract);
 for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
