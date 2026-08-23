@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type SyntheticEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { useLeague } from '../league/LeagueProvider';
 
 const LEGACY_DESTINATIONS: Record<string, string> = {
@@ -32,6 +32,41 @@ function integratedDestination(anchor: HTMLAnchorElement): string | null {
   return `${next.pathname}${next.search}${next.hash}`;
 }
 
+const LEGACY_THEME_VARIABLES: Record<string, string> = {
+  '--brand-background': '--bg-main',
+  '--brand-surface': '--surface',
+  '--brand-primary': '--primary',
+  '--brand-secondary': '--secondary',
+  '--brand-accent': '--accent',
+  '--brand-accent-2': '--accent-2',
+  '--brand-text': '--text',
+  '--brand-on-primary': '--text-on-primary',
+};
+
+function applyPersonalThemeToFrame(frameDocument: Document): void {
+  const parentRoot = window.document.documentElement;
+  const parentStyle = window.getComputedStyle(parentRoot);
+  const frameRoot = frameDocument.documentElement;
+
+  for (const [source, destination] of Object.entries(LEGACY_THEME_VARIABLES)) {
+    const value = parentStyle.getPropertyValue(source).trim();
+    if (value) frameRoot.style.setProperty(destination, value);
+  }
+
+  const background = parentStyle.getPropertyValue('--brand-background').trim();
+  const surface = parentStyle.getPropertyValue('--brand-surface').trim();
+  const secondary = parentStyle.getPropertyValue('--brand-secondary').trim();
+  const text = parentStyle.getPropertyValue('--brand-text').trim();
+  const accent2 = parentStyle.getPropertyValue('--brand-accent-2').trim();
+  if (background) frameRoot.style.setProperty('--bg-deep', `color-mix(in srgb, ${background} 72%, #000000)`);
+  if (surface) frameRoot.style.setProperty('--surface-2', `color-mix(in srgb, ${surface} 78%, ${secondary || '#ffffff'})`);
+  if (text) frameRoot.style.setProperty('--text-muted', `color-mix(in srgb, ${text} 72%, ${surface || background || '#000000'})`);
+  if (accent2) frameRoot.style.setProperty('--accent-dark', accent2);
+
+  frameRoot.dataset.userTheme = parentRoot.dataset.leagueTheme ?? '0';
+  frameRoot.dataset.leagueBrandingApplied = 'true';
+}
+
 export function LegacyLeagueView({ page, title, search = '' }: {
   page: string;
   title: string;
@@ -39,6 +74,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
 }) {
   const { leagueSlug } = useLeague();
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
   const [height, setHeight] = useState(760);
   const source = useMemo(() => {
     const params = new URLSearchParams(search);
@@ -47,10 +83,14 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     return `/${page}.html?${params.toString()}`;
   }, [leagueSlug, page, search]);
 
+  useEffect(() => () => cleanupRef.current?.(), []);
+
   const prepareFrame = (event: SyntheticEvent<HTMLIFrameElement>) => {
     const frame = event.currentTarget;
     const document = frame.contentDocument;
     if (!document?.body) return;
+
+    cleanupRef.current?.();
 
     document.documentElement.classList.add('racevora-integrated-view');
     document.querySelectorAll('#site-header, #site-footer, #app-launch-splash').forEach((node) => node.remove());
@@ -67,6 +107,14 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     `;
     document.head.append(style);
 
+    const syncTheme = () => applyPersonalThemeToFrame(document);
+    syncTheme();
+    const themeObserver = new MutationObserver(syncTheme);
+    themeObserver.observe(window.document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style', 'data-league-theme'],
+    });
+
     document.addEventListener('click', (clickEvent) => {
       const anchor = (clickEvent.target as Element | null)?.closest('a') as HTMLAnchorElement | null;
       if (!anchor) return;
@@ -80,6 +128,10 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(document.body);
+    cleanupRef.current = () => {
+      observer.disconnect();
+      themeObserver.disconnect();
+    };
     frameRef.current = frame;
   };
 
@@ -96,4 +148,3 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     </div>
   );
 }
-

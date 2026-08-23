@@ -73,12 +73,14 @@ async function loadRaceDetailPage() {
     });
     if (!race) throw new Error('Race not found');
 
-    const [drivers, seasonRaces, assignments, resultsResponse, stewardResponse] = await Promise.all([
+    const [drivers, seasonRaces, assignments, resultsResponse, stewardResult] = await Promise.all([
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces({ seasonId: race.season_id }),
       window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: race.season_id }),
       window.RCCData.fetchRaceResults({ raceId: race.id }),
       window.RCCData.fetchStewardCasesByRaceId(race.id)
+        .then((entries) => ({ entries, error: null }))
+        .catch((error) => ({ entries: [], error }))
     ]);
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({
@@ -109,7 +111,15 @@ async function loadRaceDetailPage() {
       <div class="detail-track-map">${window.createTrackMapSvg(track)}</div>
     `;
 
-    renderStewardSection(stewardsEl, stewardResponse, null);
+    const driversById = new Map((drivers || []).map((driver) => [driver.id, driver]));
+    const stewardEntries = (stewardResult.entries || []).map((entry) => ({
+      ...entry,
+      driver1: driversById.get(entry.reported_driver_id) || null,
+      driver2: driversById.get(entry.accused_driver_id) || null,
+      decision_text: entry.status === 'closed' ? 'Abgeschlossen' : entry.status,
+      consequence: entry.rule_code ? `${entry.rule_code}${entry.rule_version ? ` · ${entry.rule_version}` : ''}` : '—'
+    }));
+    renderStewardSection(stewardsEl, stewardEntries, stewardResult.error);
 
     resultsBody.innerHTML = results.length
       ? results.map((row) => {

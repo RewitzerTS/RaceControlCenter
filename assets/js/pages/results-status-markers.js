@@ -1,19 +1,26 @@
 (() => {
   if (window.__raceVoraResultMarkersApplied) return;
 
-  function decorateBotCells(root = document) {
-    root.querySelectorAll?.('.results-points-value--bot').forEach((valueEl) => {
+  function addMarker(valueEl, kind, text, label, title) {
       const stack = valueEl.closest('.results-cell-stack');
-      if (!stack || stack.querySelector('[data-result-marker="bot"]')) return;
+      if (!stack || stack.querySelector(`[data-result-marker="${kind}"]`)) return;
 
       const marker = document.createElement('span');
-      marker.className = 'results-status-marker results-status-marker--bot';
-      marker.dataset.resultMarker = 'bot';
-      marker.textContent = 'BOT';
-      marker.setAttribute('aria-label', 'Dieses Ergebnis wurde von einem Bot gefahren');
-      marker.title = 'BOT gefahren';
+      marker.className = `results-status-marker results-status-marker--${kind}`;
+      marker.dataset.resultMarker = kind;
+      marker.textContent = text;
+      marker.setAttribute('aria-label', label);
+      marker.title = title;
       stack.appendChild(marker);
-      stack.classList.add('results-cell-stack--has-bot');
+      stack.classList.add('results-cell-stack--has-markers');
+  }
+
+  function decorateResultCells(root = document) {
+    root.querySelectorAll?.('.results-points-value--fl-chip').forEach((valueEl) => {
+      addMarker(valueEl, 'fl', 'FL', 'Schnellste Runde in diesem Rennen', 'Fastest Lap');
+    });
+    root.querySelectorAll?.('.results-points-value--bot').forEach((valueEl) => {
+      addMarker(valueEl, 'bot', 'BOT', 'Dieses Ergebnis wurde von einem Bot gefahren', 'BOT gefahren');
     });
   }
 
@@ -21,9 +28,9 @@
     const wrap = document.getElementById('results-matrix-wrap');
     if (!wrap) return;
 
-    decorateBotCells(wrap);
+    decorateResultCells(wrap);
 
-    const observer = new MutationObserver(() => decorateBotCells(wrap));
+    const observer = new MutationObserver(() => decorateResultCells(wrap));
     observer.observe(wrap, { childList: true, subtree: true });
   }
 

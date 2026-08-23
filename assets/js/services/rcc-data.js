@@ -23,7 +23,7 @@ const DATA_SELECT = {
   drivers: 'id,display_name,gamertag,real_name,nationality_code,number,is_active,ai_driver_reference,car_name,league_team,nationality,avatar_url,league_id',
   races: 'id,season_id,round_number,grand_prix_name,circuit_name,country_code,weekend_start_date,race_date,race_start_at,weather,track_image,status,race_order,race_time,has_sprint',
   raceResults: 'id,race_id,driver_id,team_id,source_assignment_id,car_name_snapshot,ai_driver_reference_snapshot,grid_position,finish_position,race_time_ms,fastest_lap_time_ms,pit_stops,participation_status,base_points,penalty_time_delta_ms,awarded_points,fastest_lap_time,race_time,points_owner_driver_id,points_team_name,points_car_name,points,fastest_lap_ms',
-  stewardCases: 'id,race_id,title,description,driver_1_id,driver_2_id,status,decision_text,consequence,created_by,created_at,updated_at'
+  stewardCases: 'id,race_id,title,description,reported_driver_id,accused_driver_id,status,rule_code,rule_version,created_by,created_at,closed_at,current_decision_version'
 };
 
 const DATA_LIMITS = {
@@ -434,19 +434,23 @@ async function fetchLeagueContent(options = {}) {
     backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
       const { data, error } = await client
-        .from('league_content')
-        .select('id, league_id, rules_text, faq_text, rules_config, faq_items, updated_at')
-        .eq('league_id', leagueId)
-        .eq('id', 'default')
+        .from('leagues')
+        .select('id, settings, updated_at')
+        .eq('id', leagueId)
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
       if (!data) return { ...DEFAULT_LEAGUE_CONTENT };
+      const settings = data.settings && typeof data.settings === 'object' ? data.settings : {};
       return {
         ...DEFAULT_LEAGUE_CONTENT,
-        ...data,
-        rules_config: data.rules_config && typeof data.rules_config === 'object' ? data.rules_config : {},
-        faq_items: Array.isArray(data.faq_items) ? data.faq_items : []
+        id: 'default',
+        league_id: data.id,
+        updated_at: data.updated_at,
+        rules_text: typeof settings.rules_text === 'string' ? settings.rules_text : '',
+        faq_text: typeof settings.faq_text === 'string' ? settings.faq_text : '',
+        rules_config: settings.rules && typeof settings.rules === 'object' ? settings.rules : {},
+        faq_items: Array.isArray(settings.faqs) ? settings.faqs : []
       };
     }
   });

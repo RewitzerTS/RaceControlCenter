@@ -74,8 +74,6 @@ body[data-page="ergebnisse"] .results-points-value--fl-chip {
 
 body[data-page="ergebnisse"] .results-points-value--bot {
   color: var(--text) !important;
-  background: color-mix(in srgb, var(--secondary) 18%, var(--surface-2)) !important;
-  border-color: color-mix(in srgb, var(--secondary) 55%, var(--line)) !important;
 }
 
 body[data-page="ergebnisse"] .results-total-cell strong {
@@ -89,14 +87,15 @@ body[data-page="ergebnisse"] .results-legend-pill {
 }
 
 body[data-page="ergebnisse"] .results-legend-pill--player {
-  color: var(--text-on-primary, #fff);
-  border-color: color-mix(in srgb, var(--primary) 68%, var(--line));
-  background: var(--primary);
+  color: #24102f;
+  border-color: #d99cff;
+  background: #edc9ff;
 }
 
 body[data-page="ergebnisse"] .results-legend-pill--bot {
-  border-color: color-mix(in srgb, var(--secondary) 55%, var(--line));
-  background: color-mix(in srgb, var(--secondary) 18%, var(--surface-2));
+  color: #2b1900;
+  border-color: #f6b94a;
+  background: #ffd88a;
 }
 
 .results-chart-panel {

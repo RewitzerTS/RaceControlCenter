@@ -1,4 +1,4 @@
-body[data-page="ergebnisse"] .results-cell-stack--has-bot {
+body[data-page="ergebnisse"] .results-cell-stack--has-markers {
   gap: 5px;
 }
 
@@ -20,10 +20,17 @@ body[data-page="ergebnisse"] .results-status-marker {
 }
 
 body[data-page="ergebnisse"] .results-status-marker--bot {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--secondary) 72%, var(--text));
-  background: color-mix(in srgb, var(--secondary) 42%, var(--surface-2));
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--secondary) 20%, transparent);
+  color: #2b1900;
+  border-color: #f6b94a;
+  background: #ffd88a;
+  box-shadow: 0 4px 12px rgba(246, 185, 74, .22);
+}
+
+body[data-page="ergebnisse"] .results-status-marker--fl {
+  color: #24102f;
+  border-color: #d99cff;
+  background: #edc9ff;
+  box-shadow: 0 4px 12px rgba(217, 156, 255, .22);
 }
 
 @media (max-width: 700px) {

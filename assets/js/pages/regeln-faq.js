@@ -676,14 +676,15 @@ async function initRulesFaqPage() {
 
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
-    const [content, drivers, races, raceResults, championshipHistory, assignments] = await Promise.all([
+    const [content, drivers, races, championshipHistory, assignments] = await Promise.all([
       window.RCCData.fetchLeagueContent(),
       window.RCCData.fetchDrivers(),
-      window.RCCData.fetchRaces(),
-      window.RCCData.fetchRaceResults(),
+      window.RCCData.fetchRaces({ seasonId: currentSeason?.id }),
       loadChampionshipHistoryForFacts(),
       window.RCCDriverContext?.fetchDriverSeasonAssignments?.({ seasonId: currentSeason?.id }) || Promise.resolve([])
     ]);
+    const raceIds = (races || []).map((race) => race.id).filter(Boolean);
+    const raceResults = raceIds.length ? await window.RCCData.fetchRaceResults({ raceIds }) : [];
     const racesForCurrentAssignments = currentSeason?.id
       ? races.filter((race) => race?.season_id === currentSeason.id)
       : races;

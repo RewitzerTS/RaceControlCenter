@@ -4,7 +4,7 @@
   const originalCreateBadge = window.createTeamLogoBadge;
   const getMeta = window.getTeamLogoMeta;
   const escape = window.escapeHtml || ((value) => String(value ?? ''));
-  const version = '2026-08-16-1';
+  const version = '2026-08-23-1';
 
   if (typeof originalCreateBadge !== 'function' || typeof getMeta !== 'function') return;
 
@@ -22,8 +22,6 @@
     ['Audi', 'audi'],
     ['Cadillac', 'cadillac']
   ]);
-
-  const svgOnly = new Set(['Audi', 'Cadillac']);
 
   function normalize(value) {
     return String(value || '')
@@ -74,10 +72,8 @@
     const sizeClass = options.size === 'large' ? ' team-logo-badge--large' : '';
     const labelSource = String(options.label || meta.name || safeTeamName).trim() || 'Team';
     const label = escape(labelSource);
-    const primary = assetUrl(`assets/images/team-logos/${slug}.${svgOnly.has(meta.name) ? 'svg' : 'png'}`);
-    const fallback = svgOnly.has(meta.name)
-      ? ''
-      : assetUrl(`assets/images/team-logos/${slug}.svg`);
+    const primary = assetUrl(`assets/images/team-logos/${slug}.svg`);
+    const fallback = assetUrl(`assets/images/team-logos/${slug}.png`);
 
     return `
       <span class="team-logo-badge${sizeClass}" data-team-logo-name="${escape(meta.name)}" title="${label}" aria-label="${label}">
