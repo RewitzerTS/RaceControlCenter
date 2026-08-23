@@ -15,6 +15,7 @@ function requireGate(condition, label) {
 }
 
 requireGate(auth.includes('signInWithPassword') && auth.includes('client.auth.signUp') && auth.includes('resetPasswordForEmail') && auth.includes('updateUser({ password })'), 'Supabase Auth owns sign-in, sign-up and password recovery');
+requireGate(auth.includes('setSession(data.session)') && auth.includes('setError(null)'), 'successful password authentication immediately activates the returned session');
 requireGate(!page.includes('error.message') && !page.includes('signInError.message'), 'raw authentication errors are not exposed');
 requireGate(page.includes('name="email"') && page.includes('name="password"'), 'form fields have stable names');
 requireGate(page.includes('id="beta-email"') && page.includes('id="beta-password"'), 'form fields have programmatic labels');
@@ -27,7 +28,7 @@ requireGate(turnstile.includes('role="group"') && turnstile.includes('aria-label
 requireGate(auth.includes('/auth/confirm') && auth.includes('/auth/reset') && shell.includes('<Route path="/auth/confirm"') && shell.includes('<Route path="/auth/reset"'), 'confirmation and recovery redirects stay inside the active V2 target');
 requireGate(authLink.includes('autoComplete="new-password"') && authLink.includes('minLength={8}') && !authLink.includes('error.message'), 'password reset has accessible validation and hides raw errors');
 requireGate(shell.includes('<Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />') && shell.includes('<Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />'), 'environment-aware access route and compatibility alias are registered');
-requireGate(shell.includes('htmlFor="language-selector"') && shell.includes('name="language"'), 'topbar language field has a stable label and name');
+requireGate(shell.includes("aria-label={`${t('language')}: ${languageName(language)}`}") && shell.includes('role="menuitemradio"'), 'topbar language control has an accessible label and selectable menu items');
 requireGate(home.includes('to="/login?mode=signin"') && shell.includes('to="/login?mode=signin"'), 'signed-out Home and topbar expose the production login');
 requireGate(shell.includes("assets/images/racevora-mark.svg") && shell.includes('className="site-header"') && shell.includes('brand-title') && shell.includes('Race Management Platform'), 'V1 tenant branding and horizontal product header are retained');
 requireGate(!shell.includes('className="app-rail"') && !shell.includes('className="brand-symbol"'), 'the divergent V2 rail and placeholder logo are absent');
@@ -40,4 +41,5 @@ if (failures.length) {
 }
 
 console.log('Phase 27 Beta Access passed: isolated sign-up/sign-in/recovery, target CAPTCHA, accessible fields, safe feedback and four-language entry are present.');
+
 

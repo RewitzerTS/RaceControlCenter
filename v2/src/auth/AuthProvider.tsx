@@ -72,12 +72,14 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
       if (recoveryError) throw recoveryError;
     },
     signIn: async (email, password, captchaToken) => {
-      const { error: signInError } = await client.auth.signInWithPassword({
+      const { data, error: signInError } = await client.auth.signInWithPassword({
         email,
         password,
         options: captchaOptions(captchaToken),
       });
       if (signInError) throw signInError;
+      setError(null);
+      setSession(data.session);
     },
     signUp: async (email, password, captchaToken) => {
       const { data, error: signUpError } = await client.auth.signUp({
@@ -89,6 +91,10 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
         },
       });
       if (signUpError) throw signUpError;
+      if (data.session) {
+        setError(null);
+        setSession(data.session);
+      }
       return data.session ? 'signed-in' : 'confirmation-required';
     },
     signOut: async () => {
@@ -121,4 +127,5 @@ export function useAuth(): AuthContextValue {
   if (!context) throw new Error('useAuth must be used inside AuthProvider.');
   return context;
 }
+
 
