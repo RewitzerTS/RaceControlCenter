@@ -123,11 +123,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
 
     const syncTheme = () => applyPersonalThemeToFrame(document);
     syncTheme();
-    const themeObserver = new MutationObserver(syncTheme);
-    themeObserver.observe(window.document.documentElement, {
-      attributes: true,
-      attributeFilter: ['style', 'data-league-theme'],
-    });
+    window.addEventListener('racevora:theme-changed', syncTheme);
 
     document.addEventListener('click', (clickEvent) => {
       const anchor = (clickEvent.target as Element | null)?.closest('a') as HTMLAnchorElement | null;
@@ -144,7 +140,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     observer.observe(document.body);
     cleanupRef.current = () => {
       observer.disconnect();
-      themeObserver.disconnect();
+      window.removeEventListener('racevora:theme-changed', syncTheme);
     };
     frameRef.current = frame;
   };

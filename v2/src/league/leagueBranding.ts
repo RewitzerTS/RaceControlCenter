@@ -100,6 +100,7 @@ export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {
   for (const [name, value] of Object.entries(variables)) root.style.setProperty(name, value);
   root.dataset.leagueTheme = String(theme.id);
   root.dataset.leagueSlug = branding.slug;
+  window.dispatchEvent(new CustomEvent('racevora:theme-changed'));
 }
 
 export async function loadLeagueBrandingRuntime(client: LeagueSupabaseClient, leagueSlug: string): Promise<LeagueBrandingRuntime> {
@@ -140,3 +141,4 @@ export function shouldUseStandardRaceVoraBranding({
     || pathname === '/owner/demo';
   return authLoading || !authenticated || demoMode;
 }
+
