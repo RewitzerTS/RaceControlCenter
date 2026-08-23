@@ -69,15 +69,28 @@ if (!layout.includes('const reactRoute=') || !layout.includes('(?:race-hub|racin
   throw new Error('V2 platform navigation must retain the active league context.');
 }
 
-const restoredHeader = await readFile(resolve(distRoot, 'components', 'header.html'), 'utf8');
-for (const href of ['href="/home"', 'href="/racing"', 'href="/career"', 'href="/vora"', 'href="/profile"', 'href="/race-hub"']) {
-  if (!restoredHeader.includes(href)) throw new Error(`Restored public header is missing global navigation target ${href}.`);
+const integratedRedirect = await readFile(resolve(distRoot, 'v1-assets', 'js', 'integrated-route-redirect.js'), 'utf8');
+for (const [page, route] of [
+  ['kalender', '/racing/calendar'],
+  ['ergebnisse', '/racing/results'],
+  ['fahrer-wm', '/racing/standings?view=drivers'],
+  ['team-wm', '/racing/standings?view=teams'],
+  ['fahrer-profil', '/racing/drivers/profile'],
+  ['head-to-head', '/career/compare'],
+  ['hall-of-fame', '/racing/history?view=hall-of-fame'],
+]) {
+  if (!integratedRedirect.includes(`\"${page}\":\"${route}\"`)) {
+    throw new Error(`Integrated route redirect is missing ${page} -> ${route}.`);
+  }
 }
-for (const href of ['kalender.html', 'ergebnisse.html', 'fahrer-wm.html', 'team-wm.html', 'regeln-faq.html', 'grid.html', 'hall-of-fame.html']) {
-  if (!restoredHeader.includes(href)) throw new Error(`Restored league menu is missing ${href}.`);
+if (!integratedRedirect.includes("p.get('embed')==='1'")) {
+  throw new Error('Integrated public views must remain embeddable inside Racing and Career.');
 }
-if (!restoredHeader.includes('Liga-Menü') || !restoredHeader.includes('nav-primary-link active')) {
-  throw new Error('Restored public header must keep Liga active and expose the complete league menu.');
+for (const page of requiredPages) {
+  const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
+  if (!source.includes(`data-racevora-integrated-route="${page}"`) || !source.includes('/v1-assets/js/integrated-route-redirect.js')) {
+    throw new Error(`${page}.html is not connected to its integrated V2 destination.`);
+  }
 }
 
 const landing = await readFile(resolve(distRoot, 'landing.html'), 'utf8');
@@ -141,3 +154,4 @@ if (!aiQuotaMigration.includes('consume_ai_analysis_quota') || !aiQuotaMigration
 }
 
 console.log(`V1 public route contract passed (${requiredPages.length} core pages, ${trackMaps.length} track maps, isolated V2 backend).`);
+

@@ -137,7 +137,7 @@ export function DriverHomePage() {
           </div>
           <div className="driver-hero-actions">
             <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}<span aria-hidden="true">→</span></NavLink>
-            <a className="btn-secondary-ghost text-link" href={`/race-hub?league=${encodeURIComponent(leagueSlug)}`}>{t('home.openLeague')}</a>
+            <NavLink className="btn-secondary-ghost text-link" to="/racing">{t('home.openLeague')}</NavLink>
           </div>
         </article>
 
@@ -237,3 +237,4 @@ export function DriverHomePage() {
     </main>
   );
 }
+

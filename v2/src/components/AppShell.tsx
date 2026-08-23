@@ -135,7 +135,6 @@ function LanguageControl() {
 
 function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
   const { t } = useI18n();
-  const { leagueSlug } = useLeague();
   return (
     <div className="driver-navigation" aria-label={t('nav.driver')}>
       {DRIVER_NAV_ITEMS.map((item) => (
@@ -150,12 +149,19 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
           <span>{t(item.key)}</span>
         </NavLink>
       ))}
-      <a className="nav-item nav-item--public" href={`/race-hub?league=${encodeURIComponent(leagueSlug)}`} onClick={onNavigate}>
-        <NavIcon name="league" />
-        <span>{t('nav.league')}</span>
-      </a>
     </div>
   );
+}
+
+function LegacyRouteRedirect({ to }: { to: string }) {
+  const location = useLocation();
+  const [pathname, targetQuery = ''] = to.split('?');
+  const query = new URLSearchParams(targetQuery);
+  new URLSearchParams(location.search).forEach((value, key) => {
+    if (!query.has(key)) query.set(key, value);
+  });
+  const search = query.size ? `?${query.toString()}` : '';
+  return <Navigate replace to={`${pathname}${search}${location.hash}`} />;
 }
 
 function roleLabel(role: ReturnType<typeof useRole>['role'], t: ReturnType<typeof useI18n>['t']) {
@@ -267,7 +273,9 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/" element={<Navigate replace to="/home" />} />
           <Route path="/home" element={<DriverHomePage />} />
           <Route path="/racing" element={<RacingPage />} />
+          <Route path="/racing/*" element={<RacingPage />} />
           <Route path="/career" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
+          <Route path="/career/*" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />
           <Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
@@ -292,6 +300,22 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/owner/leagues/new" element={<Navigate replace to="/leagues/new" />} />
           <Route path="/owner/demo" element={accessLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/notifications" element={authLoading ? <main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main> : canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/race-hub" element={<LegacyRouteRedirect to="/racing" />} />
+          <Route path="/kalender" element={<LegacyRouteRedirect to="/racing/calendar" />} />
+          <Route path="/ergebnisse" element={<LegacyRouteRedirect to="/racing/results" />} />
+          <Route path="/fahrer-wm" element={<LegacyRouteRedirect to="/racing/standings?view=drivers" />} />
+          <Route path="/team-wm" element={<LegacyRouteRedirect to="/racing/standings?view=teams" />} />
+          <Route path="/grid" element={<LegacyRouteRedirect to="/racing/grid" />} />
+          <Route path="/regeln-faq" element={<LegacyRouteRedirect to="/racing/rules" />} />
+          <Route path="/strecken" element={<LegacyRouteRedirect to="/racing/tracks" />} />
+          <Route path="/strecken-profil" element={<LegacyRouteRedirect to="/racing/tracks/profile" />} />
+          <Route path="/rennen-detail" element={<LegacyRouteRedirect to="/racing/races/detail" />} />
+          <Route path="/fahrer-profil" element={<LegacyRouteRedirect to="/racing/drivers/profile" />} />
+          <Route path="/team-profil" element={<LegacyRouteRedirect to="/racing/teams/profile" />} />
+          <Route path="/head-to-head" element={<LegacyRouteRedirect to="/career/compare" />} />
+          <Route path="/rekorde" element={<LegacyRouteRedirect to="/racing/history?view=records" />} />
+          <Route path="/hall-of-fame" element={<LegacyRouteRedirect to="/racing/history?view=hall-of-fame" />} />
+          <Route path="/saison-archiv" element={<LegacyRouteRedirect to="/racing/history?view=seasons" />} />
           <Route path="*" element={<Navigate replace to="/home" />} />
         </Routes>
 

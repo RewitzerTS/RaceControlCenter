@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { LegacyLeagueView } from '../components/LegacyLeagueView';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import type { Database } from '../types/database';
@@ -24,7 +26,78 @@ function classificationLabel(status: string): string {
   return status.replaceAll('_', ' ').toUpperCase();
 }
 
-export function RacingPage() {
+const RACING_SECTIONS = [
+  { key: 'racing.overview', to: '/racing' },
+  { key: 'racing.calendar', to: '/racing/calendar' },
+  { key: 'racing.results', to: '/racing/results' },
+  { key: 'racing.championship', to: '/racing/standings' },
+  { key: 'racing.gridTitle', to: '/racing/grid' },
+  { key: 'racing.tracks', to: '/racing/tracks' },
+  { key: 'racing.rules', to: '/racing/rules' },
+  { key: 'racing.history', to: '/racing/history' },
+] as const;
+
+function RacingNavigation() {
+  const { t } = useI18n();
+  return (
+    <nav aria-label={t('racing.navigation')} className="section-navigation">
+      {RACING_SECTIONS.map((item) => (
+        <NavLink end={item.to === '/racing'} key={item.to} to={item.to}>{t(item.key)}</NavLink>
+      ))}
+    </nav>
+  );
+}
+
+function RacingSectionView() {
+  const location = useLocation();
+  const { t } = useI18n();
+  const params = new URLSearchParams(location.search);
+  const path = location.pathname;
+  let page = 'race-hub';
+  let title = t('racing.overview');
+  let switches: Array<{ label: string; to: string }> = [];
+
+  if (path.includes('/calendar')) { page = 'kalender'; title = t('racing.calendar'); }
+  else if (path.includes('/results')) { page = 'ergebnisse'; title = t('racing.results'); }
+  else if (path.includes('/standings')) {
+    const teams = params.get('view') === 'teams';
+    page = teams ? 'team-wm' : 'fahrer-wm';
+    title = t('racing.championship');
+    switches = [
+      { label: t('racing.driverStandings'), to: '/racing/standings?view=drivers' },
+      { label: t('racing.teamStandings'), to: '/racing/standings?view=teams' },
+    ];
+  } else if (path.includes('/grid')) { page = 'grid'; title = t('racing.gridTitle'); }
+  else if (path.includes('/tracks/profile')) { page = 'strecken-profil'; title = t('racing.trackProfile'); }
+  else if (path.includes('/tracks')) { page = 'strecken'; title = t('racing.tracks'); }
+  else if (path.includes('/rules')) { page = 'regeln-faq'; title = t('racing.rules'); }
+  else if (path.includes('/races/')) { page = 'rennen-detail'; title = t('racing.raceDetail'); }
+  else if (path.includes('/drivers/')) { page = 'fahrer-profil'; title = t('racing.driverProfile'); }
+  else if (path.includes('/teams/')) { page = 'team-profil'; title = t('racing.teamProfile'); }
+  else if (path.includes('/history')) {
+    const view = params.get('view') ?? 'records';
+    page = view === 'hall-of-fame' ? 'hall-of-fame' : view === 'seasons' ? 'saison-archiv' : 'rekorde';
+    title = t('racing.history');
+    switches = [
+      { label: t('racing.records'), to: '/racing/history?view=records' },
+      { label: t('racing.hallOfFame'), to: '/racing/history?view=hall-of-fame' },
+      { label: t('racing.seasonArchive'), to: '/racing/history?view=seasons' },
+    ];
+  }
+
+  return (
+    <main className="racing-page dashboard-shell integrated-section-page" id="main-content">
+      <RacingNavigation />
+      <header className="integrated-section-heading">
+        <div><h1>{title}</h1><p>{t('racing.sectionCopy')}</p></div>
+        {switches.length > 0 && <nav aria-label={title} className="section-view-switcher">{switches.map((item) => <NavLink className={`${location.pathname}${location.search}` === item.to ? 'active' : ''} key={item.to} to={item.to}>{item.label}</NavLink>)}</nav>}
+      </header>
+      <LegacyLeagueView page={page} search={location.search} title={title} />
+    </main>
+  );
+}
+
+function RacingOverview() {
   const { client, leagueSlug } = useLeague();
   const { formatDate, formatNumber, formatTime, t } = useI18n();
   const [races, setRaces] = useState<RaceRow[]>([]);
@@ -98,6 +171,7 @@ export function RacingPage() {
   if (loading) {
     return (
       <main className="racing-page dashboard-shell" id="main-content">
+        <RacingNavigation />
         <section className="storyline-strip" aria-live="polite">
           <strong>{t('route.racingTitle')}</strong>
           <span>{t('racing.loadingCopy')}</span>
@@ -116,6 +190,7 @@ export function RacingPage() {
 
   return (
     <main className="racing-page dashboard-shell" id="main-content">
+      <RacingNavigation />
       <section className="storyline-strip">
         <strong>{t('route.racingTitle')}</strong>
         <span>{t('racing.leagueContext', { league: leagueSlug })}</span>
@@ -195,3 +270,9 @@ export function RacingPage() {
     </main>
   );
 }
+
+export function RacingPage() {
+  const location = useLocation();
+  return location.pathname === '/racing' ? <RacingOverview /> : <RacingSectionView />;
+}
+

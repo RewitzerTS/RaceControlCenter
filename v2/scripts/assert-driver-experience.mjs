@@ -17,9 +17,14 @@ for (const nav of [
   "{ icon: 'racing', key: 'nav.racing', path: '/racing' }",
   "{ icon: 'career', key: 'nav.career', path: '/career' }",
   "{ icon: 'vora', key: 'nav.vora', path: '/vora' }",
-  "{ icon: 'profile', key: 'nav.profile', path: '/profile' }",
 ]) {
   if (!shell.includes(nav)) violations.push(`missing Driver navigation contract: ${nav}`);
+}
+if (!shell.includes("to=\"/profile\"") || !shell.includes('topbar-profile-link')) {
+  violations.push('Profile is not positioned with the account and language controls');
+}
+if (shell.includes('nav-item--public') || shell.includes("t('nav.league')")) {
+  violations.push('retired standalone public league navigation is still visible');
 }
 if (!shell.includes('<Route path="/home" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
@@ -91,4 +96,5 @@ if (violations.length) {
   process.exit(1);
 }
 console.log('V2 Driver Experience check passed. Career-first navigation, responsive V1 shell, RLS-bound reads, deterministic hero priority, and safe UI states are present.');
+
 

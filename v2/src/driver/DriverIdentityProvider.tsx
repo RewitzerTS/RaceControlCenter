@@ -3,6 +3,7 @@ import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, 
 import type { LeagueSupabaseClient } from '../lib/supabase';
 
 interface DriverIdentitySummary {
+  driverId: string | null;
   id: string;
   status: string;
   linkedDriverCount: number;
@@ -31,15 +32,17 @@ async function resolveDriverIdentity(
 
   const linksResponse = await client
     .from('driver_identity_links')
-    .select('id', { count: 'exact', head: true })
+    .select('driver_id')
     .eq('driver_identity_id', identityResponse.data.id);
 
   if (linksResponse.error) throw linksResponse.error;
 
+  const links = linksResponse.data ?? [];
   return {
+    driverId: links[0]?.driver_id ?? null,
     id: identityResponse.data.id,
     status: identityResponse.data.status,
-    linkedDriverCount: linksResponse.count ?? 0,
+    linkedDriverCount: links.length,
   };
 }
 
@@ -89,3 +92,4 @@ export function useDriverIdentity(): DriverIdentityContextValue {
   if (!context) throw new Error('useDriverIdentity must be used inside DriverIdentityProvider.');
   return context;
 }
+

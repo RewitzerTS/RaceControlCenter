@@ -8,6 +8,25 @@ const distRoot = resolve(v2Root, 'dist');
 const appEnvironment = String(process.env.VITE_APP_ENV || 'staging').trim().toLowerCase();
 const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
 
+const integratedRoutes = {
+  'race-hub': '/racing',
+  kalender: '/racing/calendar',
+  ergebnisse: '/racing/results',
+  'fahrer-wm': '/racing/standings?view=drivers',
+  'team-wm': '/racing/standings?view=teams',
+  grid: '/racing/grid',
+  'regeln-faq': '/racing/rules',
+  strecken: '/racing/tracks',
+  'strecken-profil': '/racing/tracks/profile',
+  'rennen-detail': '/racing/races/detail',
+  'fahrer-profil': '/racing/drivers/profile',
+  'team-profil': '/racing/teams/profile',
+  'head-to-head': '/career/compare',
+  rekorde: '/racing/history?view=records',
+  'hall-of-fame': '/racing/history?view=hall-of-fame',
+  'saison-archiv': '/racing/history?view=seasons',
+};
+
 const publicPages = [
   'race-hub',
   'kalender',
@@ -47,7 +66,7 @@ if (supabaseUrl.includes(legacyProjectRef)) {
   throw new Error('V1 source Supabase must never be bundled into V2 public routes.');
 }
 
-function transformHtml(source, includeBase = false) {
+function transformHtml(source, includeBase = false, page = '') {
   let output = source
     .replaceAll('assets/', '/v1-assets/')
     .replaceAll('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/v1-assets/vendor/supabase.js')
@@ -58,6 +77,11 @@ function transformHtml(source, includeBase = false) {
     .replace(/href="admin\.html([^"#]*)"/g, 'href="/admin$1"')
     .replace(/href="stewards\.html([^"#]*)"/g, 'href="/stewarding$1"');
   if (includeBase && !output.includes('<base ')) output = output.replace(/<head([^>]*)>/i, '<head$1>\n  <base href="/">');
+  if (page && integratedRoutes[page]) {
+    output = output
+      .replace(/<body([^>]*)>/i, `<body$1 data-racevora-integrated-route="${page}">`)
+      .replace('</body>', '  <script defer src="/v1-assets/js/integrated-route-redirect.js"></script>\n</body>');
+  }
   return output;
 }
 
@@ -173,8 +197,12 @@ async function transformJavaScriptTree(directory) {
         "const markup=await response.text();const parsed=new DOMParser().parseFromString(markup,'text/html');parsed.querySelectorAll('script').forEach((script)=>script.remove());target.innerHTML=parsed.body.innerHTML;",
       );
       source = source.replace(
+        "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;const platformRoute=/^\\/(?:home|racing|career|vora|profile)\\/?$/i.test(url.pathname);if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/')&&!platformRoute)return href;url.searchParams.set('league',slug);if(platformRoute)return `${url.pathname}${url.search}${url.hash}`;const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
+        "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;const reactRoute=/^\\/(?:race-hub|racing|career|vora|profile|admin|stewarding|owner|notifications|home)(?:\\/.*)?$/.test(url.pathname);if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/')&&!reactRoute)return href;url.searchParams.set('league',slug);if(reactRoute)return `${url.pathname}${url.search}${url.hash}`;const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
+      );
+      source = source.replace(
         "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/'))return href;url.searchParams.set('league',slug);const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
-        "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;const reactRoute=/^\\/(?:race-hub|racing|career|vora|profile|admin(?:\\/.*)?|stewarding(?:\\/.*)?|owner(?:\\/.*)?|notifications)?$/.test(url.pathname);if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/')&&!reactRoute)return href;url.searchParams.set('league',slug);if(reactRoute)return `${url.pathname}${url.search}${url.hash}`;const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
+        "function withLeagueContextHref(href){const slug=getActiveLeagueSlug();if(!slug||!href)return href;try{const url=new URL(href,window.location.href);if(url.origin!==window.location.origin)return href;const reactRoute=/^\\/(?:race-hub|racing|career|vora|profile|admin|stewarding|owner|notifications|home)(?:\\/.*)?$/.test(url.pathname);if(!/\\.html$/i.test(url.pathname)&&!url.pathname.endsWith('/')&&!reactRoute)return href;url.searchParams.set('league',slug);if(reactRoute)return `${url.pathname}${url.search}${url.hash}`;const file=url.pathname.split('/').pop()||'index.html';return `${file}${url.search}${url.hash}`;}catch{return href;}}",
       );
     }
     await writeFile(path, source, 'utf8');
@@ -187,6 +215,11 @@ await transformJavaScriptTree(resolve(v1AssetsDestination, 'js'));
 await writeFile(
   resolve(v1AssetsDestination, 'js', 'results-preview.js'),
   "if (location.hash === '#wm-dynamics') document.documentElement.classList.add('wm-dynamics-preview');\n",
+  'utf8',
+);
+await writeFile(
+  resolve(v1AssetsDestination, 'js', 'integrated-route-redirect.js'),
+  `(function(){var page=document.body&&document.body.dataset.racevoraIntegratedRoute;var routes=${JSON.stringify(integratedRoutes)};if(!page||!routes[page])return;var p=new URLSearchParams(location.search);if(p.get('embed')==='1')return;p.delete('embed');var target=new URL(routes[page],location.origin);p.forEach(function(value,key){if(!target.searchParams.has(key))target.searchParams.set(key,value)});location.replace(target.pathname+target.search+location.hash)})();\n`,
   'utf8',
 );
 
@@ -217,10 +250,11 @@ await writeFile(resolve(distRoot, 'manifest.json'), `${JSON.stringify(manifest, 
 
 for (const page of publicPages) {
   const source = await readFile(resolve(repositoryRoot, `${page}.html`), 'utf8');
-  await writeFile(resolve(distRoot, `${page}.html`), transformHtml(source), 'utf8');
+  await writeFile(resolve(distRoot, `${page}.html`), transformHtml(source, false, page), 'utf8');
   const cleanRoute = resolve(distRoot, page, 'index.html');
   await mkdir(dirname(cleanRoute), { recursive: true });
-  await writeFile(cleanRoute, transformHtml(source, true), 'utf8');
+  await writeFile(cleanRoute, transformHtml(source, true, page), 'utf8');
 }
 
 console.log(`Restored ${publicPages.length} complete V1 public views inside V2, including track maps and track information.`);
+
