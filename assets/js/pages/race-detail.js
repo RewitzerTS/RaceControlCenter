@@ -73,15 +73,18 @@ async function loadRaceDetailPage() {
     });
     if (!race) throw new Error('Race not found');
 
-    const [drivers, seasonRaces, assignments, resultsResponse, stewardResult] = await Promise.all([
+    const [driversResult, racesResult, assignmentsResult, resultsResult, stewardResult] = await Promise.allSettled([
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces({ seasonId: race.season_id }),
       window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: race.season_id }),
       window.RCCData.fetchRaceResults({ raceId: race.id }),
       window.RCCData.fetchStewardCasesByRaceId(race.id)
-        .then((entries) => ({ entries, error: null }))
-        .catch((error) => ({ entries: [], error }))
     ]);
+
+    const drivers = driversResult.status === 'fulfilled' ? driversResult.value : [];
+    const seasonRaces = racesResult.status === 'fulfilled' ? racesResult.value : [race];
+    const assignments = assignmentsResult.status === 'fulfilled' ? assignmentsResult.value : [];
+    const resultsResponse = resultsResult.status === 'fulfilled' ? resultsResult.value : [];
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({
       drivers,
@@ -112,14 +115,18 @@ async function loadRaceDetailPage() {
     `;
 
     const driversById = new Map((drivers || []).map((driver) => [driver.id, driver]));
-    const stewardEntries = (stewardResult.entries || []).map((entry) => ({
+    const stewardEntries = (stewardResult.status === 'fulfilled' ? stewardResult.value : []).map((entry) => ({
       ...entry,
       driver1: driversById.get(entry.reported_driver_id) || null,
       driver2: driversById.get(entry.accused_driver_id) || null,
       decision_text: entry.status === 'closed' ? 'Abgeschlossen' : entry.status,
       consequence: entry.rule_code ? `${entry.rule_code}${entry.rule_version ? ` · ${entry.rule_version}` : ''}` : '—'
     }));
-    renderStewardSection(stewardsEl, stewardEntries, stewardResult.error);
+    renderStewardSection(
+      stewardsEl,
+      stewardEntries,
+      stewardResult.status === 'rejected' ? stewardResult.reason : null
+    );
 
     resultsBody.innerHTML = results.length
       ? results.map((row) => {
@@ -146,7 +153,9 @@ async function loadRaceDetailPage() {
             </tr>
           `;
         }).join('')
-      : '<tr><td colspan="9">Noch keine Ergebnisse importiert.</td></tr>';
+      : resultsResult.status === 'rejected'
+        ? '<tr><td colspan="9">Ergebnisse konnten nicht geladen werden.</td></tr>'
+        : '<tr><td colspan="9">Noch keine Ergebnisse importiert.</td></tr>';
   } catch (error) {
     console.error(error);
     titleEl.textContent = 'Rennen nicht gefunden';
