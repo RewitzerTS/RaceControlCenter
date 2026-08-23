@@ -1,5 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from './leagueBranding';
+import { fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './leagueBranding';
+
+describe('personal theme resolution', () => {
+  it('accepts the numeric theme_id stored in Supabase user metadata', () => {
+    expect(resolveTheme({ theme_id: 2 })).toMatchObject({
+      id: 2,
+      name: 'Papaya Grid',
+      primary: '#FF8000',
+    });
+  });
+
+  it('continues to accept string-based league settings and falls back safely', () => {
+    expect(resolveTheme({ theme_id: '6' }).id).toBe(6);
+    expect(resolveTheme({ theme_preset: 4 }).id).toBe(4);
+    expect(resolveTheme({ theme_id: 'unknown' }).id).toBe(0);
+  });
+});
 
 describe('RaceVora public branding guard', () => {
   it('uses the RaceVora palette as the fallback', () => {
