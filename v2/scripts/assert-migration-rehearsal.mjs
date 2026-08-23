@@ -33,7 +33,7 @@ function requireGate(condition, label) {
   if (!condition) failures.push(label);
 }
 
-requireGate(migrations.length === 43, 'exactly 43 reviewed V2 migrations are present');
+requireGate(migrations.length === 44, 'exactly 44 reviewed V2 migrations are present');
 requireGate(new Set(migrations.map((name) => name.slice(0, 14))).size === migrations.length, 'migration versions are unique');
 requireGate(new Set(migrationNames).size === migrations.length, 'migration names are unique');
 requireGate(requiredTail.every((name, index) => index === 0 || migrationNames.indexOf(name) > migrationNames.indexOf(requiredTail[index - 1])), 'Demo, Security, tenant-boundary, V1 completion and AI quota migrations remain ordered');

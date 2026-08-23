@@ -211,7 +211,6 @@ export async function startLeagueSeason(client: LeagueSupabaseClient, input: {
   slug: string;
   gameKey: string;
   startDate: string;
-  endDate: string;
   assignments: SeasonPlayerAssignment[];
 }): Promise<StartedSeason> {
   const response = await client.rpc('start_league_season', {
@@ -219,11 +218,16 @@ export async function startLeagueSeason(client: LeagueSupabaseClient, input: {
     p_slug: input.slug,
     p_game_key: input.gameKey,
     p_start_date: input.startDate || undefined,
-    p_end_date: input.endDate || undefined,
     p_assignments: input.assignments as unknown as Json,
   });
   if (response.error) throw response.error;
   return object(response.data) as unknown as StartedSeason;
+}
+
+export async function completeLeagueSeason(client: LeagueSupabaseClient, seasonId: string) {
+  const response = await client.rpc('complete_league_season', { p_season_id: seasonId });
+  if (response.error) throw response.error;
+  return object(response.data);
 }
 
 export async function loadConfigurationWorkspace(client: LeagueSupabaseClient): Promise<ConfigurationWorkspace> {

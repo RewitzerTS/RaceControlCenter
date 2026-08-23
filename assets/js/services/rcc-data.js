@@ -258,17 +258,19 @@ async function fetchSeasons(options = {}) {
   if (!client) return [];
   const leagueId = await getActiveLeagueId();
   return fetchWithLocalCache({
-    scope: 'seasons',
+    scope: options.archivedOnly === true ? 'archivedSeasons' : 'seasons',
     ttlMs: QUERY_CACHE_TTL.seasons,
     forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh === true,
     fetcher: async () => {
-      const { data, error } = await client
+      let query = client
         .from('seasons')
         .select(DATA_SELECT.seasons)
         .eq('league_id', leagueId)
         .order('created_at', { ascending: false })
         .limit(DATA_LIMITS.seasons);
+      if (options.archivedOnly === true) query = query.eq('is_active', false);
+      const { data, error } = await query;
       if (error) throw error;
       return data || [];
     }
@@ -629,3 +631,4 @@ window.RCCData = {
   QUERY_CACHE_TTL,
   DATA_LIMITS
 };
+

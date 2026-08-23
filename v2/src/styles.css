@@ -1,5 +1,5 @@
-Warning: truncated output (original token count: 32825)
-Total output lines: 3124
+Warning: truncated output (original token count: 33114)
+Total output lines: 3143
 
 :root {
   color-scheme: dark;
@@ -1198,58 +1198,7 @@ h2 {
   .demo-revision dl div { border-right: 0; border-bottom: 1px solid var(--line); }
   .demo-revision dl div:last-child { border-bottom: 0; }
   .graphics-preview-panel { padding-inline: 0.85rem; }
-  .graphics-history { grid-template-columns: 1…2825 tokens truncated…ow);
-}
-
-.driver-hero { border-left: 0; }
-.progression-panel,
-.challenge-panel,
-.achievement-summary { padding: clamp(1.3rem, 3vw, 2rem); border-top-width: 1px; }
-.case-layout,
-.operations-layout,
-.graphics-workbench,
-.demo-layout { background-color: var(--surface); }
-
-.primary-action,
-.action-button,
-.beta-submit {
-  min-height: 46px;
-  border-radius: 999px;
-  background: linear-gradient(110deg, #2c8fa6, #5a32a3);
-  box-shadow: 0 12px 28px rgba(44, 143, 166, 0.22);
-}
-.primary-action:hover,
-.action-button:hover,
-.beta-submit:hover { box-shadow: 0 15px 34px rgba(90, 50, 163, 0.28); transform: translateY(-2px); }
-
-.text-link,
-.text-action,
-.beta-mode {
-  min-height: 42px;
-  padding-inline: 1rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.025);
-}
-
-.beta-access-form input,
-.steward-form input,
-.steward-form select,
-.steward-form textarea,
-.graphics-controls input,
-.graphics-controls select {
-  border-radius: 12px;
-  background: rgba(1, 17, 31, 0.84);
-}
-
-.phase-badge,
-.case-status,
-.render-status,
-.vora-source,
-.demo-isolation,
-.workspace-message,
-.beta-feedback,
-.inline-error { border-radius: 999px; }
+  .graphics-history { grid-template-columns: 1…3114 tokens truncated…dius: 999px; }
 .workspace-message,
 .beta-feedback,
 .inline-error { padding-inline: 1rem; }
@@ -1727,6 +1676,21 @@ body {
 .season-preset-summary strong { width: 100%; color: var(--brand-text); }
 .season-preset-summary span { padding: 0.35rem 0.65rem; border: 1px solid var(--line); border-radius: 999px; color: var(--brand-primary); font-size: 0.78rem; font-weight: 850; }
 .season-preset-summary p { width: 100%; margin: 0.15rem 0 0; color: var(--muted); font-size: 0.84rem; }
+.season-completion-panel, .season-completion-success {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.season-completion-panel h2 { margin: 0.15rem 0 0.35rem; font-size: clamp(1.1rem, 2.2vw, 1.45rem); }
+.season-completion-panel p, .season-completion-success p { max-width: 68ch; margin: 0; color: var(--muted); }
+.season-completion-confirm { display: grid; justify-items: end; gap: 0.65rem; text-align: right; }
+.season-completion-confirm > div { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.55rem; }
+.season-completion-success { border-color: color-mix(in srgb, var(--brand-primary) 45%, var(--line)); }
 .season-active-note, .season-start-note {
   padding: 1rem;
   border: 1px solid color-mix(in srgb, var(--brand-accent) 30%, var(--line));
@@ -2528,6 +2492,10 @@ img, svg, video, canvas { max-width: 100%; }
   .season-setup-steps li { align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.66rem; }
   .season-roster-list > li { padding: 12px; gap: 0.75rem; border-radius: 14px; }
   .season-player-fields, .season-review-facts { grid-template-columns: 1fr; }
+  .season-completion-panel, .season-completion-success { align-items: stretch; flex-direction: column; }
+  .season-completion-panel > button, .season-completion-success .text-link { justify-content: center; width: 100%; }
+  .season-completion-confirm { justify-items: stretch; text-align: left; }
+  .season-completion-confirm > div > * { flex: 1 1 140px; justify-content: center; }
   .profile-facts div { padding-block: 0.75rem; }
   .admin-driver-metrics, .admin-race-metrics, .operations-metrics,
   .vora-racing-line { grid-template-columns: 1fr; }

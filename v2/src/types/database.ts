@@ -1843,6 +1843,7 @@ export type Database = {
       }
       seasons: {
         Row: {
+          archived_at: string | null
           championship_code: string | null
           created_at: string
           description: string | null
@@ -1858,6 +1859,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           championship_code?: string | null
           created_at?: string
           description?: string | null
@@ -1873,6 +1875,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           championship_code?: string | null
           created_at?: string
           description?: string | null
@@ -2686,6 +2689,10 @@ export type Database = {
       publish_league_result_draft: { Args: { p_result_version_id: string }; Returns: Json }
       set_platform_feature_flag: {
         Args: { p_enabled: boolean; p_flag_key: string }
+        Returns: Json
+      }
+      complete_league_season: {
+        Args: { p_season_id: string }
         Returns: Json
       }
       start_league_season: {

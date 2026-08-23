@@ -24,7 +24,6 @@ export function SeasonSetupPage() {
   const [slugTouched, setSlugTouched] = useState(false);
   const [gameKey, setGameKey] = useState('f1_25');
   const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [assignments, setAssignments] = useState<Record<string, AssignmentDraft>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -65,8 +64,8 @@ export function SeasonSetupPage() {
   function continueFromSeason(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
-    if (name.trim().length < 3 || slug.trim().length < 3 || (startDate && endDate && endDate < startDate)) {
-      setError('Prüfe Saisonname, Kürzel und Zeitraum.');
+    if (name.trim().length < 3 || slug.trim().length < 3) {
+      setError('Prüfe Saisonname und Kürzel.');
       return;
     }
     setStep(2);
@@ -89,7 +88,7 @@ export function SeasonSetupPage() {
     try {
       await startLeagueSeason(client, {
         name: name.trim(), slug: slug.trim(), gameKey: game.key,
-        startDate, endDate, assignments: playerAssignments,
+        startDate, assignments: playerAssignments,
       });
       navigate('/admin?seasonStarted=1', { replace: true });
     } catch (reason) {
@@ -121,7 +120,6 @@ export function SeasonSetupPage() {
           <label><span>Saison-Kürzel</span><input required minLength={3} maxLength={50} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={slug} onChange={(event) => { setSlugTouched(true); setSlug(slugify(event.target.value)); }} /></label>
           <label><span>Spiel</span><select value={gameKey} onChange={(event) => { setGameKey(event.target.value); setAssignments({}); }}>{workspace.games.map((preset) => <option key={preset.key} value={preset.key}>{preset.label}</option>)}</select></label>
           <label><span>Startdatum</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label>
-          <label><span>Enddatum</span><input type="date" min={startDate || undefined} value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
         </div>
         <aside className="season-preset-summary" aria-live="polite">
           <strong>{game.label}</strong>
@@ -161,7 +159,7 @@ export function SeasonSetupPage() {
           <div><dt>Spiel</dt><dd>{game.label}</dd></div>
           <div><dt>Starterfeld</dt><dd>{playerAssignments.length} Spieler · {game.roster.length - playerAssignments.length} KI-Fahrer</dd></div>
           <div><dt>Rennkalender</dt><dd>{game.tracks.length} Strecken · Termine anschließend bearbeiten</dd></div>
-          {(startDate || endDate) && <div><dt>Zeitraum</dt><dd>{startDate || 'offen'} bis {endDate || 'offen'}</dd></div>}
+          {startDate && <div><dt>Saisonstart</dt><dd>{startDate}</dd></div>}
         </dl>
         <aside className="season-start-note"><strong>Start ist verbindlich</strong><p>Eine bereits aktive Saison wird beendet. Fahrer, Fahrzeuge, Sitzzuordnungen und der voreingestellte Rennkalender werden als Saisonstand gespeichert.</p></aside>
         {error && <p className="form-error" role="alert">{error}</p>}
