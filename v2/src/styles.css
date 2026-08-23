@@ -2291,6 +2291,30 @@ p { color: var(--muted); }
 }
 .storyline-strip span { color: var(--text); }
 .storyline-strip i { color: var(--muted); }
+.storyline-strip--ticker { gap: 1rem; }
+.storyline-label { position: relative; z-index: 1; flex: 0 0 auto; }
+.storyline-viewport {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 18px, #000 calc(100% - 18px), transparent);
+}
+.storyline-track {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  animation: storyline-marquee 22s linear infinite;
+  will-change: transform;
+}
+.storyline-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-right: 3rem;
+}
+@keyframes storyline-marquee {
+  to { transform: translateX(-50%); }
+}
 
 .dashboard-hero,
 .beta-dashboard-grid {
@@ -2599,10 +2623,20 @@ p { color: var(--muted); }
 @media (max-width: 700px) {
   h1,
   .hero-main h1 { font-size: 2.65rem; line-height: 0.98; }
-  .v2-status-strip { grid-template-columns: 1fr; }
+  .v2-status-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .v2-status-strip .status-pill-card {
+    min-height: 62px;
+    gap: 7px;
+    padding: 9px 10px;
+    border-radius: 14px;
+  }
+  .v2-status-strip .status-dot { width: 8px; height: 8px; }
+  .v2-status-strip .status-copy { min-width: 0; }
+  .v2-status-strip .status-copy strong { font-size: 0.58rem; letter-spacing: 0.09em; }
+  .v2-status-strip .status-copy span { overflow-wrap: anywhere; font-size: 0.78rem; line-height: 1.15; }
   .v2-status-strip .status-pill-card:nth-child(3),
   .v2-status-strip .status-pill-card:nth-child(4) { display: none; }
-  .storyline-strip { min-height: 64px; margin-bottom: 14px; padding: 14px; }
+  .storyline-strip { min-height: 58px; margin-bottom: 12px; padding: 11px 12px; border-radius: 14px; }
   .career-number-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-main,
   .hero-side,
@@ -2616,6 +2650,17 @@ p { color: var(--muted); }
   .header-inner,
   .brand { min-height: 82px; }
   .brand-logo { width: 74px; height: 74px; }
+  .brand { min-width: 0; flex: 1 1 auto; gap: 8px; }
+  .brand-text { min-width: 0; display: block; }
+  .brand-title {
+    max-width: 22ch;
+    overflow: hidden;
+    font-size: 0.84rem;
+    letter-spacing: 0.035em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .brand-subtitle { display: none; }
   .brand-subtitle { letter-spacing: 0.12em; }
   .v2-status-strip,
   .dashboard-hero,
@@ -2763,7 +2808,7 @@ img, svg, video, canvas { max-width: 100%; }
 
 @media (max-width: 480px) {
   h1, .hero-main h1 { font-size: clamp(2.05rem, 11vw, 2.65rem); }
-  .brand-text { display: none; }
+  .brand-logo { width: 62px; height: 62px; }
   .profile-layout, .racing-layout, .career-layout,
   .v2-status-strip, .dashboard-hero, .beta-dashboard-grid,
   .v2-dashboard-grid, .storyline-strip, .driver-state, .route-placeholder {
@@ -2778,8 +2823,30 @@ img, svg, video, canvas { max-width: 100%; }
   .onboarding-steps li { min-height: 60px; gap: 0.45rem; font-size: 0.72rem; }
   .onboarding-actions .primary-action, .onboarding-actions .text-action { min-height: 48px; }
   .profile-facts div { padding-block: 0.75rem; }
-  .career-number-grid, .admin-driver-metrics, .admin-race-metrics, .operations-metrics,
+  .admin-driver-metrics, .admin-race-metrics, .operations-metrics,
   .vora-racing-line { grid-template-columns: 1fr; }
+  .driver-home .career-number-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .driver-home .career-number-grid .career-number {
+    min-height: 54px;
+    padding: 6px 8px;
+    border-radius: 12px;
+  }
+  .driver-home .career-number-grid .career-number span {
+    font-size: 0.6rem;
+    letter-spacing: 0.065em;
+    line-height: 1.15;
+  }
+  .driver-home .career-number-grid .career-number strong {
+    margin-top: 3px;
+    font-size: 1.2rem;
+  }
+  .storyline-strip--ticker { gap: 0.75rem; }
+  .storyline-label { font-size: 0.62rem !important; letter-spacing: 0.1em !important; }
+  .storyline-message { gap: 1rem; padding-right: 2rem; }
   .vora-racing-line > div { border-right: 0 !important; border-bottom: 1px solid var(--line); }
   .vora-racing-line > div:last-child { border-bottom: 0; }
   .responsive-table { margin-inline: -8px; padding-inline: 8px; }
@@ -2787,7 +2854,8 @@ img, svg, video, canvas { max-width: 100%; }
 
 @media (prefers-reduced-motion: reduce) {
   .career-page .level-meter > span,
-  .career-page .challenge-progress i b { animation: none; }
+  .career-page .challenge-progress i b,
+  .storyline-track { animation: none; }
 }
 
 /* The loading lights are a race signal, not part of the selected color theme. */

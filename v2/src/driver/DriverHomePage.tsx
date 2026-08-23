@@ -111,11 +111,22 @@ export function DriverHomePage() {
 
   return (
     <main className="driver-home dashboard-shell" id="main-content">
-      <section className="storyline-strip" aria-label={t('home.racingNow')}>
-        <strong>{t('home.racingNow')}</strong>
-        <span>{t('home.context', { league: leagueSlug })}</span>
-        <i aria-hidden="true">•</i>
-        <span>{hero.copy}</span>
+      <section className="storyline-strip storyline-strip--ticker" aria-label={t('home.racingNow')}>
+        <strong className="storyline-label">{t('home.racingNow')}</strong>
+        <span className="storyline-viewport">
+          <span className="storyline-track">
+            <span className="storyline-message">
+              <span>{t('home.context', { league: leagueSlug })}</span>
+              <i aria-hidden="true">•</i>
+              <span>{hero.copy}</span>
+            </span>
+            <span aria-hidden="true" className="storyline-message">
+              <span>{t('home.context', { league: leagueSlug })}</span>
+              <i aria-hidden="true">•</i>
+              <span>{hero.copy}</span>
+            </span>
+          </span>
+        </span>
       </section>
 
       <section className="dashboard-hero v2-driver-dashboard" aria-labelledby="driver-hero-title">
@@ -237,4 +248,3 @@ export function DriverHomePage() {
     </main>
   );
 }
-
