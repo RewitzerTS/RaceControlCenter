@@ -48,7 +48,6 @@ export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   { icon: 'racing', key: 'nav.racing', path: '/racing' },
   { icon: 'career', key: 'nav.career', path: '/career' },
   { icon: 'vora', key: 'nav.vora', path: '/vora' },
-  { icon: 'profile', key: 'nav.profile', path: '/profile' },
 ];
 
 function NavIcon({ name }: { name: IconName }) {
@@ -226,6 +225,14 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <div className="header-tools">
             {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
+            <NavLink
+              className={({ isActive }) => isActive ? 'nav-item nav-item--active topbar-profile-link' : 'nav-item topbar-profile-link'}
+              onClick={closeNavigation}
+              to="/profile"
+            >
+              <NavIcon name="profile" />
+              <span>{t('nav.profile')}</span>
+            </NavLink>
             <LanguageControl />
             {!user && (
               <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/login?mode=signin">{t('beta.action')}</NavLink>

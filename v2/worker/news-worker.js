@@ -99,6 +99,9 @@ async function newsResponse(request, context) {
 export default {
   async fetch(request, environment, context) {
     const url = new URL(request.url);
+    if (url.hostname.toLowerCase() === 'www.racevora.com') {
+      return Response.redirect('https://racevora.com/', 308);
+    }
     if (url.pathname === '/') {
       // Cloudflare Assets canonicalizes *.html to extensionless URLs. Fetch the
       // canonical asset internally so the public root stays at racevora.com/.
@@ -113,3 +116,4 @@ export default {
     return environment.ASSETS.fetch(request);
   },
 };
+
