@@ -84,7 +84,7 @@ export function GraphicsStudioPage() {
   return <main className="graphics-studio" id="main-content">
     <header className="graphics-header">
       <div><p className="section-label">{t('graphics.eyebrow')}</p><h1>{t('graphics.title')}</h1><p>{t('graphics.copy')}</p></div>
-      <NavLink className="text-link" to="/admin">{t('graphics.back')}<span aria-hidden="true">→</span></NavLink>
+      <NavLink className="text-link" to="/admin">{t('graphics.back')}</NavLink>
     </header>
 
     <div className="graphics-workbench">

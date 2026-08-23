@@ -174,10 +174,7 @@
     role.textContent = roleLabels[league.role] || league.role || 'Zugang';
     copy.append(name, role);
 
-    const arrow = document.createElement('span');
-    arrow.setAttribute('aria-hidden', 'true');
-    arrow.textContent = '→';
-    link.append(copy, arrow);
+    link.append(copy);
     return link;
   }
 

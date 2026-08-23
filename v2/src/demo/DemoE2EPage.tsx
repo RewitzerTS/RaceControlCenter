@@ -44,7 +44,7 @@ export function DemoE2EPage() {
     <div className="demo-isolation" role="status"><strong>{t('demo.isolated')}</strong><span>{t('demo.isolatedCopy')}</span></div>
     <header className="demo-header">
       <div><p className="section-label">{t('demo.eyebrow')}</p><h1>{snapshot.league.name}</h1><p>{t('demo.copy')}</p></div>
-      <div className="demo-actions"><NavLink to="/admin">{t('demo.admin')}<span aria-hidden="true">→</span></NavLink><NavLink to="/stewarding">{t('demo.steward')}<span aria-hidden="true">→</span></NavLink><NavLink to="/admin/graphics">{t('demo.graphics')}<span aria-hidden="true">→</span></NavLink></div>
+      <div className="demo-actions"><NavLink to="/admin">{t('demo.admin')}</NavLink><NavLink to="/stewarding">{t('demo.steward')}</NavLink><NavLink to="/admin/graphics">{t('demo.graphics')}</NavLink></div>
     </header>
 
     <section className="demo-metrics" aria-label={t('overview')}>

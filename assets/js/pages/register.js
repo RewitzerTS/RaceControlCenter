@@ -98,7 +98,7 @@
     submitButton.disabled = value;
     submitButton.innerHTML = value
       ? `${label || 'Wird verarbeitet …'}`
-      : 'Liga-Leitung-Account erstellen <span aria-hidden="true">→</span>';
+      : 'Liga-Leitung-Account erstellen';
   }
 
   function normalizePending(value) {

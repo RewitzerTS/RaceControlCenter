@@ -49,7 +49,7 @@ export function DriverHomePage() {
       <DriverState
         title={t('home.signedOutTitle')}
         copy={t('home.signedOutCopy')}
-        action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}<span aria-hidden="true">→</span></NavLink>}
+        action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink>}
       />
     );
   }
@@ -147,7 +147,7 @@ export function DriverHomePage() {
             </small>
           </div>
           <div className="driver-hero-actions">
-            <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}<span aria-hidden="true">→</span></NavLink>
+            <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}</NavLink>
             <NavLink className="btn-secondary-ghost text-link" to="/racing">{t('home.openLeague')}</NavLink>
           </div>
         </article>
@@ -206,7 +206,7 @@ export function DriverHomePage() {
           <strong>{formatNumber(snapshot.achievementCount)}</strong>
           <p>{plural('home.achievementCount', snapshot.achievementCount)}</p>
           <p className="achievement-latest"><span>{t('home.latestAchievement')}</span><strong>{snapshot.latestAchievement ? formatAchievementCode(snapshot.latestAchievement) : t('home.noLatestAchievement')}</strong></p>
-          <NavLink className="btn-secondary-ghost text-link" to="/career">{t('home.openCareer')}<span aria-hidden="true">→</span></NavLink>
+          <NavLink className="btn-secondary-ghost text-link" to="/career">{t('home.openCareer')}</NavLink>
         </article>
 
         <article className="dashboard-card challenge-panel" aria-labelledby="challenges-title">

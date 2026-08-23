@@ -103,7 +103,7 @@ export function OnboardingPage() {
               <label><span>{t('onboarding.country')}</span><input aria-describedby="country-code-hint" autoCapitalize="characters" maxLength={2} onChange={(event) => setNationalityCode(event.target.value.replace(/[^a-z]/gi, '').slice(0, 2).toUpperCase())} pattern="[A-Za-z]{2}" placeholder="DE" value={nationalityCode} /><small id="country-code-hint">{t('onboarding.countryHint')}</small></label>
             </div>
             {error && <p className="form-error" role="alert">{error}</p>}
-            <div className="onboarding-actions"><button className="primary-action" type="submit">{t('onboarding.continue')}<span aria-hidden="true">→</span></button></div>
+            <div className="onboarding-actions"><button className="primary-action" type="submit">{t('onboarding.continue')}</button></div>
           </form>
         ) : (
           <form className="onboarding-form" onSubmit={(event) => void finish(event)}>

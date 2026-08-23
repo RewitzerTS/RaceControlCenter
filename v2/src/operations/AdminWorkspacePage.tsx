@@ -32,12 +32,11 @@ export function AdminWorkspacePage() {
 
   return <main className="operations-page" id="main-content">
     {role === 'platform_owner' && <div className="owner-mode" role="status">{t('owner.mode')}</div>}
-    <header className="operations-header"><div><p className="section-label">{t('admin.eyebrow')}</p><h1>{snapshot.league.name}</h1><p>{t('admin.copy')}</p></div><NavLink className="text-link" to="/home">{t('admin.exit')}<span aria-hidden="true">→</span></NavLink></header>
-    <section className="admin-quick-actions" aria-labelledby="admin-quick-actions-title"><h2 id="admin-quick-actions-title">{t('admin.quickActions')}</h2><div><NavLink className="primary-action" to="/admin/results/import">{t('admin.quickImport')}<span aria-hidden="true">→</span></NavLink><NavLink className="text-link" to="/stewarding">{t('admin.quickSteward')}<span aria-hidden="true">→</span></NavLink><NavLink className="text-link" to="/admin/races">{t('admin.quickReschedule')}<span aria-hidden="true">→</span></NavLink><NavLink className="text-link" to="/racing">{t('admin.preview')}<span aria-hidden="true">↗</span></NavLink></div></section>
+    <header className="operations-header"><div><p className="section-label">{t('admin.eyebrow')}</p><h1>{snapshot.league.name}</h1><p>{t('admin.copy')}</p></div><NavLink className="text-link" to="/home">{t('admin.exit')}</NavLink></header>
+    <section className="admin-quick-actions" aria-labelledby="admin-quick-actions-title"><h2 id="admin-quick-actions-title">{t('admin.quickActions')}</h2><div><NavLink className="primary-action" to="/admin/results/import">{t('admin.quickImport')}</NavLink><NavLink className="text-link" to="/stewarding">{t('admin.quickSteward')}</NavLink><NavLink className="text-link" to="/admin/races">{t('admin.quickReschedule')}</NavLink><NavLink className="text-link" to="/racing">{t('admin.preview')}</NavLink></div></section>
     <div className="operations-layout">
-      <nav className="operations-menu" aria-label={t('admin.navigation')}>{ADMIN_AREAS.map((area, index) => <details key={area.title} open={index === 0}><summary>{t(area.title)}<span aria-hidden="true">⌄</span></summary><div>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}<span aria-hidden="true">→</span></NavLink>)}</div></details>)}</nav>
+      <nav className="operations-menu" aria-label={t('admin.navigation')}>{ADMIN_AREAS.map((area, index) => <details key={area.title} open={index === 0}><summary>{t(area.title)}<span aria-hidden="true">⌄</span></summary><div>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}</NavLink>)}</div></details>)}</nav>
       <section className="operations-feed"><h2>{t('admin.recentAudit')}</h2>{snapshot.recent_audit.length ? <ol>{snapshot.recent_audit.map((item) => <li key={item.id}><div><strong>{item.action}</strong><span>{item.entity_type}</span></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)}</time></li>)}</ol> : <p className="empty-copy">{t('admin.noAudit')}</p>}</section>
     </div>
   </main>;
 }
-

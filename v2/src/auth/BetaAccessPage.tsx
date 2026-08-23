@@ -100,7 +100,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
           <strong>{t(production ? 'productionProtectedCopy' : 'protectedCopy')}</strong>
           <span>{production ? t('productionDetails') : t('isolationDetails', { projectRef: 'staging' })}</span>
         </div>
-        <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}<span aria-hidden="true">→</span></NavLink>
+        <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}</NavLink>
       </section>}
 
       <form className="beta-access-form hero-side" onSubmit={(event) => void submit(event)}>

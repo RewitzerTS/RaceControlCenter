@@ -27,7 +27,7 @@ export function ProfilePage() {
     return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('home.loadingTitle')}</h1><p>{t('home.loadingCopy')}</p></div></main>;
   }
   if (!user) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('profile.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}<span aria-hidden="true">→</span></NavLink></div></main>;
+    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('profile.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink></div></main>;
   }
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {
@@ -108,7 +108,7 @@ export function ProfilePage() {
         <aside className="profile-theme-preview" style={{ '--preview-primary': selectedTheme.primary, '--preview-secondary': selectedTheme.surface, '--preview-accent': selectedTheme.accent } as CSSProperties}>
           <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
         </aside>
-        <article className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{t('profile.createLeague')}</h2><p>{t('profile.createLeagueCopy')}</p></div><div className="profile-league-actions"><NavLink className="text-action" to="/onboarding">{t('onboarding.leagueStep')}</NavLink><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}<span aria-hidden="true">→</span></NavLink></div></article>
+        <article className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{t('profile.createLeague')}</h2><p>{t('profile.createLeagueCopy')}</p></div><div className="profile-league-actions"><NavLink className="text-action" to="/onboarding">{t('onboarding.leagueStep')}</NavLink><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink></div></article>
         <article className="profile-session">
           <div><p className="section-label">{t('profile.account')}</p><h2>{t('shell.signOut')}</h2><p>{t('profile.signOutCopy')}</p></div>
           <div className="profile-session-action">
