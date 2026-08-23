@@ -22,6 +22,13 @@ for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
 }
 await access(resolve(distRoot, 'v1-assets', 'js', 'results-preview.js'));
 
+const calendar = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'kalender.js'), 'utf8');
+if (!calendar.includes('Kommende Rennen (${upcoming.length})')
+    || !calendar.includes('Gefahrene Rennen (${completed.length})')
+    || !calendar.includes('if (!upcoming.length && completed.length) completedBtn?.click()')) {
+  throw new Error('Integrated calendar must expose race counts and open completed races when no upcoming race exists.');
+}
+
 const manifest = JSON.parse(await readFile(resolve(distRoot, 'manifest.json'), 'utf8'));
 if (manifest.start_url !== '/home' || manifest.scope !== '/' || !manifest.icons?.every((icon) => String(icon.src).startsWith('/v1-assets/'))) {
   throw new Error('V2 public manifest does not point to the restored RaceVora public experience.');

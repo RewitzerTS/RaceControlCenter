@@ -116,8 +116,9 @@ function highlightRaceFromQuery() {
     || document.querySelector(`.race-card-link[data-race-round="${CSS.escape(targetRound)}"]`);
   if (!cardLink) return;
 
-  const upcomingBtn = document.querySelector('.calendar-toggle[data-target="upcoming-section"]');
-  if (upcomingBtn) upcomingBtn.click();
+  const targetSection = cardLink.closest('.calendar-section')?.id || 'upcoming-section';
+  const targetButton = document.querySelector(`.calendar-toggle[data-target="${CSS.escape(targetSection)}"]`);
+  if (targetButton) targetButton.click();
 
   cardLink.classList.add('race-card-link-highlight');
   cardLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -163,8 +164,15 @@ async function loadCalendar() {
       .filter((race) => race.status === 'completed')
       .sort((a, b) => Number(b.round_number || 0) - Number(a.round_number || 0));
 
+    const upcomingBtn = document.querySelector('.calendar-toggle[data-target="upcoming-section"]');
+    const completedBtn = document.querySelector('.calendar-toggle[data-target="completed-section"]');
+    if (upcomingBtn) upcomingBtn.textContent = `Kommende Rennen (${upcoming.length})`;
+    if (completedBtn) completedBtn.textContent = `Gefahrene Rennen (${completed.length})`;
+
     if (upcomingContainer) upcomingContainer.innerHTML = upcoming.length ? upcoming.map(window.createRaceCard).join('') : '<div class="notice">Keine kommenden Rennen vorhanden.</div>';
     if (completedContainer) completedContainer.innerHTML = completed.length ? completed.map(window.createRaceCard).join('') : '<div class="notice">Noch keine Rennen gefahren.</div>';
+
+    if (!upcoming.length && completed.length) completedBtn?.click();
 
     highlightRaceFromQuery();
   } catch (error) {
@@ -180,3 +188,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSeasonArchiveSelector();
   loadCalendar();
 });
+
