@@ -83,6 +83,7 @@ export function ProfilePage() {
           <p className="hero-subcopy">{t('route.profileCopy')}</p>
           <dl className="profile-facts">
             <div><dt>{t('beta.email')}</dt><dd>{user.email ?? t('notConfirmed')}</dd></div>
+            <div><dt>{t('profile.number')}</dt><dd className="profile-number">#{identity?.profileNumber ?? '–'}</dd></div>
             <div><dt>{t('profile.identity')}</dt><dd>{identity?.status === 'active' ? t('identityActive') : t('noIdentity')}</dd></div>
             <div><dt>{t('profile.linkedDrivers')}</dt><dd>{plural('linkedRecord', identity?.linkedDriverCount ?? 0)}</dd></div>
           </dl>
@@ -123,4 +124,3 @@ export function ProfilePage() {
     </main>
   );
 }
-

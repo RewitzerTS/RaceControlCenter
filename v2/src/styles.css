@@ -1927,6 +1927,13 @@ body {
 .profile-facts div { display: grid; grid-template-columns: minmax(130px, 0.4fr) minmax(0, 1fr); gap: 1rem; padding: 0.9rem 0; border-top: 1px solid var(--line); }
 .profile-facts dt { color: var(--muted); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
 .profile-facts dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.profile-number {
+  color: var(--brand-accent);
+  font-size: 1.35rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
 .profile-form { min-height: 480px; display: grid; align-content: center; gap: 0.9rem; }
 .profile-form h2 { margin: 0.25rem 0 0.6rem; }
 .profile-form label { color: var(--muted); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -2016,6 +2023,28 @@ body {
 .onboarding-form { display: grid; gap: 1.5rem; padding: clamp(24px, 5vw, 42px); }
 .onboarding-section-heading h2 { margin-bottom: 0.45rem; }
 .onboarding-section-heading p { margin-bottom: 0; }
+.onboarding-number-note {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 32%, var(--line));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+}
+.onboarding-number-note > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  color: var(--brand-on-primary);
+  background: var(--brand-primary);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+.onboarding-number-note p { margin: 0; font-size: 0.84rem; }
 .onboarding-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .onboarding-form label { display: grid; align-content: start; gap: 0.5rem; min-width: 0; }
 .onboarding-form label > span { color: var(--brand-text); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -2674,6 +2703,88 @@ p { color: var(--muted); }
   .profile-sign-out { width: 100%; }
 }
 
+/* Responsive hardening for common desktop, tablet, and phone viewports. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+img, svg, video, canvas { max-width: 100%; }
+.app-shell, .shell-frame, main, section, article, aside, form, fieldset { min-width: 0; }
+.responsive-table {
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+.responsive-table table { min-width: 640px; }
+.integrated-league-view, .integrated-league-view iframe { max-width: 100%; }
+
+@media (max-width: 1050px) {
+  .admin-inline-form { grid-template-columns: minmax(0, 1fr) minmax(180px, 0.55fr); }
+  .admin-inline-form > :last-child { grid-column: 1 / -1; justify-self: end; }
+  .admin-race-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vora-detail-row, .graphics-history { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 820px) {
+  .admin-inline-form, .steward-form, .steward-form--create { grid-template-columns: 1fr; }
+  .admin-inline-form > :last-child { grid-column: auto; justify-self: stretch; }
+  .admin-inline-form > :last-child:is(button, a) { justify-content: center; width: 100%; }
+  .admin-header-actions, .admin-form-actions, .graphics-preview-heading { flex-wrap: wrap; }
+  .vora-header { align-items: flex-start; flex-direction: column; }
+  .vora-source { width: 100%; }
+}
+
+@media (max-width: 700px) {
+  input, select, textarea { max-width: 100%; font-size: 16px; }
+  .main-navigation.main-nav {
+    z-index: var(--z-navigation);
+    max-height: calc(100dvh - 82px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 12px max(10px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+  }
+  .main-navigation .driver-navigation,
+  .main-navigation .privileged-navigation { grid-template-columns: 1fr; }
+  .main-navigation .header-tools { align-items: stretch; }
+  .main-navigation .language-control,
+  .main-navigation .language-control > summary,
+  .main-navigation .session-state,
+  .main-navigation .account-action { flex: 1 1 auto; }
+  .v2-status-strip .status-pill-card:nth-child(3),
+  .v2-status-strip .status-pill-card:nth-child(4) { display: flex; }
+  .page-intro, .operations-feed li, .admin-panel-heading { align-items: flex-start; flex-direction: column; }
+  .admin-header-actions, .admin-form-actions { width: 100%; }
+  .admin-header-actions > *, .admin-form-actions > * { flex: 1 1 auto; justify-content: center; }
+  .admin-driver-metrics, .admin-race-metrics, .operations-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vora-insight { grid-template-columns: 1fr; }
+  .vora-avatar { width: 64px; height: 64px; }
+  .vora-racing-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vora-racing-line > div:nth-child(odd) { border-right: 1px solid var(--line); }
+  .vora-racing-line > div:nth-child(even) { border-right: 0; }
+}
+
+@media (max-width: 480px) {
+  h1, .hero-main h1 { font-size: clamp(2.05rem, 11vw, 2.65rem); }
+  .brand-text { display: none; }
+  .profile-layout, .racing-layout, .career-layout,
+  .v2-status-strip, .dashboard-hero, .beta-dashboard-grid,
+  .v2-dashboard-grid, .storyline-strip, .driver-state, .route-placeholder {
+    width: calc(100% - 16px);
+  }
+  .hero-main, .hero-side, .dashboard-card, .beta-access-form.hero-side,
+  .race-browser, .race-result-card { padding: 16px; border-radius: 18px; }
+  .onboarding-page { padding-inline: 8px; }
+  .onboarding-card { border-radius: 18px; }
+  .onboarding-header, .onboarding-form { padding: 20px 16px; }
+  .onboarding-steps { padding-inline: 16px; }
+  .onboarding-steps li { min-height: 60px; gap: 0.45rem; font-size: 0.72rem; }
+  .onboarding-actions .primary-action, .onboarding-actions .text-action { min-height: 48px; }
+  .profile-facts div { padding-block: 0.75rem; }
+  .career-number-grid, .admin-driver-metrics, .admin-race-metrics, .operations-metrics,
+  .vora-racing-line { grid-template-columns: 1fr; }
+  .vora-racing-line > div { border-right: 0 !important; border-bottom: 1px solid var(--line); }
+  .vora-racing-line > div:last-child { border-bottom: 0; }
+  .responsive-table { margin-inline: -8px; padding-inline: 8px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .career-page .level-meter > span,
   .career-page .challenge-progress i b { animation: none; }
@@ -2693,5 +2804,4 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   border-color: rgba(218, 255, 232, 0.9) !important;
   box-shadow: 0 0 16px rgba(46, 255, 131, 0.92), inset 0 0 10px rgba(255, 255, 255, 0.24) !important;
 }
-
 

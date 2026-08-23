@@ -5,6 +5,7 @@ import type { LeagueSupabaseClient } from '../lib/supabase';
 interface DriverIdentitySummary {
   driverId: string | null;
   id: string;
+  profileNumber: number;
   status: string;
   linkedDriverCount: number;
 }
@@ -23,7 +24,7 @@ async function resolveDriverIdentity(
 ): Promise<DriverIdentitySummary | null> {
   const identityResponse = await client
     .from('driver_identities')
-    .select('id, status')
+    .select('id, profile_number, status')
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -41,6 +42,7 @@ async function resolveDriverIdentity(
   return {
     driverId: links[0]?.driver_id ?? null,
     id: identityResponse.data.id,
+    profileNumber: identityResponse.data.profile_number,
     status: identityResponse.data.status,
     linkedDriverCount: links.length,
   };
@@ -92,4 +94,3 @@ export function useDriverIdentity(): DriverIdentityContextValue {
   if (!context) throw new Error('useDriverIdentity must be used inside DriverIdentityProvider.');
   return context;
 }
-

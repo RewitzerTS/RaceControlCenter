@@ -1101,21 +1101,36 @@ export type Database = {
       driver_identities: {
         Row: {
           created_at: string
+          display_name: string | null
+          gamertag: string | null
           id: string
+          nationality_code: string | null
+          profile_number: number
+          real_name: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
+          gamertag?: string | null
           id?: string
+          nationality_code?: string | null
+          profile_number?: number
+          real_name?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          display_name?: string | null
+          gamertag?: string | null
           id?: string
+          nationality_code?: string | null
+          profile_number?: number
+          real_name?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -2833,4 +2848,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

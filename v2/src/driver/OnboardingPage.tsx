@@ -95,6 +95,7 @@ export function OnboardingPage() {
         {step === 1 ? (
           <form className="onboarding-form" onSubmit={continueToLeague}>
             <div className="onboarding-section-heading"><h2>{t('onboarding.profileTitle')}</h2><p>{t('onboarding.profileCopy')}</p></div>
+            <aside className="onboarding-number-note"><span aria-hidden="true">#</span><p>{t('onboarding.numberCopy')}</p></aside>
             <div className="onboarding-fields">
               <label><span>{t('onboarding.displayName')}</span><input autoComplete="nickname" maxLength={60} minLength={2} onChange={(event) => setDisplayName(event.target.value)} required value={displayName} /><small>{t('onboarding.displayNameHint')}</small></label>
               <label><span>{t('onboarding.gamertag')}</span><input autoComplete="off" maxLength={60} minLength={2} onChange={(event) => setGamertag(event.target.value)} required value={gamertag} /><small>{t('onboarding.gamertagHint')}</small></label>
@@ -117,4 +118,3 @@ export function OnboardingPage() {
     </main>
   );
 }
-
