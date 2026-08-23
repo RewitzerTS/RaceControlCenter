@@ -48,6 +48,7 @@ export function SeasonSetupPage() {
   }, [client]);
 
   const game = useMemo(() => workspace?.games.find((item) => item.key === gameKey) ?? workspace?.games[0], [gameKey, workspace]);
+  const teamCount = useMemo(() => new Set((game?.roster ?? []).map((seat) => seat.team_name)).size, [game]);
   const playerAssignments = useMemo<SeasonPlayerAssignment[]>(() => (game?.roster ?? []).flatMap((seat) => {
     const draft = assignments[seat.seat_code];
     return draft?.enabled ? [{ seat_code: seat.seat_code, player_name: draft.playerName.trim(), gamertag: draft.gamertag.trim() }] : [];
@@ -113,7 +114,7 @@ export function SeasonSetupPage() {
       </ol>
 
       {step === 1 && <form className="onboarding-form" onSubmit={continueFromSeason}>
-        <div className="onboarding-section-heading"><h2>Saison festlegen</h2><p>Das Starterfeld wird passend zum ausgewählten Spiel vorbereitet.</p></div>
+        <div className="onboarding-section-heading"><h2>Saison festlegen</h2><p>Starterfeld und Rennkalender werden passend zum ausgewählten Spiel vorbereitet.</p></div>
         {workspace.active_season && <aside className="season-active-note"><strong>Aktuell aktiv: {workspace.active_season.name}</strong><p>Beim Start der neuen Saison wird die bisherige Saison automatisch beendet.</p></aside>}
         <div className="onboarding-fields season-setup-fields">
           <label><span>Saisonname</span><input autoFocus required minLength={3} maxLength={80} value={name} onChange={(event) => { const next = event.target.value; setName(next); if (!slugTouched) setSlug(slugify(next)); }} /></label>
@@ -122,6 +123,11 @@ export function SeasonSetupPage() {
           <label><span>Startdatum</span><input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label>
           <label><span>Enddatum</span><input type="date" min={startDate || undefined} value={endDate} onChange={(event) => setEndDate(event.target.value)} /></label>
         </div>
+        <aside className="season-preset-summary" aria-live="polite">
+          <strong>{game.label}</strong>
+          <span>{teamCount} Teams</span><span>{game.roster.length} Sitze</span><span>{game.tracks.length} Strecken</span>
+          <p>Die Strecken werden ohne feste Termine angelegt und können anschließend unter Rennen angepasst werden.</p>
+        </aside>
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="onboarding-actions"><button className="primary-action" type="submit">Starterfeld einrichten</button></div>
       </form>}
@@ -154,9 +160,10 @@ export function SeasonSetupPage() {
           <div><dt>Saison</dt><dd>{name}</dd></div>
           <div><dt>Spiel</dt><dd>{game.label}</dd></div>
           <div><dt>Starterfeld</dt><dd>{playerAssignments.length} Spieler · {game.roster.length - playerAssignments.length} KI-Fahrer</dd></div>
+          <div><dt>Rennkalender</dt><dd>{game.tracks.length} Strecken · Termine anschließend bearbeiten</dd></div>
           {(startDate || endDate) && <div><dt>Zeitraum</dt><dd>{startDate || 'offen'} bis {endDate || 'offen'}</dd></div>}
         </dl>
-        <aside className="season-start-note"><strong>Start ist verbindlich</strong><p>Eine bereits aktive Saison wird beendet. Fahrer, Fahrzeuge und alle Sitzzuordnungen werden als Saisonstand gespeichert.</p></aside>
+        <aside className="season-start-note"><strong>Start ist verbindlich</strong><p>Eine bereits aktive Saison wird beendet. Fahrer, Fahrzeuge, Sitzzuordnungen und der voreingestellte Rennkalender werden als Saisonstand gespeichert.</p></aside>
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="onboarding-actions onboarding-actions--split"><button className="text-action" disabled={busy} type="button" onClick={() => { setError(''); setStep(2); }}>Zurück</button><button className="primary-action" disabled={busy} type="button" onClick={() => void startSeason()}>{busy ? 'Saison wird gestartet …' : 'Saison starten'}</button></div>
       </section>}

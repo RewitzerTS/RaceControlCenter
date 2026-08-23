@@ -86,11 +86,17 @@ export type SeasonRosterSeat = {
   team_name: string;
   car_name: string;
 };
-export type SeasonGamePreset = { key: string; label: string; roster: SeasonRosterSeat[] };
+export type SeasonTrackPreset = {
+  key: string;
+  grand_prix_name: string;
+  circuit_name: string;
+  country_code: string;
+};
+export type SeasonGamePreset = { key: string; label: string; roster: SeasonRosterSeat[]; tracks: SeasonTrackPreset[] };
 export type ActiveSeasonSummary = { id: string; name: string; slug: string; game_label: string; start_date: string | null; end_date: string | null };
 export type SeasonSetupWorkspace = { league: OwnerLeague; games: SeasonGamePreset[]; active_season: ActiveSeasonSummary | null };
 export type SeasonPlayerAssignment = { seat_code: string; player_name: string; gamertag: string };
-export type StartedSeason = { season: { id: string; name: string; slug: string }; players: number; ai_drivers: number; started: boolean };
+export type StartedSeason = { season: { id: string; name: string; slug: string }; players: number; ai_drivers: number; races: number; started: boolean };
 export type LeagueFaq = { question: string; answer: string };
 export type ResultDraft = { id: string; race_id: string; race_name: string; version_number: number; status: string; change_reason: string; created_at: string; row_count: number };
 export type ConfigurationWorkspace = { league: OwnerLeague; rules: Record<string, Json | undefined>; faqs: LeagueFaq[]; audit: Array<AuditItem & { entity_id: string | null; metadata: Json }>; result_drafts: ResultDraft[] };
