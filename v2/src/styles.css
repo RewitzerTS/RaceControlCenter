@@ -2990,3 +2990,67 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .operations-menu-groups details > div { grid-template-columns: 1fr; }
 }
 
+/* Interactive Career achievements and challenge rotation */
+.career-detail-grid { align-items: start; }
+.achievement-disclosure { margin-top: 1rem; }
+.achievement-disclosure > summary {
+  min-height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-block: 1px solid var(--line);
+  cursor: pointer;
+  list-style: none;
+}
+.achievement-disclosure > summary::-webkit-details-marker { display: none; }
+.achievement-disclosure > summary:hover,
+.achievement-disclosure > summary:focus-visible { color: var(--brand-accent); }
+.achievement-count { display: grid; gap: 0.35rem; }
+.achievement-count strong {
+  color: var(--text);
+  font-size: 2.75rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.achievement-count span { color: var(--muted); font-size: 0.78rem; }
+.achievement-disclosure-state { color: var(--brand-accent); font-size: 0.76rem; font-weight: 800; text-align: right; }
+.achievement-disclosure-state > span:last-child,
+.achievement-disclosure[open] .achievement-disclosure-state > span:first-child { display: none; }
+.achievement-disclosure[open] .achievement-disclosure-state > span:last-child { display: inline; }
+.achievement-disclosure-content { max-height: 460px; overflow-y: auto; }
+.achievement-list { margin: 0; padding: 0; list-style: none; }
+.achievement-list li {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.achievement-list li > div { min-width: 0; display: grid; gap: 0.25rem; }
+.achievement-list li strong { overflow-wrap: anywhere; font-size: 0.9rem; }
+.achievement-list li span { color: var(--muted); font-size: 0.7rem; }
+.achievement-list li > span { flex: 0 0 auto; color: var(--brand-accent); font-weight: 800; }
+.challenge-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: -0.45rem 0 0.8rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.challenge-countdown strong { color: var(--text); font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 700px) {
+  .achievement-disclosure > summary { min-height: 88px; }
+  .achievement-count strong { font-size: 2.25rem; }
+  .achievement-list li { align-items: flex-start; }
+  .challenge-countdown { align-items: flex-start; flex-direction: column; gap: 0.3rem; }
+}
+

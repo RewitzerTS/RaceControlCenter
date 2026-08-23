@@ -5,9 +5,17 @@ import type { Database } from '../types/database';
 type CareerStats = Database['public']['Tables']['driver_career_stats']['Row'];
 type Progression = Database['public']['Tables']['driver_progression']['Row'];
 type Wallet = Database['public']['Tables']['driver_wallets']['Row'];
+type AchievementDefinition = Pick<
+  Database['public']['Tables']['achievement_definitions']['Row'],
+  'code' | 'description_key' | 'metric' | 'reward_vc' | 'sort_order' | 'threshold' | 'title_key'
+>;
+type AchievementProjection = Pick<
+  Database['public']['Tables']['driver_achievements']['Row'],
+  'achievement_code' | 'current_value' | 'status' | 'unlocked_at'
+>;
 type ChallengeDefinition = Pick<
   Database['public']['Tables']['challenge_definitions']['Row'],
-  'active_until' | 'code' | 'metric' | 'reward_vc' | 'sort_order' | 'target_value'
+  'active_from' | 'active_until' | 'code' | 'metric' | 'reward_vc' | 'sort_order' | 'target_value'
 >;
 type ChallengeProjection = Pick<
   Database['public']['Tables']['driver_challenges']['Row'],
@@ -19,6 +27,7 @@ type UpcomingRace = Pick<
 >;
 
 export interface DriverChallenge {
+  activeFrom: string;
   activeUntil: string | null;
   code: string;
   metric: string;
@@ -28,8 +37,21 @@ export interface DriverChallenge {
   target: number;
 }
 
+export interface DriverAchievement {
+  code: string;
+  currentValue: number;
+  descriptionKey: string;
+  metric: string;
+  rewardVc: number;
+  threshold: number;
+  titleKey: string;
+  unlockedAt: string | null;
+}
+
 export interface DriverHomeSnapshot {
   achievementCount: number;
+  achievementTotal: number;
+  achievements: DriverAchievement[];
   latestAchievement: string | null;
   career: CareerStats | null;
   challenges: DriverChallenge[];
@@ -54,8 +76,25 @@ export function levelProgress(progression: Progression | null): number {
   return Math.max(0, Math.min(100, (progression.xp_into_level / levelWindow) * 100));
 }
 
+const CHALLENGE_ROTATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+export function nextChallengeRotation(challenges: DriverChallenge[], now = Date.now()): number | null {
+  if (!challenges.length) return null;
+  const scheduledEnd = challenges
+    .map((challenge) => challenge.activeUntil ? Date.parse(challenge.activeUntil) : Number.NaN)
+    .filter((value) => Number.isFinite(value) && value > now)
+    .sort((left, right) => left - right)[0];
+  if (scheduledEnd) return scheduledEnd;
+
+  const anchor = Math.min(...challenges.map((challenge) => Date.parse(challenge.activeFrom)).filter(Number.isFinite));
+  if (!Number.isFinite(anchor)) return null;
+  return anchor + (Math.floor((now - anchor) / CHALLENGE_ROTATION_MS) + 1) * CHALLENGE_ROTATION_MS;
+}
+
 const EMPTY_SNAPSHOT: DriverHomeSnapshot = {
   achievementCount: 0,
+  achievementTotal: 0,
+  achievements: [],
   latestAchievement: null,
   career: null,
   challenges: [],
@@ -73,7 +112,8 @@ async function loadSnapshot(
     career,
     progression,
     wallet,
-    achievements,
+    achievementDefinitions,
+    achievementProgress,
     challengeDefinitions,
     challengeProgress,
     nextRace,
@@ -82,14 +122,18 @@ async function loadSnapshot(
     client.from('driver_progression').select('*').eq('driver_identity_id', driverIdentityId).maybeSingle(),
     client.from('driver_wallets').select('*').eq('driver_identity_id', driverIdentityId).maybeSingle(),
     client
+      .from('achievement_definitions')
+      .select('code, description_key, metric, reward_vc, sort_order, threshold, title_key')
+      .eq('is_active', true)
+      .eq('is_core', true)
+      .order('sort_order'),
+    client
       .from('driver_achievements')
-      .select('achievement_code, unlocked_at', { count: 'exact' })
-      .eq('driver_identity_id', driverIdentityId)
-      .eq('status', 'unlocked')
-      .order('unlocked_at', { ascending: false, nullsFirst: false }),
+      .select('achievement_code, current_value, status, unlocked_at')
+      .eq('driver_identity_id', driverIdentityId),
     client
       .from('challenge_definitions')
-      .select('active_until, code, metric, reward_vc, sort_order, target_value')
+      .select('active_from, active_until, code, metric, reward_vc, sort_order, target_value')
       .eq('is_active', true)
       .lte('active_from', new Date().toISOString())
       .order('sort_order'),
@@ -110,7 +154,8 @@ async function loadSnapshot(
     career,
     progression,
     wallet,
-    achievements,
+    achievementDefinitions,
+    achievementProgress,
     challengeDefinitions,
     challengeProgress,
     nextRace,
@@ -118,12 +163,31 @@ async function loadSnapshot(
   const failed = responses.find((response) => response.error);
   if (failed?.error) throw failed.error;
 
+  const achievementProgressByCode = new Map(
+    (achievementProgress.data as AchievementProjection[] | null)?.map((item) => [item.achievement_code, item]),
+  );
+  const achievements = ((achievementDefinitions.data ?? []) as AchievementDefinition[])
+    .map((definition) => ({ definition, progress: achievementProgressByCode.get(definition.code) }))
+    .filter(({ progress: item }) => item?.status === 'unlocked')
+    .map(({ definition, progress: item }) => ({
+      code: definition.code,
+      currentValue: item?.current_value ?? definition.threshold,
+      descriptionKey: definition.description_key,
+      metric: definition.metric,
+      rewardVc: definition.reward_vc,
+      threshold: definition.threshold,
+      titleKey: definition.title_key,
+      unlockedAt: item?.unlocked_at ?? null,
+    }))
+    .sort((left, right) => (Date.parse(right.unlockedAt ?? '') || 0) - (Date.parse(left.unlockedAt ?? '') || 0));
+
   const progressByCode = new Map(
     (challengeProgress.data as ChallengeProjection[] | null)?.map((item) => [item.challenge_code, item]),
   );
   const challenges = ((challengeDefinitions.data ?? []) as ChallengeDefinition[]).map((definition) => {
     const current = progressByCode.get(definition.code);
     return {
+      activeFrom: definition.active_from,
       activeUntil: definition.active_until,
       code: definition.code,
       metric: definition.metric,
@@ -135,8 +199,10 @@ async function loadSnapshot(
   });
 
   return {
-    achievementCount: achievements.count ?? 0,
-    latestAchievement: achievements.data?.[0]?.achievement_code ?? null,
+    achievementCount: achievements.length,
+    achievementTotal: (achievementDefinitions.data ?? []).length,
+    achievements,
+    latestAchievement: achievements[0]?.code ?? null,
     career: career.data,
     challenges,
     nextRace: nextRace.data,

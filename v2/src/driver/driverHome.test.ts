@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { levelProgress, selectDriverHero, type DriverHomeSnapshot } from './driverHome';
+import { levelProgress, nextChallengeRotation, selectDriverHero, type DriverHomeSnapshot } from './driverHome';
 
 const emptySnapshot: DriverHomeSnapshot = {
   achievementCount: 0,
+  achievementTotal: 0,
+  achievements: [],
   career: null,
   challenges: [],
   latestAchievement: null,
@@ -82,5 +84,33 @@ describe('Driver Home rules', () => {
       xp_into_level: 0,
       xp_to_next_level: 0,
     })).toBe(100);
+  });
+
+  it('uses the scheduled Challenge end as the next rotation', () => {
+    const now = Date.parse('2026-08-23T12:00:00Z');
+    expect(nextChallengeRotation([{
+      activeFrom: '2026-08-20T12:00:00Z',
+      activeUntil: '2026-08-25T18:00:00Z',
+      code: 'clean_finish',
+      metric: 'classified_finishes',
+      progress: 1,
+      rewardVc: 100,
+      status: 'active',
+      target: 3,
+    }], now)).toBe(Date.parse('2026-08-25T18:00:00Z'));
+  });
+
+  it('falls back to the next weekly Challenge cycle when no end is configured', () => {
+    const now = Date.parse('2026-08-23T12:00:00Z');
+    expect(nextChallengeRotation([{
+      activeFrom: '2026-08-20T12:00:00Z',
+      activeUntil: null,
+      code: 'clean_finish',
+      metric: 'classified_finishes',
+      progress: 1,
+      rewardVc: 100,
+      status: 'active',
+      target: 3,
+    }], now)).toBe(Date.parse('2026-08-27T12:00:00Z'));
   });
 });
