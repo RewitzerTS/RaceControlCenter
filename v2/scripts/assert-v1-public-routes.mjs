@@ -28,6 +28,10 @@ if (!calendar.includes('Kommende Rennen (${upcoming.length})')
     || !calendar.includes('if (!upcoming.length && completed.length) completedBtn?.click()')) {
   throw new Error('Integrated calendar must expose race counts and open completed races when no upcoming race exists.');
 }
+const calendarPage = await readFile(resolve(distRoot, 'kalender.html'), 'utf8');
+if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-calendar-2')) {
+  throw new Error('Integrated calendar must cache-bust its updated lifecycle navigation.');
+}
 
 const manifest = JSON.parse(await readFile(resolve(distRoot, 'manifest.json'), 'utf8'));
 if (manifest.start_url !== '/home' || manifest.scope !== '/' || !manifest.icons?.every((icon) => String(icon.src).startsWith('/v1-assets/'))) {
