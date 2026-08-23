@@ -8,6 +8,7 @@
   const DASHBOARD_VIEW_MAX_AGE_MS = 1000 * 60 * 30;
   const BRAND_THEME_CACHE_KEY = 'rcc.brand.theme.v2';
   let applyPromise = null;
+  let tenantBrandingAllowed = false;
 
   const THEME_PRESETS = [
     {
@@ -125,6 +126,29 @@
     return match?.[1] ? String(match[1]).toLowerCase() : DEFAULT_LEAGUE_SLUG;
   }
 
+  function isDemoView() {
+    const params = new URLSearchParams(location.search);
+    const slug = getRequestedSlugEarly();
+    return params.get('demo') === '1'
+      || slug === 'demo'
+      || slug === 'racevora-demo'
+      || location.pathname === '/owner/demo';
+  }
+
+  async function refreshTenantBrandingPermission() {
+    if (isDemoView()) {
+      tenantBrandingAllowed = false;
+      return false;
+    }
+    try {
+      const { data, error } = await window.supabaseClient?.auth?.getSession?.() || { data: null, error: null };
+      tenantBrandingAllowed = !error && Boolean(data?.session?.user?.id);
+    } catch (_) {
+      tenantBrandingAllowed = false;
+    }
+    return tenantBrandingAllowed;
+  }
+
   function setThemeColor(rawSettings = {}) {
     const settings = resolveThemeSettings(rawSettings);
     const background = normalizeHexColor(settings.background_color);
@@ -164,14 +188,8 @@
   }
 
   function applyCachedThemeEarly() {
-    try {
-      const raw = sessionStorage.getItem(BRAND_THEME_CACHE_KEY);
-      if (!raw) return;
-      const cached = JSON.parse(raw);
-      if (cached?.slug !== getRequestedSlugEarly()) return;
-      setThemeColor(cached.settings || {});
-      document.documentElement.dataset.leagueBrandingApplied = 'true';
-    } catch (_) {}
+    setThemeColor(themeToSettings('0'));
+    document.documentElement.dataset.leagueBrandingApplied = 'true';
   }
   applyCachedThemeEarly();
 
@@ -219,8 +237,12 @@
       html[data-league-branding-applied="true"] .brand-subtitle{color:var(--accent)!important}
       html[data-league-branding-applied="true"] .site-scroll-progress{background:linear-gradient(90deg,var(--primary),var(--accent),var(--accent-2,var(--secondary)))!important;box-shadow:0 0 22px color-mix(in srgb,var(--accent) 62%,transparent)!important}
       html[data-league-branding-applied="true"] .f1-loader-overlay{background:color-mix(in srgb,var(--bg-main) 94%,#000)!important;color:var(--text)!important}
-      html[data-league-branding-applied="true"] .f1-loader-lights span.is-red{background:var(--primary)!important;box-shadow:0 0 18px color-mix(in srgb,var(--primary) 72%,transparent)!important}
-      html[data-league-branding-applied="true"] .f1-loader-lights span.is-green{background:var(--accent)!important;box-shadow:0 0 18px color-mix(in srgb,var(--accent) 72%,transparent)!important}
+      html[data-league-branding-applied="true"] body .f1-loader-lights span.is-red,
+      html[data-user-theme] body .f1-loader-lights span.is-red,
+      html .f1-loader-lights span.is-red{background:#ff2b2b!important;border-color:rgba(255,214,214,.88)!important;box-shadow:0 0 16px rgba(255,50,50,.9),inset 0 0 10px rgba(255,255,255,.24)!important}
+      html[data-league-branding-applied="true"] body .f1-loader-lights span.is-green,
+      html[data-user-theme] body .f1-loader-lights span.is-green,
+      html .f1-loader-lights span.is-green{background:#1fef75!important;border-color:rgba(218,255,232,.9)!important;box-shadow:0 0 16px rgba(46,255,131,.92),inset 0 0 10px rgba(255,255,255,.24)!important}
       html[data-league-branding-applied="true"] .panel,
       html[data-league-branding-applied="true"] .table-card,
       html[data-league-branding-applied="true"] .modal-card,
@@ -342,7 +364,9 @@
     const league = snapshot?.league;
     if (!league) return false;
     const rawSettings = league.settings && typeof league.settings === 'object' ? league.settings : {};
-    const settings = resolveThemeSettings(rawSettings);
+    const settings = tenantBrandingAllowed
+      ? resolveThemeSettings(rawSettings)
+      : { ...rawSettings, ...themeToSettings('0') };
     const name = String(settings.brand_name || league.name || 'Race Control Center').trim();
     const subtitle = String(settings.brand_subtitle || (league.slug === DEFAULT_LEAGUE_SLUG ? DEFAULT_SUBTITLE : FALLBACK_SUBTITLE)).trim();
     const logo = normalizeLogoUrl(settings.brand_logo_url || league.logo_url) || DEFAULT_LOGO_URL;
@@ -386,6 +410,7 @@
     applyPromise = (async () => {
       const api = window.RCCLeagueContext;
       if (!api?.initialize) return false;
+      await refreshTenantBrandingPermission();
       let snapshot = api.snapshot?.();
       if (!snapshot?.league || options.forceRefresh === true) snapshot = await api.initialize({ forceRefresh: options.forceRefresh === true });
       return applySnapshot(snapshot);
@@ -414,7 +439,20 @@
       try { sessionStorage.setItem(DASHBOARD_VIEW_OWNER_KEY, getRequestedSlugEarly()); } catch (_) {}
     }
   });
-  addEventListener('rcc:league-context-ready', (event) => { if (event?.detail?.league) applySnapshot(event.detail); });
+  addEventListener('rcc:league-context-ready', (event) => {
+    if (!event?.detail?.league) return;
+    void refreshTenantBrandingPermission().then(() => applySnapshot(event.detail));
+  });
+  window.supabaseClient?.auth?.onAuthStateChange?.((_event, session) => {
+    const nextAllowed = !isDemoView() && Boolean(session?.user?.id);
+    if (nextAllowed === tenantBrandingAllowed) return;
+    tenantBrandingAllowed = nextAllowed;
+    setTimeout(() => {
+      const snapshot = window.RCCLeagueContext?.snapshot?.();
+      if (snapshot?.league) applySnapshot(snapshot);
+      else void apply({ forceRefresh: true });
+    }, 0);
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => apply());
   else apply();
   if (document.readyState === 'complete') loadAdminBrandingEditor();

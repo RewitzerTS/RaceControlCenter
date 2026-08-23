@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
     if (platformOwnerResponse.error) throw platformOwnerResponse.error;
 
     const role = String(membershipResponse.data?.role || "").toLowerCase();
-    const allowed = platformOwnerResponse.data === true || ["owner", "admin"].includes(role);
+    const allowed = platformOwnerResponse.data === true || ["owner", "admin", "league_admin"].includes(role);
     if (!allowed) {
       return json({
         error: "forbidden",

@@ -34,7 +34,7 @@ Die vollständige Brand Story, Messaging-Säulen, Claims und Sprachregeln stehen
 - `tests/` – lokale/CI-nahe Tests und Fixtures
 - `.github/workflows/` – CI, Security-, Browser-, Backup- und Produktions-Smokes
 
-Die Dateien `landing.html`, `landing2.html` und `landing3.html` bleiben bewusst als **Legacy-Redirects** auf `index.html` erhalten. So brechen alte Links nicht, während es nur noch eine aktive Landingpage-Implementierung gibt.
+Die früheren Dateien `landing.html`, `landing2.html` und `landing3.html` sind entfernt. `index.html` ist die einzige aktive Landingpage-Implementierung.
 
 ## Wichtige Routen
 
@@ -110,3 +110,4 @@ Danach z. B. `http://localhost:8080` öffnen.
 ## Entwicklung und Merge
 
 Neue größere Änderungen werden über Feature-Branches umgesetzt. Vor Merge nach `main` müssen mindestens die relevanten JavaScript- und Browser-Smoke-Checks grün sein.
+

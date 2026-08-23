@@ -1,11 +1,11 @@
 <style id="rcc-fixed-race-lights">
-  html[data-league-branding-applied="true"] body .f1-loader-lights span.is-red {
+  body .f1-loader-lights span.is-red {
     background: #ff2b2b !important;
     border-color: rgba(255, 214, 214, 0.88) !important;
     box-shadow: 0 0 16px rgba(255, 50, 50, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.24) !important;
   }
 
-  html[data-league-branding-applied="true"] body .f1-loader-lights span.is-green {
+  body .f1-loader-lights span.is-green {
     background: #1fef75 !important;
     border-color: rgba(218, 255, 232, 0.9) !important;
     box-shadow: 0 0 16px rgba(46, 255, 131, 0.92), inset 0 0 10px rgba(255, 255, 255, 0.24) !important;
@@ -45,11 +45,11 @@
       height: 100dvh !important;
       min-height: 0 !important;
       max-height: 100dvh !important;
-      padding-top: max(24px, calc(env(safe-area-inset-top) + 16px)) !important;
+      padding-top: max(76px, calc(env(safe-area-inset-top) + 68px)) !important;
       padding-right: max(16px, env(safe-area-inset-right)) !important;
       padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px)) !important;
       padding-left: 16px !important;
-      justify-content: center !important;
+      justify-content: flex-start !important;
       overflow-x: hidden !important;
       overflow-y: auto !important;
       overscroll-behavior: contain;
@@ -73,7 +73,7 @@
 <div class="site-safe-top" aria-hidden="true"></div>
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="race-hub.html">
+    <a class="brand" href="/home">
       <img src="assets/images/racevora-mark.svg" alt="RaceVora Logo" class="brand-logo" decoding="async" fetchpriority="high">
       <div class="brand-text">
         <div class="brand-title">RaceVora</div>
@@ -89,54 +89,46 @@
     </button>
 
     <nav class="main-nav" data-main-nav>
-      <a href="race-hub.html" data-nav-link="index" class="nav-primary-link">
+      <a href="/home" data-nav-link="platform-home" class="nav-primary-link">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10.5V20h13v-9.5M9.5 20v-6h5v6"></path></svg>
-        <span class="nav-label">Übersicht</span>
+        <span class="nav-label">Home</span>
       </a>
-      <a href="kalender.html" data-nav-link="kalender" class="nav-primary-link">
-        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 9.5h17"></path></svg>
-        <span class="nav-label">Kalender</span>
-      </a>
-      <a href="ergebnisse.html" data-nav-link="ergebnisse" class="nav-primary-link">
+      <a href="/racing" data-nav-link="platform-racing" class="nav-primary-link">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"></path><path d="M6 5h11l-2.5 3L17 11H6"></path></svg>
-        <span class="nav-label">Ergebnisse</span>
+        <span class="nav-label">Racing</span>
       </a>
-      <a href="fahrer-wm.html" data-nav-link="fahrer-wm" class="nav-primary-link">
+      <a href="/career" data-nav-link="platform-career" class="nav-primary-link">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13a7 7 0 0 1 14 0v2H5z"></path><path d="M8 13v-1a4 4 0 0 1 8 0v1M7 15v3h10v-3"></path></svg>
-        <span class="nav-label">Fahrer-WM</span>
+        <span class="nav-label">Career</span>
       </a>
-      <a href="team-wm.html" data-nav-link="team-wm" class="nav-extra-link">
-        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"></circle><circle cx="16.5" cy="9" r="2.5"></circle><path d="M2.8 19c.5-3.3 2.2-5 5.2-5s4.7 1.7 5.2 5M13.5 14.3c.9-.6 1.9-.8 3-.8 2.6 0 4.1 1.5 4.6 4.5"></path></svg>
-        <span class="nav-label">Team-WM</span>
+      <a href="/vora" data-nav-link="platform-vora" class="nav-primary-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.2 4.5 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z"></path></svg>
+        <span class="nav-label">Vora</span>
       </a>
-      <a href="regeln-faq.html" data-nav-link="regeln-faq" class="nav-extra-link">
-        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l3 3V20.5H6z"></path><path d="M14.5 3.5v4h3.5M9 11h6M9 15h6"></path></svg>
-        <span class="nav-label">Regeln &amp; FAQs</span>
+      <a href="/profile" data-nav-link="platform-profile" class="nav-primary-link">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20c.7-4.1 3-6.2 7-6.2s6.3 2.1 7 6.2"></path></svg>
+        <span class="nav-label">Profil</span>
       </a>
-      <a href="grid.html" data-nav-link="grid" class="nav-extra-link">
+      <a href="race-hub.html" data-nav-link="league" class="nav-primary-link">
         <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
-        <span class="nav-label">Grid</span>
-      </a>
-      <a href="hall-of-fame.html" data-nav-link="hall-of-fame" class="nav-extra-link">
-        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v4a4 4 0 0 1-8 0zM10 12v3M14 12v3M8 19h8M10 15h4v4"></path><path d="M8 6H4v1.5A3.5 3.5 0 0 0 7.5 11M16 6h4v1.5a3.5 3.5 0 0 1-3.5 3.5"></path></svg>
-        <span class="nav-label">Hall of Fame</span>
-      </a>
-
-      <a href="admin.html" class="nav-admin-link" data-admin-nav-link hidden>
-        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5c0 4.5-2.8 7.7-7 9.5C7.8 18.7 5 15.5 5 11V6z"></path><path d="M9.5 12.2 11.2 14l3.6-4"></path></svg>
-        <span class="nav-label">Admin</span>
+        <span class="nav-label">Liga</span>
       </a>
 
       <div class="nav-more" data-nav-more>
         <button type="button" class="nav-more-toggle" data-nav-more-toggle aria-expanded="false">
-          <svg class="nav-more-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.25"></circle><circle cx="12" cy="12" r="1.25"></circle><circle cx="19" cy="12" r="1.25"></circle></svg>
-          <span>Mehr</span>
+          <svg class="nav-more-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+          <span>Liga-Menü</span>
         </button>
         <div class="nav-more-menu" data-nav-more-menu>
+          <a href="race-hub.html" data-nav-link="index"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"></path><path d="M5.5 10.5V20h13v-9.5M9.5 20v-6h5v6"></path></svg><span class="nav-label">Liga-Übersicht</span></a>
+          <a href="kalender.html" data-nav-link="kalender"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M3.5 9.5h17"></path></svg><span class="nav-label">Kalender</span></a>
+          <a href="ergebnisse.html" data-nav-link="ergebnisse"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"></path><path d="M6 5h11l-2.5 3L17 11H6"></path></svg><span class="nav-label">Ergebnisse</span></a>
+          <a href="fahrer-wm.html" data-nav-link="fahrer-wm"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13a7 7 0 0 1 14 0v2H5z"></path><path d="M8 13v-1a4 4 0 0 1 8 0v1M7 15v3h10v-3"></path></svg><span class="nav-label">Fahrer-WM</span></a>
           <a href="team-wm.html" data-nav-link="team-wm"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3"></circle><circle cx="16.5" cy="9" r="2.5"></circle><path d="M2.8 19c.5-3.3 2.2-5 5.2-5s4.7 1.7 5.2 5M13.5 14.3c.9-.6 1.9-.8 3-.8 2.6 0 4.1 1.5 4.6 4.5"></path></svg><span class="nav-label">Team-WM</span></a>
           <a href="regeln-faq.html" data-nav-link="regeln-faq"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h9l3 3V20.5H6z"></path><path d="M14.5 3.5v4h3.5M9 11h6M9 15h6"></path></svg><span class="nav-label">Regeln &amp; FAQs</span></a>
           <a href="grid.html" data-nav-link="grid"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg><span class="nav-label">Grid</span></a>
           <a href="hall-of-fame.html" data-nav-link="hall-of-fame"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v4a4 4 0 0 1-8 0zM10 12v3M14 12v3M8 19h8M10 15h4v4"></path><path d="M8 6H4v1.5A3.5 3.5 0 0 0 7.5 11M16 6h4v1.5a3.5 3.5 0 0 1-3.5 3.5"></path></svg><span class="nav-label">Hall of Fame</span></a>
+          <a href="admin.html" class="nav-admin-link" data-admin-nav-link hidden><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 19 6v5c0 4.5-2.8 7.7-7 9.5C7.8 18.7 5 15.5 5 11V6z"></path><path d="M9.5 12.2 11.2 14l3.6-4"></path></svg><span class="nav-label">Admin</span></a>
         </div>
       </div>
     </nav>

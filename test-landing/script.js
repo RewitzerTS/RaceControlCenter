@@ -1,33 +1,69 @@
 (() => {
   'use strict';
 
-  const scriptElement = document.currentScript
-    || document.querySelector('script[src*="test-landing/script.js"],script[src*="script.js"]');
+  const scriptElement = document.querySelector('script[src$="test-landing/script.js"],script[src$="script.js"]');
   const ASSET_ROOT = scriptElement?.src
     ? new URL('.', scriptElement.src).href.replace(/\/$/, '')
     : '.';
-  const ASSET_VERSION = 'phase24-2026-08-20';
   const FRAME_COUNT = 90;
-  const FRAME_WINDOW_RADIUS = 3;
   const story = document.querySelector('.cinematic-story');
   const canvas = story?.querySelector('canvas');
-  const mobileVideo = story?.querySelector('.mobile-master');
-  const mobileSource = mobileVideo?.querySelector('source[data-src]');
-  const motionPoster = story?.querySelector('.motion-poster[data-src]');
   const chapters = [...(story?.querySelectorAll('.story-chapters article') || [])];
   const rails = [...(story?.querySelectorAll('.story-rail i') || [])];
   const header = document.querySelector('[data-header]');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const mobile = window.matchMedia('(max-width: 700px)');
   const images = new Map();
+  const authDrawer = document.querySelector('#racevora-auth-drawer');
+  const authFrame = authDrawer?.querySelector('[data-auth-frame]');
+  const authTitle = authDrawer?.querySelector('[data-auth-title]');
+  const authCopy = authDrawer?.querySelector('[data-auth-copy]');
+  const authTriggers = [...document.querySelectorAll('[data-auth-open]')];
+  let authReturnFocus = null;
   let activeChapter = 0;
-  let desiredFrame = 0;
   let lastFrame = -1;
   let started = false;
-  let loadingQueued = false;
   let raf = 0;
 
-  const frameSrc = (index) => `${ASSET_ROOT}/frames/frame-${String(index).padStart(3, '0')}.webp?v=${ASSET_VERSION}`;
+  function closeAuthDrawer() {
+    if (!authDrawer?.open) return;
+    authDrawer.close();
+  }
+
+  function openAuthDrawer(event) {
+    const trigger = event.currentTarget;
+    if (!(trigger instanceof HTMLAnchorElement) || !(authDrawer instanceof HTMLDialogElement) || typeof authDrawer.showModal !== 'function') return;
+    event.preventDefault();
+    const mode = trigger.dataset.authOpen === 'signup' ? 'signup' : 'signin';
+    const target = new URL(trigger.href, window.location.href);
+    target.searchParams.set('embed', '1');
+    authReturnFocus = trigger;
+    if (authTitle) authTitle.textContent = mode === 'signup' ? 'Account erstellen' : 'Anmelden';
+    if (authCopy) authCopy.textContent = mode === 'signup'
+      ? 'Erstelle deinen Account und starte anschließend direkt mit RaceVora.'
+      : 'Melde dich an, ohne die RaceVora Landingpage zu verlassen.';
+    if (authFrame instanceof HTMLIFrameElement) authFrame.src = target.toString();
+    document.body.classList.add('modal-open');
+    authDrawer.showModal();
+  }
+
+  authTriggers.forEach((trigger) => trigger.addEventListener('click', openAuthDrawer));
+  authDrawer?.querySelector('[data-auth-close]')?.addEventListener('click', closeAuthDrawer);
+  authDrawer?.addEventListener('click', (event) => {
+    if (event.target === authDrawer) closeAuthDrawer();
+  });
+  authDrawer?.addEventListener('close', () => {
+    document.body.classList.remove('modal-open');
+    if (authFrame instanceof HTMLIFrameElement) authFrame.src = 'about:blank';
+    authReturnFocus?.focus?.();
+    authReturnFocus = null;
+  });
+  window.addEventListener('message', (event) => {
+    if (event.origin !== window.location.origin || event.data?.type !== 'racevora:auth-success') return;
+    window.location.assign('/home');
+  });
+
+  const frameSrc = (index) => `${ASSET_ROOT}/frames/frame-${String(index).padStart(3, '0')}.webp`;
 
   function setChapter(index) {
     if (index === activeChapter) return;
@@ -62,83 +98,44 @@
   }
 
   function loadFrame(index) {
-    if (index < 0 || index >= FRAME_COUNT || images.has(index)) return;
+    if (images.has(index)) return;
     const image = new Image();
     image.decoding = 'async';
     image.src = frameSrc(index);
     image.onload = () => {
-      if (index === 0) story?.classList.add('is-ready');
-      if (index === desiredFrame || (lastFrame < 0 && index === 0)) draw(index);
+      if (index === 0) {
+        draw(0);
+        story?.classList.add('is-ready');
+      }
     };
     images.set(index, image);
-  }
-
-  function loadFrameWindow(center, radius = FRAME_WINDOW_RADIUS) {
-    loadFrame(center);
-    for (let gap = 1; gap <= radius; gap += 1) {
-      loadFrame(center - gap);
-      loadFrame(center + gap);
-    }
-  }
-
-  function activateMotionPoster() {
-    if (!motionPoster?.dataset.src) return;
-    motionPoster.src = motionPoster.dataset.src;
-    delete motionPoster.dataset.src;
-  }
-
-  function activateMobileVideo() {
-    if (!mobile.matches || reduceMotion.matches || !mobileVideo || !mobileSource?.dataset.src) return;
-    if (mobileVideo.dataset.poster) {
-      mobileVideo.poster = mobileVideo.dataset.poster;
-      delete mobileVideo.dataset.poster;
-    }
-    mobileSource.src = mobileSource.dataset.src;
-    delete mobileSource.dataset.src;
-    mobileVideo.load();
-    mobileVideo.play().catch(() => {});
   }
 
   function beginLoading() {
     if (started || mobile.matches || reduceMotion.matches) return;
     started = true;
-    loadFrameWindow(0);
-  }
-
-  function queueDesktopLoading() {
-    if (started || loadingQueued || mobile.matches || reduceMotion.matches) return;
-    if (document.readyState === 'complete') {
-      beginLoading();
-      return;
-    }
-    loadingQueued = true;
-    window.addEventListener('load', () => {
-      loadingQueued = false;
-      beginLoading();
-      requestUpdate();
-    }, { once: true });
+    loadFrame(0);
+    let index = 1;
+    const batch = () => {
+      for (let count = 0; count < 6 && index < FRAME_COUNT; count += 1, index += 1) loadFrame(index);
+      if (index < FRAME_COUNT) window.setTimeout(batch, 80);
+    };
+    batch();
   }
 
   function update() {
     raf = 0;
     header?.classList.toggle('is-scrolled', window.scrollY > 48);
     if (!story || reduceMotion.matches) return;
-    const isMobile = mobile.matches;
-    if (isMobile) activateMobileVideo();
     const rect = story.getBoundingClientRect();
     const distance = Math.max(1, story.offsetHeight - window.innerHeight);
     const progress = Math.min(1, Math.max(0, -rect.top / distance));
+    const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
     story.style.setProperty('--story-progress', String(progress));
     setChapter(Math.min(2, Math.floor(progress * 3)));
-    if (isMobile) return;
-    const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
-    desiredFrame = frame;
-    if (started) {
-      loadFrameWindow(frame);
-      if (frame !== lastFrame && !draw(frame)) {
-        for (let gap = 1; gap <= FRAME_WINDOW_RADIUS + 1; gap += 1) {
-          if (draw(Math.max(0, frame - gap)) || draw(Math.min(FRAME_COUNT - 1, frame + gap))) break;
-        }
+    if (frame !== lastFrame && !draw(frame)) {
+      for (let gap = 1; gap <= 4; gap += 1) {
+        if (draw(Math.max(0, frame - gap))) break;
       }
     }
   }
@@ -149,10 +146,8 @@
 
   if (story && canvas) {
     const observer = new IntersectionObserver((entries) => {
-      if (!entries.some((entry) => entry.isIntersecting)) return;
-      if (mobile.matches) activateMobileVideo();
-      else queueDesktopLoading();
-    }, { rootMargin: '50% 0px' });
+      if (entries.some((entry) => entry.isIntersecting)) beginLoading();
+    }, { rootMargin: '100% 0px' });
     observer.observe(story);
   }
 
@@ -160,8 +155,6 @@
   window.addEventListener('resize', () => { lastFrame = -1; requestUpdate(); }, { passive: true });
   reduceMotion.addEventListener?.('change', () => window.location.reload());
   mobile.addEventListener?.('change', () => window.location.reload());
-  if (reduceMotion.matches) activateMotionPoster();
-  else if (mobile.matches) activateMobileVideo();
-  else queueDesktopLoading();
+  beginLoading();
   update();
 })();

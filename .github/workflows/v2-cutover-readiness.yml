@@ -1,0 +1,58 @@
+name: V2 cutover readiness (no deployment)
+
+on:
+  pull_request:
+    paths:
+      - 'v2/**'
+      - 'docs/v2/**'
+      - '.github/workflows/v2-cutover-readiness.yml'
+  workflow_dispatch:
+    inputs:
+      release_commit:
+        description: 'Exact V2 release-candidate commit from the recovery manifest'
+        required: true
+        type: string
+      v1_recovery_commit:
+        description: 'Exact V1 recovery commit from the recovery manifest'
+        required: true
+        type: string
+      confirm_readiness_only:
+        description: 'Run checks only; do not deploy, switch traffic, pause or delete V1'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: v2-cutover-readiness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: v2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: v2/package-lock.json
+      - run: npm ci
+      - name: Validate immutable recovery and release pins
+        env:
+          PHASE29_RELEASE_COMMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.release_commit || '' }}
+          PHASE29_V1_RECOVERY_COMMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.v1_recovery_commit || '' }}
+          PHASE29_READINESS_ONLY: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.confirm_readiness_only) || '' }}
+          PHASE29_MANUAL_CHECK: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
+        run: npm run phase-29-30-gate
+      - name: Verify V2 without production changes
+        run: npm run verify
+      - name: Build Cloudflare Worker without deploying
+        run: npm run deploy -- --dry-run --outdir /tmp/racevora-v2-cutover-readiness
+
