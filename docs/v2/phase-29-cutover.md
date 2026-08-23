@@ -50,4 +50,6 @@ V1 received no write. A 100-entry V2 API log sample contained 99 HTTP 200 respon
 ## Rollback rule
 
 Any core-route 5xx, fatal application error, failed authentication/legal path, `rcc` mismatch, LCP above 2.5 seconds or CLS of at least 0.1 during the initial gate requires immediate route removal and V1 verification. No rollback trigger occurred.
+## Automated production deployment
 
+The Cloudflare Worker `racevora-v2-production` is connected to the `main` branch of `RewitzerTS/RaceControlCenter`. GitHub commits are built from `/v2` with `npm run build:production` and deployed with `npx wrangler deploy --config wrangler.cutover.jsonc`. This preserves the production route overlay while restoring automatic releases after successful repository builds.
