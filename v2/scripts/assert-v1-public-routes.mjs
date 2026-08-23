@@ -33,6 +33,19 @@ if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-calendar-2')) {
   throw new Error('Integrated calendar must cache-bust its updated lifecycle navigation.');
 }
 
+for (const [page, marker] of [
+  ['rennen-detail', '/v1-assets/js/pages/race-detail.js?v=v2-racing-fix-1'],
+  ['grid', '/v1-assets/js/pages/regeln-faq.js?v=v2-racing-fix-1'],
+  ['regeln-faq', '/v1-assets/js/pages/regeln-faq.js?v=v2-racing-fix-1'],
+  ['ergebnisse', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1'],
+  ['fahrer-wm', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1'],
+]) {
+  const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
+  if (!source.includes(marker) || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-1')) {
+    throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
+  }
+}
+
 const manifest = JSON.parse(await readFile(resolve(distRoot, 'manifest.json'), 'utf8'));
 if (manifest.start_url !== '/home' || manifest.scope !== '/' || !manifest.icons?.every((icon) => String(icon.src).startsWith('/v1-assets/'))) {
   throw new Error('V2 public manifest does not point to the restored RaceVora public experience.');
@@ -165,4 +178,3 @@ if (!aiQuotaMigration.includes('consume_ai_analysis_quota') || !aiQuotaMigration
 }
 
 console.log(`V1 public route contract passed (${requiredPages.length} core pages, ${trackMaps.length} track maps, isolated V2 backend).`);
-
