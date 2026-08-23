@@ -6,6 +6,7 @@ import { BetaAccessPage } from '../auth/BetaAccessPage';
 import { AuthLinkPage } from '../auth/AuthLinkPage';
 import type { RuntimeEnvironment } from '../config/environment';
 import { DriverHomePage } from '../driver/DriverHomePage';
+import { OnboardingPage } from '../driver/OnboardingPage';
 import { RacingPage } from '../driver/RacingPage';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import {
@@ -196,7 +197,12 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const canCreateGraphics = canAdmin && features.socialGraphics;
   const accessLoading = authLoading || roleLoading;
   const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
+  const onboardingRequired = user?.user_metadata?.onboarding_complete === false;
   const closeNavigation = () => setNavigationOpen(false);
+
+  if (!authLoading && onboardingRequired && location.pathname !== '/onboarding') {
+    return <Navigate replace to="/onboarding" />;
+  }
 
   return (
     <div className={embeddedAccess ? 'app-shell app-shell--embedded-access' : 'app-shell'}>
@@ -278,6 +284,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/career/*" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
           <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
           <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/auth/confirm" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="confirm" />} />

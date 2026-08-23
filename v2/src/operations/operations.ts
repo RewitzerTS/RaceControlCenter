@@ -39,7 +39,18 @@ export type LeagueMember = {
   driver_id: string | null;
   driver_name: string | null;
 };
-export type MemberAdminWorkspace = { league: OwnerLeague; members: LeagueMember[] };
+export type LeagueJoinRequest = {
+  id: string;
+  user_id: string;
+  email: string;
+  display_name: string;
+  gamertag: string;
+  real_name: string | null;
+  nationality_code: string | null;
+  requested_at: string;
+  status: 'pending';
+};
+export type MemberAdminWorkspace = { league: OwnerLeague; members: LeagueMember[]; join_requests: LeagueJoinRequest[] };
 export type LeagueDriver = {
   id: string;
   display_name: string;
@@ -146,6 +157,15 @@ export async function setLeagueMemberRole(client: LeagueSupabaseClient, userId: 
 
 export async function removeLeagueMember(client: LeagueSupabaseClient, userId: string) {
   const response = await client.rpc('remove_league_member', { p_user_id: userId });
+  if (response.error) throw response.error;
+}
+
+export async function reviewLeagueJoinRequest(client: LeagueSupabaseClient, requestId: string, decision: 'approved' | 'rejected') {
+  const response = await client.rpc('review_league_join_request', {
+    p_request_id: requestId,
+    p_decision: decision,
+    p_admin_note: '',
+  });
   if (response.error) throw response.error;
 }
 
@@ -283,3 +303,4 @@ export async function updateLeagueBranding(
     themePreset: Number(firstText(settings, 'theme_id') || input.themePreset),
   };
 }
+

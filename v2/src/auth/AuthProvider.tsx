@@ -14,6 +14,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
   updateThemePreset: (themePreset: number) => Promise<void>;
+  completeOnboarding: (profile: { displayName: string; gamertag: string; realName: string; nationalityCode: string }) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
 }
 
@@ -88,6 +89,7 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
         options: {
           ...captchaOptions(captchaToken),
           emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          data: { onboarding_complete: false },
         },
       });
       if (signUpError) throw signUpError;
@@ -102,16 +104,31 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
       if (signOutError) throw signOutError;
     },
     updateDisplayName: async (displayName) => {
-      const { error: updateError } = await client.auth.updateUser({
+      const { data, error: updateError } = await client.auth.updateUser({
         data: { display_name: displayName },
       });
       if (updateError) throw updateError;
+      setSession((current) => current && data.user ? { ...current, user: data.user } : current);
     },
     updateThemePreset: async (themePreset) => {
-      const { error: updateError } = await client.auth.updateUser({
+      const { data, error: updateError } = await client.auth.updateUser({
         data: { theme_preset: themePreset },
       });
       if (updateError) throw updateError;
+      setSession((current) => current && data.user ? { ...current, user: data.user } : current);
+    },
+    completeOnboarding: async (profile) => {
+      const { data, error: updateError } = await client.auth.updateUser({
+        data: {
+          display_name: profile.displayName,
+          gamertag: profile.gamertag,
+          real_name: profile.realName || null,
+          nationality_code: profile.nationalityCode || null,
+          onboarding_complete: true,
+        },
+      });
+      if (updateError) throw updateError;
+      setSession((current) => current && data.user ? { ...current, user: data.user } : current);
     },
     updatePassword: async (password) => {
       const { error: updateError } = await client.auth.updateUser({ password });

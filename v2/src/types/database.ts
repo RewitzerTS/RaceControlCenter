@@ -2541,6 +2541,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_driver_onboarding: {
+        Args: {
+          p_display_name: string
+          p_gamertag: string
+          p_league_identifier?: string
+          p_nationality_code?: string
+          p_real_name?: string
+        }
+        Returns: Json
+      }
       create_league: {
         Args: { p_is_public?: boolean; p_name: string; p_slug: string }
         Returns: Json
@@ -2645,6 +2655,10 @@ export type Database = {
         Returns: Json
       }
       remove_league_member: { Args: { p_user_id: string }; Returns: Json }
+      review_league_join_request: {
+        Args: { p_admin_note?: string; p_decision: string; p_request_id: string }
+        Returns: Json
+      }
       requested_league_slug: { Args: never; Returns: string }
       set_league_member_role: {
         Args: { p_role: string; p_user_id: string }

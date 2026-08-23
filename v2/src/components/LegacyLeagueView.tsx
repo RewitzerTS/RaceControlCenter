@@ -50,7 +50,7 @@ function applyPersonalThemeToFrame(frameDocument: Document): void {
 
   for (const [source, destination] of Object.entries(LEGACY_THEME_VARIABLES)) {
     const value = parentStyle.getPropertyValue(source).trim();
-    if (value) frameRoot.style.setProperty(destination, value);
+    if (value) frameRoot.style.setProperty(`--racevora-user-${destination.slice(2)}`, value);
   }
 
   const background = parentStyle.getPropertyValue('--brand-background').trim();
@@ -58,10 +58,10 @@ function applyPersonalThemeToFrame(frameDocument: Document): void {
   const secondary = parentStyle.getPropertyValue('--brand-secondary').trim();
   const text = parentStyle.getPropertyValue('--brand-text').trim();
   const accent2 = parentStyle.getPropertyValue('--brand-accent-2').trim();
-  if (background) frameRoot.style.setProperty('--bg-deep', `color-mix(in srgb, ${background} 72%, #000000)`);
-  if (surface) frameRoot.style.setProperty('--surface-2', `color-mix(in srgb, ${surface} 78%, ${secondary || '#ffffff'})`);
-  if (text) frameRoot.style.setProperty('--text-muted', `color-mix(in srgb, ${text} 72%, ${surface || background || '#000000'})`);
-  if (accent2) frameRoot.style.setProperty('--accent-dark', accent2);
+  if (background) frameRoot.style.setProperty('--racevora-user-bg-deep', `color-mix(in srgb, ${background} 72%, #000000)`);
+  if (surface) frameRoot.style.setProperty('--racevora-user-surface-2', `color-mix(in srgb, ${surface} 78%, ${secondary || '#ffffff'})`);
+  if (text) frameRoot.style.setProperty('--racevora-user-text-muted', `color-mix(in srgb, ${text} 72%, ${surface || background || '#000000'})`);
+  if (accent2) frameRoot.style.setProperty('--racevora-user-accent-dark', accent2);
 
   frameRoot.dataset.userTheme = parentRoot.dataset.leagueTheme ?? '0';
   frameRoot.dataset.leagueBrandingApplied = 'true';
@@ -98,6 +98,20 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     const style = document.createElement('style');
     style.dataset.racevoraIntegrated = 'true';
     style.textContent = `
+      html.racevora-integrated-view {
+        --bg-main: var(--racevora-user-bg-main) !important;
+        --bg-deep: var(--racevora-user-bg-deep) !important;
+        --surface: var(--racevora-user-surface) !important;
+        --surface-2: var(--racevora-user-surface-2) !important;
+        --primary: var(--racevora-user-primary) !important;
+        --secondary: var(--racevora-user-secondary) !important;
+        --accent: var(--racevora-user-accent) !important;
+        --accent-2: var(--racevora-user-accent-2) !important;
+        --accent-dark: var(--racevora-user-accent-dark) !important;
+        --text: var(--racevora-user-text) !important;
+        --text-muted: var(--racevora-user-text-muted) !important;
+        --text-on-primary: var(--racevora-user-text-on-primary) !important;
+      }
       html, body { min-height: 0 !important; background: transparent !important; }
       body { padding-top: 0 !important; }
       body > main { margin-top: 0 !important; padding-top: 0 !important; }
@@ -148,3 +162,4 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     </div>
   );
 }
+
