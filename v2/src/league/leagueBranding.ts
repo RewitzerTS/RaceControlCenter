@@ -54,9 +54,22 @@ function color(settings: Record<string, unknown>, fallback: string, ...keys: str
   return COLOR_PATTERN.test(candidate) ? candidate.toUpperCase() : fallback;
 }
 
+function themePresetId(settings: Record<string, unknown>): number {
+  for (const key of ['theme_id', 'theme_preset']) {
+    const value = settings[key];
+    const candidate = typeof value === 'number'
+      ? value
+      : typeof value === 'string' && value.trim() !== ''
+        ? Number(value)
+        : Number.NaN;
+    if (Number.isInteger(candidate) && THEME_PRESETS.some((theme) => theme.id === candidate)) return candidate;
+  }
+  return DEFAULT_THEME.id;
+}
+
 export function resolveTheme(settingsValue: unknown): ThemePreset {
   const settings = record(settingsValue);
-  const themeId = Number(firstText(settings, 'theme_id') || settings.theme_preset || DEFAULT_THEME.id);
+  const themeId = themePresetId(settings);
   const preset = THEME_PRESETS.find((item) => item.id === themeId) ?? DEFAULT_THEME;
   return {
     ...preset,
