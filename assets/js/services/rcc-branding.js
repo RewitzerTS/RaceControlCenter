@@ -237,7 +237,11 @@
       html[data-league-branding-applied="true"] .brand-subtitle{color:var(--accent)!important}
       html[data-league-branding-applied="true"] .site-scroll-progress{background:linear-gradient(90deg,var(--primary),var(--accent),var(--accent-2,var(--secondary)))!important;box-shadow:0 0 22px color-mix(in srgb,var(--accent) 62%,transparent)!important}
       html[data-league-branding-applied="true"] .f1-loader-overlay{background:color-mix(in srgb,var(--bg-main) 94%,#000)!important;color:var(--text)!important}
+      html[data-league-branding-applied="true"] body .f1-loader-lights span.is-red,
+      html[data-user-theme] body .f1-loader-lights span.is-red,
       html .f1-loader-lights span.is-red{background:#ff2b2b!important;border-color:rgba(255,214,214,.88)!important;box-shadow:0 0 16px rgba(255,50,50,.9),inset 0 0 10px rgba(255,255,255,.24)!important}
+      html[data-league-branding-applied="true"] body .f1-loader-lights span.is-green,
+      html[data-user-theme] body .f1-loader-lights span.is-green,
       html .f1-loader-lights span.is-green{background:#1fef75!important;border-color:rgba(218,255,232,.9)!important;box-shadow:0 0 16px rgba(46,255,131,.92),inset 0 0 10px rgba(255,255,255,.24)!important}
       html[data-league-branding-applied="true"] .panel,
       html[data-league-branding-applied="true"] .table-card,
