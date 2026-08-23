@@ -7,7 +7,7 @@ import { loadAdminSnapshot, type AdminSnapshot } from './operations';
 
 const ADMIN_AREAS: Array<{ title: MessageKey; items: Array<{ key: MessageKey; to: string }> }> = [
   { title: 'admin.league', items: [{ key: 'admin.branding', to: '/admin/branding' }, { key: 'admin.users', to: '/admin/users' }, { key: 'admin.drivers', to: '/admin/drivers' }, { key: 'admin.teams', to: '/admin/teams' }, { key: 'admin.rules', to: '/admin/rules' }] },
-  { title: 'admin.raceOps', items: [{ key: 'admin.races', to: '/admin/races' }, { key: 'admin.results', to: '/admin/results' }, { key: 'admin.import', to: '/admin/results/import' }, { key: 'admin.standings', to: '/admin/standings' }, { key: 'admin.cases', to: '/stewarding' }] },
+  { title: 'admin.raceOps', items: [{ key: 'admin.seasonSetup', to: '/admin/season/setup' }, { key: 'admin.races', to: '/admin/races' }, { key: 'admin.results', to: '/admin/results' }, { key: 'admin.import', to: '/admin/results/import' }, { key: 'admin.standings', to: '/admin/standings' }, { key: 'admin.cases', to: '/stewarding' }] },
   { title: 'admin.content', items: [{ key: 'admin.graphics', to: '/admin/graphics' }, { key: 'admin.audit', to: '/admin/audit' }] },
 ];
 
@@ -55,3 +55,4 @@ export function AdminWorkspacePage() {
     </div>
   </main>;
 }
+

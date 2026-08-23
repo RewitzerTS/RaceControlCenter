@@ -125,6 +125,7 @@ const de = {
   "admin.preview": "Als Nutzer ansehen",
   "admin.raceOps": "Rennbetrieb",
   "admin.races": "Rennen",
+  "admin.seasonSetup": "Saison einrichten",
   "admin.results": "Ergebnisse",
   "admin.import": "Import",
   "admin.standings": "Standings",
@@ -680,6 +681,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "admin.preview": "View as user",
   "admin.raceOps": "Race operations",
   "admin.races": "Races",
+  "admin.seasonSetup": "Set up season",
   "admin.results": "Results",
   "admin.import": "Import",
   "admin.standings": "Standings",
@@ -1231,6 +1233,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "admin.preview": "Ver como usuario",
   "admin.raceOps": "Operaciones de carrera",
   "admin.races": "Carreras",
+  "admin.seasonSetup": "Configurar temporada",
   "admin.results": "Resultados",
   "admin.import": "Importación",
   "admin.standings": "Clasificación",
@@ -1782,6 +1785,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "admin.preview": "Voir comme utilisateur",
   "admin.raceOps": "Opérations de course",
   "admin.races": "Courses",
+  "admin.seasonSetup": "Configurer la saison",
   "admin.results": "Résultats",
   "admin.import": "Import",
   "admin.standings": "Classements",
@@ -2210,4 +2214,5 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "languageName.fr": "Français",
 },
 };
+
 

@@ -2062,6 +2062,54 @@ body {
 .onboarding-actions--split { justify-content: space-between; }
 .onboarding-actions .text-action { cursor: pointer; }
 
+.season-setup-card { width: min(1040px, 100%); }
+.season-setup-card .onboarding-header h1 { max-width: 17ch; }
+.season-setup-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.season-setup-fields select {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 1rem;
+  border: 1px solid var(--control-border);
+  border-radius: 14px;
+  color: var(--brand-text);
+  background: var(--control-background);
+  font: inherit;
+}
+.season-active-note, .season-start-note {
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 30%, var(--line));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--brand-accent) 8%, transparent);
+}
+.season-active-note strong, .season-start-note strong { display: block; margin-bottom: 0.3rem; }
+.season-active-note p, .season-start-note p { margin: 0; }
+.season-grid-summary { display: flex; align-items: center; gap: 0.75rem; }
+.season-grid-summary > * { padding: 0.45rem 0.75rem; border: 1px solid var(--line); border-radius: 999px; }
+.season-grid-summary strong { color: var(--brand-primary); }
+.season-roster-list { display: grid; gap: 0.75rem; margin: 0; padding: 0; list-style: none; }
+.season-roster-list > li {
+  display: grid;
+  grid-template-columns: 58px minmax(190px, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--brand-background) 58%, transparent);
+}
+.season-roster-list > li.is-player { border-color: color-mix(in srgb, var(--brand-primary) 50%, var(--line)); }
+.season-seat-number { display: grid; place-items: center; min-height: 48px; border-radius: 14px; color: var(--brand-on-primary); background: var(--brand-primary); font-weight: 900; }
+.season-seat-copy { display: grid; gap: 0.25rem; min-width: 0; }
+.season-seat-copy span { color: var(--muted); font-size: 0.82rem; }
+.season-player-toggle { display: flex !important; grid-auto-flow: column; align-items: center !important; gap: 0.6rem !important; min-height: 44px; padding: 0.6rem 0.8rem; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.season-player-toggle input { width: 18px !important; min-height: 18px !important; }
+.season-player-toggle span { text-transform: none !important; letter-spacing: 0 !important; white-space: nowrap; }
+.season-player-fields { grid-column: 2 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; padding-top: 0.25rem; }
+.season-review-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin: 0; }
+.season-review-facts div { padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--brand-background) 58%, transparent); }
+.season-review-facts dt { margin-bottom: 0.35rem; color: var(--muted); font-size: 0.72rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
+.season-review-facts dd { margin: 0; color: var(--brand-text); font-weight: 800; }
+
 .join-request-list { display: grid; gap: 0.75rem; }
 .join-request-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--brand-background) 58%, transparent); }
 .join-request-person { display: flex; align-items: center; gap: 0.9rem; min-width: 0; }
@@ -2096,6 +2144,9 @@ body {
   .onboarding-header { display: grid; }
   .onboarding-progress { grid-row: 1; justify-self: end; }
   .onboarding-fields { grid-template-columns: 1fr; }
+  .season-roster-list > li { grid-template-columns: 52px minmax(0, 1fr); }
+  .season-player-toggle { grid-column: 1 / -1; justify-self: stretch; justify-content: center; }
+  .season-player-fields { grid-column: 1 / -1; }
   .onboarding-actions, .onboarding-actions--split, .join-request-card, .join-request-actions { display: grid; width: 100%; }
   .onboarding-actions .primary-action, .onboarding-actions .text-action, .join-request-actions button { width: 100%; }
 }
@@ -2822,6 +2873,9 @@ img, svg, video, canvas { max-width: 100%; }
   .onboarding-steps { padding-inline: 16px; }
   .onboarding-steps li { min-height: 60px; gap: 0.45rem; font-size: 0.72rem; }
   .onboarding-actions .primary-action, .onboarding-actions .text-action { min-height: 48px; }
+  .season-setup-steps li { align-items: center; justify-content: center; gap: 0.35rem; font-size: 0.66rem; }
+  .season-roster-list > li { padding: 12px; gap: 0.75rem; border-radius: 14px; }
+  .season-player-fields, .season-review-facts { grid-template-columns: 1fr; }
   .profile-facts div { padding-block: 0.75rem; }
   .admin-driver-metrics, .admin-race-metrics, .operations-metrics,
   .vora-racing-line { grid-template-columns: 1fr; }
@@ -3053,4 +3107,5 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .achievement-list li { align-items: flex-start; }
   .challenge-countdown { align-items: flex-start; flex-direction: column; gap: 0.3rem; }
 }
+
 

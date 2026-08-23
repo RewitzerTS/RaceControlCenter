@@ -2632,6 +2632,7 @@ export type Database = {
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_member_admin_workspace: { Args: never; Returns: Json }
       get_league_race_admin_workspace: { Args: never; Returns: Json }
+      get_season_setup_workspace: { Args: never; Returns: Json }
       get_league_configuration_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
       get_social_graphics_workspace: { Args: never; Returns: Json }
@@ -2685,6 +2686,17 @@ export type Database = {
       publish_league_result_draft: { Args: { p_result_version_id: string }; Returns: Json }
       set_platform_feature_flag: {
         Args: { p_enabled: boolean; p_flag_key: string }
+        Returns: Json
+      }
+      start_league_season: {
+        Args: {
+          p_assignments?: Json
+          p_end_date?: string
+          p_game_key: string
+          p_name: string
+          p_slug: string
+          p_start_date?: string
+        }
         Returns: Json
       }
       submit_steward_appeal: {
@@ -2848,3 +2860,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

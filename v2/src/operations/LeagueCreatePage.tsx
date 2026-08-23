@@ -24,7 +24,7 @@ export function LeagueCreatePage() {
     try {
       const league = await createLeague(client, { name: name.trim(), slug: slug.trim(), isPublic });
       setLeagueSlug(league.slug);
-      navigate(`/admin/branding?league=${encodeURIComponent(league.slug)}`, { replace: true });
+      navigate(`/admin/season/setup?league=${encodeURIComponent(league.slug)}`, { replace: true });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Die Liga konnte nicht erstellt werden.');
       setSubmitting(false);
@@ -42,3 +42,4 @@ export function LeagueCreatePage() {
     </form>
   </main>;
 }
+
