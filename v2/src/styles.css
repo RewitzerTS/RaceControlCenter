@@ -705,10 +705,39 @@ h2 {
 .operations-metrics > div:last-child { border-right: 0; }
 .operations-metrics strong { font-size: 1.8rem; font-variant-numeric: tabular-nums; }
 .operations-metrics span { color: var(--muted); font-size: 0.72rem; }
+.admin-quick-actions {
+  display: grid;
+  gap: 0.9rem;
+  margin: 2.5rem 0;
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--brand-surface) 88%, transparent);
+}
+.admin-quick-actions h2 { margin: 0; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; }
+.admin-quick-actions > div { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+.admin-quick-actions a { min-height: 44px; display: inline-flex; align-items: center; gap: 0.7rem; padding: 0.65rem 1rem; text-decoration: none; }
 .operations-layout { display: grid; grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.7fr); border: 1px solid var(--line); }
 .operations-menu { padding: 1rem; border-right: 1px solid var(--line); background: rgba(2, 15, 28, 0.45); }
-.operations-menu section + section { margin-top: 1.25rem; }
-.operations-menu h2 { margin: 0 0 0.35rem; color: var(--muted); font-size: 0.7rem; }
+.operations-menu details + details { margin-top: 0.65rem; }
+.operations-menu summary {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0.65rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  list-style: none;
+  text-transform: uppercase;
+}
+.operations-menu summary::-webkit-details-marker { display: none; }
+.operations-menu summary > span { transition: transform 160ms ease; }
+.operations-menu details[open] summary > span { transform: rotate(180deg); }
+.operations-menu details > div { padding-bottom: 0.45rem; }
 .operations-menu button,
 .operations-menu a { width: 100%; min-height: 44px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.55rem 0.65rem; border: 0; background: transparent; color: var(--text); text-align: left; text-decoration: none; cursor: pointer; }
 .operations-menu button:hover, .operations-menu button:focus-visible,
@@ -816,6 +845,7 @@ h2 {
 .audit-list li div { display: grid; gap: 0.2rem; }
 .audit-list span, .audit-list time { color: var(--muted); font-size: 0.72rem; }
 .branding-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 1.5rem; }
+.branding-layout--identity { grid-template-columns: minmax(0, 760px); }
 .branding-preview { position: sticky; top: 1rem; display: grid; place-items: center; min-height: 360px; margin-top: 2rem; padding: 2rem; border: 1px solid var(--preview-primary); background: radial-gradient(circle at top, color-mix(in srgb, var(--preview-secondary) 26%, transparent), transparent 60%), #071626; text-align: center; }
 .branding-preview p { justify-self: start; align-self: start; margin: 0; color: var(--muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; }
 .branding-preview img { width: 96px; height: 96px; object-fit: contain; }
@@ -1771,6 +1801,44 @@ body {
 .profile-form .primary-action { justify-self: start; cursor: pointer; }
 .form-success { color: var(--brand-accent); }
 .form-error { color: #ff8b8d; }
+.profile-personalization,
+.profile-theme-preview,
+.profile-create-league {
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--brand-surface);
+}
+.profile-personalization h2,
+.profile-theme-preview h2,
+.profile-create-league h2 { margin: 0.3rem 0 0.55rem; }
+.profile-personalization p,
+.profile-create-league p { color: var(--muted); }
+.profile-theme-picker { margin-top: 1.2rem; }
+.profile-theme-preview {
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
+  border-color: color-mix(in srgb, var(--preview-primary) 65%, var(--line));
+  background: radial-gradient(circle at top, color-mix(in srgb, var(--preview-secondary) 52%, transparent), transparent 68%), var(--brand-surface);
+  text-align: center;
+}
+.profile-theme-preview .preview-mark { border-color: var(--preview-primary); color: var(--preview-primary); }
+.profile-preview-button {
+  min-height: 42px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  background: var(--preview-primary);
+  color: var(--brand-background);
+  font-weight: 850;
+}
+.profile-create-league { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.profile-create-league p { margin-bottom: 0; }
+.profile-create-league .primary-action { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 0.65rem; text-decoration: none; }
 
 @media (max-width: 980px) {
   .racing-layout,
@@ -1913,6 +1981,13 @@ p { color: var(--muted); }
   background: rgba(255, 255, 255, 0.045);
 }
 .main-navigation .language-control select { min-width: 104px; }
+.main-navigation .language-control--compact select {
+  width: 52px;
+  min-width: 52px;
+  padding-inline: 0.65rem 1.35rem;
+  font-size: 1.08rem;
+  text-align: center;
+}
 .main-navigation .session-state { padding-inline: 0.85rem; }
 .main-navigation .account-action { width: 46px; padding: 0; }
 .main-navigation .account-action span { display: none; }
@@ -2367,6 +2442,17 @@ p { color: var(--muted); }
   margin-top: 5px;
   font-size: 1.5rem;
 }
+.achievement-latest {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.achievement-latest span,
+.challenge-list li small { color: var(--muted); font-size: 0.68rem; }
+.achievement-latest strong { font-size: 0.92rem; }
+.challenge-list li small { display: block; margin-top: 0.25rem; }
 
 @media (max-width: 700px) {
   .career-page :is(.hero-main, .hero-side, .dashboard-card) { padding: 16px; }
@@ -2379,6 +2465,8 @@ p { color: var(--muted); }
   .career-page .challenge-progress { width: 100%; justify-items: stretch; }
   .career-page .challenge-progress > span { text-align: right; }
   .career-page .challenge-progress i { width: 100%; }
+  .profile-create-league { align-items: stretch; flex-direction: column; }
+  .profile-create-league .primary-action { justify-content: center; }
 }
 
 @media (prefers-reduced-motion: reduce) {

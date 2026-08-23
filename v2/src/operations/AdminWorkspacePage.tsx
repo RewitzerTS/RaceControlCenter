@@ -16,7 +16,7 @@ const ADMIN_AREAS: Array<{ title: MessageKey; items: Array<{ key: MessageKey; to
 export function AdminWorkspacePage() {
   const { client } = useLeague();
   const { role } = useRole();
-  const { formatDate, formatNumber, t } = useI18n();
+  const { formatDate, t } = useI18n();
   const [snapshot, setSnapshot] = useState<AdminSnapshot | null>(null);
   const [error, setError] = useState(false);
   const allowed = role === 'league_admin' || role === 'platform_owner';
@@ -32,18 +32,12 @@ export function AdminWorkspacePage() {
   if (error) return <main className="driver-state" id="main-content"><span className="state-mark">!</span><div><h1>{t('admin.error')}</h1></div></main>;
   if (!snapshot) return <main className="driver-state" id="main-content"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>;
 
-  const metrics: Array<[MessageKey, number]> = [
-    ['admin.races', snapshot.counts.races ?? 0], ['admin.drivers', snapshot.counts.drivers ?? 0],
-    ['admin.users', snapshot.counts.members ?? 0], ['admin.openCases', snapshot.counts.open_steward_cases ?? 0],
-    ['admin.pendingJobs', snapshot.counts.pending_jobs], ['admin.failedJobs', snapshot.counts.failed_jobs],
-  ];
-
   return <main className="operations-page" id="main-content">
     {role === 'platform_owner' && <div className="owner-mode" role="status">{t('owner.mode')}</div>}
     <header className="operations-header"><div><p className="section-label">{t('admin.eyebrow')}</p><h1>{snapshot.league.name}</h1><p>{t('admin.copy')}</p></div><NavLink className="text-link" to="/home">{t('admin.exit')}<span aria-hidden="true">→</span></NavLink></header>
-    <section className="operations-metrics" aria-label={t('overview')}>{metrics.map(([key, value]) => <div key={key}><strong>{formatNumber(value)}</strong><span>{t(key)}</span></div>)}</section>
+    <section className="admin-quick-actions" aria-labelledby="admin-quick-actions-title"><h2 id="admin-quick-actions-title">{t('admin.quickActions')}</h2><div><NavLink className="primary-action" to="/admin/results/import">{t('admin.quickImport')}<span aria-hidden="true">→</span></NavLink><NavLink className="text-link" to="/stewarding">{t('admin.quickSteward')}<span aria-hidden="true">→</span></NavLink><NavLink className="text-link" to="/admin/races">{t('admin.quickReschedule')}<span aria-hidden="true">→</span></NavLink></div></section>
     <div className="operations-layout">
-      <nav className="operations-menu" aria-label={t('admin.navigation')}>{ADMIN_AREAS.map((area) => <section key={area.title}><h2>{t(area.title)}</h2>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}<span aria-hidden="true">→</span></NavLink>)}</section>)}</nav>
+      <nav className="operations-menu" aria-label={t('admin.navigation')}>{ADMIN_AREAS.map((area, index) => <details key={area.title} open={index === 0}><summary>{t(area.title)}<span aria-hidden="true">⌄</span></summary><div>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}<span aria-hidden="true">→</span></NavLink>)}</div></details>)}</nav>
       <section className="operations-feed"><h2>{t('admin.recentAudit')}</h2>{snapshot.recent_audit.length ? <ol>{snapshot.recent_audit.map((item) => <li key={item.id}><div><strong>{item.action}</strong><span>{item.entity_type}</span></div><time dateTime={item.occurred_at}>{formatDate(item.occurred_at)}</time></li>)}</ol> : <p className="empty-copy">{t('admin.noAudit')}</p>}</section>
     </div>
   </main>;

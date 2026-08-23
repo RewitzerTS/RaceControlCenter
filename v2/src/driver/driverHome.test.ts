@@ -5,6 +5,7 @@ const emptySnapshot: DriverHomeSnapshot = {
   achievementCount: 0,
   career: null,
   challenges: [],
+  latestAchievement: null,
   nextRace: null,
   progression: null,
   wallet: null,

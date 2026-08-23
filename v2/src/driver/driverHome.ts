@@ -7,7 +7,7 @@ type Progression = Database['public']['Tables']['driver_progression']['Row'];
 type Wallet = Database['public']['Tables']['driver_wallets']['Row'];
 type ChallengeDefinition = Pick<
   Database['public']['Tables']['challenge_definitions']['Row'],
-  'code' | 'metric' | 'reward_vc' | 'sort_order' | 'target_value'
+  'active_until' | 'code' | 'metric' | 'reward_vc' | 'sort_order' | 'target_value'
 >;
 type ChallengeProjection = Pick<
   Database['public']['Tables']['driver_challenges']['Row'],
@@ -19,6 +19,7 @@ type UpcomingRace = Pick<
 >;
 
 export interface DriverChallenge {
+  activeUntil: string | null;
   code: string;
   metric: string;
   progress: number;
@@ -29,6 +30,7 @@ export interface DriverChallenge {
 
 export interface DriverHomeSnapshot {
   achievementCount: number;
+  latestAchievement: string | null;
   career: CareerStats | null;
   challenges: DriverChallenge[];
   nextRace: UpcomingRace | null;
@@ -54,6 +56,7 @@ export function levelProgress(progression: Progression | null): number {
 
 const EMPTY_SNAPSHOT: DriverHomeSnapshot = {
   achievementCount: 0,
+  latestAchievement: null,
   career: null,
   challenges: [],
   nextRace: null,
@@ -80,12 +83,13 @@ async function loadSnapshot(
     client.from('driver_wallets').select('*').eq('driver_identity_id', driverIdentityId).maybeSingle(),
     client
       .from('driver_achievements')
-      .select('achievement_code', { count: 'exact', head: true })
+      .select('achievement_code, unlocked_at', { count: 'exact' })
       .eq('driver_identity_id', driverIdentityId)
-      .eq('status', 'unlocked'),
+      .eq('status', 'unlocked')
+      .order('unlocked_at', { ascending: false, nullsFirst: false }),
     client
       .from('challenge_definitions')
-      .select('code, metric, reward_vc, sort_order, target_value')
+      .select('active_until, code, metric, reward_vc, sort_order, target_value')
       .eq('is_active', true)
       .lte('active_from', new Date().toISOString())
       .order('sort_order'),
@@ -120,6 +124,7 @@ async function loadSnapshot(
   const challenges = ((challengeDefinitions.data ?? []) as ChallengeDefinition[]).map((definition) => {
     const current = progressByCode.get(definition.code);
     return {
+      activeUntil: definition.active_until,
       code: definition.code,
       metric: definition.metric,
       progress: current?.progress ?? 0,
@@ -131,6 +136,7 @@ async function loadSnapshot(
 
   return {
     achievementCount: achievements.count ?? 0,
+    latestAchievement: achievements.data?.[0]?.achievement_code ?? null,
     career: career.data,
     challenges,
     nextRace: nextRace.data,

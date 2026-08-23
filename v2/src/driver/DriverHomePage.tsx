@@ -6,6 +6,13 @@ import { useLeague } from '../league/LeagueProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { levelProgress, selectDriverHero, useDriverHome } from './driverHome';
 
+function formatAchievementCode(code: string | null): string {
+  if (!code) return '';
+  return code
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase());
+}
+
 function DriverState({
   action,
   copy,
@@ -115,7 +122,6 @@ export function DriverHomePage() {
         <article className="hero-main">
           <div className="hero-topline">
             <p className="hero-kicker">{hero.kicker}</p>
-            <span className="live-badge">{t('home.racingNow')}</span>
           </div>
           <h1 id="driver-hero-title">{t('home.greeting', { name: displayName })}</h1>
           <p className="hero-subcopy">{hero.title} {hero.copy}</p>
@@ -138,7 +144,6 @@ export function DriverHomePage() {
         <aside className="hero-side" aria-labelledby="career-numbers-title">
           <div className="section-heading">
             <h2 id="career-numbers-title">{t('home.careerStats')}</h2>
-            <NavLink className="btn-secondary-ghost text-link" to="/career">{t('home.openCareer')}</NavLink>
           </div>
           <div className="career-number-grid">
             {[
@@ -189,6 +194,7 @@ export function DriverHomePage() {
           <h2 id="achievements-title">{t('home.achievements')}</h2>
           <strong>{formatNumber(snapshot.achievementCount)}</strong>
           <p>{plural('home.achievementCount', snapshot.achievementCount)}</p>
+          <p className="achievement-latest"><span>{t('home.latestAchievement')}</span><strong>{snapshot.latestAchievement ? formatAchievementCode(snapshot.latestAchievement) : t('home.noLatestAchievement')}</strong></p>
           <NavLink className="btn-secondary-ghost text-link" to="/career">{t('home.openCareer')}<span aria-hidden="true">→</span></NavLink>
         </article>
 
@@ -209,7 +215,7 @@ export function DriverHomePage() {
                 const metricKey = ('metric.' + challenge.metric) as MessageKey;
                 return (
                   <li key={challenge.code}>
-                    <div><strong>{t(metricKey)}</strong><span>{t('home.challengeReward', { reward: formatNumber(challenge.rewardVc) })}</span></div>
+                    <div><strong>{t(metricKey)}</strong><span>{t('home.challengeReward', { reward: formatNumber(challenge.rewardVc) })}</span><small>{challenge.activeUntil ? t('home.challengeUntil', { date: formatDate(challenge.activeUntil) }) : t('home.challengeOngoing')}</small></div>
                     <div className="challenge-progress"><span>{formatNumber(challenge.progress)} / {formatNumber(challenge.target)}</span><i aria-hidden="true"><b style={{ width: String(challengeProgress) + '%' }} /></i></div>
                   </li>
                 );

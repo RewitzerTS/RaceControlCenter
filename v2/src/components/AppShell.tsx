@@ -38,6 +38,7 @@ const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').t
 const DemoE2EPage = lazy(() => import('../demo/DemoE2EPage').then((module) => ({ default: module.DemoE2EPage })));
 
 type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
+const LANGUAGE_FLAGS: Record<Language, string> = { de: '🇩🇪', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷' };
 
 export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   icon: IconName;
@@ -111,7 +112,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const { branding, leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
-  const { loading: authLoading, signOut, user } = useAuth();
+  const { loading: authLoading, user } = useAuth();
   const displayBranding = shouldUseStandardRaceVoraBranding({
     authenticated: Boolean(user),
     authLoading,
@@ -163,20 +164,15 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <div className="header-tools">
             {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
-            <label className="language-control" htmlFor="language-selector">
-              <span>{t('language')}</span>
-              <select id="language-selector" name="language" value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
+            <label className="language-control language-control--compact" htmlFor="language-selector">
+              <span className="sr-only">{t('language')}</span>
+              <select aria-label={t('language')} id="language-selector" name="language" title={t(('languageName.' + language) as MessageKey)} value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
                 {SUPPORTED_LANGUAGES.map((item) => (
-                  <option key={item} value={item}>{t(('languageName.' + item) as MessageKey)}</option>
+                  <option key={item} value={item}>{LANGUAGE_FLAGS[item]}</option>
                 ))}
               </select>
             </label>
-            {user ? (
-              <button className="account-action" type="button" onClick={() => void signOut()}>
-                <NavIcon name="profile" />
-                <span>{t('shell.signOut')}</span>
-              </button>
-            ) : (
+            {!user && (
               <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/login?mode=signin">{t('beta.action')}</NavLink>
             )}
           </div>
@@ -184,7 +180,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </div>
       </header>}
 
-      {!embeddedAccess && <section className="status-strip v2-status-strip" aria-label={t('shell.leagueContext')}>
+      {!embeddedAccess && location.pathname !== '/profile' && <section className="status-strip v2-status-strip" aria-label={t('shell.leagueContext')}>
         <article className="status-pill-card">
           <i className="status-dot" aria-hidden="true" />
           <span className="status-copy"><strong>{t('shell.leagueContext')}</strong><span>{leagueSlug}</span></span>
@@ -230,7 +226,8 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/admin/audit" element={accessLoading ? <main className="driver-state"><span className="state-mark">A</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">A</span><div><h1>{t('pending')}</h1></div></main>}><LeagueAuditPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/graphics" element={accessLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
           <Route path="/owner" element={accessLoading ? <main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/owner/leagues/new" element={accessLoading ? <main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main>}><LeagueCreatePage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/leagues/new" element={authLoading ? <main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main> : user ? <Suspense fallback={<main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main>}><LeagueCreatePage /></Suspense> : <Navigate replace to="/login?mode=signin" />} />
+          <Route path="/owner/leagues/new" element={<Navigate replace to="/leagues/new" />} />
           <Route path="/owner/demo" element={accessLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/notifications" element={authLoading ? <main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main> : canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="*" element={<Navigate replace to="/home" />} />

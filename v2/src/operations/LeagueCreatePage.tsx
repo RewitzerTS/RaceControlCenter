@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
-import { useRole } from '../roles/RoleProvider';
 import { createLeague } from './operations';
 
 function slugify(value: string) {
@@ -10,7 +9,6 @@ function slugify(value: string) {
 
 export function LeagueCreatePage() {
   const { client, setLeagueSlug } = useLeague();
-  const { role } = useRole();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -18,8 +16,6 @@ export function LeagueCreatePage() {
   const [isPublic, setIsPublic] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-
-  if (role !== 'platform_owner') return <main className="driver-state" id="main-content"><span className="state-mark">18</span><div><h1>Zugriff verweigert</h1></div></main>;
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -36,7 +32,7 @@ export function LeagueCreatePage() {
   }
 
   return <main className="operations-page admin-form-page" id="main-content">
-    <header className="operations-header"><div><p className="section-label">V1 Admin · Liga</p><h1>Liga erstellen</h1><p>Lege eine neue, vollständig von <strong>rcc</strong> getrennte Liga an. Danach öffnet sich direkt das Branding.</p></div><NavLink className="text-link" to="/owner">Abbrechen</NavLink></header>
+    <header className="operations-header"><div><p className="section-label">RaceVora · Liga</p><h1>Liga erstellen</h1><p>Lege eine neue, vollständig von bestehenden Ligen getrennte Liga an. Danach öffnet sich direkt die Einrichtung.</p></div><NavLink className="text-link" to="/profile">Abbrechen</NavLink></header>
     <form className="admin-form" onSubmit={(event) => void submit(event)}>
       <label><span>Name der Liga</span><input autoFocus required maxLength={80} value={name} onChange={(event) => { const next = event.target.value; setName(next); if (!slugTouched) setSlug(slugify(next)); }} /></label>
       <label><span>Kürzel / URL-Slug</span><input required maxLength={48} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" value={slug} onChange={(event) => { setSlugTouched(true); setSlug(slugify(event.target.value)); }} /><small>Nur Kleinbuchstaben, Zahlen und Bindestriche.</small></label>

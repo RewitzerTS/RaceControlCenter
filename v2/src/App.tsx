@@ -7,7 +7,7 @@ import { DriverIdentityProvider } from './driver/DriverIdentityProvider';
 import { FeatureFlagProvider } from './features/FeatureFlagProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
-import { applyLeagueBranding, fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
+import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
 import { RoleProvider } from './roles/RoleProvider';
 
 function AuthorizedShell({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
@@ -23,8 +23,13 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
   });
 
   useEffect(() => {
-    applyLeagueBranding(useStandardBranding ? fallbackLeagueBranding('racevora') : branding);
-  }, [branding, useStandardBranding]);
+    if (useStandardBranding || !user) {
+      applyLeagueBranding(fallbackLeagueBranding('racevora'));
+      return;
+    }
+    const themePreset = Number(user.user_metadata?.theme_preset ?? 0);
+    applyLeagueBranding({ ...branding, theme: resolveTheme({ theme_id: themePreset }) });
+  }, [branding, useStandardBranding, user]);
 
   return (
     <DriverIdentityProvider client={client} user={user}>
