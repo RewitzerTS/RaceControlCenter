@@ -38,7 +38,6 @@ const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').t
 const DemoE2EPage = lazy(() => import('../demo/DemoE2EPage').then((module) => ({ default: module.DemoE2EPage })));
 
 type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
-const LANGUAGE_FLAGS: Record<Language, string> = { de: '🇩🇪', en: '🇬🇧', es: '🇪🇸', fr: '🇫🇷' };
 
 export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   icon: IconName;
@@ -69,6 +68,69 @@ function NavIcon({ name }: { name: IconName }) {
     <svg aria-hidden="true" className="nav-icon" viewBox="0 0 24 24">
       {paths[name]}
     </svg>
+  );
+}
+
+function LanguageFlag({ language }: { language: Language }) {
+  if (language === 'de') {
+    return <svg aria-hidden="true" className="language-flag" viewBox="0 0 24 18"><path fill="#111" d="M0 0h24v6H0z" /><path fill="#d00" d="M0 6h24v6H0z" /><path fill="#ffce00" d="M0 12h24v6H0z" /></svg>;
+  }
+  if (language === 'es') {
+    return <svg aria-hidden="true" className="language-flag" viewBox="0 0 24 18"><path fill="#aa151b" d="M0 0h24v4.5H0zM0 13.5h24V18H0z" /><path fill="#f1bf00" d="M0 4.5h24v9H0z" /></svg>;
+  }
+  if (language === 'fr') {
+    return <svg aria-hidden="true" className="language-flag" viewBox="0 0 24 18"><path fill="#002654" d="M0 0h8v18H0z" /><path fill="#fff" d="M8 0h8v18H8z" /><path fill="#ed2939" d="M16 0h8v18h-8z" /></svg>;
+  }
+  return (
+    <svg aria-hidden="true" className="language-flag" viewBox="0 0 24 18">
+      <path fill="#012169" d="M0 0h24v18H0z" />
+      <path d="M0 0l24 18M24 0 0 18" stroke="#fff" strokeWidth="4" />
+      <path d="M0 0l24 18M24 0 0 18" stroke="#c8102e" strokeWidth="1.5" />
+      <path fill="#fff" d="M9 0h6v18H9zM0 6h24v6H0z" />
+      <path fill="#c8102e" d="M10.5 0h3v18h-3zM0 7.5h24v3H0z" />
+    </svg>
+  );
+}
+
+function LanguageControl() {
+  const { language, setLanguage, t } = useI18n();
+  const languageName = (item: Language) => t(('languageName.' + item) as MessageKey);
+
+  return (
+    <details
+      className="language-control language-control--compact"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) event.currentTarget.removeAttribute('open');
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') event.currentTarget.removeAttribute('open');
+      }}
+    >
+      <summary aria-label={`${t('language')}: ${languageName(language)}`} title={languageName(language)}>
+        <LanguageFlag language={language} />
+        <span className="language-code">{language.toUpperCase()}</span>
+        <span aria-hidden="true" className="language-chevron">⌄</span>
+      </summary>
+      <div aria-label={t('language')} className="language-options" role="menu">
+        {SUPPORTED_LANGUAGES.map((item) => (
+          <button
+            aria-checked={language === item}
+            className={language === item ? 'language-option language-option--active' : 'language-option'}
+            key={item}
+            onClick={(event) => {
+              setLanguage(item);
+              event.currentTarget.closest('details')?.removeAttribute('open');
+            }}
+            role="menuitemradio"
+            type="button"
+          >
+            <LanguageFlag language={item} />
+            <span>{languageName(item)}</span>
+            <small>{item.toUpperCase()}</small>
+          </button>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -108,7 +170,7 @@ function roleLabel(role: ReturnType<typeof useRole>['role'], t: ReturnType<typeo
 export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const location = useLocation();
   const [navigationOpen, setNavigationOpen] = useState(false);
-  const { language, setLanguage, t } = useI18n();
+  const { t } = useI18n();
   const { branding, leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
@@ -164,14 +226,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <div className="header-tools">
             {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
-            <label className="language-control language-control--compact" htmlFor="language-selector">
-              <span className="sr-only">{t('language')}</span>
-              <select aria-label={t('language')} id="language-selector" name="language" title={t(('languageName.' + language) as MessageKey)} value={language} onChange={(event) => setLanguage(event.target.value as Language)}>
-                {SUPPORTED_LANGUAGES.map((item) => (
-                  <option key={item} value={item}>{LANGUAGE_FLAGS[item]}</option>
-                ))}
-              </select>
-            </label>
+            <LanguageControl />
             {!user && (
               <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/login?mode=signin">{t('beta.action')}</NavLink>
             )}
@@ -241,4 +296,5 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     </div>
   );
 }
+
 

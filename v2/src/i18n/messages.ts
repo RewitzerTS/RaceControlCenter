@@ -458,6 +458,8 @@ const de = {
   "profile.themeError": "Das Farbthema konnte nicht gespeichert werden.",
   "profile.createLeague": "Neue Liga erstellen",
   "profile.createLeagueCopy": "Jeder RaceVora-Nutzer kann eine eigene Liga starten und anschließend verwalten.",
+  "profile.signOutCopy": "Beende deine aktuelle Sitzung sicher auf diesem Gerät.",
+  "profile.signOutError": "Die Sitzung konnte nicht beendet werden. Bitte versuche es erneut.",
   "route.backHome": "Zurück zu Home",
   "achievement.metric.title": "{metric} · Meilenstein {threshold}",
   "achievement.metric.description": "Erreiche {threshold} bei {metric}.",
@@ -938,6 +940,8 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "profile.themeError": "The color theme could not be saved.",
   "profile.createLeague": "Create a new league",
   "profile.createLeagueCopy": "Every RaceVora user can start and manage their own league.",
+  "profile.signOutCopy": "Securely end your current session on this device.",
+  "profile.signOutError": "The session could not be ended. Please try again.",
   "route.backHome": "Back to Home",
   "achievement.metric.title": "{metric} · milestone {threshold}",
   "achievement.metric.description": "Reach {threshold} in {metric}.",
@@ -1414,6 +1418,8 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "profile.themeError": "No se pudo guardar el tema de color.",
   "profile.createLeague": "Crear una liga nueva",
   "profile.createLeagueCopy": "Cada usuario de RaceVora puede crear y gestionar su propia liga.",
+  "profile.signOutCopy": "Cierra de forma segura tu sesión actual en este dispositivo.",
+  "profile.signOutError": "No se pudo cerrar la sesión. Inténtalo de nuevo.",
   "route.backHome": "Volver a Inicio",
   "achievement.metric.title": "{metric} · hito {threshold}",
   "achievement.metric.description": "Alcanza {threshold} en {metric}.",
@@ -1890,6 +1896,8 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "profile.themeError": "Le thème de couleur n’a pas pu être enregistré.",
   "profile.createLeague": "Créer une nouvelle ligue",
   "profile.createLeagueCopy": "Chaque utilisateur RaceVora peut créer et gérer sa propre ligue.",
+  "profile.signOutCopy": "Fermez en toute sécurité votre session actuelle sur cet appareil.",
+  "profile.signOutError": "La session n’a pas pu être fermée. Veuillez réessayer.",
   "route.backHome": "Retour à l’accueil",
   "achievement.metric.title": "{metric} · jalon {threshold}",
   "achievement.metric.description": "Atteignez {threshold} en {metric}.",
@@ -1910,4 +1918,5 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "languageName.fr": "Français",
 },
 };
+
 

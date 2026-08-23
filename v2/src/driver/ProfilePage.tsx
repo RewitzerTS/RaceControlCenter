@@ -6,7 +6,7 @@ import { THEME_PRESETS } from '../league/leagueBranding';
 import { useDriverIdentity } from './DriverIdentityProvider';
 
 export function ProfilePage() {
-  const { loading: authLoading, updateDisplayName, updateThemePreset, user } = useAuth();
+  const { loading: authLoading, signOut, updateDisplayName, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { plural, t } = useI18n();
   const [displayName, setDisplayName] = useState('');
@@ -14,6 +14,8 @@ export function ProfilePage() {
   const [feedback, setFeedback] = useState<'error' | 'saved' | null>(null);
   const [themeFeedback, setThemeFeedback] = useState<'error' | 'saved' | null>(null);
   const [themePreset, setThemePreset] = useState(0);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState(false);
 
   useEffect(() => {
     setDisplayName(typeof user?.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : '');
@@ -59,6 +61,17 @@ export function ProfilePage() {
     }
   }
 
+  async function handleSignOut() {
+    setSigningOut(true);
+    setSignOutError(false);
+    try {
+      await signOut();
+    } catch {
+      setSignOutError(true);
+      setSigningOut(false);
+    }
+  }
+
   const selectedTheme = THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
 
   return (
@@ -95,7 +108,19 @@ export function ProfilePage() {
           <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
         </aside>
         <article className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{t('profile.createLeague')}</h2><p>{t('profile.createLeagueCopy')}</p></div><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}<span aria-hidden="true">→</span></NavLink></article>
+        <article className="profile-session">
+          <div><p className="section-label">{t('profile.account')}</p><h2>{t('shell.signOut')}</h2><p>{t('profile.signOutCopy')}</p></div>
+          <div className="profile-session-action">
+            <span>{user.email}</span>
+            <button className="text-action profile-sign-out" disabled={signingOut} onClick={() => void handleSignOut()} type="button">
+              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9" /></svg>
+              <span>{signingOut ? t('pending') : t('shell.signOut')}</span>
+            </button>
+          </div>
+          {signOutError && <p className="form-error profile-session-error" role="alert">{t('profile.signOutError')}</p>}
+        </article>
       </section>
     </main>
   );
 }
+
