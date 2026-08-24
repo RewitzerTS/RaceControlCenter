@@ -5,6 +5,7 @@ import { LegacyLeagueView } from '../components/LegacyLeagueView';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
+import { AchievementBadge } from './AchievementBadge';
 import { levelProgress, nextChallengeRotation, useDriverHome, type DriverChallenge } from './driverHome';
 
 function ChallengeRotationCountdown({ challenges }: { challenges: DriverChallenge[] }) {
@@ -114,7 +115,10 @@ export function CareerPage() {
               <span className="achievement-disclosure-state"><span>{t('career.achievementShow')}</span><span>{t('career.achievementHide')}</span></span>
             </summary>
             <div className="achievement-disclosure-content">
-              {snapshot.achievements.length === 0 ? <p className="empty-copy">{t('career.noAchievements')}</p> : <ol className="achievement-list">{snapshot.achievements.map((achievement) => <li key={achievement.code}><div><strong>{t(achievement.titleKey as MessageKey, { metric: t((`metric.${achievement.metric}`) as MessageKey), threshold: formatNumber(achievement.threshold) })}</strong><span>{achievement.unlockedAt ? t('career.achievementUnlockedOn', { date: formatDate(achievement.unlockedAt) }) : t('career.achievementUnlocked')}</span></div><span>{t('career.achievementReward', { reward: formatNumber(achievement.rewardVc) })}</span></li>)}</ol>}
+              {snapshot.achievements.length === 0 ? <p className="empty-copy">{t('career.noAchievements')}</p> : <ol className="achievement-list">{snapshot.achievements.map((achievement) => {
+                const title = t(achievement.titleKey as MessageKey, { metric: t((`metric.${achievement.metric}`) as MessageKey), threshold: formatNumber(achievement.threshold) });
+                return <li key={achievement.code}><AchievementBadge code={achievement.code} metric={achievement.metric} threshold={achievement.threshold} title={title} /><div><strong>{title}</strong><span>{achievement.unlockedAt ? t('career.achievementUnlockedOn', { date: formatDate(achievement.unlockedAt) }) : t('career.achievementUnlocked')}</span></div><span>{t('career.achievementReward', { reward: formatNumber(achievement.rewardVc) })}</span></li>;
+              })}</ol>}
             </div>
           </details>
         </article>
@@ -123,3 +127,4 @@ export function CareerPage() {
     </main>
   );
 }
+

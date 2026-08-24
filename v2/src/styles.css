@@ -3121,7 +3121,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .achievement-disclosure-content { max-height: 460px; overflow-y: auto; }
 .achievement-list { margin: 0; padding: 0; list-style: none; }
 .achievement-list li {
-  min-height: 68px;
+  min-height: 96px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -3133,6 +3133,21 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .achievement-list li strong { overflow-wrap: anywhere; font-size: 0.9rem; }
 .achievement-list li span { color: var(--muted); font-size: 0.7rem; }
 .achievement-list li > span { flex: 0 0 auto; color: var(--brand-accent); font-weight: 800; }
+.achievement-badge {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 76px;
+  color: var(--badge-hue);
+  filter: drop-shadow(0 4px 4px color-mix(in srgb, var(--brand-background) 62%, transparent));
+}
+.achievement-badge__field { fill: color-mix(in srgb, var(--brand-surface) 78%, var(--brand-background)); }
+.achievement-badge__flare { fill: color-mix(in srgb, var(--badge-hue) 16%, transparent); }
+.achievement-badge__tier { fill: color-mix(in srgb, var(--badge-hue) 11%, transparent); }
+.achievement-badge__frame { fill: none; stroke: color-mix(in srgb, var(--badge-hue) 72%, var(--brand-text)); stroke-width: 2; }
+.achievement-badge__icon { stroke: var(--brand-text); }
+.achievement-badge__number { fill: var(--brand-text); font: 900 15px/1 Arial, sans-serif; letter-spacing: -0.03em; }
+.achievement-badge__label { fill: color-mix(in srgb, var(--brand-text) 76%, var(--badge-hue)); font: 800 5.5px/1 Arial, sans-serif; letter-spacing: 0.12em; }
+.achievement-badge__rank { fill: var(--badge-hue); }
 .challenge-countdown {
   display: flex;
   align-items: center;
@@ -3149,7 +3164,10 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 @media (max-width: 700px) {
   .achievement-disclosure > summary { min-height: 88px; }
   .achievement-count strong { font-size: 2.25rem; }
-  .achievement-list li { align-items: flex-start; }
+  .achievement-list li { align-items: center; gap: 0.7rem; }
+  .achievement-badge { width: 54px; height: 66px; }
+  .achievement-list li > span { align-self: flex-start; padding-top: 0.25rem; }
   .challenge-countdown { align-items: flex-start; flex-direction: column; gap: 0.3rem; }
 }
+
 
