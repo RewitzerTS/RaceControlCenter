@@ -1253,7 +1253,11 @@ h2 {
 
 /* Task-oriented navigation for consolidated Racing and Career information. */
 .section-navigation {
+  position: sticky;
+  z-index: calc(var(--z-navigation) - 1);
+  top: 140px;
   display: flex;
+  justify-content: safe center;
   gap: 0.25rem;
   width: 100%;
   margin: 0 0 18px;
@@ -1330,6 +1334,14 @@ h2 {
   .integrated-section-heading h1 { font-size: 1.5rem; }
   .section-view-switcher { overflow-x: auto; flex-wrap: nowrap; }
   .integrated-league-view { width: calc(100% + 20px); margin-left: -10px; }
+}
+
+@media (max-width: 980px) {
+  .section-navigation { top: 92px; }
+}
+
+@media (max-width: 520px) {
+  .section-navigation { top: 82px; }
 }
 
 /* V1 visual continuity

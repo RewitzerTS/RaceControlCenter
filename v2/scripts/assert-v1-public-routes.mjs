@@ -70,6 +70,25 @@ if (!driverContext.includes('global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === tr
   throw new Error('V2 driver context does not respect the disabled legacy assignment relation.');
 }
 
+const driverStats = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-stats.js'), 'utf8');
+const driverProfile = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'driver-profile.js'), 'utf8');
+if (!driverStats.includes(".from('driver_identities')")
+    || !driverStats.includes(".from('driver_identity_links')")
+    || !driverStats.includes('profileNumbersByDriver')) {
+  throw new Error('Integrated driver profiles do not resolve the signed-in user profile number.');
+}
+if (!driverProfile.includes('linkedProfileNumber ?? driver.number')
+    || !driverProfile.includes("'Profilnummer'")) {
+  throw new Error('Driver profile number display is not connected to the global profile number fallback.');
+}
+const driverProfilePage = await readFile(resolve(distRoot, 'fahrer-profil.html'), 'utf8');
+const headToHeadPage = await readFile(resolve(distRoot, 'head-to-head.html'), 'utf8');
+if (!driverProfilePage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-1')
+    || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-profile-number-1')
+    || !headToHeadPage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-1')) {
+  throw new Error('Integrated Career pages do not cache-bust the profile number data fix.');
+}
+
 const newsBackend = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-f1-news-backend.js'), 'utf8');
 if (!newsBackend.includes("const ENDPOINT = '/api/f1-news';") || newsBackend.includes('.supabase.co/functions/v1/f1-news')) {
   throw new Error('V2 Race Hub news must use the isolated same-origin Worker endpoint.');

@@ -63,7 +63,6 @@ export function CareerPage() {
           <NavLink to="/career/profile">{t('career.driverProfile')}</NavLink>
           <NavLink to="/career/compare">{t('career.compare')}</NavLink>
         </nav>
-        <header className="integrated-section-heading"><div><h1>{careerSection.title}</h1><p>{t('career.sectionCopy')}</p></div></header>
         <LegacyLeagueView page={careerSection.page} search={`?${careerSearch.toString()}`} title={careerSection.title} />
       </main>
     );

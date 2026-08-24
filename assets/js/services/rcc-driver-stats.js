@@ -53,6 +53,26 @@
     return Number(row?.awarded_points ?? row?.points ?? row?.base_points ?? 0) || 0;
   }
 
+  async function fetchOwnProfileNumbers() {
+    if (!window.supabaseClient) return new Map();
+
+    const identityResponse = await window.supabaseClient
+      .from('driver_identities')
+      .select('id, profile_number')
+      .maybeSingle();
+    if (identityResponse.error || !identityResponse.data) return new Map();
+
+    const linksResponse = await window.supabaseClient
+      .from('driver_identity_links')
+      .select('driver_id')
+      .eq('driver_identity_id', identityResponse.data.id);
+    if (linksResponse.error) return new Map();
+
+    const profileNumber = Number(identityResponse.data.profile_number);
+    if (!Number.isInteger(profileNumber) || profileNumber < 0 || profileNumber > 99) return new Map();
+    return new Map((linksResponse.data || []).map((link) => [String(link.driver_id), profileNumber]));
+  }
+
   async function loadLeagueHistory(options = {}) {
     if (historyPromise && options.forceRefresh !== true) return historyPromise;
 
@@ -61,10 +81,11 @@
         throw new Error('RaceVora driver data services are unavailable.');
       }
 
-      const [seasons, drivers, assignments] = await Promise.all([
+      const [seasons, drivers, assignments, profileNumbersByDriver] = await Promise.all([
         window.RCCData.fetchSeasons({ forceRefresh: options.forceRefresh === true }),
         window.RCCData.fetchDrivers({ forceRefresh: options.forceRefresh === true }),
-        window.RCCDriverContext.fetchDriverSeasonAssignments()
+        window.RCCDriverContext.fetchDriverSeasonAssignments(),
+        fetchOwnProfileNumbers()
       ]);
 
       const raceGroups = await Promise.all((seasons || []).map(async (season) => {
@@ -108,6 +129,7 @@
         racesById,
         resultsByRace,
         fastestByRace,
+        profileNumbersByDriver,
         resolver
       };
     })().catch((error) => {

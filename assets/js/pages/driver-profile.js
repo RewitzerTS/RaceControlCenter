@@ -80,7 +80,16 @@
     const snapshot = stats.currentSnapshot || driver;
     renderAvatar(byId('driver-profile-avatar'), driver);
     byId('driver-profile-name').textContent = driver.display_name || 'Unbekannt';
-    byId('driver-profile-number').textContent = driver.number ? `#${driver.number}` : '#—';
+    const linkedProfileNumber = state.history?.profileNumbersByDriver?.get(String(driver.id));
+    const displayedNumber = linkedProfileNumber ?? driver.number;
+    const driverNumber = displayedNumber === null || displayedNumber === undefined || displayedNumber === ''
+      ? null
+      : Number(displayedNumber);
+    const numberHost = byId('driver-profile-number');
+    numberHost.textContent = Number.isFinite(driverNumber) ? `#${driverNumber}` : '#—';
+    numberHost.setAttribute('aria-label', Number.isFinite(driverNumber)
+      ? `${linkedProfileNumber !== undefined ? 'Profilnummer' : 'Fahrernummer'} ${driverNumber}`
+      : 'Keine Fahrer- oder Profilnummer hinterlegt');
     byId('driver-profile-team').textContent = snapshot.league_team || snapshot.car_name || 'Aktuell ohne Teamzuordnung';
 
     const flag = countryFlag(driver.nationality_code);

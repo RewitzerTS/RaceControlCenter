@@ -49,6 +49,12 @@ if (shell.includes('language-code') || shell.includes('language-chevron')) {
 if (!shell.includes('<LanguageFlag language={language} />')) {
   violations.push('compact language control no longer renders the selected country flag');
 }
+if (!styles.includes('justify-content: safe center;')) {
+  violations.push('shared section navigation is not centered when space is available');
+}
+if (!styles.includes('position: sticky;') || !styles.includes('.section-navigation { top: 82px; }')) {
+  violations.push('shared section navigation is not pinned below the responsive header');
+}
 if (shell.includes('<NavLink className="brand" to="/home" aria-label=')) {
   violations.push('brand link accessible name overrides its visible product label');
 }
@@ -82,6 +88,9 @@ if (!racing.includes(".eq('result_version_id', selectedRace.current_result_versi
 }
 if (!career.includes('useDriverHome') || !career.includes('identity.linkedDriverCount === 0')) {
   violations.push('Career does not use confirmed projections or protect the unlinked-driver state');
+}
+if (career.includes('<header className="integrated-section-heading"><div><h1>{careerSection.title}</h1>')) {
+  violations.push('Career detail routes still duplicate the embedded page heading');
 }
 if (!profile.includes('updateDisplayName') || !profile.includes('identity?.linkedDriverCount')) {
   violations.push('Profile does not provide account settings and driver-link status');
