@@ -1,5 +1,5 @@
 (() => {
-  const state = { history: null, driverId: '', seasonId: '' };
+  const state = { history: null, driverId: '', seasonId: '', profileNumber: null };
   const byId = (id) => document.getElementById(id);
   const esc = (value) => window.escapeHtml ? window.escapeHtml(String(value ?? '')) : String(value ?? '');
   const formatNumber = (value, digits = 0) => {
@@ -80,7 +80,7 @@
     const snapshot = stats.currentSnapshot || driver;
     renderAvatar(byId('driver-profile-avatar'), driver);
     byId('driver-profile-name').textContent = driver.display_name || 'Unbekannt';
-    const linkedProfileNumber = state.history?.profileNumbersByDriver?.get(String(driver.id));
+    const linkedProfileNumber = state.history?.profileNumbersByDriver?.get(String(driver.id)) ?? state.profileNumber;
     const displayedNumber = linkedProfileNumber ?? driver.number;
     const driverNumber = displayedNumber === null || displayedNumber === undefined || displayedNumber === ''
       ? null
@@ -279,6 +279,10 @@
     const params = new URLSearchParams(window.location.search);
     state.driverId = params.get('driver') || '';
     state.seasonId = params.get('season') || '';
+    const routedProfileNumber = params.get('profile_number');
+    state.profileNumber = routedProfileNumber !== null && /^\d{1,2}$/.test(routedProfileNumber)
+      ? Number(routedProfileNumber)
+      : null;
     try {
       state.history = await window.RCCDriverStats.loadLeagueHistory();
       if (!state.history.drivers.length) throw new Error('In dieser Liga sind noch keine Fahrer angelegt.');

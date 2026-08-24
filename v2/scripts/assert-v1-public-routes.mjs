@@ -77,15 +77,17 @@ if (!driverStats.includes(".from('driver_identities')")
     || !driverStats.includes('profileNumbersByDriver')) {
   throw new Error('Integrated driver profiles do not resolve the signed-in user profile number.');
 }
-if (!driverProfile.includes('linkedProfileNumber ?? driver.number')
+if (!driverProfile.includes('state.profileNumber')
+    || !driverProfile.includes('routedProfileNumber')
+    || !driverProfile.includes('linkedProfileNumber')
     || !driverProfile.includes("'Profilnummer'")) {
   throw new Error('Driver profile number display is not connected to the global profile number fallback.');
 }
 const driverProfilePage = await readFile(resolve(distRoot, 'fahrer-profil.html'), 'utf8');
 const headToHeadPage = await readFile(resolve(distRoot, 'head-to-head.html'), 'utf8');
-if (!driverProfilePage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-1')
-    || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-profile-number-1')
-    || !headToHeadPage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-1')) {
+if (!driverProfilePage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')
+    || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-profile-number-2')
+    || !headToHeadPage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')) {
   throw new Error('Integrated Career pages do not cache-bust the profile number data fix.');
 }
 

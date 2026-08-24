@@ -92,6 +92,9 @@ if (!career.includes('useDriverHome') || !career.includes('identity.linkedDriver
 if (career.includes('<header className="integrated-section-heading"><div><h1>{careerSection.title}</h1>')) {
   violations.push('Career detail routes still duplicate the embedded page heading');
 }
+if (!career.includes("careerSearch.set('profile_number', String(identity.profileNumber))")) {
+  violations.push('Career profile does not pass the verified global profile number to its embedded view');
+}
 if (!profile.includes('updateDisplayName') || !profile.includes('identity?.linkedDriverCount')) {
   violations.push('Profile does not provide account settings and driver-link status');
 }

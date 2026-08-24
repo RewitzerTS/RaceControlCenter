@@ -48,7 +48,10 @@ export function CareerPage() {
   }
 
   const careerSearch = new URLSearchParams(location.search);
-  if (location.pathname === '/career/profile' && identity.driverId && !careerSearch.has('driver')) careerSearch.set('driver', identity.driverId);
+  if (location.pathname === '/career/profile' && identity.driverId) {
+    if (!careerSearch.has('driver')) careerSearch.set('driver', identity.driverId);
+    careerSearch.set('profile_number', String(identity.profileNumber));
+  }
   const careerSection = location.pathname === '/career/profile'
     ? { page: 'fahrer-profil', title: t('career.driverProfile') }
     : location.pathname === '/career/compare'
