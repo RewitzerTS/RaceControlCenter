@@ -127,6 +127,9 @@ for (const marker of ['data-auth-open="signin"', 'data-auth-open="signup"', 'id=
 if ((landing.match(/Jetzt starten/g) || []).length < 3 || landing.includes('Liga starten') || landing.includes('Eigene Liga starten')) {
   throw new Error('V1 landing page does not use the unified Jetzt starten call to action.');
 }
+if (/[↗↓]/.test(landing) || landing.includes('final-signal')) {
+  throw new Error('V1 landing page still contains decorative button arrows or signal dots.');
+}
 if (landing.includes('landing-login-modal') || landing.includes('assets/js/pages/landing.js') || landing.includes('assets/js/supabase-client.js')) {
   throw new Error('V1 landing page still contains the retired V1 authentication flow.');
 }
