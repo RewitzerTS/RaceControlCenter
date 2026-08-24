@@ -276,9 +276,6 @@ h2 {
 .language-control > summary::-webkit-details-marker { display: none; }
 .language-control > summary:focus-visible { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
 .language-flag { width: 24px; height: 18px; flex: 0 0 auto; border-radius: 3px; overflow: hidden; }
-.language-code { min-width: 1.5rem; color: var(--text); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.04em; }
-.language-chevron { margin-top: -0.15rem; color: var(--muted); font-size: 1rem; line-height: 1; transition: transform 180ms var(--ease-out); }
-.language-control[open] .language-chevron { transform: rotate(180deg); }
 .language-options {
   position: absolute;
   top: calc(100% + 10px);
@@ -2297,7 +2294,11 @@ p { color: var(--muted); }
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.045);
 }
-.main-navigation .language-control > summary { min-width: 82px; }
+.main-navigation .language-control > summary {
+  width: 46px;
+  min-width: 46px;
+  padding-inline: 0;
+}
 .main-navigation .session-state { padding-inline: 0.85rem; }
 .main-navigation .account-action { width: 46px; padding: 0; }
 .main-navigation .account-action span { display: none; }
@@ -2869,9 +2870,9 @@ img, svg, video, canvas { max-width: 100%; }
   .main-navigation .privileged-navigation { grid-template-columns: 1fr; }
   .main-navigation .header-tools { align-items: stretch; }
   .main-navigation .language-control,
-  .main-navigation .language-control > summary,
   .main-navigation .session-state,
   .main-navigation .account-action { flex: 1 1 auto; }
+  .main-navigation .language-control > summary { flex: 0 0 46px; }
   .v2-status-strip .status-pill-card:nth-child(3),
   .v2-status-strip .status-pill-card:nth-child(4) { display: flex; }
   .page-intro, .operations-feed li, .admin-panel-heading { align-items: flex-start; flex-direction: column; }
@@ -3139,5 +3140,4 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .achievement-list li { align-items: flex-start; }
   .challenge-countdown { align-items: flex-start; flex-direction: column; gap: 0.3rem; }
 }
-
 

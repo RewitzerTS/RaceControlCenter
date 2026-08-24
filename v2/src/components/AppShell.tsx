@@ -109,8 +109,6 @@ function LanguageControl() {
     >
       <summary aria-label={`${t('language')}: ${languageName(language)}`} title={languageName(language)}>
         <LanguageFlag language={language} />
-        <span className="language-code">{language.toUpperCase()}</span>
-        <span aria-hidden="true" className="language-chevron">⌄</span>
       </summary>
       <div aria-label={t('language')} className="language-options" role="menu">
         {SUPPORTED_LANGUAGES.map((item) => (
@@ -255,25 +253,6 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </div>
       </header>}
 
-      {!embeddedAccess && location.pathname !== '/profile' && <section className="status-strip v2-status-strip" aria-label={t('shell.leagueContext')}>
-        <article className="status-pill-card">
-          <i className="status-dot" aria-hidden="true" />
-          <span className="status-copy"><strong>{t('shell.leagueContext')}</strong><span>{leagueSlug}</span></span>
-        </article>
-        <article className="status-pill-card">
-          <i className="status-dot violet" aria-hidden="true" />
-          <span className="status-copy"><strong>{t('authorization')}</strong><span>{roleLoading ? t('pending') : roleLabel(role, t)}</span></span>
-        </article>
-        <article className="status-pill-card">
-          <i className="status-dot gold" aria-hidden="true" />
-          <span className="status-copy"><strong>{t('environment')}</strong><span>{environment.appEnvironment}</span></span>
-        </article>
-        <article className="status-pill-card">
-          <i className={user ? 'status-dot' : 'status-dot inactive'} aria-hidden="true" />
-          <span className="status-copy"><strong>{t('session')}</strong><span>{user ? roleLabel(role, t) : t('signedOut')}</span></span>
-        </article>
-      </section>}
-
       <div className={embeddedAccess ? 'shell-frame shell-frame--embedded-access' : 'shell-frame'}>
 
         <Routes>
@@ -336,5 +315,4 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     </div>
   );
 }
-
 
