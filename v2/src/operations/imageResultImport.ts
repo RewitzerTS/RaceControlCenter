@@ -29,6 +29,7 @@ const HEIC_MIME_TYPES = new Set([
   'image/heic-sequence',
   'image/heif-sequence',
 ]);
+const HEIF_FILE_BRANDS = ['heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs', 'mif1', 'msf1'];
 
 export function isHeicResultImage(file: Pick<File, 'name' | 'type'>): boolean {
   return HEIC_MIME_TYPES.has(file.type.toLowerCase()) || HEIC_IMAGE_NAME.test(file.name);
@@ -36,6 +37,17 @@ export function isHeicResultImage(file: Pick<File, 'name' | 'type'>): boolean {
 
 function isSupportedResultImage(file: Pick<File, 'name' | 'type'>): boolean {
   return file.type.startsWith('image/') || SUPPORTED_IMAGE_NAME.test(file.name);
+}
+
+export async function hasHeicResultImageSignature(file: Blob): Promise<boolean> {
+  try {
+    const bytes = new Uint8Array(await file.slice(0, 64).arrayBuffer());
+    if (bytes.length < 12) return false;
+    const header = String.fromCharCode(...bytes);
+    return header.slice(4, 8) === 'ftyp' && HEIF_FILE_BRANDS.some((brand) => header.slice(8).includes(brand));
+  } catch {
+    return false;
+  }
 }
 
 function readAsDataUrl(blob: Blob): Promise<string> {
@@ -66,8 +78,11 @@ function loadImage(file: Blob, displayName: string): Promise<HTMLImageElement> {
 async function convertHeicImage(file: File): Promise<Blob> {
   try {
     const { default: heic2any } = await import('heic2any');
+    const source = HEIC_MIME_TYPES.has(file.type.toLowerCase())
+      ? file
+      : file.slice(0, file.size, 'image/heic');
     const converted = await heic2any({
-      blob: file,
+      blob: source,
       toType: 'image/jpeg',
       quality: 0.9,
     });
@@ -80,10 +95,11 @@ async function convertHeicImage(file: File): Promise<Blob> {
 }
 
 async function prepareImage(file: File): Promise<string> {
-  if (!isSupportedResultImage(file)) throw new Error(`„${file.name}“ ist keine unterstützte Bilddatei. Erlaubt sind JPG, PNG, WebP, HEIC und HEIF.`);
+  const isHeic = isHeicResultImage(file) || await hasHeicResultImageSignature(file);
+  if (!isHeic && !isSupportedResultImage(file)) throw new Error(`„${file.name}“ ist keine unterstützte Bilddatei. Erlaubt sind JPG, PNG, WebP, HEIC und HEIF.`);
   if (file.size > MAX_SOURCE_BYTES) throw new Error(`„${file.name}“ ist größer als 20 MB.`);
 
-  const source = isHeicResultImage(file) ? await convertHeicImage(file) : file;
+  const source = isHeic ? await convertHeicImage(file) : file;
   const image = await loadImage(source, file.name);
   const scale = Math.min(1, MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
