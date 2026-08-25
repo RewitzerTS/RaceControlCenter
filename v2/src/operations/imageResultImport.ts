@@ -21,6 +21,22 @@ export type AiResultAnalysis = {
 const MAX_IMAGES = 8;
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_EDGE = 1800;
+const SUPPORTED_IMAGE_NAME = /\.(?:heic|heif|jpe?g|png|webp)$/i;
+const HEIC_IMAGE_NAME = /\.(?:heic|heif)$/i;
+const HEIC_MIME_TYPES = new Set([
+  'image/heic',
+  'image/heif',
+  'image/heic-sequence',
+  'image/heif-sequence',
+]);
+
+export function isHeicResultImage(file: Pick<File, 'name' | 'type'>): boolean {
+  return HEIC_MIME_TYPES.has(file.type.toLowerCase()) || HEIC_IMAGE_NAME.test(file.name);
+}
+
+function isSupportedResultImage(file: Pick<File, 'name' | 'type'>): boolean {
+  return file.type.startsWith('image/') || SUPPORTED_IMAGE_NAME.test(file.name);
+}
 
 function readAsDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -31,7 +47,7 @@ function readAsDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-function loadImage(file: File): Promise<HTMLImageElement> {
+function loadImage(file: Blob, displayName: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();
@@ -41,17 +57,34 @@ function loadImage(file: File): Promise<HTMLImageElement> {
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error(`„${file.name}“ ist kein lesbares Bild.`));
+      reject(new Error(`„${displayName}“ ist kein lesbares Bild.`));
     };
     image.src = url;
   });
 }
 
+async function convertHeicImage(file: File): Promise<Blob> {
+  try {
+    const { default: heic2any } = await import('heic2any');
+    const converted = await heic2any({
+      blob: file,
+      toType: 'image/jpeg',
+      quality: 0.9,
+    });
+    const image = Array.isArray(converted) ? converted[0] : converted;
+    if (!image) throw new Error('empty conversion');
+    return image;
+  } catch {
+    throw new Error(`„${file.name}“ konnte nicht aus HEIC/HEIF konvertiert werden. Bitte verwende das Original oder exportiere das Bild als JPG.`);
+  }
+}
+
 async function prepareImage(file: File): Promise<string> {
-  if (!file.type.startsWith('image/')) throw new Error(`„${file.name}“ ist keine Bilddatei.`);
+  if (!isSupportedResultImage(file)) throw new Error(`„${file.name}“ ist keine unterstützte Bilddatei. Erlaubt sind JPG, PNG, WebP, HEIC und HEIF.`);
   if (file.size > MAX_SOURCE_BYTES) throw new Error(`„${file.name}“ ist größer als 20 MB.`);
 
-  const image = await loadImage(file);
+  const source = isHeicResultImage(file) ? await convertHeicImage(file) : file;
+  const image = await loadImage(source, file.name);
   const scale = Math.min(1, MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
   const height = Math.max(1, Math.round(image.naturalHeight * scale));
