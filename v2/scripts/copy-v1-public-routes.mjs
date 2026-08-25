@@ -179,13 +179,14 @@ async function transformJavaScriptTree(directory) {
     let source = await readFile(path, 'utf8');
     source = source
       .replaceAll('assets/', '/v1-assets/')
+      .replaceAll('data/hall-of-fame-fallback.json', '/v1-data/hall-of-fame-fallback.json')
       .replaceAll(`https://${legacyProjectRef}.supabase.co`, supabaseUrl);
     if (entry.name === 'supabase-client.js') {
       source = source
         .replace(/const SUPABASE_URL = '[^']+';/, `const SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`)
         .replace(/const SUPABASE_ANON_KEY = '[^']+';/, `const SUPABASE_ANON_KEY = ${JSON.stringify(publishableKey)};`)
         .replaceAll("new URL('admin.html', window.location.href)", "new URL('/admin', window.location.href)");
-      source = `window.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true;\n${source}`;
+      source = `window.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true;\nwindow.RCC_DISABLE_CHAMPIONSHIP_HISTORY = true;\n${source}`;
     }
     if (entry.name === 'rcc-driver-context.js') {
       source = source.replace(
@@ -220,6 +221,12 @@ async function transformJavaScriptTree(directory) {
 const v1AssetsDestination = resolve(distRoot, 'v1-assets');
 await cp(resolve(repositoryRoot, 'assets'), v1AssetsDestination, { recursive: true, force: true });
 await transformJavaScriptTree(resolve(v1AssetsDestination, 'js'));
+const v1DataDestination = resolve(distRoot, 'v1-data');
+await mkdir(v1DataDestination, { recursive: true });
+await copyFile(
+  resolve(repositoryRoot, 'data', 'hall-of-fame-fallback.json'),
+  resolve(v1DataDestination, 'hall-of-fame-fallback.json'),
+);
 await writeFile(
   resolve(v1AssetsDestination, 'js', 'results-preview.js'),
   "if (location.hash === '#wm-dynamics') document.documentElement.classList.add('wm-dynamics-preview');\n",
@@ -265,3 +272,4 @@ for (const page of publicPages) {
 }
 
 console.log(`Restored ${publicPages.length} complete V1 public views inside V2, including track maps and track information.`);
+
