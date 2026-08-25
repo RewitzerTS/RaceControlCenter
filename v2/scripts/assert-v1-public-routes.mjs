@@ -21,6 +21,7 @@ for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
   await access(resolve(distRoot, 'v1-assets', 'vendor', vendorFile));
 }
 await access(resolve(distRoot, 'v1-assets', 'js', 'results-preview.js'));
+await access(resolve(distRoot, 'v1-data', 'hall-of-fame-fallback.json'));
 
 const calendar = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'kalender.js'), 'utf8');
 if (!calendar.includes('Kommende Rennen (${upcoming.length})')
@@ -63,6 +64,20 @@ if (!client.includes('sb_publishable_') || !client.includes('znnkwjogtvzwfkwnmaw
 }
 if (!client.includes('RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true')) {
   throw new Error('V2 public routes must disable the unavailable legacy driver assignment relation.');
+}
+if (!client.includes('RCC_DISABLE_CHAMPIONSHIP_HISTORY = true')) {
+  throw new Error('V2 public routes must disable the unavailable legacy championship history relation.');
+}
+
+const rulesFaq = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'regeln-faq.js'), 'utf8');
+const hallOfFame = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'hall-of-fame.js'), 'utf8');
+for (const [name, source] of [['rules FAQ', rulesFaq], ['Hall of Fame', hallOfFame]]) {
+  if (!source.includes('/v1-data/hall-of-fame-fallback.json') || source.includes("fetch('data/hall-of-fame-fallback.json'")) {
+    throw new Error(`Integrated ${name} does not use the deployed Hall-of-Fame fallback data.`);
+  }
+}
+if (!rulesFaq.includes('window.RCC_DISABLE_CHAMPIONSHIP_HISTORY === true')) {
+  throw new Error('Integrated rules FAQ does not skip the unavailable championship history relation.');
 }
 
 const driverContext = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-context.js'), 'utf8');
@@ -202,3 +217,4 @@ if (!aiQuotaMigration.includes('consume_ai_analysis_quota') || !aiQuotaMigration
 }
 
 console.log(`V1 public route contract passed (${requiredPages.length} core pages, ${trackMaps.length} track maps, isolated V2 backend).`);
+
