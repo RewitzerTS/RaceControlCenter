@@ -16,6 +16,7 @@ import {
   type MessageKey,
 } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { LeagueSwitcher } from '../league/LeagueSwitcher';
 import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from '../league/leagueBranding';
 import { useRole } from '../roles/RoleProvider';
 
@@ -215,6 +216,14 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           </span>
         </NavLink>
 
+        {user && (
+          <LeagueSwitcher
+            isPlatformOwner={role === 'platform_owner'}
+            onSwitch={closeNavigation}
+            userId={user.id}
+          />
+        )}
+
         <button
           aria-controls="main-navigation"
           aria-expanded={navigationOpen}
@@ -255,7 +264,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
       <div className={embeddedAccess ? 'shell-frame shell-frame--embedded-access' : 'shell-frame'}>
 
-        <Routes>
+        <Routes key={leagueSlug}>
           <Route path="/" element={<Navigate replace to="/home" />} />
           <Route path="/home" element={<DriverHomePage />} />
           <Route path="/racing" element={<RacingPage />} />
@@ -315,4 +324,5 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     </div>
   );
 }
+
 
