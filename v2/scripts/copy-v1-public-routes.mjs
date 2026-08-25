@@ -74,6 +74,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/services/rcc-f1-news-backend.js', '/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')
     .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-calendar-2')
     .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-1')
+    .replaceAll('/v1-assets/js/supabase-client.js', '/v1-assets/js/supabase-client.js?v=v2-browser-errors-2')
     .replaceAll('/v1-assets/js/pages/race-detail.js', '/v1-assets/js/pages/race-detail.js?v=v2-racing-fix-1')
     .replaceAll('/v1-assets/js/pages/regeln-faq.js', '/v1-assets/js/pages/regeln-faq.js?v=v2-browser-errors-2')
     .replaceAll('/v1-assets/js/pages/hall-of-fame.js', '/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')
