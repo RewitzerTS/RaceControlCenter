@@ -375,16 +375,22 @@ async function loadHallOfFamePage() {
     let records = [];
     let sourceLabel = '';
 
-    try {
-      records = await fetchSupabaseHistory();
-      records = records.filter(isCompleteChampionRecord);
-      if (!records.length) throw new Error('Keine DB-Einträge vorhanden');
-      sourceLabel = 'Live-Datenbank';
-    } catch (dbError) {
-      console.warn('Hall of Fame DB-Fallback aktiv:', dbError);
+    if (window.RCC_DISABLE_CHAMPIONSHIP_HISTORY === true) {
       records = await fetchFallbackHistory();
       records = records.filter(isCompleteChampionRecord);
       sourceLabel = 'Archivdaten';
+    } else {
+      try {
+        records = await fetchSupabaseHistory();
+        records = records.filter(isCompleteChampionRecord);
+        if (!records.length) throw new Error('Keine DB-Einträge vorhanden');
+        sourceLabel = 'Live-Datenbank';
+      } catch (dbError) {
+        console.warn('Hall of Fame DB-Fallback aktiv:', dbError);
+        records = await fetchFallbackHistory();
+        records = records.filter(isCompleteChampionRecord);
+        sourceLabel = 'Archivdaten';
+      }
     }
 
     const sorted = [...records].sort((a, b) => getSeasonSortValue(b.season_name) - getSeasonSortValue(a.season_name));
@@ -403,3 +409,4 @@ async function loadHallOfFamePage() {
 }
 
 document.addEventListener('DOMContentLoaded', loadHallOfFamePage);
+
