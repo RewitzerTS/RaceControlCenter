@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { hasHeicResultImageSignature, isHeicResultImage } from './imageResultImport';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { hasHeicResultImageSignature, isHeicResultImage, prepareRaceResultImages } from './imageResultImport';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 describe('result image format detection', () => {
   it('recognizes HEIC and HEIF from their MIME types', () => {
@@ -31,5 +36,30 @@ describe('result image format detection', () => {
   it('does not mistake a regular JPEG signature for HEIC', async () => {
     const jpegHeader = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46]);
     expect(await hasHeicResultImageSignature(new Blob([jpegHeader], { type: 'image/jpeg' }))).toBe(false);
+  });
+
+  it('uses the native bitmap decoder before the Image-element fallback', async () => {
+    const close = vi.fn();
+    const bitmap = { width: 1200, height: 600, close } as ImageBitmap;
+    const createImageBitmap = vi.fn().mockResolvedValue(bitmap);
+    vi.stubGlobal('createImageBitmap', createImageBitmap);
+    const drawImage = vi.fn();
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      fillStyle: '',
+      fillRect: vi.fn(),
+      drawImage,
+    } as unknown as CanvasRenderingContext2D);
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) => {
+      callback(new Blob(['prepared'], { type: 'image/jpeg' }));
+    });
+
+    const result = await prepareRaceResultImages([
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], 'IMG_0129.JPG', { type: 'image/jpeg' }),
+    ]);
+
+    expect(createImageBitmap).toHaveBeenCalledOnce();
+    expect(drawImage).toHaveBeenCalledWith(bitmap, 0, 0, 1200, 600);
+    expect(close).toHaveBeenCalledOnce();
+    expect(result[0]).toMatch(/^data:image\/jpeg;base64,/);
   });
 });

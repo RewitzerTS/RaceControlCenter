@@ -21,6 +21,7 @@ export type AiResultAnalysis = {
 const MAX_IMAGES = 8;
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_EDGE = 1800;
+const IMAGE_PREP_TIMEOUT_MS = 30_000;
 const SUPPORTED_IMAGE_NAME = /\.(?:heic|heif|jpe?g|png|webp)$/i;
 const HEIC_IMAGE_NAME = /\.(?:heic|heif)$/i;
 const HEIC_MIME_TYPES = new Set([
@@ -59,13 +60,34 @@ function readAsDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-function loadImage(file: Blob, displayName: string): Promise<HTMLImageElement> {
+type DecodedImage = {
+  source: CanvasImageSource;
+  width: number;
+  height: number;
+  cleanup: () => void;
+};
+
+function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error(message)), IMAGE_PREP_TIMEOUT_MS);
+    promise.then(
+      (value) => { window.clearTimeout(timeout); resolve(value); },
+      (error) => { window.clearTimeout(timeout); reject(error); },
+    );
+  });
+}
+
+function loadImageElement(file: Blob, displayName: string): Promise<DecodedImage> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const image = new Image();
     image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(image);
+      resolve({
+        source: image,
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        cleanup: () => URL.revokeObjectURL(url),
+      });
     };
     image.onerror = () => {
       URL.revokeObjectURL(url);
@@ -73,6 +95,29 @@ function loadImage(file: Blob, displayName: string): Promise<HTMLImageElement> {
     };
     image.src = url;
   });
+}
+
+async function decodeImage(file: Blob, displayName: string): Promise<DecodedImage> {
+  if (typeof window.createImageBitmap === 'function') {
+    try {
+      const bitmap = await withTimeout(
+        window.createImageBitmap(file),
+        `„${displayName}“ konnte nicht rechtzeitig decodiert werden.`,
+      );
+      return {
+        source: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        cleanup: () => bitmap.close(),
+      };
+    } catch {
+      // Some mobile browsers expose createImageBitmap but reject individual image variants.
+    }
+  }
+  return withTimeout(
+    loadImageElement(file, displayName),
+    `„${displayName}“ konnte nicht rechtzeitig geladen werden.`,
+  );
 }
 
 async function convertHeicImage(file: File): Promise<Blob> {
@@ -100,21 +145,30 @@ async function prepareImage(file: File): Promise<string> {
   if (file.size > MAX_SOURCE_BYTES) throw new Error(`„${file.name}“ ist größer als 20 MB.`);
 
   const source = isHeic ? await convertHeicImage(file) : file;
-  const image = await loadImage(source, file.name);
-  const scale = Math.min(1, MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight));
-  const width = Math.max(1, Math.round(image.naturalWidth * scale));
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d', { alpha: false });
-  if (!context) throw new Error('Das Ergebnisbild konnte nicht vorbereitet werden.');
-  context.fillStyle = '#11161a';
-  context.fillRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
-  const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.88));
-  if (!blob) throw new Error('Das Ergebnisbild konnte nicht komprimiert werden.');
-  return readAsDataUrl(blob);
+  const decoded = await decodeImage(source, file.name);
+  try {
+    const longestEdge = Math.max(decoded.width, decoded.height);
+    if (!longestEdge) throw new Error(`„${file.name}“ hat ungültige Abmessungen.`);
+    const scale = Math.min(1, MAX_EDGE / longestEdge);
+    const width = Math.max(1, Math.round(decoded.width * scale));
+    const height = Math.max(1, Math.round(decoded.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d', { alpha: false });
+    if (!context) throw new Error('Das Ergebnisbild konnte nicht vorbereitet werden.');
+    context.fillStyle = '#11161a';
+    context.fillRect(0, 0, width, height);
+    context.drawImage(decoded.source, 0, 0, width, height);
+    const blob = await withTimeout(
+      new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.88)),
+      `„${file.name}“ konnte nicht rechtzeitig komprimiert werden.`,
+    );
+    if (!blob) throw new Error('Das Ergebnisbild konnte nicht komprimiert werden.');
+    return withTimeout(readAsDataUrl(blob), `„${file.name}“ konnte nach der Komprimierung nicht gelesen werden.`);
+  } finally {
+    decoded.cleanup();
+  }
 }
 
 export async function prepareRaceResultImages(files: File[]): Promise<string[]> {
