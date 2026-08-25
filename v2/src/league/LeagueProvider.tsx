@@ -14,10 +14,23 @@ interface LeagueContextValue {
 
 const LeagueContext = createContext<LeagueContextValue | null>(null);
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const ACTIVE_LEAGUE_STORAGE_KEY = 'racevora.activeLeague';
+
+export function resolveInitialLeagueSlug(search: string, storedSlug: string | null, fallback: string): string {
+  const urlSlug = new URLSearchParams(search).get('league')?.toLowerCase();
+  if (urlSlug && SLUG_PATTERN.test(urlSlug)) return urlSlug;
+  const normalizedStoredSlug = storedSlug?.trim().toLowerCase();
+  return normalizedStoredSlug && SLUG_PATTERN.test(normalizedStoredSlug) ? normalizedStoredSlug : fallback;
+}
 
 function initialSlug(fallback: string): string {
-  const urlSlug = new URLSearchParams(window.location.search).get('league')?.toLowerCase();
-  return urlSlug && SLUG_PATTERN.test(urlSlug) ? urlSlug : fallback;
+  let storedSlug: string | null = null;
+  try {
+    storedSlug = window.localStorage.getItem(ACTIVE_LEAGUE_STORAGE_KEY);
+  } catch {
+    // Storage may be unavailable in privacy-restricted browser contexts.
+  }
+  return resolveInitialLeagueSlug(window.location.search, storedSlug, fallback);
 }
 
 export function LeagueProvider({ environment, children }: PropsWithChildren<{ environment: RuntimeEnvironment }>) {
@@ -42,13 +55,18 @@ export function LeagueProvider({ environment, children }: PropsWithChildren<{ en
 
   useEffect(() => { void refreshBranding(); }, [refreshBranding]);
 
-  function setLeagueSlug(slug: string) {
+  const setLeagueSlug = useCallback((slug: string) => {
     const normalized = slug.trim().toLowerCase();
     if (!SLUG_PATTERN.test(normalized)) throw new Error('Invalid league slug.');
+    try {
+      window.localStorage.setItem(ACTIVE_LEAGUE_STORAGE_KEY, normalized);
+    } catch {
+      // The in-memory selection still works when persistent storage is blocked.
+    }
     setLeagueSlugState(normalized);
-  }
+  }, []);
 
-  const value = useMemo(() => ({ leagueSlug, setLeagueSlug, client, branding, brandingLoading, refreshBranding }), [branding, brandingLoading, client, leagueSlug, refreshBranding]);
+  const value = useMemo(() => ({ leagueSlug, setLeagueSlug, client, branding, brandingLoading, refreshBranding }), [branding, brandingLoading, client, leagueSlug, refreshBranding, setLeagueSlug]);
   return <LeagueContext.Provider value={value}>{children}</LeagueContext.Provider>;
 }
 
@@ -57,3 +75,4 @@ export function useLeague(): LeagueContextValue {
   if (!context) throw new Error('useLeague must be used inside LeagueProvider.');
   return context;
 }
+
