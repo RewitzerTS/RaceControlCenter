@@ -93,7 +93,24 @@ export type SeasonTrackPreset = {
   country_code: string;
 };
 export type SeasonGamePreset = { key: string; label: string; roster: SeasonRosterSeat[]; tracks: SeasonTrackPreset[] };
-export type ActiveSeasonSummary = { id: string; name: string; slug: string; game_label: string; start_date: string | null; end_date: string | null };
+export type SeasonCalendarEntry = {
+  track_key: string;
+  date: string;
+  time: string;
+  weather: 'klar' | 'regen' | 'dynamisch';
+  has_sprint: boolean;
+};
+export type ActiveSeasonSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  game_key: string;
+  game_label: string;
+  start_date: string | null;
+  end_date: string | null;
+  calendar_can_configure: boolean;
+  calendar: SeasonCalendarEntry[];
+};
 export type SeasonSetupWorkspace = { league: OwnerLeague; games: SeasonGamePreset[]; active_season: ActiveSeasonSummary | null };
 export type SeasonPlayerAssignment = { seat_code: string; player_name: string; gamertag: string };
 export type StartedSeason = { season: { id: string; name: string; slug: string }; players: number; ai_drivers: number; races: number; started: boolean };
@@ -212,16 +229,31 @@ export async function startLeagueSeason(client: LeagueSupabaseClient, input: {
   gameKey: string;
   startDate: string;
   assignments: SeasonPlayerAssignment[];
+  calendar: SeasonCalendarEntry[];
 }): Promise<StartedSeason> {
-  const response = await client.rpc('start_league_season', {
+  const response = await client.rpc('start_league_season_with_calendar', {
     p_name: input.name,
     p_slug: input.slug,
     p_game_key: input.gameKey,
-    p_start_date: input.startDate || undefined,
+    p_start_date: input.startDate,
     p_assignments: input.assignments as unknown as Json,
+    p_calendar: input.calendar as unknown as Json,
   });
   if (response.error) throw response.error;
   return object(response.data) as unknown as StartedSeason;
+}
+
+export async function configureLeagueSeasonCalendar(
+  client: LeagueSupabaseClient,
+  seasonId: string,
+  calendar: SeasonCalendarEntry[],
+) {
+  const response = await client.rpc('configure_league_season_calendar', {
+    p_season_id: seasonId,
+    p_calendar: calendar as unknown as Json,
+  });
+  if (response.error) throw response.error;
+  return object(response.data);
 }
 
 export async function completeLeagueSeason(client: LeagueSupabaseClient, seasonId: string) {

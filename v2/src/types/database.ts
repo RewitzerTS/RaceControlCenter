@@ -2706,6 +2706,21 @@ export type Database = {
         }
         Returns: Json
       }
+      start_league_season_with_calendar: {
+        Args: {
+          p_assignments: Json
+          p_calendar: Json
+          p_game_key: string
+          p_name: string
+          p_slug: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
+      configure_league_season_calendar: {
+        Args: { p_calendar: Json; p_season_id: string }
+        Returns: Json
+      }
       submit_steward_appeal: {
         Args: { p_case_id: string; p_idempotency_key: string; p_reason: string }
         Returns: Json

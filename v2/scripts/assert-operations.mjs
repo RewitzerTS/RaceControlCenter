@@ -3,12 +3,13 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [migration, processors, adminParity, completionMigration, seasonAuditFix, shell, roleProvider, admin, members, drivers, completionPages, owner, notifications, styles, test] = await Promise.all([
+const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, shell, roleProvider, admin, members, drivers, completionPages, owner, notifications, styles, test] = await Promise.all([
   'supabase/migrations/20260820191000_v2_admin_owner_notifications.sql',
   'supabase/migrations/20260821201612_v2_notification_vora_processors.sql',
   'supabase/migrations/20260822123000_v2_v1_admin_members_drivers.sql',
   'supabase/migrations/20260822150000_v2_v1_migration_completion.sql',
   'supabase/migrations/20260825005500_v2_season_start_append_only_audit.sql',
+  'supabase/migrations/20260825013000_v2_season_calendar_workflow.sql',
   'src/components/AppShell.tsx', 'src/roles/RoleProvider.tsx', 'src/operations/AdminWorkspacePage.tsx',
   'src/operations/LeagueMembersPage.tsx', 'src/operations/LeagueDriversPage.tsx',
   'src/operations/V1CompletionPages.tsx',
@@ -39,6 +40,7 @@ for (const contract of ['get_league_member_admin_workspace', 'add_existing_leagu
 for (const contract of ['get_league_configuration_workspace', 'update_league_rules', 'rename_league_team', 'create_league_result_draft', 'publish_league_result_draft']) if (!completionMigration.includes(contract)) violations.push('missing V1 completion RPC: ' + contract);
 for (const contract of ['create or replace function public.start_league_season', "'season.preset.seeded'", "'ai_drivers', roster_size - player_count", "'races', track_count"]) if (!seasonAuditFix.includes(contract)) violations.push('missing append-only season start contract: ' + contract);
 if (seasonAuditFix.includes('update public.v2_audit_events')) violations.push('season start still mutates immutable audit history');
+for (const contract of ['configure_league_season_calendar', 'start_league_season_with_calendar', "'season.calendar.configured'", "r.status <> 'upcoming'", 'end_date = null']) if (!seasonCalendar.includes(contract)) violations.push('missing guided season calendar contract: ' + contract);
 for (const contract of ['LeagueTeamsPage', 'LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
 if (admin.includes('folgt in der V1-Migration') || admin.includes('operations-menu__pending')) violations.push('V1 migration still exposes pending admin placeholders');
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);

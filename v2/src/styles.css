@@ -2073,7 +2073,8 @@ body {
 
 .season-setup-card { width: min(1040px, 100%); }
 .season-setup-card .onboarding-header h1 { max-width: 17ch; }
-.season-setup-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.season-setup-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.season-setup-steps--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .season-setup-fields select {
   width: 100%;
   min-height: 54px;
@@ -2146,6 +2147,40 @@ body {
 .season-review-facts div { padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--brand-background) 58%, transparent); }
 .season-review-facts dt { margin-bottom: 0.35rem; color: var(--muted); font-size: 0.72rem; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; }
 .season-review-facts dd { margin: 0; color: var(--brand-text); font-weight: 800; }
+.season-calendar-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.85rem;
+}
+.season-calendar-controls select,
+.season-calendar-list select {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--control-border);
+  border-radius: 14px;
+  color: var(--brand-text);
+  background: var(--control-background);
+  font: inherit;
+}
+.season-calendar-weekdays { margin: 0; padding: 0; border: 0; }
+.season-calendar-weekdays legend { margin-bottom: 0.65rem; color: var(--brand-text); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.season-calendar-weekdays > div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.season-calendar-weekdays label { display: grid; place-items: center; width: 48px; min-height: 44px; border: 1px solid var(--line); border-radius: 12px; color: var(--muted); background: var(--surface); cursor: pointer; }
+.season-calendar-weekdays label.is-selected { border-color: var(--brand-primary); color: var(--brand-text); background: color-mix(in srgb, var(--brand-primary) 16%, var(--surface)); }
+.season-calendar-weekdays input { position: absolute; width: 1px; min-height: 1px; opacity: 0; }
+.season-calendar-weekdays label > span { font-size: 0.82rem; letter-spacing: 0; text-transform: none; }
+.season-calendar-generate { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--brand-primary) 35%, var(--line)); border-radius: 16px; background: color-mix(in srgb, var(--brand-primary) 8%, transparent); }
+.season-calendar-generate p { margin: 0.25rem 0 0; font-size: 0.84rem; }
+.season-calendar-generate button { flex: 0 0 auto; cursor: pointer; }
+.season-calendar-list { display: grid; gap: 0.65rem; margin: 0; padding: 0; list-style: none; }
+.season-calendar-list > li { display: grid; grid-template-columns: 42px minmax(190px, 1.35fr) minmax(145px, 0.9fr) minmax(120px, 0.7fr) minmax(145px, 0.9fr) auto; align-items: end; gap: 0.65rem; padding: 0.85rem; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--brand-background) 58%, transparent); }
+.season-calendar-round { display: grid; place-items: center; align-self: center; width: 38px; height: 38px; border-radius: 12px; color: var(--brand-on-primary); background: var(--brand-primary); font-weight: 900; }
+.season-calendar-list label > span { font-size: 0.68rem; }
+.season-calendar-list input, .season-calendar-list select { min-height: 46px; }
+.season-calendar-sprint { display: flex !important; flex-direction: row; align-items: center !important; gap: 0.5rem !important; min-height: 46px; padding: 0 0.7rem; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.season-calendar-sprint input { width: 18px !important; min-height: 18px !important; }
+.season-calendar-sprint span { letter-spacing: 0 !important; text-transform: none !important; }
 
 .join-request-list { display: grid; gap: 0.75rem; }
 .join-request-card { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--brand-background) 58%, transparent); }
@@ -2184,6 +2219,14 @@ body {
   .season-roster-list > li { grid-template-columns: 52px minmax(0, 1fr); }
   .season-player-toggle { grid-column: 1 / -1; justify-self: stretch; justify-content: center; }
   .season-player-fields { grid-column: 1 / -1; }
+  .season-setup-steps li { font-size: 0; }
+  .season-setup-steps li span { font-size: 0.72rem; }
+  .season-calendar-generate { align-items: stretch; flex-direction: column; }
+  .season-calendar-list > li { grid-template-columns: 42px minmax(0, 1fr); align-items: start; }
+  .season-calendar-list > li > label { grid-column: 1 / -1; }
+  .season-calendar-round { grid-column: 1; }
+  .season-calendar-track { grid-column: 2 !important; }
+  .season-calendar-sprint { justify-content: center; }
   .onboarding-actions, .onboarding-actions--split, .join-request-card, .join-request-actions { display: grid; width: 100%; }
   .onboarding-actions .primary-action, .onboarding-actions .text-action, .join-request-actions button { width: 100%; }
 }
