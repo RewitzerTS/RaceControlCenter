@@ -36,8 +36,8 @@ if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-calendar-2')) {
 
 for (const [page, marker] of [
   ['rennen-detail', '/v1-assets/js/pages/race-detail.js?v=v2-racing-fix-1'],
-  ['grid', '/v1-assets/js/pages/regeln-faq.js?v=v2-racing-fix-1'],
-  ['regeln-faq', '/v1-assets/js/pages/regeln-faq.js?v=v2-racing-fix-1'],
+  ['grid', '/v1-assets/js/pages/regeln-faq.js?v=v2-browser-errors-2'],
+  ['regeln-faq', '/v1-assets/js/pages/regeln-faq.js?v=v2-browser-errors-2'],
   ['ergebnisse', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1'],
   ['fahrer-wm', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1'],
 ]) {
@@ -78,6 +78,13 @@ for (const [name, source] of [['rules FAQ', rulesFaq], ['Hall of Fame', hallOfFa
 }
 if (!rulesFaq.includes('window.RCC_DISABLE_CHAMPIONSHIP_HISTORY === true')) {
   throw new Error('Integrated rules FAQ does not skip the unavailable championship history relation.');
+}
+if (!hallOfFame.includes('window.RCC_DISABLE_CHAMPIONSHIP_HISTORY === true')) {
+  throw new Error('Integrated Hall of Fame does not skip the unavailable championship history relation.');
+}
+const hallOfFamePage = await readFile(resolve(distRoot, 'hall-of-fame.html'), 'utf8');
+if (!hallOfFamePage.includes('/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')) {
+  throw new Error('Integrated Hall of Fame must cache-bust the browser-error fix.');
 }
 
 const driverContext = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-context.js'), 'utf8');
