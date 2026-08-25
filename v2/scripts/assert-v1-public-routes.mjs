@@ -45,6 +45,9 @@ for (const [page, marker] of [
   if (!source.includes(marker) || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-1')) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }
+  if (!source.includes('/v1-assets/js/supabase-client.js?v=v2-browser-errors-2')) {
+    throw new Error(`${page}.html must cache-bust the integrated browser-error client fix.`);
+  }
 }
 
 const manifest = JSON.parse(await readFile(resolve(distRoot, 'manifest.json'), 'utf8'));
@@ -85,6 +88,9 @@ if (!hallOfFame.includes('window.RCC_DISABLE_CHAMPIONSHIP_HISTORY === true')) {
 const hallOfFamePage = await readFile(resolve(distRoot, 'hall-of-fame.html'), 'utf8');
 if (!hallOfFamePage.includes('/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')) {
   throw new Error('Integrated Hall of Fame must cache-bust the browser-error fix.');
+}
+if (!hallOfFamePage.includes('/v1-assets/js/supabase-client.js?v=v2-browser-errors-2')) {
+  throw new Error('Integrated Hall of Fame must cache-bust the shared browser-error client fix.');
 }
 
 const driverContext = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-context.js'), 'utf8');
