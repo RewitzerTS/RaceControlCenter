@@ -2898,7 +2898,7 @@ p { color: var(--muted); }
   .brand { min-height: 82px; }
   .brand-logo { width: 74px; height: 74px; }
   .brand { min-width: 0; flex: 0 0 auto; gap: 8px; }
-  .brand-text { min-width: 0; display: block; }
+  .brand-text { display: none; }
   .brand-title {
     max-width: 22ch;
     overflow: hidden;
@@ -2911,6 +2911,7 @@ p { color: var(--muted); }
   .brand-subtitle { letter-spacing: 0.12em; }
   .header-inner { gap: 8px; }
   .league-switcher { min-width: 0; max-width: 132px; flex: 1 1 132px; }
+  .mobile-toggle { flex: 0 0 46px; }
   .league-switcher > summary,
   .league-switcher--static { padding-inline: 9px; }
   .league-switcher__copy small { display: none; }
