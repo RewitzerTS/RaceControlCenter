@@ -652,11 +652,15 @@ function mergeChampionshipHistory(primary = [], fallback = []) {
 }
 
 async function loadChampionshipHistoryForFacts() {
+  const databaseHistory = window.RCC_DISABLE_CHAMPIONSHIP_HISTORY === true
+    ? Promise.resolve([])
+    : window.RCCData.fetchSeasonHistory(200).catch((error) => {
+        console.warn('Season History konnte nicht aus der Datenbank geladen werden:', error);
+        return [];
+      });
+
   const [dbHistory, fallbackHistory] = await Promise.all([
-    window.RCCData.fetchSeasonHistory(200).catch((error) => {
-      console.warn('Season History konnte nicht aus der Datenbank geladen werden:', error);
-      return [];
-    }),
+    databaseHistory,
     fetch('data/hall-of-fame-fallback.json', { cache: 'no-store' })
       .then((response) => (response.ok ? response.json() : { history: [] }))
       .then((payload) => payload?.history || [])
@@ -714,3 +718,4 @@ async function initRulesFaqPage() {
 }
 
 document.addEventListener('DOMContentLoaded', initRulesFaqPage);
+
