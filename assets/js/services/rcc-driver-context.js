@@ -101,6 +101,21 @@
 })(window);
 
 (function setupDriverContext(global) {
+  function isMissingRelation(error) {
+    return error?.code === 'PGRST205' || error?.code === '42P01' || error?.code === '404';
+  }
+
+  function normalizeSeasonAssignment(row = {}) {
+    return {
+      ...row,
+      league_team: row.league_team || row.team_name || '',
+      ai_driver_reference: row.ai_driver_reference || row.ai_driver_name || '',
+      is_primary: row.is_primary ?? true,
+      effective_from_race_id: row.effective_from_race_id ?? null,
+      effective_round_number: row.effective_round_number ?? null
+    };
+  }
+
   function groupByDriver(assignments = []) {
     return assignments.reduce((map, assignment) => {
       const key = assignment.driver_id;
@@ -115,6 +130,33 @@
     if (!global.supabaseClient) return [];
 
     let query = global.supabaseClient
+      .from('season_driver_assignments')
+      .select(`
+        id,
+        driver_id,
+        season_id,
+        seat_code,
+        team_name,
+        car_name,
+        ai_driver_name,
+        participant_type,
+        gamertag_snapshot,
+        number,
+        nationality_code,
+        created_at
+      `)
+      .order('created_at', { ascending: true });
+
+    if (options.seasonId !== undefined && options.seasonId !== null) {
+      query = query.eq('season_id', options.seasonId);
+    }
+
+    const current = await query;
+    if (!current.error) return (current.data || []).map(normalizeSeasonAssignment);
+    if (!isMissingRelation(current.error)) throw current.error;
+    if (global.RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS === true) return [];
+
+    let legacyQuery = global.supabaseClient
       .from('driver_season_assignments')
       .select(`
         id,
@@ -132,23 +174,21 @@
       .order('created_at', { ascending: true });
 
     if (options.seasonId !== undefined && options.seasonId !== null) {
-      query = query.eq('season_id', options.seasonId);
+      legacyQuery = legacyQuery.eq('season_id', options.seasonId);
     }
 
-    const { data, error } = await query;
-    if (error) {
-      const relationMissing = error.code === 'PGRST205' || error.code === '42P01' || error.code === '404';
-      if (relationMissing) return [];
-      throw error;
+    const legacy = await legacyQuery;
+    if (legacy.error) {
+      if (isMissingRelation(legacy.error)) return [];
+      throw legacy.error;
     }
-
-    return data || [];
+    return (legacy.data || []).map(normalizeSeasonAssignment);
   }
 
   function createAssignmentResolver({ drivers = [], races = [], assignments = [] } = {}) {
     const driversById = new Map(drivers.map((driver) => [driver.id, driver]));
     const racesById = new Map(races.map((race) => [race.id, race]));
-    const assignmentsByDriver = groupByDriver(assignments);
+    const assignmentsByDriver = groupByDriver(assignments.map(normalizeSeasonAssignment));
 
     function getAssignmentStartRound(row) {
       if (Number.isFinite(Number(row?.effective_round_number))) {

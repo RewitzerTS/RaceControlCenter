@@ -409,4 +409,3 @@ async function loadHallOfFamePage() {
 }
 
 document.addEventListener('DOMContentLoaded', loadHallOfFamePage);
-

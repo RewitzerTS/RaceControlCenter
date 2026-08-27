@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
 import { createLeague } from './operations';
 
@@ -7,9 +7,21 @@ function slugify(value: string) {
   return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
 
+export function leagueSetupDestination(slug: string): string {
+  return `/admin/season/setup?league=${encodeURIComponent(slug)}`;
+}
+
+export function activateCreatedLeague(
+  slug: string,
+  setLeagueSlug: (value: string) => void,
+  replaceLocation: (destination: string) => void,
+): void {
+  setLeagueSlug(slug);
+  replaceLocation(leagueSetupDestination(slug));
+}
+
 export function LeagueCreatePage() {
   const { client, setLeagueSlug } = useLeague();
-  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
@@ -23,8 +35,7 @@ export function LeagueCreatePage() {
     setSubmitting(true);
     try {
       const league = await createLeague(client, { name: name.trim(), slug: slug.trim(), isPublic });
-      setLeagueSlug(league.slug);
-      navigate(`/admin/season/setup?league=${encodeURIComponent(league.slug)}`, { replace: true });
+      activateCreatedLeague(league.slug, setLeagueSlug, (destination) => window.location.replace(destination));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Die Liga konnte nicht erstellt werden.');
       setSubmitting(false);
@@ -42,4 +53,3 @@ export function LeagueCreatePage() {
     </form>
   </main>;
 }
-

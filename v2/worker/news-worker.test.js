@@ -27,4 +27,3 @@ describe('RaceVora domain routing', () => {
     expect(await response.text()).toBe('/landing');
   });
 });
-

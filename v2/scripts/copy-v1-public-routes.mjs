@@ -66,17 +66,23 @@ if (supabaseUrl.includes(legacyProjectRef)) {
   throw new Error('V1 source Supabase must never be bundled into V2 public routes.');
 }
 
+const supabaseProjectRef = new URL(supabaseUrl).hostname.split('.')[0];
+const sharedAuthStorageKey = `racevora-v2:${supabaseProjectRef}:auth`;
+
 function transformHtml(source, includeBase = false, page = '') {
   let output = source
     .replaceAll('assets/', '/v1-assets/')
     .replaceAll('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/v1-assets/vendor/supabase.js')
     .replaceAll('https://cdn.jsdelivr.net/npm/chart.js', '/v1-assets/vendor/chart.umd.min.js')
     .replaceAll('/v1-assets/js/services/rcc-f1-news-backend.js', '/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')
-    .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-calendar-2')
+    .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')
     .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-1')
-    .replaceAll('/v1-assets/js/supabase-client.js', '/v1-assets/js/supabase-client.js?v=v2-browser-errors-2')
-    .replaceAll('/v1-assets/js/pages/race-detail.js', '/v1-assets/js/pages/race-detail.js?v=v2-racing-fix-1')
-    .replaceAll('/v1-assets/js/pages/regeln-faq.js', '/v1-assets/js/pages/regeln-faq.js?v=v2-browser-errors-2')
+    .replaceAll('/v1-assets/js/services/rcc-driver-context.js', '/v1-assets/js/services/rcc-driver-context.js?v=v2-season-grid-1')
+    .replaceAll('/v1-assets/js/services/rcc-grid-roster.js', '/v1-assets/js/services/rcc-grid-roster.js?v=v2-season-grid-1')
+    .replaceAll('/v1-assets/js/supabase-client.js', '/v1-assets/js/supabase-client.js?v=v2-auth-session-1')
+    .replaceAll('/v1-assets/js/pages/race-detail.js', '/v1-assets/js/pages/race-detail.js?v=v2-season-archive-1')
+    .replaceAll('/v1-assets/js/pages/regeln-faq.js', '/v1-assets/js/pages/regeln-faq.js?v=v2-season-grid-1')
+    .replaceAll('/v1-assets/js/pages/season-archive.js', '/v1-assets/js/pages/season-archive.js?v=v2-season-archive-1')
     .replaceAll('/v1-assets/js/pages/hall-of-fame.js', '/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')
     .replaceAll('/v1-assets/js/pages/results-status-markers.js', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1')
     .replaceAll('/v1-assets/js/components/racevora-team-logo-resilience.js', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1')
@@ -187,14 +193,9 @@ async function transformJavaScriptTree(directory) {
       source = source
         .replace(/const SUPABASE_URL = '[^']+';/, `const SUPABASE_URL = ${JSON.stringify(supabaseUrl)};`)
         .replace(/const SUPABASE_ANON_KEY = '[^']+';/, `const SUPABASE_ANON_KEY = ${JSON.stringify(publishableKey)};`)
+        .replace(/storageKey:\s*'[^']+'/, `storageKey: ${JSON.stringify(sharedAuthStorageKey)}`)
         .replaceAll("new URL('admin.html', window.location.href)", "new URL('/admin', window.location.href)");
-      source = `window.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true;\nwindow.RCC_DISABLE_CHAMPIONSHIP_HISTORY = true;\n${source}`;
-    }
-    if (entry.name === 'rcc-driver-context.js') {
-      source = source.replace(
-        'if (!global.supabaseClient) return [];',
-        'if (!global.supabaseClient || global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === true) return [];',
-      );
+      source = `window.RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS = true;\nwindow.RCC_DISABLE_CHAMPIONSHIP_HISTORY = true;\n${source}`;
     }
     if (entry.name === 'rcc-f1-news-backend.js') {
       source = source.replace(
@@ -274,4 +275,3 @@ for (const page of publicPages) {
 }
 
 console.log(`Restored ${publicPages.length} complete V1 public views inside V2, including track maps and track information.`);
-

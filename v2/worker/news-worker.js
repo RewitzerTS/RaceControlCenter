@@ -116,4 +116,3 @@ export default {
     return environment.ASSETS.fetch(request);
   },
 };
-

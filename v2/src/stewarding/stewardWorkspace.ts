@@ -1,5 +1,6 @@
 import type { Json } from '../types/database';
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
 
 export type StewardCase = {
   id: string;
@@ -21,7 +22,7 @@ export type StewardRace = { id: string; grand_prix_name: string; round_number: n
 export type StewardDriver = { id: string; display_name: string; number: number | null };
 export type StewardEvidence = { id: string; evidence_kind: string; description: string; uri: string | null; is_public: boolean; submitted_at: string };
 export type StewardVote = { id: string; vote_version: number; outcome: string; reasoning: string; conflict_disclosed: boolean; cast_at: string; steward_user_id: string };
-export type StewardDecision = { id: string; version_number: number; outcome: string; reasoning: string; rule_code: string; rule_version: string; finalized_at: string; result_version_id: string };
+export type StewardDecision = { id: string; version_number: number; outcome: string; reasoning: string; rule_code: string; rule_version: string; finalized_at: string; result_version_id: string; result_revision: ResultRevision | null };
 export type StewardPenalty = { id: string; decision_version_id: string; penalty_type: string; time_delta_ms: number | null; points_delta: number | null; reason: string };
 export type StewardAppeal = { id: string; reason: string; status: string; submitted_at: string };
 
@@ -37,6 +38,25 @@ export interface StewardCaseDetail {
   decisions: StewardDecision[];
   penalties: StewardPenalty[];
   appeals: StewardAppeal[];
+}
+
+export interface StewardDetailCounts {
+  appeals: number;
+  decisions: number;
+  evidence: number;
+  penalties: number;
+  votes: number;
+}
+
+export function stewardDetailCounts(detail: StewardCaseDetail | null): StewardDetailCounts | null {
+  if (!detail) return null;
+  return {
+    appeals: detail.appeals.length,
+    decisions: detail.decisions.length,
+    evidence: detail.evidence.length,
+    penalties: detail.penalties.length,
+    votes: detail.votes.length,
+  };
 }
 
 function throwIfError(error: { message: string } | null) {
@@ -66,7 +86,9 @@ export async function loadStewardCaseDetail(client: LeagueSupabaseClient, caseId
     ? await client.from('steward_penalties').select('id,decision_version_id,penalty_type,time_delta_ms,points_delta,reason').in('decision_version_id', decisionIds)
     : { data: [], error: null };
   throwIfError(penalties.error);
-  return { evidence: evidence.data ?? [], votes: votes.data ?? [], decisions: decisions.data ?? [], penalties: penalties.data ?? [], appeals: appeals.data ?? [] };
+  const revisions = await loadResultRevisions(client, (decisions.data ?? []).map((decision) => decision.result_version_id));
+  const enrichedDecisions = (decisions.data ?? []).map((decision) => ({ ...decision, result_revision: revisions.get(decision.result_version_id) ?? null }));
+  return { evidence: evidence.data ?? [], votes: votes.data ?? [], decisions: enrichedDecisions, penalties: penalties.data ?? [], appeals: appeals.data ?? [] };
 }
 
 export async function createStewardCase(client: LeagueSupabaseClient, input: {

@@ -105,4 +105,3 @@ export function AchievementBadge({ code, metric, threshold, title }: Achievement
     </svg>
   );
 }
-

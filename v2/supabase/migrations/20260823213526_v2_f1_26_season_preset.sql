@@ -211,4 +211,3 @@ comment on function private.season_track_catalog(text) is
   'Authoritative default track list for supported season game presets.';
 comment on function public.start_league_season(text, text, text, date, date, jsonb) is
   'Starts a league season with the complete preset grid and an editable default race calendar.';
-

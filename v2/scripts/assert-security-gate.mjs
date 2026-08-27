@@ -6,7 +6,8 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
 const headers = read('public/_headers');
 const vite = read('vite.config.ts');
-const migration = read('supabase/migrations/20260820213721_v2_security_gate.sql');
+const migration = read('supabase/migrations/20260820214856_v2_security_gate.sql');
+const privateHardening = read('supabase/migrations/20260827062211_harden_private_database_surface.sql');
 const regression = read('supabase/tests/phase-25-security-gate.sql');
 const sourceFiles = fs.readdirSync(path.join(root, 'src'), { recursive: true, withFileTypes: true })
   .filter((entry) => entry.isFile() && /\.(?:ts|tsx)$/.test(entry.name))
@@ -15,21 +16,44 @@ const sourceFiles = fs.readdirSync(path.join(root, 'src'), { recursive: true, wi
 
 const expectedProject = 'znnkwjogtvzwfkwnmawp.supabase.co';
 const authenticatedDefinerRpcAllowlist = [
+  'add_existing_league_member_by_email',
   'add_steward_evidence',
   'cast_steward_vote',
+  'complete_driver_onboarding',
+  'complete_league_season',
+  'configure_league_season_calendar',
+  'consume_ai_analysis_quota',
+  'create_league',
+  'create_league_result_draft',
   'create_steward_case',
   'finalize_steward_decision',
   'get_demo_full_e2e_snapshot',
   'get_league_admin_workspace',
+  'get_league_configuration_workspace',
+  'get_league_driver_admin_workspace',
+  'get_league_member_admin_workspace',
+  'get_league_race_admin_workspace',
+  'get_my_league_join_requests',
   'get_owner_control_snapshot',
+  'get_season_setup_workspace',
   'get_social_graphics_workspace',
   'get_vora_companion_snapshot',
   'is_platform_owner',
   'mark_notification_read',
+  'publish_league_result_draft',
   'purchase_cosmetic',
   'record_social_graphic_render',
+  'remove_league_member',
+  'rename_league_team',
+  'review_league_join_request',
+  'set_league_member_role',
   'set_platform_feature_flag',
+  'start_league_season',
+  'start_league_season_with_calendar',
   'submit_steward_appeal',
+  'update_league_branding',
+  'update_league_rules',
+  'upsert_league_driver',
 ];
 const forbiddenSinks = ['dangerouslySetInnerHTML', '.innerHTML', 'document.write(', 'eval(', 'new Function('];
 const failures = [];
@@ -51,9 +75,11 @@ requireGate(headers.includes('Cross-Origin-Resource-Policy: same-origin'), 'CORP
 requireGate(forbiddenSinks.every((sink) => !sourceFiles.includes(sink)), 'browser source has no forbidden dynamic HTML/code sink');
 requireGate(migration.includes('alter table private.steward_case_counters enable row level security;'), 'private Steward counter has RLS defense in depth');
 requireGate(migration.includes('revoke all on table private.steward_case_counters from public, anon, authenticated;'), 'private Steward counter denies browser roles');
+requireGate(privateHardening.includes('alter table private.ai_analysis_usage enable row level security;'), 'private AI quota ledger has RLS defense in depth');
+requireGate(privateHardening.includes('revoke all on function private.assign_driver_profile_number()'), 'profile-number trigger denies direct API execution');
 requireGate(regression.includes("p.prosecdef") && regression.includes("has_function_privilege('public', p.oid, 'execute')"), 'database regression audits SECURITY DEFINER exposure');
 requireGate(authenticatedDefinerRpcAllowlist.every((name) => regression.includes(`'${name}'`)), 'database regression pins the reviewed authenticated RPC allowlist');
-requireGate(regression.includes('steward_case_counters') && regression.includes('relrowsecurity'), 'database regression audits private-table RLS');
+requireGate(regression.includes('steward_case_counters') && regression.includes('ai_analysis_usage') && regression.includes('relrowsecurity'), 'database regression audits private-table RLS');
 requireGate(regression.trimEnd().endsWith('rollback;'), 'database regression is non-persistent');
 
 if (failures.length) {

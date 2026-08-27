@@ -56,9 +56,9 @@ begin
   values (created_league.id, actor_id, 'league_admin');
 
   insert into public.v2_audit_events (
-    scope, actor_user_id, action, entity_type, entity_id, metadata
+    scope, league_id, actor_user_id, action, entity_type, entity_id, metadata
   ) values (
-    'league', actor_id, 'league.created', 'league', created_league.id,
+    'league', created_league.id, actor_id, 'league.created', 'league', created_league.id,
     jsonb_build_object('slug', created_league.slug, 'is_public', created_league.is_public)
   );
 

@@ -32,7 +32,14 @@ requireGate(shell.includes("aria-label={`${t('language')}: ${languageName(langua
 requireGate(home.includes('to="/login?mode=signin"') && shell.includes('to="/login?mode=signin"'), 'signed-out Home and topbar expose the production login');
 requireGate(shell.includes("assets/images/racevora-mark.svg") && shell.includes('className="site-header"') && shell.includes('brand-title') && shell.includes('Race Management Platform'), 'V1 tenant branding and horizontal product header are retained');
 requireGate(!shell.includes('className="app-rail"') && !shell.includes('className="brand-symbol"'), 'the divergent V2 rail and placeholder logo are absent');
-requireGate(shell.includes('status-strip v2-status-strip') && page.includes('beta-dashboard-grid'), 'V1 dashboard geometry is retained for the Beta entry');
+requireGate(
+  !shell.includes('v2-status-strip')
+    && !shell.includes('status-pill-card')
+    && page.includes('beta-dashboard-grid')
+    && page.includes('beta-access-intro hero-main')
+    && page.includes('beta-access-form hero-side'),
+  'global status cards are absent while the Beta entry retains its responsive two-panel access geometry',
+);
 requireGate((messages.match(/"beta\.action"/g) ?? []).length === 4, 'Beta access copy exists in all four languages');
 requireGate((messages.match(/"beta\.productionAction"/g) ?? []).length === 4, 'Production access copy exists in all four languages');
 
@@ -41,5 +48,4 @@ if (failures.length) {
 }
 
 console.log('Phase 27 Beta Access passed: isolated sign-up/sign-in/recovery, target CAPTCHA, accessible fields, safe feedback and four-language entry are present.');
-
 

@@ -13,16 +13,18 @@ const QUERY_CACHE_TTL = {
   races: 1000 * 60 * 5,
   raceByRound: 1000 * 60 * 5,
   raceResults: 1000 * 60,
+  resultVersions: 1000 * 60,
   stewardCases: 1000 * 60,
   leagueContent: 1000 * 60 * 5
 };
 
 const DATA_SELECT = {
-  seasons: 'id,slug,name,championship_code,description,start_date,end_date,is_active,created_at,game_key,game_label,league_id',
+  seasons: 'id,slug,name,championship_code,description,start_date,end_date,is_active,archived_at,created_at,game_key,game_label,league_id',
   seasonHistory: 'id,season_id,driver_champion,constructor_champion,finalized_at,snapshot,created_at,season_name,driver_champion_team,constructor_champion_lineup',
   drivers: 'id,display_name,gamertag,real_name,nationality_code,number,is_active,ai_driver_reference,car_name,league_team,nationality,avatar_url,league_id',
-  races: 'id,season_id,round_number,grand_prix_name,circuit_name,country_code,weekend_start_date,race_date,race_start_at,weather,track_image,status,race_order,race_time,has_sprint',
-  raceResults: 'id,race_id,driver_id,team_id,source_assignment_id,car_name_snapshot,ai_driver_reference_snapshot,grid_position,finish_position,race_time_ms,fastest_lap_time_ms,pit_stops,participation_status,base_points,penalty_time_delta_ms,awarded_points,fastest_lap_time,race_time,points_owner_driver_id,points_team_name,points_car_name,points,fastest_lap_ms',
+  races: 'id,season_id,round_number,grand_prix_name,circuit_name,country_code,weekend_start_date,race_date,race_start_at,weather,track_image,status,race_order,race_time,has_sprint,current_result_version_id',
+  raceResults: 'id,race_id,result_version_id,driver_id,team_id,source_assignment_id,car_name_snapshot,ai_driver_reference_snapshot,grid_position,finish_position,race_time_ms,fastest_lap_time_ms,pit_stops,participation_status,base_points,penalty_time_delta_ms,awarded_points,fastest_lap_time,race_time,points_owner_driver_id,points_team_name,points_car_name,points,fastest_lap_ms',
+  resultVersions: 'id,race_id,version_number,status,change_reason,created_at,activated_at,superseded_at,voided_at',
   stewardCases: 'id,race_id,title,description,reported_driver_id,accused_driver_id,status,rule_code,rule_version,created_by,created_at,closed_at,current_decision_version'
 };
 
@@ -267,9 +269,15 @@ async function fetchSeasons(options = {}) {
         .from('seasons')
         .select(DATA_SELECT.seasons)
         .eq('league_id', leagueId)
-        .order('created_at', { ascending: false })
         .limit(DATA_LIMITS.seasons);
-      if (options.archivedOnly === true) query = query.eq('is_active', false);
+      if (options.archivedOnly === true) {
+        query = query
+          .eq('is_active', false)
+          .order('archived_at', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
@@ -363,18 +371,20 @@ async function fetchRaceByRound(roundNumber, options = {}) {
   return rows.find((row) => Number(row.round_number) === Number(roundNumber)) || null;
 }
 
-async function queryRaceResultsPaged(client, raceIds) {
+async function queryRaceResultsPaged(client, raceIds, resultVersionIds = []) {
   const rows = [];
   for (let page = 0; page < DATA_LIMITS.raceResultsMaxPages; page += 1) {
     const from = page * DATA_LIMITS.raceResultsPage;
     const to = from + DATA_LIMITS.raceResultsPage - 1;
-    const { data, error } = await client
+    let query = client
       .from('race_results')
       .select(DATA_SELECT.raceResults)
       .in('race_id', raceIds)
       .order('race_id', { ascending: true })
       .order('id', { ascending: true })
       .range(from, to);
+    if (resultVersionIds.length) query = query.in('result_version_id', resultVersionIds);
+    const { data, error } = await query;
     if (error) throw error;
     const pageRows = data || [];
     rows.push(...pageRows);
@@ -387,14 +397,47 @@ async function fetchRaceResults(options = {}) {
   const client = window.supabaseClient;
   if (!client) return [];
   const raceIds = [...new Set((options.raceIds || (options.raceId ? [options.raceId] : [])).filter(Boolean))].sort();
+  const resultVersionIds = [...new Set((options.resultVersionIds || []).filter(Boolean))].sort();
   if (!raceIds.length) return [];
   return fetchWithLocalCache({
     scope: 'raceResults',
-    params: { raceIds },
+    params: { raceIds, resultVersionIds },
     ttlMs: QUERY_CACHE_TTL.raceResults,
     forceRefresh: options.forceRefresh === true,
     backgroundRefresh: options.backgroundRefresh === true,
-    fetcher: () => queryRaceResultsPaged(client, raceIds)
+    fetcher: () => queryRaceResultsPaged(client, raceIds, resultVersionIds)
+  });
+}
+
+function filterCurrentRaceResults(races = [], results = []) {
+  const versionByRace = new Map((races || [])
+    .filter((race) => race?.id && race?.current_result_version_id)
+    .map((race) => [String(race.id), String(race.current_result_version_id)]));
+  return (results || []).filter((row) => (
+    versionByRace.get(String(row?.race_id || '')) === String(row?.result_version_id || '')
+  ));
+}
+
+async function fetchResultVersions(options = {}) {
+  const client = window.supabaseClient;
+  const raceId = String(options.raceId || '').trim();
+  if (!client || !raceId) return [];
+  return fetchWithLocalCache({
+    scope: 'resultVersions',
+    params: { raceId },
+    ttlMs: QUERY_CACHE_TTL.resultVersions,
+    forceRefresh: options.forceRefresh === true,
+    backgroundRefresh: options.backgroundRefresh === true,
+    fetcher: async () => {
+      const { data, error } = await client
+        .from('result_versions')
+        .select(DATA_SELECT.resultVersions)
+        .eq('race_id', raceId)
+        .in('status', ['active', 'superseded', 'void'])
+        .order('version_number', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    }
   });
 }
 
@@ -619,6 +662,8 @@ window.RCCData = {
   fetchRaces,
   fetchRaceByRound,
   fetchRaceResults,
+  filterCurrentRaceResults,
+  fetchResultVersions,
   fetchStewardCasesByRaceId,
   fetchLeagueContent,
   hasFreshDashboardCache,
@@ -631,4 +676,3 @@ window.RCCData = {
   QUERY_CACHE_TTL,
   DATA_LIMITS
 };
-

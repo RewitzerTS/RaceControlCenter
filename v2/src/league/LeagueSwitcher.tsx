@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 import type { LeagueSupabaseClient } from '../lib/supabase';
@@ -9,6 +9,17 @@ interface AccessibleLeague {
   name: string;
   slug: string;
   role: string | null;
+}
+
+export function leagueSwitcherDestination(
+  pathname: string,
+  search: string,
+  hash: string,
+  leagueSlug: string,
+): string {
+  const query = new URLSearchParams(search);
+  query.set('league', leagueSlug);
+  return `${pathname}?${query.toString()}${hash}`;
 }
 
 async function loadAccessibleLeagues(
@@ -61,13 +72,16 @@ export function LeagueSwitcher({
   const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
+  const switcherRef = useRef<HTMLDetailsElement>(null);
   const [leagues, setLeagues] = useState<AccessibleLeague[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadedForLeagueSlug, setLoadedForLeagueSlug] = useState<string | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
     let active = true;
     setLoading(true);
+    setLoadedForLeagueSlug(null);
     setLoadFailed(false);
 
     void loadAccessibleLeagues(client, userId, isPlatformOwner)
@@ -83,16 +97,29 @@ export function LeagueSwitcher({
         console.warn('Verfügbare Ligen konnten nicht geladen werden.', reason);
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) {
+          setLoadedForLeagueSlug(leagueSlug);
+          setLoading(false);
+        }
       });
 
     return () => { active = false; };
-  }, [client, isPlatformOwner, userId]);
+  }, [client, isPlatformOwner, leagueSlug, userId]);
 
   useEffect(() => {
-    if (loading || leagues.length === 0 || leagues.some((league) => league.slug === leagueSlug)) return;
+    if (loading || loadedForLeagueSlug !== leagueSlug || leagues.length === 0 || leagues.some((league) => league.slug === leagueSlug)) return;
     setLeagueSlug(leagues[0].slug);
-  }, [leagueSlug, leagues, loading, setLeagueSlug]);
+  }, [leagueSlug, leagues, loadedForLeagueSlug, loading, setLeagueSlug]);
+
+  useEffect(() => {
+    const closeWhenClickingOutside = (event: PointerEvent) => {
+      if (!switcherRef.current?.contains(event.target as Node | null)) {
+        switcherRef.current?.removeAttribute('open');
+      }
+    };
+    document.addEventListener('pointerdown', closeWhenClickingOutside);
+    return () => document.removeEventListener('pointerdown', closeWhenClickingOutside);
+  }, []);
 
   const currentLeagueName = useMemo(
     () => leagues.find((league) => league.slug === leagueSlug)?.name || branding.name || leagueSlug,
@@ -105,11 +132,7 @@ export function LeagueSwitcher({
     if (slug === leagueSlug) return;
 
     setLeagueSlug(slug);
-    const query = new URLSearchParams(location.search);
-    if (query.has('league')) {
-      query.set('league', slug);
-      navigate(`${location.pathname}?${query.toString()}${location.hash}`, { replace: true });
-    }
+    navigate(leagueSwitcherDestination(location.pathname, location.search, location.hash, slug), { replace: true });
   };
 
   if (loading || leagues.length < 2) {
@@ -130,6 +153,7 @@ export function LeagueSwitcher({
   return (
     <details
       className="league-switcher"
+      ref={switcherRef}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) event.currentTarget.removeAttribute('open');
       }}
@@ -167,4 +191,3 @@ export function LeagueSwitcher({
     </details>
   );
 }
-

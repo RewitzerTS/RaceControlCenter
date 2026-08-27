@@ -141,4 +141,3 @@ export function shouldUseStandardRaceVoraBranding({
     || pathname === '/owner/demo';
   return authLoading || !authenticated || demoMode;
 }
-

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
 import { AppShell } from './components/AppShell';
@@ -9,6 +9,16 @@ import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
 import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
 import { RoleProvider } from './roles/RoleProvider';
+
+export function resetRouteScroll(hash: string): void {
+  if (hash) {
+    window.requestAnimationFrame(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView();
+    });
+    return;
+  }
+  window.scrollTo({ behavior: 'auto', left: 0, top: 0 });
+}
 
 function AuthorizedShell({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
   const location = useLocation();
@@ -22,6 +32,16 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
     search: location.search,
   });
 
+  useLayoutEffect(() => {
+    resetRouteScroll(location.hash);
+  }, [location.hash, location.pathname]);
+
+  useEffect(() => {
+    const previous = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+    return () => { window.history.scrollRestoration = previous; };
+  }, []);
+
   useEffect(() => {
     if (useStandardBranding || !user) {
       applyLeagueBranding(fallbackLeagueBranding('racevora'));
@@ -33,7 +53,7 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
 
   return (
     <DriverIdentityProvider client={client} user={user}>
-      <RoleProvider client={client} user={user}>
+      <RoleProvider client={client} leagueSlug={leagueSlug} user={user}>
         <AppShell environment={environment} />
       </RoleProvider>
     </DriverIdentityProvider>

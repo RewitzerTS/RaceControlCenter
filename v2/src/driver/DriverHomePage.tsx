@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { useRole } from '../roles/RoleProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { levelProgress, selectDriverHero, useDriverHome } from './driverHome';
 
@@ -38,6 +39,7 @@ export function DriverHomePage() {
   const { loading: authLoading, user } = useAuth();
   const { error: identityError, identity, loading: identityLoading } = useDriverIdentity();
   const { client, leagueSlug } = useLeague();
+  const { role } = useRole();
   const { formatDate, formatNumber, formatTime, plural, t } = useI18n();
   const { error, loading, reload, snapshot } = useDriverHome(client, identity?.id ?? null);
 
@@ -78,7 +80,21 @@ export function DriverHomePage() {
   const progression = snapshot.progression;
   const career = snapshot.career;
   const progress = levelProgress(progression);
-  const hero = heroKind === 'result'
+  const hero = heroKind === 'season-complete'
+    ? {
+        action: t('home.hero.seasonCompleteAction'),
+        copy: t('home.hero.seasonCompleteCopy', {
+          date: snapshot.latestArchivedSeason?.archivedAt
+            ? formatDate(snapshot.latestArchivedSeason.archivedAt, { dateStyle: 'long' })
+            : t('home.dateTbd'),
+        }),
+        kicker: t('home.hero.seasonCompleteKicker'),
+        title: t('home.hero.seasonCompleteTitle', {
+          season: snapshot.latestArchivedSeason?.name ?? t('home.season'),
+        }),
+        to: '/racing/history?view=seasons',
+      }
+    : heroKind === 'result'
     ? {
         action: t('home.hero.resultAction'),
         copy: t('home.hero.resultCopy', {
@@ -108,6 +124,8 @@ export function DriverHomePage() {
           to: '/career',
         };
   const raceStart = snapshot.nextRace?.race_start_at;
+  const seasonCompleted = heroKind === 'season-complete';
+  const canManageSeason = role === 'league_admin' || role === 'platform_owner';
 
   return (
     <main className="driver-home dashboard-shell" id="main-content">
@@ -137,18 +155,17 @@ export function DriverHomePage() {
           <h1 id="driver-hero-title">{t('home.greeting', { name: displayName })}</h1>
           <p className="hero-subcopy">{hero.title} {hero.copy}</p>
           <div className="next-race-showcase">
-            <span className="section-label">{t('home.nextRace')}</span>
-            <strong>{snapshot.nextRace?.grand_prix_name ?? t('home.noRaceScheduled')}</strong>
-            <small>
-              {snapshot.nextRace?.race_date
-                ? formatDate(snapshot.nextRace.race_date)
-                : t('home.dateTbd')}
-              {raceStart ? ' · ' + formatTime(raceStart) : ''}
-            </small>
+            <span className="section-label">{seasonCompleted ? t('home.seasonStatus') : t('home.nextRace')}</span>
+            <strong>{seasonCompleted ? t('home.noActiveSeason') : snapshot.nextRace?.grand_prix_name ?? t('home.noRaceScheduled')}</strong>
+            <small>{seasonCompleted
+              ? t('home.seasonArchived', { season: snapshot.latestArchivedSeason?.name ?? t('home.season') })
+              : <>{snapshot.nextRace?.race_date ? formatDate(snapshot.nextRace.race_date) : t('home.dateTbd')}{raceStart ? ' · ' + formatTime(raceStart) : ''}</>}</small>
           </div>
           <div className="driver-hero-actions">
             <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}</NavLink>
-            <NavLink className="btn-secondary-ghost text-link" to="/racing">{t('home.openLeague')}</NavLink>
+            <NavLink className="btn-secondary-ghost text-link" to={seasonCompleted && canManageSeason ? '/admin/season/setup' : '/racing'}>
+              {seasonCompleted && canManageSeason ? t('home.setupNextSeason') : t('home.openLeague')}
+            </NavLink>
           </div>
         </article>
 

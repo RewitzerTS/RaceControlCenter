@@ -316,4 +316,3 @@ comment on table public.season_driver_assignments is
   'Season-specific grid snapshot. A PLAYER may replace the preset AI driver without losing the official game roster.';
 comment on function public.start_league_season(text, text, text, date, date, jsonb) is
   'Actor-bound league-admin workflow that atomically creates and explicitly starts a season with its complete grid.';
-

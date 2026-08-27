@@ -15,4 +15,3 @@ describe('AchievementBadge', () => {
     expect(badge).toHaveTextContent('25');
   });
 });
-

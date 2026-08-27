@@ -30,14 +30,19 @@ if (!calendar.includes('Kommende Rennen (${upcoming.length})')
   throw new Error('Integrated calendar must expose race counts and open completed races when no upcoming race exists.');
 }
 const calendarPage = await readFile(resolve(distRoot, 'kalender.html'), 'utf8');
-if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-calendar-2')) {
+if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')) {
   throw new Error('Integrated calendar must cache-bust its updated lifecycle navigation.');
 }
 
+const seasonArchivePage = await readFile(resolve(distRoot, 'saison-archiv.html'), 'utf8');
+if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-1')) {
+  throw new Error('Integrated season archive must cache-bust its official-result fix.');
+}
+
 for (const [page, marker] of [
-  ['rennen-detail', '/v1-assets/js/pages/race-detail.js?v=v2-racing-fix-1'],
-  ['grid', '/v1-assets/js/pages/regeln-faq.js?v=v2-browser-errors-2'],
-  ['regeln-faq', '/v1-assets/js/pages/regeln-faq.js?v=v2-browser-errors-2'],
+  ['rennen-detail', '/v1-assets/js/pages/race-detail.js?v=v2-season-archive-1'],
+  ['grid', '/v1-assets/js/pages/regeln-faq.js?v=v2-season-grid-1'],
+  ['regeln-faq', '/v1-assets/js/pages/regeln-faq.js?v=v2-season-grid-1'],
   ['ergebnisse', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1'],
   ['fahrer-wm', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1'],
 ]) {
@@ -45,7 +50,7 @@ for (const [page, marker] of [
   if (!source.includes(marker) || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-1')) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }
-  if (!source.includes('/v1-assets/js/supabase-client.js?v=v2-browser-errors-2')) {
+  if (!source.includes('/v1-assets/js/supabase-client.js?v=v2-auth-session-1')) {
     throw new Error(`${page}.html must cache-bust the integrated browser-error client fix.`);
   }
 }
@@ -65,7 +70,10 @@ if (client.includes(legacyProjectRef) || client.includes('7aojXjXa4nfHRiT8CrGo6t
 if (!client.includes('sb_publishable_') || !client.includes('znnkwjogtvzwfkwnmawp.supabase.co')) {
   throw new Error('V2 public routes are not connected to the dedicated V2 backend.');
 }
-if (!client.includes('RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS = true')) {
+if (!client.includes("storageKey: \"racevora-v2:znnkwjogtvzwfkwnmawp:auth\"") || client.includes("storageKey: 'rcc_admin_session'")) {
+  throw new Error('Integrated public routes do not reuse the V2 browser session.');
+}
+if (!client.includes('RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS = true')) {
   throw new Error('V2 public routes must disable the unavailable legacy driver assignment relation.');
 }
 if (!client.includes('RCC_DISABLE_CHAMPIONSHIP_HISTORY = true')) {
@@ -89,13 +97,21 @@ const hallOfFamePage = await readFile(resolve(distRoot, 'hall-of-fame.html'), 'u
 if (!hallOfFamePage.includes('/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')) {
   throw new Error('Integrated Hall of Fame must cache-bust the browser-error fix.');
 }
-if (!hallOfFamePage.includes('/v1-assets/js/supabase-client.js?v=v2-browser-errors-2')) {
+if (!hallOfFamePage.includes('/v1-assets/js/supabase-client.js?v=v2-auth-session-1')) {
   throw new Error('Integrated Hall of Fame must cache-bust the shared browser-error client fix.');
 }
 
 const driverContext = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-context.js'), 'utf8');
-if (!driverContext.includes('global.RCC_DISABLE_DRIVER_SEASON_ASSIGNMENTS === true')) {
+if (!driverContext.includes('global.RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS === true')) {
   throw new Error('V2 driver context does not respect the disabled legacy assignment relation.');
+}
+const gridPage = await readFile(resolve(distRoot, 'grid.html'), 'utf8');
+const gridRoster = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-grid-roster.js'), 'utf8');
+if (!gridPage.includes('/v1-assets/js/services/rcc-driver-context.js?v=v2-season-grid-1')
+    || !gridPage.includes('/v1-assets/js/services/rcc-grid-roster.js?v=v2-season-grid-1')
+    || !gridRoster.includes('buildSeasonGrid')
+    || !gridRoster.includes('participant_type')) {
+  throw new Error('Integrated Grid does not use the active season seat assignments.');
 }
 
 const driverStats = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-driver-stats.js'), 'utf8');
@@ -218,7 +234,7 @@ if (appStyles.includes('linear-gradient(#060809, #040506)') || appStyles.include
 
 const resultImportSource = await readFile(resolve(process.cwd(), 'src', 'operations', 'V1CompletionPages.tsx'), 'utf8');
 const aiImportSource = await readFile(resolve(process.cwd(), 'src', 'operations', 'imageResultImport.ts'), 'utf8');
-const aiQuotaMigration = await readFile(resolve(process.cwd(), 'supabase', 'migrations', '20260822190000_v2_ai_result_import_quota.sql'), 'utf8');
+const aiQuotaMigration = await readFile(resolve(process.cwd(), 'supabase', 'migrations', '20260822190247_v2_ai_result_import_quota.sql'), 'utf8');
 for (const marker of ['KI-Bildimport', 'Bilder mit KI auslesen', 'analysisToReviewCsv']) {
   if (!resultImportSource.includes(marker)) throw new Error(`V2 result import is missing the restored AI workflow marker ${marker}.`);
 }
@@ -230,4 +246,3 @@ if (!aiQuotaMigration.includes('consume_ai_analysis_quota') || !aiQuotaMigration
 }
 
 console.log(`V1 public route contract passed (${requiredPages.length} core pages, ${trackMaps.length} track maps, isolated V2 backend).`);
-

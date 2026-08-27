@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 
 type OnboardingResult = {
   league_name?: string;
@@ -26,6 +27,7 @@ export function OnboardingPage() {
   const [leagueIdentifier, setLeagueIdentifier] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [requestRefreshKey, setRequestRefreshKey] = useState(0);
 
   if (authLoading) return <main className="driver-state" id="main-content"><span className="state-mark">01</span><div><h1>{t('pending')}</h1></div></main>;
   if (!user) return <Navigate replace to="/login?mode=signin" />;
@@ -61,6 +63,7 @@ export function OnboardingPage() {
       if (response.error) throw response.error;
       await completeOnboarding(profile);
       const result = resultObject(response.data);
+      setRequestRefreshKey((value) => value + 1);
       navigate('/home', {
         replace: true,
         state: {
@@ -114,6 +117,14 @@ export function OnboardingPage() {
             <div className="onboarding-actions onboarding-actions--split"><button className="text-action" disabled={busy} onClick={() => { setError(''); setStep(1); }} type="button">{t('onboarding.back')}</button><button className="primary-action" disabled={busy} type="submit">{busy ? t('onboarding.saving') : leagueIdentifier.trim() ? t('onboarding.requestJoin') : t('onboarding.finishWithoutLeague')}</button></div>
           </form>
         )}
+      </section>
+      <section className="onboarding-card onboarding-request-history" aria-labelledby="onboarding-request-history-title">
+        <header>
+          <p className="section-label">{t('joinRequests.kicker')}</p>
+          <h2 id="onboarding-request-history-title">{t('joinRequests.title')}</h2>
+          <p>{t('joinRequests.intro')}</p>
+        </header>
+        <LeagueJoinRequestStatusList refreshKey={requestRefreshKey} />
       </section>
     </main>
   );

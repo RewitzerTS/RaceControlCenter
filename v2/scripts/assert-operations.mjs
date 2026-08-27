@@ -3,18 +3,22 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, shell, roleProvider, admin, members, drivers, completionPages, owner, notifications, styles, test] = await Promise.all([
-  'supabase/migrations/20260820191000_v2_admin_owner_notifications.sql',
-  'supabase/migrations/20260821201612_v2_notification_vora_processors.sql',
-  'supabase/migrations/20260822123000_v2_v1_admin_members_drivers.sql',
-  'supabase/migrations/20260822150000_v2_v1_migration_completion.sql',
-  'supabase/migrations/20260825005500_v2_season_start_append_only_audit.sql',
-  'supabase/migrations/20260825013000_v2_season_calendar_workflow.sql',
+const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest] = await Promise.all([
+  'supabase/migrations/20260820184740_v2_admin_owner_notifications.sql',
+  'supabase/migrations/20260821202014_v2_notification_vora_processors.sql',
+  'supabase/migrations/20260822112925_v2_v1_admin_members_drivers.sql',
+  'supabase/migrations/20260822120034_v2_v1_migration_completion.sql',
+  'supabase/migrations/20260824233345_v2_season_start_append_only_audit.sql',
+  'supabase/migrations/20260825093321_v2_season_calendar_workflow.sql',
+  'supabase/migrations/20260827061108_v2_block_incomplete_season_completion.sql',
+  'supabase/migrations/20260827062120_restore_race_penalties_compatibility.sql',
   'src/components/AppShell.tsx', 'src/roles/RoleProvider.tsx', 'src/operations/AdminWorkspacePage.tsx',
   'src/operations/LeagueMembersPage.tsx', 'src/operations/LeagueDriversPage.tsx',
   'src/operations/V1CompletionPages.tsx',
   'src/operations/OwnerControlPage.tsx', 'src/operations/NotificationCenterPage.tsx',
   'src/styles.css', 'supabase/tests/phase-17-19-operations.sql',
+  'supabase/tests/phase-32-season-completion-guard.sql',
+  'supabase/tests/phase-35-race-penalties-compatibility.sql',
 ].map((path) => readFile(resolve(root, path), 'utf8')));
 
 const violations = [];
@@ -34,14 +38,16 @@ for (const contract of [
 for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canSteward', 'canAdmin', 'canOwner', 'canNotify', 'loading: authLoading', 'accessLoading ?']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
 if (shell.includes('features.leagueAdmin &&')) violations.push('obsolete V1 admin rollout gate is still active');
 for (const contract of ['path="/admin/users"', 'path="/admin/drivers"', 'path="/admin/races"', 'path="/admin/results"', 'path="/admin/standings"', 'path="/admin/teams"', 'path="/admin/rules"', 'path="/admin/results/import"', 'path="/admin/audit"']) if (!shell.includes(contract)) violations.push('missing V1 admin route: ' + contract);
-for (const contract of ['resolvedUserId', 'resolvedUserId !== user?.id']) if (!roleProvider.includes(contract)) violations.push('missing restored-session role gate: ' + contract);
+for (const contract of ['resolvedScope', 'resolvedScope !== currentScope', '[client, leagueSlug, user]']) if (!roleProvider.includes(contract)) violations.push('missing user-and-league-scoped role gate: ' + contract);
 for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
 for (const contract of ['get_league_member_admin_workspace', 'add_existing_league_member_by_email', 'set_league_member_role', 'remove_league_member', 'get_league_driver_admin_workspace', 'upsert_league_driver']) if (!adminParity.includes(contract)) violations.push('missing V1 admin parity RPC: ' + contract);
 for (const contract of ['get_league_configuration_workspace', 'update_league_rules', 'rename_league_team', 'create_league_result_draft', 'publish_league_result_draft']) if (!completionMigration.includes(contract)) violations.push('missing V1 completion RPC: ' + contract);
 for (const contract of ['create or replace function public.start_league_season', "'season.preset.seeded'", "'ai_drivers', roster_size - player_count", "'races', track_count"]) if (!seasonAuditFix.includes(contract)) violations.push('missing append-only season start contract: ' + contract);
 if (seasonAuditFix.includes('update public.v2_audit_events')) violations.push('season start still mutates immutable audit history');
 for (const contract of ['configure_league_season_calendar', 'start_league_season_with_calendar', "'season.calendar.configured'", "r.status <> 'upcoming'", 'end_date = null']) if (!seasonCalendar.includes(contract)) violations.push('missing guided season calendar contract: ' + contract);
-for (const contract of ['LeagueTeamsPage', 'LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
+for (const contract of ['upcoming_race_count', 'missing_result_count', "rv.status <> 'active'", "errcode = '55000'", 'for update;']) if (!seasonCompletionGuard.includes(contract)) violations.push('missing guarded season completion contract: ' + contract);
+for (const contract of ['create table public.race_penalties', 'steward_case_id uuid', 'private.has_league_capability', 'public.matches_requested_league', 'd.league_id = s.league_id', 'alter table public.race_penalties enable row level security']) if (!racePenaltyCompatibility.includes(contract)) violations.push('missing race penalties compatibility contract: ' + contract);
+for (const contract of ['LeagueTeamsPage', 'LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseResultCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
 if (admin.includes('folgt in der V1-Migration') || admin.includes('operations-menu__pending')) violations.push('V1 migration still exposes pending admin placeholders');
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);
 for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', 'Fahrer anlegen', 'Bearbeiten']) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
@@ -49,10 +55,11 @@ for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'"
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
 for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
 for (const contract of ['rollback;', 'league admin entered global Owner Control', 'notification leaked to another user', 'audit history was mutable']) if (!test.includes(contract)) violations.push('missing SQL regression: ' + contract);
+for (const contract of ['begin;', 'season completion accepted an upcoming race', 'blocked season completion still archived the season', 'rollback;']) if (!seasonCompletionTest.includes(contract)) violations.push('missing season completion regression: ' + contract);
+for (const contract of ['begin;', 'race_penalties compatibility table is missing', 'anonymous race_penalties privileges are unsafe', 'policies do not enforce tenant, role, driver and case scope', 'rollback;']) if (!racePenaltyTest.includes(contract)) violations.push('missing race penalties compatibility regression: ' + contract);
 
 if (violations.length) {
   console.error('V2 operations contract failed:\n' + violations.map((item) => '- ' + item).join('\n'));
   process.exit(1);
 }
 console.log('V2 Phases 17-19 operations contract passed: explicit Admin entry, separate Owner Control, immutable audit, private bundled notifications, role gates, and responsive layouts are present.');
-

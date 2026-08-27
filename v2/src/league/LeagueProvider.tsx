@@ -15,6 +15,26 @@ interface LeagueContextValue {
 const LeagueContext = createContext<LeagueContextValue | null>(null);
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const ACTIVE_LEAGUE_STORAGE_KEY = 'racevora.activeLeague';
+export const LEGACY_ACTIVE_LEAGUE_STORAGE_KEY = 'rcc.activeLeagueSlug.v1';
+export const LEGACY_TENANT_STORAGE_KEY = 'rcc.lastTenantSlug.v1';
+
+function removeSessionValuesByPrefix(prefix: string): void {
+  const matchingKeys: string[] = [];
+  for (let index = 0; index < window.sessionStorage.length; index += 1) {
+    const key = window.sessionStorage.key(index);
+    if (key?.startsWith(prefix)) matchingKeys.push(key);
+  }
+  matchingKeys.forEach((key) => window.sessionStorage.removeItem(key));
+}
+
+export function persistActiveLeagueSlug(slug: string): void {
+  window.localStorage.setItem(ACTIVE_LEAGUE_STORAGE_KEY, slug);
+  window.sessionStorage.setItem(LEGACY_ACTIVE_LEAGUE_STORAGE_KEY, slug);
+  window.sessionStorage.setItem(LEGACY_TENANT_STORAGE_KEY, slug);
+  window.sessionStorage.removeItem('rcc.calendar.activeSection');
+  window.sessionStorage.removeItem('rcc.calendar.archiveSeason');
+  removeSessionValuesByPrefix('rcc.standings.view.v1:');
+}
 
 export function resolveInitialLeagueSlug(search: string, storedSlug: string | null, fallback: string): string {
   const urlSlug = new URLSearchParams(search).get('league')?.toLowerCase();
@@ -59,7 +79,7 @@ export function LeagueProvider({ environment, children }: PropsWithChildren<{ en
     const normalized = slug.trim().toLowerCase();
     if (!SLUG_PATTERN.test(normalized)) throw new Error('Invalid league slug.');
     try {
-      window.localStorage.setItem(ACTIVE_LEAGUE_STORAGE_KEY, normalized);
+      persistActiveLeagueSlug(normalized);
     } catch {
       // The in-memory selection still works when persistent storage is blocked.
     }
@@ -75,4 +95,3 @@ export function useLeague(): LeagueContextValue {
   if (!context) throw new Error('useLeague must be used inside LeagueProvider.');
   return context;
 }
-

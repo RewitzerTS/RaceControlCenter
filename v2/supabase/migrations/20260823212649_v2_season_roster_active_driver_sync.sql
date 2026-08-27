@@ -62,4 +62,3 @@ for each row execute function private.sync_active_season_driver_assignment();
 
 comment on function private.sync_active_season_driver_assignment() is
   'Ensures the current grid contains exactly the assigned player or the preset AI driver for each active-season seat.';
-

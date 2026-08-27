@@ -3,7 +3,8 @@ const STANDINGS_VIEW_CACHE_KEY = 'rcc.standings.view.v1';
 
 function readStandingsCache(pageKey) {
   try {
-    const raw = window.sessionStorage?.getItem(`${STANDINGS_VIEW_CACHE_KEY}:${pageKey}`);
+    const leagueSlug = window.RCCData?.getRequestedLeagueSlug?.() || 'rcc';
+    const raw = window.sessionStorage?.getItem(`${STANDINGS_VIEW_CACHE_KEY}:${leagueSlug}:${pageKey}`);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === 'object' ? parsed : null;
@@ -14,7 +15,8 @@ function readStandingsCache(pageKey) {
 
 function writeStandingsCache(pageKey, payload) {
   try {
-    window.sessionStorage?.setItem(`${STANDINGS_VIEW_CACHE_KEY}:${pageKey}`, JSON.stringify({
+    const leagueSlug = window.RCCData?.getRequestedLeagueSlug?.() || 'rcc';
+    window.sessionStorage?.setItem(`${STANDINGS_VIEW_CACHE_KEY}:${leagueSlug}:${pageKey}`, JSON.stringify({
       cachedAt: Date.now(),
       ...payload
     }));
@@ -170,6 +172,14 @@ function updateStandingsMeta(currentSeason, driverCount, teamCount) {
   if (tableHeaders[1]) tableHeaders[1].textContent = `${teamCount} Teams`;
 }
 
+function renderNoActiveSeason() {
+  const driverBody = document.getElementById('drivers-standings-body');
+  const teamBody = document.getElementById('teams-standings-body');
+  if (driverBody) driverBody.innerHTML = '<tr><td colspan="9">Aktuell läuft keine Saison. Abgeschlossene Wertungen findest du im Saisonarchiv.</td></tr>';
+  if (teamBody) teamBody.innerHTML = '<tr><td colspan="8">Aktuell läuft keine Saison. Abgeschlossene Wertungen findest du im Saisonarchiv.</td></tr>';
+  updateStandingsMeta(null, 0, 0);
+}
+
 async function loadStandingsPage() {
   const notifyReady = () => document.dispatchEvent(new CustomEvent('rcc:page-content-ready', {
     detail: { page: document.body?.dataset.page || '' }
@@ -177,6 +187,10 @@ async function loadStandingsPage() {
 
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
+    if (!currentSeason?.id) {
+      renderNoActiveSeason();
+      return;
+    }
 
     const [drivers, races, assignments] = await Promise.all([
       window.RCCData.fetchDrivers(),
@@ -186,8 +200,9 @@ async function loadStandingsPage() {
     const raceIds = (races || []).map((race) => race.id).filter(Boolean);
     const raceResults = raceIds.length ? await window.RCCData.fetchRaceResults({ raceIds }) : [];
 
+    const racesWithResults = new Set((raceResults || []).map((row) => row.race_id).filter(Boolean));
     const completedRaces = (races || [])
-      .filter((race) => race.status === 'completed')
+      .filter((race) => race.status === 'completed' || racesWithResults.has(race.id))
       .sort((a, b) => a.round_number - b.round_number);
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({

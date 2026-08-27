@@ -17,19 +17,21 @@ async function resolveRole(client: LeagueSupabaseClient, _user: User): Promise<A
   return mapLegacyLeagueRole(response.data);
 }
 
-export function RoleProvider({ client, user, children }: PropsWithChildren<{
+export function RoleProvider({ client, leagueSlug, user, children }: PropsWithChildren<{
   client: LeagueSupabaseClient;
+  leagueSlug: string;
   user: User | null;
 }>) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(Boolean(user));
-  const [resolvedUserId, setResolvedUserId] = useState<string | null>(null);
+  const currentScope = user ? `${user.id}:${leagueSlug}` : null;
+  const [resolvedScope, setResolvedScope] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     setRole(null);
-    setResolvedUserId(null);
+    setResolvedScope(null);
     setError(null);
     if (!user) {
       setLoading(false);
@@ -46,15 +48,15 @@ export function RoleProvider({ client, user, children }: PropsWithChildren<{
       })
       .finally(() => {
         if (active) {
-          setResolvedUserId(user.id);
+          setResolvedScope(`${user.id}:${leagueSlug}`);
           setLoading(false);
         }
       });
 
     return () => { active = false; };
-  }, [client, user]);
+  }, [client, leagueSlug, user]);
 
-  const safelyLoading = Boolean(user) && (loading || resolvedUserId !== user?.id);
+  const safelyLoading = Boolean(user) && (loading || resolvedScope !== currentScope);
   const value = useMemo(() => ({ role, loading: safelyLoading, error }), [error, role, safelyLoading]);
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }

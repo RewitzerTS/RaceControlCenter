@@ -62,4 +62,65 @@ describe('result image format detection', () => {
     expect(close).toHaveBeenCalledOnce();
     expect(result[0]).toMatch(/^data:image\/jpeg;base64,/);
   });
+
+  it('uses native HEIC decoding when the browser supports it', async () => {
+    const bitmap = { width: 1170, height: 2532, close: vi.fn() } as unknown as ImageBitmap;
+    const createImageBitmap = vi.fn().mockResolvedValue(bitmap);
+    vi.stubGlobal('createImageBitmap', createImageBitmap);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      fillStyle: '',
+      fillRect: vi.fn(),
+      drawImage: vi.fn(),
+    } as unknown as CanvasRenderingContext2D);
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) => {
+      callback(new Blob(['prepared'], { type: 'image/jpeg' }));
+    });
+
+    const result = await prepareRaceResultImages([
+      new File([new Uint8Array([0, 0, 0, 24])], 'IMG_0129.HEIC', { type: 'image/heic' }),
+    ]);
+
+    expect(createImageBitmap).toHaveBeenCalledOnce();
+    expect(createImageBitmap).toHaveBeenCalledWith(expect.objectContaining({ name: 'IMG_0129.HEIC' }));
+    expect(result).toHaveLength(1);
+  });
+
+  it('prepares at most two large images concurrently and reports progress', async () => {
+    const decoders: Array<(bitmap: ImageBitmap) => void> = [];
+    const createImageBitmap = vi.fn().mockImplementation(() => new Promise<ImageBitmap>((resolve) => {
+      decoders.push(resolve);
+    }));
+    vi.stubGlobal('createImageBitmap', createImageBitmap);
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      fillStyle: '',
+      fillRect: vi.fn(),
+      drawImage: vi.fn(),
+    } as unknown as CanvasRenderingContext2D);
+    vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation((callback) => {
+      callback(new Blob(['prepared'], { type: 'image/jpeg' }));
+    });
+    const progress = vi.fn();
+    const files = [1, 2, 3].map((number) => (
+      new File([new Uint8Array([0xff, 0xd8, 0xff])], `result-${number}.jpg`, { type: 'image/jpeg' })
+    ));
+
+    const preparation = prepareRaceResultImages(files, progress);
+    await vi.waitFor(() => expect(createImageBitmap).toHaveBeenCalledTimes(2));
+    decoders.splice(0, 2).forEach((resolve) => resolve({
+      width: 1200,
+      height: 600,
+      close: vi.fn(),
+    } as unknown as ImageBitmap));
+    await vi.waitFor(() => expect(createImageBitmap).toHaveBeenCalledTimes(3));
+    decoders[0]({
+      width: 1200,
+      height: 600,
+      close: vi.fn(),
+    } as unknown as ImageBitmap);
+
+    const result = await preparation;
+    expect(result).toHaveLength(3);
+    expect(progress).toHaveBeenCalledTimes(3);
+    expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ completed: 3, total: 3 }));
+  });
 });

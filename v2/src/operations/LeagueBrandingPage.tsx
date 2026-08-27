@@ -47,7 +47,7 @@ export function LeagueBrandingPage() {
   if (!allowed) return <main className="driver-state" id="main-content"><span className="state-mark">17</span><div><h1>Zugriff verweigert</h1></div></main>;
   if (loading) return <main className="driver-state" id="main-content"><span className="state-mark">B</span><div><h1>Branding wird geladen …</h1></div></main>;
   return <main className="operations-page admin-form-page" id="main-content">
-    <header className="operations-header"><div><p className="section-label">V1 Admin · {leagueSlug}</p><h1>Branding</h1><p>Name, Logo und Links der ausgewählten Liga verwalten. Dein persönliches Farbthema stellst du im Profil ein.</p></div><NavLink className="text-link" to="/admin">Zum Admin-Menü</NavLink></header>
+    <header className="operations-header"><div><p className="section-label">Ligaleitung · {leagueSlug}</p><h1>Branding</h1><p>Name, Logo und Links der ausgewählten Liga verwalten. Dein persönliches Farbthema stellst du im Profil ein.</p></div><NavLink className="text-link" to="/admin">Zur Ligaleitung</NavLink></header>
     <div className="branding-layout branding-layout--identity">
       <form className="admin-form" onSubmit={(event) => void submit(event)}>
         <label><span>Liganame</span><input required maxLength={80} value={branding.name} onChange={(event) => patch('name', event.target.value)} /></label>

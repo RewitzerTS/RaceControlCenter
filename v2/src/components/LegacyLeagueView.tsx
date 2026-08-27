@@ -158,4 +158,3 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     </div>
   );
 }
-

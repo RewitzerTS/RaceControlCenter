@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260820192159_v2_social_graphics.sql'), 'utf8');
+const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260820192437_v2_social_graphics.sql'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'src/graphics/GraphicsStudioPage.tsx'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'src/graphics/renderPng.ts'), 'utf8');
 

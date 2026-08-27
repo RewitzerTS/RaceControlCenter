@@ -121,4 +121,3 @@ comment on column public.seasons.archived_at is
   'Timestamp at which an active season was completed and made available in the calendar archive.';
 comment on function public.complete_league_season(uuid) is
   'Actor-bound league-admin transition that archives a season without copying or changing its races and result versions.';
-

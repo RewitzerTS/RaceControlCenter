@@ -10,6 +10,20 @@ function updateArchiveUrlSeason(seasonId) {
   window.history.replaceState({}, '', nextUrl.toString());
 }
 
+function navigateToArchiveSeason(seasonId) {
+  const league = window.RCCData?.getRequestedLeagueSlug?.() || '';
+  if (window.parent !== window && document.documentElement.classList.contains('racevora-integrated-view')) {
+    const target = new URL('/racing/history', window.location.origin);
+    target.searchParams.set('view', 'seasons');
+    target.searchParams.set('season', seasonId);
+    if (league) target.searchParams.set('league', league);
+    window.parent.location.assign(`${target.pathname}${target.search}`);
+    return;
+  }
+  const href = `saison-archiv.html?season=${encodeURIComponent(seasonId)}`;
+  window.location.href = window.withLeagueContextHref ? window.withLeagueContextHref(href) : href;
+}
+
 function buildResultRows(results, resolver, fastestDriverId, raceId) {
   if (!results.length) return '<tr><td colspan="9">Noch keine Ergebnisse importiert.</td></tr>';
 
@@ -44,32 +58,43 @@ function renderArchiveRaces(container, races, season, resultsByRace, resolver) {
     return;
   }
 
-  container.innerHTML = races.map((race) => {
+  const racesWithResults = races.filter((race) => (resultsByRace.get(race.id) || []).length > 0).length;
+  const resultRows = races.reduce((total, race) => total + (resultsByRace.get(race.id) || []).length, 0);
+  container.innerHTML = `
+    <section class="archive-season-summary" aria-label="Archivübersicht">
+      <div><span>Rennen</span><strong>${races.length}</strong></div>
+      <div><span>Mit Ergebnis</span><strong>${racesWithResults}</strong></div>
+      <div><span>Ergebniszeilen</span><strong>${resultRows}</strong></div>
+      <div><span>Spiel</span><strong>${window.escapeHtml(season.game_label || season.game_key || '—')}</strong></div>
+    </section>
+    <div class="archive-race-list">
+  ${races.map((race, index) => {
     const { track } = window.getRaceTrackMeta(race);
     const raceResults = resultsByRace.get(race.id) || [];
     const fastestDriverId = window.RCCData.getFastestLapDriverId(raceResults);
     const detailLink = `rennen-detail.html?round=${encodeURIComponent(race.round_number)}&season=${encodeURIComponent(race.season_id || season.id)}`;
 
     return `
-      <section class="table-card archive-race-card">
-        <div class="table-header">
-          <h2>R${race.round_number} · ${window.escapeHtml(race.grand_prix_name || 'Grand Prix')}</h2>
-          <a class="btn" href="${detailLink}">Strecke / Renn-Detail öffnen</a>
-        </div>
-        <div class="archive-race-meta">
-          <span>${window.escapeHtml(race.circuit_name || track?.circuitName || 'Strecke offen')}</span>
-          <span>${window.escapeHtml(window.formatRaceDateTime(race))}</span>
-          <span>Status: ${window.escapeHtml(window.formatStatusLabel(race.status))}</span>
-        </div>
+      <details class="archive-race-card" ${index === 0 ? 'open' : ''}>
+        <summary class="archive-race-summary">
+          <span class="archive-race-round">R${window.escapeHtml(String(race.round_number || '—'))}</span>
+          <span class="archive-race-title"><strong>${window.escapeHtml(race.grand_prix_name || 'Grand Prix')}</strong><small>${window.escapeHtml(race.circuit_name || track?.circuitName || 'Strecke offen')} · ${window.escapeHtml(window.formatRaceDateTime(race))}</small></span>
+          <span class="archive-result-count">${raceResults.length ? `${raceResults.length} Ergebnisse` : 'Kein Ergebnis'}</span>
+          <span class="archive-summary-icon" aria-hidden="true">+</span>
+        </summary>
+        <div class="archive-race-content">
+          <div class="archive-race-toolbar"><span>Status: ${window.escapeHtml(window.formatStatusLabel(race.status))}</span><a class="btn" href="${detailLink}">Renndetails öffnen</a></div>
         <div class="table-wrap">
           <table>
             <thead><tr><th>Pos</th><th>Fahrer</th><th>Team</th><th>Start</th><th>Ziel</th><th>Schnellste Runde</th><th>Gesamtrennzeit</th><th>Punkte</th><th>Status</th></tr></thead>
             <tbody>${buildResultRows(raceResults, resolver, fastestDriverId, race.id)}</tbody>
           </table>
         </div>
-      </section>
+        </div>
+      </details>
     `;
-  }).join('');
+  }).join('')}
+    </div>`;
 }
 
 async function loadArchivePage() {
@@ -100,16 +125,19 @@ async function loadArchivePage() {
 
     updateArchiveUrlSeason(String(selectedSeason.id));
 
-    const [drivers, races, raceResults, assignments] = await Promise.all([
+    const [drivers, races, assignments] = await Promise.all([
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces({ seasonId: selectedSeason.id }),
-      window.RCCData.fetchRaceResults(),
       window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: selectedSeason.id })
     ]);
 
     const sortedRaces = races.slice().sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
-    const raceIds = new Set(sortedRaces.map((race) => race.id));
-    const scopedResults = raceResults.filter((entry) => raceIds.has(entry.race_id));
+    const raceIds = sortedRaces.map((race) => race.id).filter(Boolean);
+    const resultVersionIds = sortedRaces.map((race) => race.current_result_version_id).filter(Boolean);
+    const raceResults = raceIds.length && resultVersionIds.length
+      ? await window.RCCData.fetchRaceResults({ raceIds, resultVersionIds })
+      : [];
+    const scopedResults = window.RCCData.filterCurrentRaceResults(sortedRaces, raceResults);
     const resultsByRace = window.RCCData.groupBy(scopedResults, (entry) => entry.race_id);
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races: sortedRaces, assignments });
 
@@ -117,10 +145,7 @@ async function loadArchivePage() {
     subtitleEl.textContent = `${sortedRaces.length} Rennen mit kompletter Ergebnistabelle und Direktlink zur Strecken-/Renn-Detailseite.`;
     renderArchiveRaces(resultsContainer, sortedRaces, selectedSeason, resultsByRace, resolver);
 
-    selectEl.addEventListener('change', () => {
-      const nextSeason = selectEl.value;
-      window.location.href = `saison-archiv.html?season=${encodeURIComponent(nextSeason)}`;
-    });
+    selectEl.addEventListener('change', () => navigateToArchiveSeason(selectEl.value));
   } catch (error) {
     console.error(error);
     resultsContainer.innerHTML = '<section class="panel"><div class="notice">Fehler beim Laden des Archivs.</div></section>';

@@ -258,4 +258,3 @@ comment on function public.create_league(text, text, boolean) is
   'Actor-bound V1-compatible league creation. Only global platform owners may create tenants.';
 comment on function public.update_league_branding(text, text, text, text, text, text, text) is
   'Actor-bound V1-compatible branding update for the requested tenant.';
-

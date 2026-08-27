@@ -25,6 +25,16 @@ type UpcomingRace = Pick<
   Database['public']['Tables']['races']['Row'],
   'grand_prix_name' | 'id' | 'race_date' | 'race_start_at' | 'race_time'
 >;
+type SeasonRow = Pick<
+  Database['public']['Tables']['seasons']['Row'],
+  'archived_at' | 'id' | 'is_active' | 'name'
+>;
+
+export interface DriverSeasonSummary {
+  archivedAt: string | null;
+  id: string;
+  name: string;
+}
 
 export interface DriverChallenge {
   activeFrom: string;
@@ -49,10 +59,12 @@ export interface DriverAchievement {
 }
 
 export interface DriverHomeSnapshot {
+  activeSeason: DriverSeasonSummary | null;
   achievementCount: number;
   achievementTotal: number;
   achievements: DriverAchievement[];
   latestAchievement: string | null;
+  latestArchivedSeason: DriverSeasonSummary | null;
   career: CareerStats | null;
   challenges: DriverChallenge[];
   nextRace: UpcomingRace | null;
@@ -60,9 +72,10 @@ export interface DriverHomeSnapshot {
   wallet: Wallet | null;
 }
 
-export type DriverHeroKind = 'career' | 'next-race' | 'result';
+export type DriverHeroKind = 'career' | 'next-race' | 'result' | 'season-complete';
 
 export function selectDriverHero(snapshot: DriverHomeSnapshot): DriverHeroKind {
+  if (!snapshot.activeSeason && snapshot.latestArchivedSeason) return 'season-complete';
   if (snapshot.career?.last_race_date) return 'result';
   if (snapshot.nextRace) return 'next-race';
   return 'career';
@@ -92,10 +105,12 @@ export function nextChallengeRotation(challenges: DriverChallenge[], now = Date.
 }
 
 const EMPTY_SNAPSHOT: DriverHomeSnapshot = {
+  activeSeason: null,
   achievementCount: 0,
   achievementTotal: 0,
   achievements: [],
   latestAchievement: null,
+  latestArchivedSeason: null,
   career: null,
   challenges: [],
   nextRace: null,
@@ -108,6 +123,15 @@ async function loadSnapshot(
   driverIdentityId: string,
 ): Promise<DriverHomeSnapshot> {
   const today = new Date().toISOString().slice(0, 10);
+  const seasons = await client
+    .from('seasons')
+    .select('archived_at, id, is_active, name');
+  if (seasons.error) throw seasons.error;
+  const seasonRows = (seasons.data ?? []) as SeasonRow[];
+  const activeSeasonRow = seasonRows.find((season) => season.is_active) ?? null;
+  const latestArchivedSeasonRow = seasonRows
+    .filter((season) => !season.is_active && season.archived_at)
+    .sort((left, right) => Date.parse(right.archived_at ?? '') - Date.parse(left.archived_at ?? ''))[0] ?? null;
   const [
     career,
     progression,
@@ -141,13 +165,17 @@ async function loadSnapshot(
       .from('driver_challenges')
       .select('challenge_code, progress, status')
       .eq('driver_identity_id', driverIdentityId),
-    client
-      .from('races')
-      .select('grand_prix_name, id, race_date, race_start_at, race_time')
-      .gte('race_date', today)
-      .order('race_date')
-      .limit(1)
-      .maybeSingle(),
+    activeSeasonRow
+      ? client
+          .from('races')
+          .select('grand_prix_name, id, race_date, race_start_at, race_time')
+          .eq('season_id', activeSeasonRow.id)
+          .eq('status', 'upcoming')
+          .gte('race_date', today)
+          .order('race_date')
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
   ]);
 
   const responses = [
@@ -199,10 +227,20 @@ async function loadSnapshot(
   });
 
   return {
+    activeSeason: activeSeasonRow ? {
+      archivedAt: activeSeasonRow.archived_at,
+      id: activeSeasonRow.id,
+      name: activeSeasonRow.name,
+    } : null,
     achievementCount: achievements.length,
     achievementTotal: (achievementDefinitions.data ?? []).length,
     achievements,
     latestAchievement: achievements[0]?.code ?? null,
+    latestArchivedSeason: latestArchivedSeasonRow ? {
+      archivedAt: latestArchivedSeasonRow.archived_at,
+      id: latestArchivedSeasonRow.id,
+      name: latestArchivedSeasonRow.name,
+    } : null,
     career: career.data,
     challenges,
     nextRace: nextRace.data,

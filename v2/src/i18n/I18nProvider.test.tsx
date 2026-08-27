@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { I18nProvider, useI18n } from './I18nProvider';
+import { messages } from './messages';
 
 function Probe() {
   const {
@@ -80,5 +81,13 @@ describe('I18nProvider', () => {
     expect(screen.getByTestId('date')).toHaveTextContent('20.08.2026');
     expect(screen.getByTestId('one')).toHaveTextContent('verknüpfter Fahrer');
     expect(screen.getByTestId('many')).toHaveTextContent('verknüpfte Fahrer');
+  });
+
+  it('names league_admin as league management in every visible locale', () => {
+    expect(messages.de.leagueAdminRole).toBe('Ligaleitung');
+    expect(messages.de['nav.admin']).toBe('Ligaleitung');
+    expect(messages.en.leagueAdminRole).toBe('League management');
+    expect(messages.es.leagueAdminRole).toBe('Dirección de liga');
+    expect(messages.fr.leagueAdminRole).toBe('Direction de ligue');
   });
 });

@@ -2,21 +2,35 @@ import { describe, expect, it } from 'vitest';
 import { levelProgress, nextChallengeRotation, selectDriverHero, type DriverHomeSnapshot } from './driverHome';
 
 const emptySnapshot: DriverHomeSnapshot = {
+  activeSeason: null,
   achievementCount: 0,
   achievementTotal: 0,
   achievements: [],
   career: null,
   challenges: [],
   latestAchievement: null,
+  latestArchivedSeason: null,
   nextRace: null,
   progression: null,
   wallet: null,
 };
 
 describe('Driver Home rules', () => {
+  it('prioritizes a completed season over old career results', () => {
+    expect(selectDriverHero({
+      ...emptySnapshot,
+      latestArchivedSeason: {
+        archivedAt: '2026-08-25T18:00:00Z',
+        id: 'season-1',
+        name: 'Season 1',
+      },
+    })).toBe('season-complete');
+  });
+
   it('prioritizes a current result over an upcoming race', () => {
     expect(selectDriverHero({
       ...emptySnapshot,
+      activeSeason: { archivedAt: null, id: 'season-1', name: 'Season 1' },
       career: {
         average_finish: 2,
         best_finish: 1,
@@ -49,6 +63,7 @@ describe('Driver Home rules', () => {
   it('uses the next race when no result exists', () => {
     expect(selectDriverHero({
       ...emptySnapshot,
+      activeSeason: { archivedAt: null, id: 'season-1', name: 'Season 1' },
       nextRace: {
         grand_prix_name: 'Monza',
         id: 'race-1',

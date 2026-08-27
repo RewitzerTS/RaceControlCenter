@@ -21,6 +21,7 @@ export type AiResultAnalysis = {
 const MAX_IMAGES = 8;
 const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_EDGE = 1800;
+const IMAGE_PREP_CONCURRENCY = 2;
 const IMAGE_PREP_TIMEOUT_MS = 30_000;
 const SUPPORTED_IMAGE_NAME = /\.(?:heic|heif|jpe?g|png|webp)$/i;
 const HEIC_IMAGE_NAME = /\.(?:heic|heif)$/i;
@@ -67,12 +68,26 @@ type DecodedImage = {
   cleanup: () => void;
 };
 
-function withTimeout<T>(promise: Promise<T>, message: string): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, message: string, onLateResolve?: (value: T) => void): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timeout = window.setTimeout(() => reject(new Error(message)), IMAGE_PREP_TIMEOUT_MS);
+    let timedOut = false;
+    const timeout = window.setTimeout(() => {
+      timedOut = true;
+      reject(new Error(message));
+    }, IMAGE_PREP_TIMEOUT_MS);
     promise.then(
-      (value) => { window.clearTimeout(timeout); resolve(value); },
-      (error) => { window.clearTimeout(timeout); reject(error); },
+      (value) => {
+        window.clearTimeout(timeout);
+        if (timedOut) {
+          onLateResolve?.(value);
+          return;
+        }
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeout);
+        if (!timedOut) reject(error);
+      },
     );
   });
 }
@@ -103,6 +118,7 @@ async function decodeImage(file: Blob, displayName: string): Promise<DecodedImag
       const bitmap = await withTimeout(
         window.createImageBitmap(file),
         `„${displayName}“ konnte nicht rechtzeitig decodiert werden.`,
+        (lateBitmap) => lateBitmap.close(),
       );
       return {
         source: bitmap,
@@ -117,10 +133,11 @@ async function decodeImage(file: Blob, displayName: string): Promise<DecodedImag
   return withTimeout(
     loadImageElement(file, displayName),
     `„${displayName}“ konnte nicht rechtzeitig geladen werden.`,
+    (lateImage) => lateImage.cleanup(),
   );
 }
 
-async function convertHeicImage(file: File): Promise<Blob> {
+async function convertHeicImage(file: File): Promise<Blob[]> {
   try {
     const { default: heic2any } = await import('heic2any');
     const source = HEIC_MIME_TYPES.has(file.type.toLowerCase())
@@ -131,11 +148,31 @@ async function convertHeicImage(file: File): Promise<Blob> {
       toType: 'image/jpeg',
       quality: 0.9,
     });
-    const image = Array.isArray(converted) ? converted[0] : converted;
-    if (!image) throw new Error('empty conversion');
-    return image;
+    const images = (Array.isArray(converted) ? converted : [converted])
+      .filter((image): image is Blob => image instanceof Blob && image.size > 0);
+    if (!images.length) throw new Error('empty conversion');
+    return images;
   } catch {
     throw new Error(`„${file.name}“ konnte nicht aus HEIC/HEIF konvertiert werden. Bitte verwende das Original oder exportiere das Bild als JPG.`);
+  }
+}
+
+async function decodeHeicImage(file: File): Promise<DecodedImage> {
+  try {
+    // Safari and newer Apple devices can decode HEIC directly. Avoid downloading
+    // and executing the large fallback converter when the browser already can.
+    return await decodeImage(file, file.name);
+  } catch {
+    const convertedImages = await convertHeicImage(file);
+    for (const image of convertedImages) {
+      try {
+        return await decodeImage(image, file.name);
+      } catch {
+        // HEIF containers may include auxiliary frames. Use the first frame the
+        // browser can actually decode instead of assuming item zero is visible.
+      }
+    }
+    throw new Error(`„${file.name}“ wurde konvertiert, enthält aber kein lesbares Ergebnisbild. Bitte exportiere das Bild als JPG.`);
   }
 }
 
@@ -144,8 +181,7 @@ async function prepareImage(file: File): Promise<string> {
   if (!isHeic && !isSupportedResultImage(file)) throw new Error(`„${file.name}“ ist keine unterstützte Bilddatei. Erlaubt sind JPG, PNG, WebP, HEIC und HEIF.`);
   if (file.size > MAX_SOURCE_BYTES) throw new Error(`„${file.name}“ ist größer als 20 MB.`);
 
-  const source = isHeic ? await convertHeicImage(file) : file;
-  const decoded = await decodeImage(source, file.name);
+  const decoded = isHeic ? await decodeHeicImage(file) : await decodeImage(file, file.name);
   try {
     const longestEdge = Math.max(decoded.width, decoded.height);
     if (!longestEdge) throw new Error(`„${file.name}“ hat ungültige Abmessungen.`);
@@ -171,9 +207,33 @@ async function prepareImage(file: File): Promise<string> {
   }
 }
 
-export async function prepareRaceResultImages(files: File[]): Promise<string[]> {
+export type ImagePreparationProgress = {
+  completed: number;
+  total: number;
+  fileName: string;
+};
+
+export async function prepareRaceResultImages(
+  files: File[],
+  onProgress?: (progress: ImagePreparationProgress) => void,
+): Promise<string[]> {
   if (!files.length || files.length > MAX_IMAGES) throw new Error('Bitte 1 bis 8 Ergebnisbilder auswählen.');
-  return Promise.all(files.map(prepareImage));
+  const results = new Array<string>(files.length);
+  let nextIndex = 0;
+  let completed = 0;
+  const workerCount = Math.min(IMAGE_PREP_CONCURRENCY, files.length);
+
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < files.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await prepareImage(files[index]);
+      completed += 1;
+      onProgress?.({ completed, total: files.length, fileName: files[index].name });
+    }
+  }));
+
+  return results;
 }
 
 function validateAnalysis(value: unknown): AiResultAnalysis {

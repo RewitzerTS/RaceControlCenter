@@ -70,4 +70,3 @@ grant execute on function public.start_league_season(text, text, text, date, dat
 
 comment on function public.start_league_season(text, text, text, date, date, jsonb) is
   'Starts a league season, seeds its preset, and records enrichment as a new append-only audit fact.';
-

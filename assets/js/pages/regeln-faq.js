@@ -421,13 +421,13 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
   currentDriverFactsById = driverFactsById instanceof Map ? driverFactsById : new Map();
 
   if (!drivers.length) {
-    list.innerHTML = '<div class="notice">Noch keine Fahrer angelegt.</div>';
+    list.innerHTML = '<div class="grid-empty-state"><strong>Noch kein Saison-Grid vorhanden</strong><p>Nach dem Saisonstart erscheinen hier automatisch alle Spieler, KI-Fahrer und Fahrzeuge.</p></div>';
     return;
   }
 
   const groupedByCar = new Map();
   drivers.forEach((driver) => {
-    const teamName = String(driver.car_name || driver.league_team || '').trim() || 'Ohne Team';
+    const teamName = String(driver.league_team || driver.car_name || '').trim() || 'Ohne Team';
     if (!groupedByCar.has(teamName)) groupedByCar.set(teamName, []);
     groupedByCar.get(teamName).push(driver);
   });
@@ -435,26 +435,32 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
   const cards = [...groupedByCar.entries()]
     .sort((a, b) => a[0].localeCompare(b[0], 'de', { sensitivity: 'base' }))
     .map(([teamName, members]) => {
-      const sortedMembers = [...members].sort((a, b) => String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' }));
+      const sortedMembers = [...members].sort((a, b) => {
+        const numberDiff = Number(a.number ?? Number.MAX_SAFE_INTEGER) - Number(b.number ?? Number.MAX_SAFE_INTEGER);
+        if (numberDiff !== 0) return numberDiff;
+        return String(a.display_name || '').localeCompare(String(b.display_name || ''), 'de', { sensitivity: 'base' });
+      });
       const logoSource = members
         .map((driver) => resolveDriverLogoSourceForView(driver))
         .find(Boolean) || teamName;
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
-            <h5 class="driver-team-title-with-logo">
+            <div class="driver-team-title-with-logo">
               ${window.createTeamLogoBadge?.(logoSource, { size: 'large', label: teamName }) || ''}
-              <span class="driver-team-name">${window.escapeHtml(teamName)}</span>
-            </h5>
-            <span class="driver-team-count">${sortedMembers.length} Fahrer</span>
+              <div><h5 class="driver-team-name">${window.escapeHtml(teamName)}</h5><span class="driver-team-car">${window.escapeHtml(members[0]?.car_name || 'Fahrzeug noch offen')}</span></div>
+            </div>
+            <span class="driver-team-count">${sortedMembers.length} ${sortedMembers.length === 1 ? 'Sitz' : 'Sitze'}</span>
           </header>
           <div class="driver-team-members">
             ${sortedMembers.map((driver) => `
-              <button type="button" class="driver-team-member driver-team-member-flip" data-driver-id="${window.escapeHtml(String(driver.id || ''))}" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} öffnen">
+              <button type="button" class="driver-team-member driver-team-member-flip is-${String(driver.participant_type || 'BOT').toLowerCase()}" data-driver-id="${window.escapeHtml(String(driver.id || ''))}" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} öffnen">
                 <span class="driver-team-member-main">
-                  <strong>${window.escapeHtml(driver.display_name || '—')}</strong>
-                  <span class="muted">KI Bot: ${window.escapeHtml(driver.ai_driver_reference || '—')}</span>
-                  <span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span>
+                  <span class="driver-seat-heading"><strong>${driver.number === null || driver.number === undefined ? '#—' : `#${window.escapeHtml(String(driver.number))}`}</strong><span class="driver-participant-chip">${driver.participant_type === 'PLAYER' ? 'Spieler' : 'KI'}</span></span>
+                  <span class="driver-seat-name">${window.escapeHtml(driver.display_name || '—')}</span>
+                  ${driver.participant_type === 'PLAYER'
+                    ? `<span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span><span class="muted">KI-Sitz: ${window.escapeHtml(driver.ai_driver_name || '—')}</span>`
+                    : '<span class="muted">Offizieller KI-Fahrer</span>'}
                 </span>
               </button>
             `).join('')}
@@ -469,6 +475,59 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
       openDriverCardModal(card.dataset.driverId || null);
     });
   });
+}
+
+function renderGridSeasonHeading(season, grid = []) {
+  const sectionHeader = document.querySelector('main.section .section-header');
+  const panelHeading = document.querySelector('#vehicle-pair-list')?.closest('.panel')?.querySelector('h3');
+  const summary = window.RCCGridRoster?.summarizeSeasonGrid?.(grid) || { seats: grid.length, players: 0, bots: 0 };
+  const subtitle = sectionHeader?.querySelector('.page-subtitle');
+  if (subtitle) subtitle.textContent = `${season.name || 'Aktive Saison'} · ${summary.seats} Sitze · ${summary.players} Spieler · ${summary.bots} KI`;
+  if (panelHeading) panelHeading.textContent = `Startaufstellung · ${season.name || 'Aktive Saison'}`;
+}
+
+function renderNoActiveGridSeason() {
+  const list = document.getElementById('vehicle-pair-list');
+  if (!list) return;
+  list.innerHTML = '<div class="grid-empty-state"><strong>Keine aktive Saison</strong><p>Sobald die Ligaleitung eine Saison startet, wird das vollständige Grid hier automatisch aufgebaut.</p></div>';
+}
+
+async function initGridPage() {
+  bindDriverCardModalEvents();
+  try {
+    const currentSeason = await window.RCCData.fetchCurrentSeason();
+    if (!currentSeason?.id) {
+      renderNoActiveGridSeason();
+      return;
+    }
+
+    const [drivers, races, assignments] = await Promise.all([
+      window.RCCData.fetchDrivers(),
+      window.RCCData.fetchRaces({ seasonId: currentSeason.id }),
+      window.RCCDriverContext?.fetchDriverSeasonAssignments?.({ seasonId: currentSeason.id }) || Promise.resolve([])
+    ]);
+    const grid = window.RCCGridRoster?.buildSeasonGrid?.({ assignments, drivers }) || [];
+    renderGridSeasonHeading(currentSeason, grid);
+    if (!grid.length) {
+      renderVehiclePairs([]);
+      return;
+    }
+
+    const raceIds = (races || []).map((race) => race.id).filter(Boolean);
+    const raceResults = raceIds.length ? await window.RCCData.fetchRaceResults({ raceIds }) : [];
+    const driverFactsById = computeDriverFacts({
+      drivers: grid,
+      races,
+      raceResults,
+      currentSeasonId: currentSeason.id,
+      championshipHistory: []
+    });
+    renderVehiclePairs(grid, driverFactsById);
+  } catch (error) {
+    console.error(error);
+    const list = document.getElementById('vehicle-pair-list');
+    if (list) list.innerHTML = `<div class="notice notice-error">Das Saison-Grid konnte nicht geladen werden: ${window.escapeHtml(error.message || 'Unbekannt')}</div>`;
+  }
 }
 
 function closeDriverCardModal() {
@@ -717,5 +776,10 @@ async function initRulesFaqPage() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', initRulesFaqPage);
-
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.body?.dataset.page === 'grid') {
+    initGridPage();
+    return;
+  }
+  initRulesFaqPage();
+});

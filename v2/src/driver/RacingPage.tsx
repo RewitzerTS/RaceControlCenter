@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { LegacyLeagueView } from '../components/LegacyLeagueView';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
 import type { Database } from '../types/database';
 
 type RaceRow = Pick<
@@ -22,8 +23,26 @@ interface ResultRow {
   race_time: string | null;
 }
 
-function classificationLabel(status: string): string {
-  return status.replaceAll('_', ' ').toUpperCase();
+export function classificationLabel(status: string, t: ReturnType<typeof useI18n>['t']): string {
+  const labels: Record<string, string> = {
+    classified: t('racing.classification.classified'),
+    dnf: t('racing.classification.dnf'),
+    dns: t('racing.classification.dns'),
+    dsq: t('racing.classification.dsq'),
+    not_classified: t('racing.classification.notClassified'),
+  };
+  return labels[status.toLowerCase()] ?? status.replaceAll('_', ' ');
+}
+
+export function raceStatusLabel(status: string, t: ReturnType<typeof useI18n>['t']): string {
+  const labels: Record<string, string> = {
+    completed: t('racing.status.completed'),
+    scheduled: t('racing.status.scheduled'),
+    upcoming: t('racing.status.upcoming'),
+    cancelled: t('racing.status.cancelled'),
+    canceled: t('racing.status.cancelled'),
+  };
+  return labels[status.toLowerCase()] ?? status.replaceAll('_', ' ');
 }
 
 const RACING_SECTIONS = [
@@ -103,6 +122,7 @@ function RacingOverview() {
   const [races, setRaces] = useState<RaceRow[]>([]);
   const [selectedRaceId, setSelectedRaceId] = useState<string | null>(null);
   const [results, setResults] = useState<ResultRow[]>([]);
+  const [revision, setRevision] = useState<ResultRevision | null>(null);
   const [loading, setLoading] = useState(true);
   const [resultsLoading, setResultsLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -142,26 +162,36 @@ function RacingOverview() {
   useEffect(() => {
     let active = true;
     setResults([]);
+    setRevision(null);
     if (!selectedRace?.current_result_version_id) {
       setResultsLoading(false);
       return () => { active = false; };
     }
 
     setResultsLoading(true);
-    void client
-      .from('race_results')
-      .select('id, driver_id, finish_position, grid_position, classification_status, race_time, fastest_lap_time, awarded_points, driver:drivers!race_results_driver_id_fkey(display_name)')
-      .eq('race_id', selectedRace.id)
-      .eq('result_version_id', selectedRace.current_result_version_id)
-      .order('finish_position', { ascending: true, nullsFirst: false })
-      .then((response) => {
+    void Promise.all([
+      client
+        .from('race_results')
+        .select('id, driver_id, finish_position, grid_position, classification_status, race_time, fastest_lap_time, awarded_points, driver:drivers!race_results_driver_id_fkey(display_name)')
+        .eq('race_id', selectedRace.id)
+        .eq('result_version_id', selectedRace.current_result_version_id)
+        .order('finish_position', { ascending: true, nullsFirst: false }),
+      loadResultRevisions(client, [selectedRace.current_result_version_id]),
+    ]).then(([response, revisions]) => {
         if (!active) return;
         if (response.error) {
           setError(true);
           setResults([]);
         } else {
           setResults((response.data ?? []) as ResultRow[]);
+          setRevision(revisions.get(selectedRace.current_result_version_id as string) ?? null);
         }
+        setResultsLoading(false);
+      }).catch(() => {
+        if (!active) return;
+        setError(true);
+        setResults([]);
+        setRevision(null);
         setResultsLoading(false);
       });
 
@@ -235,9 +265,10 @@ function RacingOverview() {
                 </div>
                 <div className="race-date-block">
                   <strong>{selectedRace.race_date ? formatDate(selectedRace.race_date) : t('home.dateTbd')}</strong>
-                  <span>{selectedRace.race_start_at ? formatTime(selectedRace.race_start_at) : selectedRace.status}</span>
+                  <span>{selectedRace.race_start_at ? formatTime(selectedRace.race_start_at) : raceStatusLabel(selectedRace.status, t)}</span>
                 </div>
               </div>
+              {revision?.stewardCaseNumber && <aside className="result-revision-notice" aria-label={t('racing.resultRevision')}><div><strong>{t('racing.resultRevision')}</strong><span>{t('racing.resultRevisionCase', { caseNumber: revision.stewardCaseNumber })}</span></div><div><strong>V{formatNumber(revision.resultVersion)}</strong><small>{t('racing.currentOfficialVersion')}</small></div></aside>}
               {!selectedRace.current_result_version_id ? (
                 <p className="empty-copy">{t('racing.noOfficialResult')}</p>
               ) : resultsLoading ? (
@@ -251,7 +282,7 @@ function RacingOverview() {
                     <tbody>
                       {results.map((result) => (
                         <tr key={result.id}>
-                          <td><strong>{result.finish_position == null ? classificationLabel(result.classification_status) : `P${formatNumber(result.finish_position)}`}</strong><small>{classificationLabel(result.classification_status)}</small></td>
+                          <td><strong>{result.finish_position == null ? classificationLabel(result.classification_status, t) : `P${formatNumber(result.finish_position)}`}</strong><small>{classificationLabel(result.classification_status, t)}</small></td>
                           <td><strong>{result.driver?.display_name ?? result.driver_id.slice(0, 8)}</strong></td>
                           <td>{result.grid_position == null ? '—' : `P${formatNumber(result.grid_position)}`}</td>
                           <td>{result.race_time ?? '—'}</td>
@@ -275,4 +306,3 @@ export function RacingPage() {
   const location = useLocation();
   return location.pathname === '/racing' ? <RacingOverview /> : <RacingSectionView />;
 }
-

@@ -4,8 +4,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const [migration, processors, page, client, shell, test] = await Promise.all([
-  'supabase/migrations/20260820193000_v2_vora_context_service.sql',
-  'supabase/migrations/20260821201612_v2_notification_vora_processors.sql',
+  'supabase/migrations/20260820185929_v2_vora_context_service.sql',
+  'supabase/migrations/20260821202014_v2_notification_vora_processors.sql',
   'src/vora/VoraPage.tsx', 'src/vora/vora.ts', 'src/components/AppShell.tsx',
   'supabase/tests/phase-20-vora.sql',
 ].map((path) => readFile(resolve(root, path), 'utf8')));

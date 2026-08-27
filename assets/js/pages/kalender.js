@@ -67,6 +67,15 @@ function bindArchiveActions() {
 
   const openArchive = () => {
     if (!selectEl.value) return;
+    const league = window.RCCData?.getRequestedLeagueSlug?.() || '';
+    if (window.parent !== window && document.documentElement.classList.contains('racevora-integrated-view')) {
+      const target = new URL('/racing/history', window.location.origin);
+      target.searchParams.set('view', 'seasons');
+      target.searchParams.set('season', selectEl.value);
+      if (league) target.searchParams.set('league', league);
+      window.parent.location.assign(`${target.pathname}${target.search}`);
+      return;
+    }
     const href = `saison-archiv.html?season=${encodeURIComponent(selectEl.value)}`;
     window.location.href = window.withLeagueContextHref ? window.withLeagueContextHref(href) : href;
   };
@@ -97,7 +106,12 @@ async function loadSeasonArchiveSelector() {
 
     selectEl.innerHTML = `
       <option value="">Bitte Saison wählen</option>
-      ${seasons.map((season) => `<option value="${window.escapeHtml(String(season.id))}">${window.escapeHtml(season.name || `Saison ${season.id}`)}</option>`).join('')}
+      ${seasons.map((season) => {
+        const archivedYear = season.archived_at ? new Date(season.archived_at).getFullYear() : '';
+        const game = String(season.game_label || '').trim();
+        const details = [game, archivedYear].filter(Boolean).join(' · ');
+        return `<option value="${window.escapeHtml(String(season.id))}">${window.escapeHtml(season.name || `Saison ${season.id}`)}${details ? ` · ${window.escapeHtml(details)}` : ''}</option>`;
+      }).join('')}
     `;
   } catch (error) {
     console.error(error);
@@ -188,4 +202,3 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSeasonArchiveSelector();
   loadCalendar();
 });
-

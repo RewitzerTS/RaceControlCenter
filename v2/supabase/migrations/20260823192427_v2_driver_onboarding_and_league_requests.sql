@@ -373,4 +373,3 @@ comment on function public.complete_driver_onboarding(text, text, text, text, te
   'Creates or updates the authenticated global driver profile and optionally requests league membership by UUID or slug.';
 comment on function public.review_league_join_request(uuid, text, text) is
   'Approves or rejects a pending league membership request and links the approved driver identity.';
-

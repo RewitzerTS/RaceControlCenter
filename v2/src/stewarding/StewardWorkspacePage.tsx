@@ -10,6 +10,7 @@ import {
   finalizeStewardDecision,
   loadStewardCaseDetail,
   loadStewardWorkspace,
+  stewardDetailCounts,
   type StewardCaseDetail,
   type StewardWorkspaceSnapshot,
 } from './stewardWorkspace';
@@ -31,6 +32,7 @@ export function StewardWorkspacePage() {
   const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<StewardCaseDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,11 +52,14 @@ export function StewardWorkspacePage() {
 
   useEffect(() => { void refresh(); }, [refresh]);
   useEffect(() => {
-    if (!selectedId) { setDetail(null); return; }
+    if (!selectedId) { setDetail(null); setDetailLoading(false); return; }
     let active = true;
+    setDetail(null);
+    setDetailLoading(true);
     void loadStewardCaseDetail(client, selectedId)
       .then((value) => { if (active) setDetail(value); })
-      .catch(() => { if (active) setError(t('steward.loadError')); });
+      .catch(() => { if (active) setError(t('steward.loadError')); })
+      .finally(() => { if (active) setDetailLoading(false); });
     return () => { active = false; };
   }, [client, selectedId, t]);
 
@@ -66,11 +71,24 @@ export function StewardWorkspacePage() {
     appealed: snapshot.cases.filter((item) => item.status === 'appealed').length,
     closed: snapshot.cases.filter((item) => item.status === 'closed').length,
   }), [snapshot.cases]);
+  const detailCounts = useMemo(() => stewardDetailCounts(detail), [detail]);
 
   async function runAction(action: () => Promise<unknown>, message: string) {
     setBusy(true); setError(null); setNotice(null);
-    try { await action(); setNotice(message); await refresh(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : t('steward.actionError')); }
+    const actionCaseId = selectedId;
+    try {
+      await action();
+      const [nextSnapshot, nextDetail] = await Promise.all([
+        loadStewardWorkspace(client),
+        actionCaseId ? loadStewardCaseDetail(client, actionCaseId) : Promise.resolve(null),
+      ]);
+      setSnapshot(nextSnapshot);
+      setSelectedId((current) => current && nextSnapshot.cases.some((item) => item.id === current) ? current : nextSnapshot.cases[0]?.id ?? null);
+      if (actionCaseId) setDetail(nextDetail);
+      setNotice(message);
+      return true;
+    }
+    catch (cause) { setError(cause instanceof Error ? cause.message : t('steward.actionError')); return false; }
     finally { setBusy(false); }
   }
 
@@ -93,7 +111,7 @@ export function StewardWorkspacePage() {
         <div><strong>{snapshot.cases.length}</strong><span>{t('steward.latest')}</span></div>
       </section>
 
-      {permitted && showCreate && <CreateCaseForm snapshot={snapshot} busy={busy} onSubmit={(input) => runAction(() => createStewardCase(client, input), t('steward.caseCreated')).then(() => setShowCreate(false))} />}
+      {permitted && showCreate && <CreateCaseForm snapshot={snapshot} busy={busy} onSubmit={(input) => void runAction(() => createStewardCase(client, input), t('steward.caseCreated')).then((saved) => { if (saved) setShowCreate(false); })} />}
       {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
       {notice && <p className="workspace-message" role="status">{notice}</p>}
 
@@ -121,11 +139,11 @@ export function StewardWorkspacePage() {
             </dl>
             <p className="case-description">{selectedCase.description}</p>
 
-            <div className="case-timeline">
-              <DetailBlock title={t('steward.evidence')} count={detail?.evidence.length ?? 0}>{detail?.evidence.map((item) => <article key={item.id}><strong>{item.evidence_kind}</strong><p>{item.description}</p>{item.uri && <a href={item.uri} rel="noreferrer" target="_blank">{t('steward.openEvidence')}</a>}</article>)}</DetailBlock>
-              <DetailBlock title={t('steward.votes')} count={detail?.votes.length ?? 0}>{detail?.votes.map((item) => <article key={item.id}><strong>{item.outcome} · v{item.vote_version}</strong>{item.conflict_disclosed && <em>{t('steward.conflict')}</em>}<p>{item.reasoning}</p></article>)}</DetailBlock>
-              <DetailBlock title={t('steward.decisions')} count={detail?.decisions.length ?? 0}>{detail?.decisions.map((item) => <article key={item.id}><strong>v{item.version_number} · {item.outcome}</strong><p>{item.reasoning}</p><small>{item.rule_code} · {item.rule_version}</small>{detail.penalties.filter((penalty) => penalty.decision_version_id === item.id).map((penalty) => <p className="penalty-line" key={penalty.id}>{penalty.penalty_type} · {penalty.reason}</p>)}</article>)}</DetailBlock>
-              <DetailBlock title={t('steward.appeals')} count={detail?.appeals.length ?? 0}>{detail?.appeals.map((item) => <article key={item.id}><strong>{item.status}</strong><p>{item.reason}</p></article>)}</DetailBlock>
+            <div className="case-timeline" aria-busy={detailLoading}>
+              <DetailBlock title={t('steward.evidence')} count={detailCounts?.evidence ?? null}>{detail?.evidence.map((item) => <article key={item.id}><strong>{item.evidence_kind}</strong><p>{item.description}</p>{item.uri && <a href={item.uri} rel="noreferrer" target="_blank">{t('steward.openEvidence')}</a>}</article>)}</DetailBlock>
+              <DetailBlock title={t('steward.votes')} count={detailCounts?.votes ?? null}>{detail?.votes.map((item) => <article key={item.id}><strong>{item.outcome} · v{item.vote_version}</strong>{item.conflict_disclosed && <em>{t('steward.conflict')}</em>}<p>{item.reasoning}</p></article>)}</DetailBlock>
+              <DetailBlock title={t('steward.decisions')} count={detailCounts?.decisions ?? null}>{detail?.decisions.map((item) => <article key={item.id}><strong>v{item.version_number} · {item.outcome}</strong><p>{item.reasoning}</p><small>{item.rule_code} · {item.rule_version}</small>{item.result_revision && <div className="result-revision-reference"><span>{t('steward.resultRevision')}</span><strong>V{item.result_revision.resultVersion}</strong><small>{item.result_revision.isCurrent ? t('steward.currentOfficialResult') : t('steward.supersededResult')}</small></div>}{detail.penalties.filter((penalty) => penalty.decision_version_id === item.id).map((penalty) => <p className="penalty-line" key={penalty.id}>{penalty.penalty_type} · {penalty.reason}</p>)}</article>)}</DetailBlock>
+              <DetailBlock title={t('steward.appeals')} count={detailCounts?.appeals ?? null}>{detail?.appeals.map((item) => <article key={item.id}><strong>{item.status}</strong><p>{item.reason}</p></article>)}</DetailBlock>
             </div>
 
             {permitted && selectedCase.status === 'under_review' && <div className="steward-actions">
@@ -140,8 +158,8 @@ export function StewardWorkspacePage() {
   );
 }
 
-function DetailBlock({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
-  return <section><h3>{title}<span>{count}</span></h3><div>{children}</div></section>;
+function DetailBlock({ title, count, children }: { title: string; count: number | null; children: React.ReactNode }) {
+  return <section><h3>{title}<span aria-live="polite">{count ?? '…'}</span></h3><div>{children}</div></section>;
 }
 
 function CreateCaseForm({ snapshot, busy, onSubmit }: { snapshot: StewardWorkspaceSnapshot; busy: boolean; onSubmit: (input: Parameters<typeof createStewardCase>[1]) => void }) {

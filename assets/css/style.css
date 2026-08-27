@@ -790,6 +790,29 @@ button, input, textarea, select {
   color: var(--text);
 }
 
+.race-result-version {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.race-result-version summary {
+  width: fit-content;
+  margin-top: 6px;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.race-result-version ol {
+  margin: 10px 0 0;
+  padding-left: 22px;
+}
+
+.race-result-version li + li {
+  margin-top: 8px;
+}
+
 .table-card {
   overflow: hidden;
 }
@@ -1760,16 +1783,182 @@ body[data-page="admin"] .button-danger:focus-visible {
   max-width: 540px;
 }
 
-.archive-race-card {
+.archive-season-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid rgba(255,255,255,0.1);
   margin-bottom: 18px;
 }
 
-.archive-race-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
+.archive-season-summary > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 16px 18px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.archive-season-summary > div:last-child {
+  border-right: 0;
+}
+
+.archive-season-summary span {
   color: var(--text-muted);
-  margin: 6px 0 14px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.archive-season-summary strong {
+  overflow-wrap: anywhere;
+  font-size: 1.2rem;
+}
+
+.archive-race-list {
+  display: grid;
+  gap: 10px;
+}
+
+.archive-race-card {
+  overflow: clip;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.archive-race-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.archive-race-summary::-webkit-details-marker {
+  display: none;
+}
+
+.archive-race-summary:hover {
+  background: rgba(255,255,255,0.035);
+}
+
+.archive-race-summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.archive-race-round {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.archive-race-title {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.archive-race-title strong,
+.archive-race-title small {
+  overflow-wrap: anywhere;
+}
+
+.archive-race-title small,
+.archive-result-count,
+.archive-race-toolbar {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.archive-result-count {
+  white-space: nowrap;
+}
+
+.archive-summary-icon {
+  display: inline-grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 1.1rem;
+  transition: transform 180ms ease-out;
+}
+
+.archive-race-card[open] .archive-summary-icon {
+  transform: rotate(45deg);
+}
+
+.archive-race-content {
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.archive-race-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+@media (max-width: 680px) {
+  .archive-season-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .archive-season-summary > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .archive-season-summary > div:nth-child(-n+2) {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .archive-race-summary {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    min-height: 66px;
+    padding: 10px 12px;
+  }
+
+  .archive-result-count {
+    grid-column: 2;
+    grid-row: 2;
+    white-space: normal;
+  }
+
+  .archive-summary-icon {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+  }
+
+  .archive-race-content {
+    padding: 0 10px 12px;
+  }
+
+  .archive-race-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .archive-race-toolbar .btn {
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-summary-icon {
+    transition: none;
+  }
 }
 
 .season-champion-overlay {
@@ -2262,6 +2451,14 @@ body[data-page="admin"] .button-danger:focus-visible {
   letter-spacing: 0.02em;
 }
 
+.driver-team-car {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.25;
+}
+
 .team-logo-badge {
   display: inline-flex;
   align-items: center;
@@ -2360,6 +2557,82 @@ body[data-page="admin"] .button-danger:focus-visible {
 body[data-page="grid"] .driver-team-member-flip {
   min-height: 0;
   perspective: none;
+}
+
+body[data-page="grid"] .driver-team-member {
+  min-height: 112px;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(255,255,255,0.045), rgba(255,255,255,0.018));
+}
+
+body[data-page="grid"] .driver-team-member.is-player {
+  border-color: color-mix(in srgb, var(--accent, #6ee7f2) 52%, transparent);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent, #6ee7f2) 13%, transparent), rgba(255,255,255,0.02));
+}
+
+.driver-seat-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.driver-seat-heading > strong {
+  color: var(--accent, #6ee7f2);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.driver-participant-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.is-player .driver-participant-chip {
+  border-color: color-mix(in srgb, var(--accent, #6ee7f2) 45%, transparent);
+  color: var(--accent, #6ee7f2);
+}
+
+.driver-seat-name {
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.grid-empty-state {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  min-height: 190px;
+  padding: 34px 20px;
+  place-content: center;
+  border: 1px dashed rgba(255,255,255,0.18);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.025);
+  text-align: center;
+}
+
+.grid-empty-state strong {
+  font-size: 1.08rem;
+}
+
+.grid-empty-state p {
+  max-width: 48ch;
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.55;
 }
 
 .driver-team-member-flip:focus-visible {
@@ -2777,10 +3050,12 @@ body[data-page="grid"] .driver-team-member-flip {
   }
 
   .driver-team-card-head {
+    align-items: flex-start;
     padding-bottom: 6px;
   }
 
-  .driver-team-members {
+  body[data-page="grid"] .driver-team-members {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 
@@ -2804,6 +3079,20 @@ body[data-page="grid"] .driver-team-member-flip {
   .driver-team-member-main strong {
     font-size: 1.02rem;
     line-height: 1.2;
+  }
+
+  body[data-page="grid"] .driver-team-member {
+    min-height: 104px;
+    padding: 9px;
+  }
+
+  body[data-page="grid"] .driver-seat-name {
+    font-size: 0.92rem;
+  }
+
+  body[data-page="grid"] .driver-team-count {
+    flex: 0 0 auto;
+    padding-inline: 8px;
   }
 
   .driver-card-modal-dialog {
@@ -2836,6 +3125,12 @@ body[data-page="grid"] .driver-team-member-flip {
 
   .driver-compare-table .driver-compare-col-metric {
     width: 56%;
+  }
+}
+
+@media (max-width: 360px) {
+  body[data-page="grid"] .driver-team-members {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

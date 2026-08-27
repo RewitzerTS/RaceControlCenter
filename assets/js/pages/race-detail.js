@@ -48,6 +48,27 @@ function renderStewardSection(stewardsEl, stewardEntries, stewardError) {
   }).join('');
 }
 
+function renderResultVersionHistory(versions = []) {
+  if (!versions.length) return '<strong>Ergebnisversion:</strong> Noch nicht veröffentlicht';
+  const current = versions.find((version) => version.status === 'active') || versions[0];
+  const corrected = versions.length > 1;
+  const history = versions.map((version) => {
+    const state = version.status === 'active' ? 'Aktuell' : version.status === 'superseded' ? 'Ersetzt' : 'Zurückgezogen';
+    const reason = version.change_reason || (version.version_number === 1 ? 'Erstveröffentlichung' : 'Ergebniskorrektur');
+    return `<li><strong>V${window.escapeHtml(version.version_number)}</strong> · ${window.escapeHtml(state)}<br><span>${window.escapeHtml(reason)}</span></li>`;
+  }).join('');
+
+  return `
+    <div class="race-result-version">
+      <strong>Ergebnisversion:</strong> V${window.escapeHtml(current.version_number)} · ${corrected ? `${versions.length - 1} Korrektur${versions.length === 2 ? '' : 'en'}` : 'Erstveröffentlichung'}
+      <details>
+        <summary>Versionsverlauf anzeigen</summary>
+        <ol>${history}</ol>
+      </details>
+    </div>
+  `;
+}
+
 async function loadRaceDetailPage() {
   const params = new URLSearchParams(window.location.search);
   const round = Number(params.get('round'));
@@ -73,11 +94,14 @@ async function loadRaceDetailPage() {
     });
     if (!race) throw new Error('Race not found');
 
-    const [driversResult, racesResult, assignmentsResult, resultsResult, stewardResult] = await Promise.allSettled([
+    const [driversResult, racesResult, assignmentsResult, resultsResult, versionsResult, stewardResult] = await Promise.allSettled([
       window.RCCData.fetchDrivers(),
       window.RCCData.fetchRaces({ seasonId: race.season_id }),
       window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: race.season_id }),
-      window.RCCData.fetchRaceResults({ raceId: race.id }),
+      race.current_result_version_id
+        ? window.RCCData.fetchRaceResults({ raceId: race.id, resultVersionIds: [race.current_result_version_id] })
+        : Promise.resolve([]),
+      window.RCCData.fetchResultVersions({ raceId: race.id }),
       window.RCCData.fetchStewardCasesByRaceId(race.id)
     ]);
 
@@ -85,6 +109,7 @@ async function loadRaceDetailPage() {
     const seasonRaces = racesResult.status === 'fulfilled' ? racesResult.value : [race];
     const assignments = assignmentsResult.status === 'fulfilled' ? assignmentsResult.value : [];
     const resultsResponse = resultsResult.status === 'fulfilled' ? resultsResult.value : [];
+    const resultVersions = versionsResult.status === 'fulfilled' ? versionsResult.value : [];
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({
       drivers,
@@ -111,6 +136,7 @@ async function loadRaceDetailPage() {
       <strong>Strecke:</strong> ${window.escapeHtml(race.circuit_name || track?.circuitName || '—')}<br>
       <strong>Wetter:</strong> ${window.escapeHtml(window.formatWeatherLabel(race.weather))}<br>
       <strong>Status:</strong> ${window.escapeHtml(window.formatStatusLabel(race.status))}<br>
+      ${renderResultVersionHistory(resultVersions)}
       <div class="detail-track-map">${window.createTrackMapSvg(track)}</div>
     `;
 

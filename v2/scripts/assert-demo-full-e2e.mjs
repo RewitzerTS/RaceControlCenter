@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260820193531_v2_demo_full_e2e.sql'), 'utf8');
+const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260820194035_v2_demo_full_e2e.sql'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'src/demo/DemoE2EPage.tsx'), 'utf8');
 const model = fs.readFileSync(path.join(root, 'src/demo/demo.ts'), 'utf8');
 const regression = fs.readFileSync(path.join(root, 'supabase/tests/phase-22-demo-full-e2e.sql'), 'utf8');

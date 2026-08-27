@@ -6,4 +6,3 @@ create index idx_league_join_requests_driver_identity
 create index idx_league_join_requests_reviewed_by
   on public.league_join_requests (reviewed_by)
   where reviewed_by is not null;
-

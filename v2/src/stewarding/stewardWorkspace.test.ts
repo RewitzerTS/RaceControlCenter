@@ -1,7 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createStewardCase, finalizeStewardDecision } from './stewardWorkspace';
+import { createStewardCase, finalizeStewardDecision, stewardDetailCounts } from './stewardWorkspace';
 
 describe('steward workspace commands', () => {
+  it('derives every visible detail counter from the freshly loaded detail', () => {
+    expect(stewardDetailCounts(null)).toBeNull();
+    expect(stewardDetailCounts({
+      appeals: [{ id: 'appeal-1' }] as never,
+      decisions: [{ id: 'decision-1' }] as never,
+      evidence: [{ id: 'evidence-1' }, { id: 'evidence-2' }] as never,
+      penalties: [{ id: 'penalty-1' }] as never,
+      votes: [{ id: 'vote-1' }, { id: 'vote-2' }, { id: 'vote-3' }] as never,
+    })).toEqual({ appeals: 1, decisions: 1, evidence: 2, penalties: 1, votes: 3 });
+  });
+
   it('derives tenant context server-side when a case is created', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: { id: 'case-1' }, error: null });
     await createStewardCase({ rpc } as never, {

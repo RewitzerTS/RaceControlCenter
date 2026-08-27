@@ -1,5 +1,6 @@
 import type { Json } from '../types/database';
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
 
 export type MetricCounts = {
   races?: number;
@@ -74,6 +75,7 @@ export type LeagueRace = {
   grand_prix_name: string; circuit_name: string | null; country_code: string | null;
   race_date: string | null; race_start_at: string | null; status: string; has_sprint: boolean;
   result_count: number; result_version: number | null; result_status: string | null; result_activated_at: string | null;
+  current_result_version_id?: string | null; result_revision?: ResultRevision | null;
 };
 export type DriverStanding = { driver_id: string; display_name: string; gamertag: string | null; points: number; wins: number; podiums: number; starts: number };
 export type TeamStanding = { team_name: string; points: number; wins: number; podiums: number };
@@ -117,7 +119,17 @@ export type StartedSeason = { season: { id: string; name: string; slug: string }
 export type LeagueFaq = { question: string; answer: string };
 export type ResultDraft = { id: string; race_id: string; race_name: string; version_number: number; status: string; change_reason: string; created_at: string; row_count: number };
 export type ConfigurationWorkspace = { league: OwnerLeague; rules: Record<string, Json | undefined>; faqs: LeagueFaq[]; audit: Array<AuditItem & { entity_id: string | null; metadata: Json }>; result_drafts: ResultDraft[] };
-export type ImportedResultRow = { driver_id?: string; driver_name: string; finish_position: number; grid_position?: number; points: number; team_name?: string; car_name?: string };
+export type ImportedResultRow = {
+  driver_id?: string;
+  driver_name: string;
+  finish_position: number;
+  grid_position?: number;
+  points: number;
+  team_name?: string;
+  car_name?: string;
+  fastest_lap_time?: string;
+  fastest_lap_time_ms?: number;
+};
 export type LeagueDriverInput = {
   id?: string;
   displayName: string;
@@ -214,7 +226,20 @@ export async function loadDriverAdminWorkspace(client: LeagueSupabaseClient): Pr
 export async function loadRaceAdminWorkspace(client: LeagueSupabaseClient): Promise<RaceAdminWorkspace> {
   const response = await client.rpc('get_league_race_admin_workspace');
   if (response.error) throw response.error;
-  return object(response.data) as unknown as RaceAdminWorkspace;
+  const workspace = object(response.data) as unknown as RaceAdminWorkspace;
+  const raceIds = workspace.races.map((race) => race.id);
+  if (raceIds.length === 0) return workspace;
+  const raceVersions = await client.from('races').select('id,current_result_version_id').in('id', raceIds);
+  if (raceVersions.error) throw raceVersions.error;
+  const versionByRace = new Map((raceVersions.data ?? []).map((race) => [race.id, race.current_result_version_id]));
+  const revisions = await loadResultRevisions(client, [...versionByRace.values()]);
+  return {
+    ...workspace,
+    races: workspace.races.map((race) => {
+      const currentId = versionByRace.get(race.id) ?? null;
+      return { ...race, current_result_version_id: currentId, result_revision: currentId ? revisions.get(currentId) ?? null : null };
+    }),
+  };
 }
 
 export async function loadSeasonSetupWorkspace(client: LeagueSupabaseClient): Promise<SeasonSetupWorkspace> {
@@ -384,4 +409,3 @@ export async function updateLeagueBranding(
     themePreset: Number(firstText(settings, 'theme_id') || input.themePreset),
   };
 }
-

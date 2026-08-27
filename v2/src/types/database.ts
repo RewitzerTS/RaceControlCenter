@@ -1448,6 +1448,70 @@ export type Database = {
         }
         Relationships: []
       }
+      race_penalties: {
+        Row: {
+          created_at: string
+          driver_id: string
+          grid_positions: number
+          id: string
+          penalty_type: string
+          points_delta: number
+          race_id: string
+          reason: string | null
+          steward_case_id: string | null
+          time_delta_ms: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          grid_positions?: number
+          id?: string
+          penalty_type: string
+          points_delta?: number
+          race_id: string
+          reason?: string | null
+          steward_case_id?: string | null
+          time_delta_ms?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          grid_positions?: number
+          id?: string
+          penalty_type?: string
+          points_delta?: number
+          race_id?: string
+          reason?: string | null
+          steward_case_id?: string | null
+          time_delta_ms?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "race_penalties_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_penalties_race_id_fkey"
+            columns: ["race_id"]
+            isOneToOne: false
+            referencedRelation: "races"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "race_penalties_steward_case_id_fkey"
+            columns: ["steward_case_id"]
+            isOneToOne: true
+            referencedRelation: "steward_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       race_results: {
         Row: {
           ai_driver_reference_snapshot: string | null
@@ -2634,6 +2698,7 @@ export type Database = {
       get_league_admin_workspace: { Args: never; Returns: Json }
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_member_admin_workspace: { Args: never; Returns: Json }
+      get_my_league_join_requests: { Args: never; Returns: Json }
       get_league_race_admin_workspace: { Args: never; Returns: Json }
       get_season_setup_workspace: { Args: never; Returns: Json }
       get_league_configuration_workspace: { Args: never; Returns: Json }
@@ -2882,4 +2947,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

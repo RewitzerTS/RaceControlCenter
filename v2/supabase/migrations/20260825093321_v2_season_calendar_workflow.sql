@@ -278,4 +278,3 @@ comment on function public.configure_league_season_calendar(uuid, jsonb) is
   'Actor-bound calendar wizard save. It only replaces an active calendar before any race or result exists.';
 comment on function public.start_league_season_with_calendar(text, text, text, date, jsonb, jsonb) is
   'Atomically starts a league season with its roster and fully configured race calendar.';
-
