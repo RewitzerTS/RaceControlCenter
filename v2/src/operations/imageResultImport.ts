@@ -23,6 +23,8 @@ const MAX_SOURCE_BYTES = 20 * 1024 * 1024;
 const MAX_EDGE = 1800;
 const IMAGE_PREP_CONCURRENCY = 2;
 const IMAGE_PREP_TIMEOUT_MS = 30_000;
+const TEMP_IMAGE_BUCKET = 'result-import-images';
+const TEMP_IMAGE_TTL_SECONDS = 10 * 60;
 const SUPPORTED_IMAGE_NAME = /\.(?:heic|heif|jpe?g|png|webp)$/i;
 const HEIC_IMAGE_NAME = /\.(?:heic|heif)$/i;
 const HEIC_MIME_TYPES = new Set([
@@ -256,32 +258,62 @@ export async function analyzeRaceResultImages(
   drivers: LeagueDriver[],
   raceName: string,
 ): Promise<AiResultAnalysis> {
-  const response = await client.functions.invoke('analyze-race-result-images', {
-    headers: { 'x-rcc-league-slug': leagueSlug },
-    body: {
-      images,
-      race_name: raceName,
-      drivers: drivers.filter((driver) => driver.is_active).map((driver) => ({
-        display_name: driver.display_name,
-        gamertag: driver.gamertag,
-        team: driver.league_team,
-      })),
-    },
-  });
-  if (response.error) {
-    let detail = response.error.message;
-    const context = (response.error as { context?: Response }).context;
-    if (context) {
-      try {
-        const payload = await context.clone().json() as { message?: string; error?: string };
-        detail = payload.message || payload.error || detail;
-      } catch {
-        // Keep the safe client message when the response is not JSON.
-      }
-    }
-    throw new Error(detail);
+  const userResponse = await client.auth.getUser();
+  if (userResponse.error || !userResponse.data.user?.id) {
+    throw new Error('Keine gültige Sitzung für den Bilderimport.');
   }
-  return validateAnalysis(response.data);
+
+  const storage = client.storage.from(TEMP_IMAGE_BUCKET);
+  const uploadedPaths: string[] = [];
+  const imageUrls: string[] = [];
+  try {
+    for (const [index, image] of images.entries()) {
+      const separator = image.indexOf(',');
+      if (separator < 0) throw new Error('Ein vorbereitetes Ergebnisbild ist ungültig.');
+      const binary = atob(image.slice(separator + 1));
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      const path = `${leagueSlug}/${userResponse.data.user.id}/${crypto.randomUUID()}-${index + 1}.jpg`;
+      const upload = await storage.upload(path, new Blob([bytes], { type: 'image/jpeg' }), {
+        cacheControl: '60',
+        contentType: 'image/jpeg',
+        upsert: false,
+      });
+      if (upload.error) throw upload.error;
+      uploadedPaths.push(upload.data.path);
+      const signed = await storage.createSignedUrl(upload.data.path, TEMP_IMAGE_TTL_SECONDS);
+      if (signed.error || !signed.data.signedUrl) throw signed.error || new Error('Temporärer Bildzugriff konnte nicht erstellt werden.');
+      imageUrls.push(signed.data.signedUrl);
+    }
+
+    const response = await client.functions.invoke('analyze-race-result-images', {
+      headers: { 'x-rcc-league-slug': leagueSlug },
+      body: {
+        image_urls: imageUrls,
+        race_name: raceName,
+        drivers: drivers.filter((driver) => driver.is_active).map((driver) => ({
+          display_name: driver.display_name,
+          gamertag: driver.gamertag,
+          team: driver.league_team,
+        })),
+      },
+    });
+    if (response.error) {
+      let detail = response.error.message;
+      const context = (response.error as { context?: Response }).context;
+      if (context) {
+        try {
+          const payload = await context.clone().json() as { message?: string; error?: string };
+          detail = payload.message || payload.error || detail;
+        } catch {
+          // Keep the safe client message when the response is not JSON.
+        }
+      }
+      throw new Error(detail);
+    }
+    return validateAnalysis(response.data);
+  } finally {
+    if (uploadedPaths.length) await storage.remove(uploadedPaths).catch(() => undefined);
+  }
 }
 
 function csvCell(value: string): string {

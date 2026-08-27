@@ -4,7 +4,7 @@ import { corsHeaders as supabaseCorsHeaders } from "npm:@supabase/supabase-js@2.
 
 const corsHeaders = {
   ...supabaseCorsHeaders,
-  "Access-Control-Allow-Headers": `${supabaseCorsHeaders["Access-Control-Allow-Headers"]}, x-rcc-league-slug`,
+  "Access-Control-Allow-Headers": `${supabaseCorsHeaders["Access-Control-Allow-Headers"]}, x-rcc-league-slug, x-racevora-client`,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -116,7 +116,14 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
-    const images = Array.isArray(body?.images) ? body.images.filter((x: unknown) => typeof x === "string") : [];
+    const inlineImages = Array.isArray(body?.images)
+      ? body.images.filter((x: unknown) => typeof x === "string" && x.startsWith("data:image/"))
+      : [];
+    const signedImagePrefix = `${supabaseUrl}/storage/v1/object/sign/result-import-images/`;
+    const signedImages = Array.isArray(body?.image_urls)
+      ? body.image_urls.filter((x: unknown) => typeof x === "string" && x.startsWith(signedImagePrefix) && x.length <= 4096)
+      : [];
+    const images = signedImages.length ? signedImages : inlineImages;
     if (!images.length || images.length > 8) return json({ error: "Bitte 1 bis 8 Ergebnisbilder senden." }, 400);
 
     // Every successful quota reservation is counted before the paid OpenAI call.
