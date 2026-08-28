@@ -18,7 +18,7 @@ export type StewardCase = {
   current_decision_version: number | null;
 };
 
-export type StewardRace = { id: string; grand_prix_name: string; round_number: number; race_date: string | null; current_result_version_id: string | null };
+export type StewardRace = { id: string; season_id: string; grand_prix_name: string; round_number: number; race_date: string | null; current_result_version_id: string | null; is_active_season: boolean };
 export type StewardDriver = { id: string; display_name: string; number: number | null };
 export type StewardEvidence = { id: string; evidence_kind: string; description: string; uri: string | null; is_public: boolean; submitted_at: string };
 export type StewardVote = { id: string; vote_version: number; outcome: string; reasoning: string; conflict_disclosed: boolean; cast_at: string; steward_user_id: string };
@@ -59,18 +59,28 @@ export function stewardDetailCounts(detail: StewardCaseDetail | null): StewardDe
   };
 }
 
+export function activeStewardRaces(snapshot: StewardWorkspaceSnapshot): StewardRace[] {
+  return snapshot.races.filter((race) => race.is_active_season);
+}
+
 function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
 export async function loadStewardWorkspace(client: LeagueSupabaseClient): Promise<StewardWorkspaceSnapshot> {
+  const activeSeason = await client.from('seasons').select('id').eq('is_active', true).limit(1).maybeSingle();
+  throwIfError(activeSeason.error);
   const [cases, races, drivers] = await Promise.all([
     client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version').order('created_at', { ascending: false }).limit(25),
-    client.from('races').select('id,grand_prix_name,round_number,race_date,current_result_version_id').not('current_result_version_id', 'is', null).order('round_number', { ascending: false }).limit(100),
+    client.from('races').select('id,season_id,grand_prix_name,round_number,race_date,current_result_version_id').not('current_result_version_id', 'is', null).order('round_number', { ascending: false }).limit(100),
     client.from('drivers').select('id,display_name,number').eq('is_active', true).order('display_name').limit(500),
   ]);
   throwIfError(cases.error); throwIfError(races.error); throwIfError(drivers.error);
-  return { cases: cases.data ?? [], races: races.data ?? [], drivers: drivers.data ?? [] };
+  return {
+    cases: cases.data ?? [],
+    races: (races.data ?? []).map((race) => ({ ...race, is_active_season: race.season_id === activeSeason.data?.id })),
+    drivers: drivers.data ?? [],
+  };
 }
 
 export async function loadStewardCaseDetail(client: LeagueSupabaseClient, caseId: string): Promise<StewardCaseDetail> {

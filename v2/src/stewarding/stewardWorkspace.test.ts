@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createStewardCase, finalizeStewardDecision, stewardDetailCounts } from './stewardWorkspace';
+import { activeStewardRaces, createStewardCase, finalizeStewardDecision, stewardDetailCounts } from './stewardWorkspace';
 
 describe('steward workspace commands', () => {
   it('derives every visible detail counter from the freshly loaded detail', () => {
@@ -21,6 +21,17 @@ describe('steward workspace commands', () => {
       ruleCode: 'SC-4.1', ruleVersion: '2026.1',
     });
     expect(rpc).toHaveBeenCalledWith('create_steward_case', expect.not.objectContaining({ p_league_id: expect.anything() }));
+  });
+
+  it('offers only races from the active season for new cases', () => {
+    expect(activeStewardRaces({
+      cases: [],
+      drivers: [],
+      races: [
+        { id: 'active', season_id: 'season-2', grand_prix_name: 'Active GP', round_number: 1, race_date: null, current_result_version_id: 'version-2', is_active_season: true },
+        { id: 'archived', season_id: 'season-1', grand_prix_name: 'Archived GP', round_number: 1, race_date: null, current_result_version_id: 'version-1', is_active_season: false },
+      ],
+    }).map((race) => race.id)).toEqual(['active']);
   });
 
   it('sends structured penalties to the atomic finalization RPC', async () => {

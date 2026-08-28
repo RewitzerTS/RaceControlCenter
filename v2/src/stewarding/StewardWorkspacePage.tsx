@@ -5,6 +5,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import {
   addStewardEvidence,
+  activeStewardRaces,
   castStewardVote,
   createStewardCase,
   finalizeStewardDecision,
@@ -73,7 +74,7 @@ export function StewardWorkspacePage() {
   }), [snapshot.cases]);
   const detailCounts = useMemo(() => stewardDetailCounts(detail), [detail]);
 
-  async function runAction(action: () => Promise<unknown>, message: string) {
+  async function runAction(action: () => Promise<unknown>, message: string, selectNewest = false) {
     setBusy(true); setError(null); setNotice(null);
     const actionCaseId = selectedId;
     try {
@@ -83,8 +84,9 @@ export function StewardWorkspacePage() {
         actionCaseId ? loadStewardCaseDetail(client, actionCaseId) : Promise.resolve(null),
       ]);
       setSnapshot(nextSnapshot);
-      setSelectedId((current) => current && nextSnapshot.cases.some((item) => item.id === current) ? current : nextSnapshot.cases[0]?.id ?? null);
-      if (actionCaseId) setDetail(nextDetail);
+      setSelectedId((current) => selectNewest ? nextSnapshot.cases[0]?.id ?? null : current && nextSnapshot.cases.some((item) => item.id === current) ? current : nextSnapshot.cases[0]?.id ?? null);
+      if (selectNewest) setDetail(null);
+      else if (actionCaseId) setDetail(nextDetail);
       setNotice(message);
       return true;
     }
@@ -111,7 +113,7 @@ export function StewardWorkspacePage() {
         <div><strong>{snapshot.cases.length}</strong><span>{t('steward.latest')}</span></div>
       </section>
 
-      {permitted && showCreate && <CreateCaseForm snapshot={snapshot} busy={busy} onSubmit={(input) => void runAction(() => createStewardCase(client, input), t('steward.caseCreated')).then((saved) => { if (saved) setShowCreate(false); })} />}
+      {permitted && showCreate && <CreateCaseForm snapshot={snapshot} busy={busy} onSubmit={(input) => void runAction(() => createStewardCase(client, input), t('steward.caseCreated'), true).then((saved) => { if (saved) setShowCreate(false); })} />}
       {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
       {notice && <p className="workspace-message" role="status">{notice}</p>}
 
@@ -164,11 +166,12 @@ function DetailBlock({ title, count, children }: { title: string; count: number 
 
 function CreateCaseForm({ snapshot, busy, onSubmit }: { snapshot: StewardWorkspaceSnapshot; busy: boolean; onSubmit: (input: Parameters<typeof createStewardCase>[1]) => void }) {
   const { t } = useI18n();
+  const availableRaces = activeStewardRaces(snapshot);
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const data = new FormData(event.currentTarget);
     onSubmit({ raceId: String(data.get('race')), reportedDriverId: String(data.get('reporter')) || null, accusedDriverId: String(data.get('accused')), title: String(data.get('title')), description: String(data.get('description')), ruleCode: String(data.get('ruleCode')), ruleVersion: String(data.get('ruleVersion')) });
   }
-  return <form className="steward-form steward-form--create" onSubmit={submit}><h2>{t('steward.newCase')}</h2><label>{t('steward.race')}<select name="race" required>{snapshot.races.map((race) => <option value={race.id} key={race.id}>{race.round_number}. {race.grand_prix_name}</option>)}</select></label><label>{t('steward.accused')}<select name="accused" required>{snapshot.drivers.map((driver) => <option value={driver.id} key={driver.id}>{driver.display_name}</option>)}</select></label><label>{t('steward.reporter')}<select name="reporter"><option value="">—</option>{snapshot.drivers.map((driver) => <option value={driver.id} key={driver.id}>{driver.display_name}</option>)}</select></label><label>{t('steward.caseTitle')}<input name="title" minLength={4} maxLength={140} required /></label><label className="span-two">{t('steward.description')}<textarea name="description" minLength={10} maxLength={4000} required /></label><label>{t('steward.ruleCode')}<input name="ruleCode" required /></label><label>{t('steward.ruleVersion')}<input name="ruleVersion" required /></label><button className="primary-action action-button" disabled={busy || !snapshot.races.length} type="submit">{t('steward.create')}</button></form>;
+  return <form className="steward-form steward-form--create" onSubmit={submit}><h2>{t('steward.newCase')}</h2><label>{t('steward.race')}<select name="race" required>{availableRaces.map((race) => <option value={race.id} key={race.id}>{race.round_number}. {race.grand_prix_name}</option>)}</select></label><label>{t('steward.accused')}<select name="accused" required>{snapshot.drivers.map((driver) => <option value={driver.id} key={driver.id}>{driver.display_name}</option>)}</select></label><label>{t('steward.reporter')}<select name="reporter"><option value="">—</option>{snapshot.drivers.map((driver) => <option value={driver.id} key={driver.id}>{driver.display_name}</option>)}</select></label><label>{t('steward.caseTitle')}<input name="title" minLength={4} maxLength={140} required /></label><label className="span-two">{t('steward.description')}<textarea name="description" minLength={10} maxLength={4000} required /></label><label>{t('steward.ruleCode')}<input name="ruleCode" required /></label><label>{t('steward.ruleVersion')}<input name="ruleVersion" required /></label><button className="primary-action action-button" disabled={busy || !availableRaces.length} type="submit">{t('steward.create')}</button></form>;
 }
 
 function EvidenceForm({ busy, onSubmit }: { busy: boolean; onSubmit: (input: { kind: string; uri: string; description: string; isPublic: boolean }) => void }) {
