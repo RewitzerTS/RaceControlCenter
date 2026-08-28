@@ -55,8 +55,17 @@ export function DriverHomePage() {
       />
     );
   }
-  if (identityError || !identity || identity.status !== 'active' || identity.linkedDriverCount === 0) {
+  if (identityError || !identity || identity.status !== 'active') {
     return <DriverState title={t('home.identityTitle')} copy={t('home.identityCopy')} />;
+  }
+  if (identity.linkedDriverCount === 0) {
+    return (
+      <DriverState
+        title={t('profile.createLeague')}
+        copy={t('profile.createLeagueCopy')}
+        action={<NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink>}
+      />
+    );
   }
   if (loading) {
     return <DriverState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} />;
