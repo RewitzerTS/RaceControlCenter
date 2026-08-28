@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LeagueRace } from './operations';
-import { seasonCompletionBlockers } from './LeagueRacesPage';
+import { activeSeasonRaces, seasonCompletionBlockers } from './LeagueRacesPage';
 
 function race(overrides: Partial<LeagueRace>): LeagueRace {
   return {
@@ -39,5 +39,23 @@ describe('seasonCompletionBlockers', () => {
     expect(seasonCompletionBlockers([
       race({ season_id: 'season-2' }),
     ], 'season-1')).toEqual([]);
+  });
+});
+
+describe('activeSeasonRaces', () => {
+  it('keeps archived-season races out of current administration views', () => {
+    const activeRace = race({ id: 'active-race', season_id: 'season-active' });
+    const archivedRace = race({ id: 'archived-race', season_id: 'season-archived' });
+
+    expect(activeSeasonRaces({
+      league: { id: 'league-1', name: 'Test League', slug: 'test-league', status: 'active' },
+      seasons: [
+        { id: 'season-active', name: 'Active', slug: 'active', is_active: true, game_label: 'F1 25', start_date: null, end_date: null },
+        { id: 'season-archived', name: 'Archived', slug: 'archived', is_active: false, game_label: 'F1 25', start_date: null, end_date: null },
+      ],
+      races: [activeRace, archivedRace],
+      driver_standings: [],
+      team_standings: [],
+    }).map((item) => item.id)).toEqual(['active-race']);
   });
 });

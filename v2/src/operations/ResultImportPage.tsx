@@ -21,6 +21,7 @@ import {
   type ResultReviewRow,
 } from './ResultImportReviewTable';
 import { parseResultCsv } from './resultCsv';
+import { activeSeasonRaces } from './LeagueRacesPage';
 
 export function ResultImportPage() {
   const { client, leagueSlug } = useLeague();
@@ -119,11 +120,12 @@ export function ResultImportPage() {
   if (!allowed) return <main className="driver-state" id="main-content"><span className="state-mark">17</span><div><h1>Zugriff verweigert</h1></div></main>;
 
   const saveReady = reviewRows.length ? reviewRowsReady(reviewRows) : csv.trim().split(/\r?\n/).length > 1;
+  const availableRaces = races ? activeSeasonRaces(races) : [];
   return <main className="operations-page admin-management-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">Ligaleitung · {leagueSlug}</p><h1>Ergebnisimport &amp; Freigabe</h1><p>Ergebnisbilder per KI oder eine CSV einlesen, übersichtlich prüfen und zuerst als revisionssicheren Entwurf speichern.</p></div><NavLink className="text-link" to="/admin">Zur Ligaleitung</NavLink></header>
     <section className="admin-form result-import-form">
       <div className="admin-form-columns">
-        <label><span>1. Rennen auswählen</span><select required value={raceId} onChange={(event) => setRaceId(event.target.value)}><option value="">Rennen wählen</option>{races?.races.map((race) => <option key={race.id} value={race.id}>R{race.round_number} · {race.grand_prix_name}</option>)}</select></label>
+        <label><span>1. Rennen auswählen</span><select required value={raceId} onChange={(event) => setRaceId(event.target.value)}><option value="">Rennen wählen</option>{availableRaces.map((race) => <option key={race.id} value={race.id}>R{race.round_number} · {race.grand_prix_name}</option>)}</select></label>
         <label><span>2. Änderungsgrund</span><input minLength={3} maxLength={500} placeholder="z. B. Ergebnisbilder vom Rennabend" value={reason} onChange={(event) => setReason(event.target.value)}/></label>
       </div>
       <div className="result-import-methods">

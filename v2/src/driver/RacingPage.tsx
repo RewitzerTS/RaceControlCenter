@@ -130,9 +130,32 @@ function RacingOverview() {
   const loadRaces = useCallback(async () => {
     setLoading(true);
     setError(false);
+    const seasonResponse = await client
+      .from('seasons')
+      .select('id')
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle();
+
+    if (seasonResponse.error) {
+      setRaces([]);
+      setSelectedRaceId(null);
+      setError(true);
+      setLoading(false);
+      return;
+    }
+
+    if (!seasonResponse.data) {
+      setRaces([]);
+      setSelectedRaceId(null);
+      setLoading(false);
+      return;
+    }
+
     const response = await client
       .from('races')
       .select('id, round_number, grand_prix_name, circuit_name, country_code, race_date, race_start_at, status, current_result_version_id')
+      .eq('season_id', seasonResponse.data.id)
       .order('round_number', { ascending: false })
       .limit(100);
 
