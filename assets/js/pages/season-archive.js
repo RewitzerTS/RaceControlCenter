@@ -24,6 +24,21 @@ function navigateToArchiveSeason(seasonId) {
   window.location.href = window.withLeagueContextHref ? window.withLeagueContextHref(href) : href;
 }
 
+function filterOfficialRaceResults(races = [], results = []) {
+  if (typeof window.RCCData?.filterCurrentRaceResults === 'function') {
+    return window.RCCData.filterCurrentRaceResults(races, results);
+  }
+
+  const versionByRace = new Map((races || [])
+    .filter((race) => race?.id && race?.current_result_version_id)
+    .map((race) => [String(race.id), String(race.current_result_version_id)]));
+
+  return (results || []).filter((row) => {
+    const officialVersionId = versionByRace.get(String(row?.race_id || ''));
+    return officialVersionId && String(row?.result_version_id || '') === officialVersionId;
+  });
+}
+
 function buildResultRows(results, resolver, fastestDriverId, raceId) {
   if (!results.length) return '<tr><td colspan="9">Noch keine Ergebnisse importiert.</td></tr>';
 
@@ -137,7 +152,7 @@ async function loadArchivePage() {
     const raceResults = raceIds.length && resultVersionIds.length
       ? await window.RCCData.fetchRaceResults({ raceIds, resultVersionIds })
       : [];
-    const scopedResults = window.RCCData.filterCurrentRaceResults(sortedRaces, raceResults);
+    const scopedResults = filterOfficialRaceResults(sortedRaces, raceResults);
     const resultsByRace = window.RCCData.groupBy(scopedResults, (entry) => entry.race_id);
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races: sortedRaces, assignments });
 

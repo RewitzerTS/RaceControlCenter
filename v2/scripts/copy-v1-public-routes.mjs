@@ -82,7 +82,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/supabase-client.js', '/v1-assets/js/supabase-client.js?v=v2-auth-session-1')
     .replaceAll('/v1-assets/js/pages/race-detail.js', '/v1-assets/js/pages/race-detail.js?v=v2-season-archive-1')
     .replaceAll('/v1-assets/js/pages/regeln-faq.js', '/v1-assets/js/pages/regeln-faq.js?v=v2-season-grid-1')
-    .replaceAll('/v1-assets/js/pages/season-archive.js', '/v1-assets/js/pages/season-archive.js?v=v2-season-archive-1')
+    .replaceAll('/v1-assets/js/pages/season-archive.js', '/v1-assets/js/pages/season-archive.js?v=v2-season-archive-2')
     .replaceAll('/v1-assets/js/pages/hall-of-fame.js', '/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')
     .replaceAll('/v1-assets/js/pages/results-status-markers.js', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1')
     .replaceAll('/v1-assets/js/components/racevora-team-logo-resilience.js', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1')

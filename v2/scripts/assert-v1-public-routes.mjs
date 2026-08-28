@@ -35,8 +35,12 @@ if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-season-archive-
 }
 
 const seasonArchivePage = await readFile(resolve(distRoot, 'saison-archiv.html'), 'utf8');
-if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-1')) {
+if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-2')) {
   throw new Error('Integrated season archive must cache-bust its official-result fix.');
+}
+const seasonArchive = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'season-archive.js'), 'utf8');
+if (!seasonArchive.includes('filterOfficialRaceResults') || !seasonArchive.includes("typeof window.RCCData?.filterCurrentRaceResults === 'function'")) {
+  throw new Error('Integrated season archive must retain a compatible official-result filter fallback.');
 }
 
 for (const [page, marker] of [
