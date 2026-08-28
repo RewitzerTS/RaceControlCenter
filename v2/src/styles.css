@@ -2891,9 +2891,8 @@ p { color: var(--muted); }
 
 .footer { border-top-color: var(--line); color: var(--muted); }
 
-@media (max-width: 1180px) {
+@media (max-width: 1360px) {
   .brand-text { display: none; }
-  .main-navigation .language-control { display: none; }
   .league-switcher { max-width: 160px; flex-basis: 160px; }
 }
 
