@@ -11,7 +11,7 @@ interface RoleContextValue {
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-async function resolveRole(client: LeagueSupabaseClient, _user: User): Promise<AppRole | null> {
+async function resolveRole(client: LeagueSupabaseClient): Promise<AppRole | null> {
   const response = await client.rpc('current_app_role');
   if (response.error) throw response.error;
   return mapLegacyLeagueRole(response.data);
@@ -24,7 +24,8 @@ export function RoleProvider({ client, leagueSlug, user, children }: PropsWithCh
 }>) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(Boolean(user));
-  const currentScope = user ? `${user.id}:${leagueSlug}` : null;
+  const userId = user?.id ?? null;
+  const currentScope = userId ? `${userId}:${leagueSlug}` : null;
   const [resolvedScope, setResolvedScope] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,13 +34,13 @@ export function RoleProvider({ client, leagueSlug, user, children }: PropsWithCh
     setRole(null);
     setResolvedScope(null);
     setError(null);
-    if (!user) {
+    if (!userId) {
       setLoading(false);
       return () => { active = false; };
     }
 
     setLoading(true);
-    void resolveRole(client, user)
+    void resolveRole(client)
       .then((nextRole) => {
         if (active) setRole(nextRole);
       })
@@ -48,13 +49,13 @@ export function RoleProvider({ client, leagueSlug, user, children }: PropsWithCh
       })
       .finally(() => {
         if (active) {
-          setResolvedScope(`${user.id}:${leagueSlug}`);
+          setResolvedScope(`${userId}:${leagueSlug}`);
           setLoading(false);
         }
       });
 
     return () => { active = false; };
-  }, [client, leagueSlug, user]);
+  }, [client, leagueSlug, userId]);
 
   const safelyLoading = Boolean(user) && (loading || resolvedScope !== currentScope);
   const value = useMemo(() => ({ role, loading: safelyLoading, error }), [error, role, safelyLoading]);

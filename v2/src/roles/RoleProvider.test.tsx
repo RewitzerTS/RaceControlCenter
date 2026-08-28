@@ -40,4 +40,20 @@ describe('RoleProvider', () => {
     expect(screen.getByTestId('role-state')).toHaveTextContent('league_admin');
     expect(rpc).toHaveBeenCalledTimes(2);
   });
+
+  it('keeps the resolved role when the same authenticated user object is refreshed', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: 'league_admin', error: null });
+    const client = { rpc } as unknown as LeagueSupabaseClient;
+    const initialUser = { id: 'user-1', updated_at: '2026-08-28T10:00:00Z' } as User;
+
+    const view = render(<RoleProvider client={client} leagueSlug="test-league" user={initialUser}><Probe /></RoleProvider>);
+    await act(async () => {});
+    expect(screen.getByTestId('role-state')).toHaveTextContent('league_admin');
+
+    const refreshedUser = { ...initialUser, updated_at: '2026-08-28T10:05:00Z' } as User;
+    view.rerender(<RoleProvider client={client} leagueSlug="test-league" user={refreshedUser}><Probe /></RoleProvider>);
+
+    expect(screen.getByTestId('role-state')).toHaveTextContent('league_admin');
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
 });
