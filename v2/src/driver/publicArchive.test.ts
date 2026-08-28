@@ -31,7 +31,8 @@ describe('public season archive', () => {
 
   it('requests archived results with explicit race and result-version filters', () => {
     const source = readFileSync(resolve(process.cwd(), '..', 'assets/js/pages/season-archive.js'), 'utf8');
-    expect(source).toContain('fetchRaceResults({ raceIds, resultVersionIds })');
+    expect(source).toContain('fetchRaces({ seasonId: selectedSeason.id, forceRefresh: true })');
+    expect(source).toContain('fetchRaceResults({ raceIds, resultVersionIds, forceRefresh: true })');
     expect(source).not.toContain('fetchRaceResults()');
     expect(source).toContain("target.searchParams.set('view', 'seasons')");
   });

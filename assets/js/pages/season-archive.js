@@ -121,7 +121,7 @@ async function loadArchivePage() {
   if (!selectEl || !resultsContainer) return;
 
   try {
-    const seasons = await window.RCCData.fetchSeasons({ archivedOnly: true });
+    const seasons = await window.RCCData.fetchSeasons({ archivedOnly: true, forceRefresh: true });
     if (!seasons.length) {
       titleEl.textContent = 'Saison-Archiv leer';
       subtitleEl.textContent = 'Noch keine abgeschlossene Saison vorhanden.';
@@ -141,8 +141,8 @@ async function loadArchivePage() {
     updateArchiveUrlSeason(String(selectedSeason.id));
 
     const [drivers, races, assignments] = await Promise.all([
-      window.RCCData.fetchDrivers(),
-      window.RCCData.fetchRaces({ seasonId: selectedSeason.id }),
+      window.RCCData.fetchDrivers({ forceRefresh: true }),
+      window.RCCData.fetchRaces({ seasonId: selectedSeason.id, forceRefresh: true }),
       window.RCCDriverContext.fetchDriverSeasonAssignments({ seasonId: selectedSeason.id })
     ]);
 
@@ -150,7 +150,7 @@ async function loadArchivePage() {
     const raceIds = sortedRaces.map((race) => race.id).filter(Boolean);
     const resultVersionIds = sortedRaces.map((race) => race.current_result_version_id).filter(Boolean);
     const raceResults = raceIds.length && resultVersionIds.length
-      ? await window.RCCData.fetchRaceResults({ raceIds, resultVersionIds })
+      ? await window.RCCData.fetchRaceResults({ raceIds, resultVersionIds, forceRefresh: true })
       : [];
     const scopedResults = filterOfficialRaceResults(sortedRaces, raceResults);
     const resultsByRace = window.RCCData.groupBy(scopedResults, (entry) => entry.race_id);
