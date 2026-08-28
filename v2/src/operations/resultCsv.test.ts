@@ -21,6 +21,11 @@ describe('result CSV import', () => {
     expect(row.fastest_lap_time_ms).toBe(79_999);
   });
 
+  it('keeps stops and the visible race time from an import', () => {
+    const [row] = parseResultCsv('driver;position;points;pit_stops;race_time\nPlayer;1;25;2;DNF');
+    expect(row).toEqual(expect.objectContaining({ pit_stops: 2, race_time: 'DNF' }));
+  });
+
   it('rejects malformed fastest laps', () => {
     expect(() => parseResultCsv('driver;position;points;fastest_lap_time\nPlayer;1;25;fast')).toThrow(/schnellste Runde/);
   });

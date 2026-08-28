@@ -321,7 +321,7 @@ function csvCell(value: string): string {
 }
 
 export function analysisToReviewCsv(analysis: AiResultAnalysis): string {
-  const header = 'driver;finish_position;grid_position;points;team_name;car_name';
+  const header = 'driver;finish_position;grid_position;points;team_name;car_name;pit_stops;fastest_lap_time;race_time';
   const rows = analysis.rows
     .filter((row) => row.driver.trim() && Number.isInteger(row.position) && Number(row.position) > 0)
     .sort((left, right) => Number(left.position) - Number(right.position))
@@ -332,6 +332,9 @@ export function analysisToReviewCsv(analysis: AiResultAnalysis): string {
       'PRÜFEN',
       csvCell(row.team?.trim() || ''),
       '',
+      row.pit_stops == null ? '' : String(row.pit_stops),
+      csvCell(row.fastest_lap?.trim() || ''),
+      csvCell(row.race_time?.trim() || ''),
     ].join(';'));
   if (!rows.length) throw new Error('Die KI-Erkennung enthält keine gültigen Zielpositionen.');
   return `${header}\n${rows.join('\n')}`;

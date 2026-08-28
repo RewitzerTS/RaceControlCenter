@@ -66,12 +66,15 @@ export function parseResultCsv(text: string): ImportedResultRow[] {
     const fastestLapText = at(['fastest_lap_time', 'fastest_lap']);
     const explicitFastestLapMs = at(['fastest_lap_time_ms', 'fastest_lap_ms']);
     const fastestLapMs = explicitFastestLapMs ? Number(explicitFastestLapMs) : parseFastestLapToMs(fastestLapText);
+    const pitStopsText = at(['pit_stops', 'stops']);
+    const pitStops = pitStopsText ? Number(pitStopsText) : undefined;
 
     if (
       !driver
       || !Number.isInteger(finish)
       || finish < 1
       || (grid !== undefined && (!Number.isInteger(grid) || grid < 1))
+      || (pitStops !== undefined && (!Number.isInteger(pitStops) || pitStops < 0))
       || !Number.isFinite(points)
       || (explicitFastestLapMs !== '' && (!Number.isInteger(fastestLapMs) || Number(fastestLapMs) <= 0 || Number(fastestLapMs) > 600_000))
       || (fastestLapText !== '' && fastestLapMs === undefined)
@@ -88,6 +91,8 @@ export function parseResultCsv(text: string): ImportedResultRow[] {
       car_name: at(['car_name']) || undefined,
       fastest_lap_time: fastestLapText || undefined,
       fastest_lap_time_ms: fastestLapMs,
+      pit_stops: pitStops,
+      race_time: at(['race_time', 'time', 'status']) || undefined,
     };
   });
 }

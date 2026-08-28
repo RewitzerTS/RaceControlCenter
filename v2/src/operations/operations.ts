@@ -129,6 +129,8 @@ export type ImportedResultRow = {
   car_name?: string;
   fastest_lap_time?: string;
   fastest_lap_time_ms?: number;
+  pit_stops?: number;
+  race_time?: string;
 };
 export type LeagueDriverInput = {
   id?: string;
