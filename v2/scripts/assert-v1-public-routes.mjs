@@ -51,7 +51,7 @@ for (const [page, marker] of [
   ['fahrer-wm', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1'],
 ]) {
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
-  if (!source.includes(marker) || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-1')) {
+  if (!source.includes(marker) || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-2')) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }
   if (!source.includes('/v1-assets/js/supabase-client.js?v=v2-auth-session-1')) {
