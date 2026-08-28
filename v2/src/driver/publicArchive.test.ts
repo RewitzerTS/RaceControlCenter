@@ -11,6 +11,16 @@ function loadRccData() {
   return context.window.RCCData;
 }
 
+function loadSeasonArchive() {
+  const context = {
+    window: {},
+    document: { addEventListener: () => {} },
+  };
+  const source = readFileSync(resolve(process.cwd(), '..', 'assets/js/pages/season-archive.js'), 'utf8');
+  vm.runInNewContext(source, context, { filename: 'season-archive.js' });
+  return context;
+}
+
 describe('public season archive', () => {
   it('keeps only the official current result version for every archived race', () => {
     const data = loadRccData();
@@ -35,6 +45,24 @@ describe('public season archive', () => {
     expect(source).toContain('fetchRaceResults({ raceIds, resultVersionIds, forceRefresh: true })');
     expect(source).not.toContain('fetchRaceResults()');
     expect(source).toContain("target.searchParams.set('view', 'seasons')");
+  });
+
+  it('orders archived result rows by finish position without mutating the source data', () => {
+    const archive = loadSeasonArchive();
+    const results = [
+      { id: 'third', finish_position: 3, grid_position: 1 },
+      { id: 'unclassified', finish_position: null, grid_position: 4 },
+      { id: 'winner', finish_position: 1, grid_position: 2 },
+      { id: 'second', finish_position: 2, grid_position: 3 },
+    ];
+
+    expect(archive.sortArchiveResultRows(results).map((row) => row.id)).toEqual([
+      'winner',
+      'second',
+      'third',
+      'unclassified',
+    ]);
+    expect(results.map((row) => row.id)).toEqual(['third', 'unclassified', 'winner', 'second']);
   });
 
   it('opens archived race details with only their official result version', () => {

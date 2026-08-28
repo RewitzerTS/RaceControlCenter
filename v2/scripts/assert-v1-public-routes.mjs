@@ -35,7 +35,7 @@ if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-season-archive-
 }
 
 const seasonArchivePage = await readFile(resolve(distRoot, 'saison-archiv.html'), 'utf8');
-if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-3')) {
+if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-4')) {
   throw new Error('Integrated season archive must cache-bust its official-result fix.');
 }
 const seasonArchive = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'season-archive.js'), 'utf8');

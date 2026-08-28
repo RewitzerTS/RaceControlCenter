@@ -39,10 +39,27 @@ function filterOfficialRaceResults(races = [], results = []) {
   });
 }
 
+function sortArchiveResultRows(results = []) {
+  const positionValue = (value) => {
+    const position = Number(value);
+    return Number.isFinite(position) && position > 0 ? position : Number.MAX_SAFE_INTEGER;
+  };
+
+  return results.slice().sort((left, right) => {
+    const finishDifference = positionValue(left?.finish_position) - positionValue(right?.finish_position);
+    if (finishDifference) return finishDifference;
+
+    const gridDifference = positionValue(left?.grid_position) - positionValue(right?.grid_position);
+    if (gridDifference) return gridDifference;
+
+    return String(left?.id || left?.driver_id || '').localeCompare(String(right?.id || right?.driver_id || ''));
+  });
+}
+
 function buildResultRows(results, resolver, fastestDriverId, raceId) {
   if (!results.length) return '<tr><td colspan="9">Noch keine Ergebnisse importiert.</td></tr>';
 
-  return results.map((row) => {
+  return sortArchiveResultRows(results).map((row) => {
     const snapshot = resolver.resolveDriverSnapshot(row.driver_id, raceId) || {};
     const hasFastestLap = row.driver_id === fastestDriverId;
     const hasFastestLapBonus = hasFastestLap && window.RCCData.isTopTen(row.finish_position);
