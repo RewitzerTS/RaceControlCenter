@@ -2,11 +2,28 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { Navigate, NavLink, useSearchParams } from 'react-router-dom';
 import type { AppEnvironment } from '../config/environment';
 import { useI18n } from '../i18n/I18nProvider';
+import type { MessageKey } from '../i18n/messages';
 import { useAuth } from './AuthProvider';
 import { TurnstileWidget } from './TurnstileWidget';
 
 type AccessMode = 'sign-in' | 'sign-up' | 'recovery';
-type Feedback = 'captcha' | 'confirmation' | 'error' | 'recovery' | null;
+type Feedback = { key: MessageKey; tone: 'error' | 'status' } | null;
+
+export function authErrorFeedbackKey(mode: AccessMode, error: unknown): MessageKey {
+  const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
+    ? error.code
+    : '';
+
+  if (code === 'captcha_failed') return 'beta.captchaFailed';
+  if (code === 'over_request_rate_limit' || code === 'over_email_send_rate_limit') return 'beta.rateLimited';
+  if (mode === 'sign-in') {
+    if (code === 'email_not_confirmed') return 'beta.emailNotConfirmed';
+    if (code === 'invalid_credentials' || code === 'user_not_found' || code === 'user_banned') return 'beta.signInInvalid';
+    return 'beta.signInError';
+  }
+  if (mode === 'sign-up') return 'beta.signUpError';
+  return 'beta.recoveryError';
+}
 
 export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironment }) {
   const [searchParams] = useSearchParams();
@@ -46,7 +63,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
     const email = String(form.get('email') ?? '').trim();
     const password = String(form.get('password') ?? '');
     if (captcha.enabled && !captchaToken) {
-      setFeedback('captcha');
+      setFeedback({ key: 'beta.captchaRequired', tone: 'error' });
       return;
     }
 
@@ -57,13 +74,13 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         await signIn(email, password, captchaToken);
       } else if (mode === 'sign-up') {
         const result = await signUp(email, password, captchaToken);
-        if (result === 'confirmation-required') setFeedback('confirmation');
+        if (result === 'confirmation-required') setFeedback({ key: production ? 'beta.productionConfirmation' : 'beta.confirmation', tone: 'status' });
       } else {
         await requestPasswordRecovery(email, captchaToken);
-        setFeedback('recovery');
+        setFeedback({ key: production ? 'beta.productionRecoverySent' : 'beta.recoverySent', tone: 'status' });
       }
-    } catch {
-      setFeedback('error');
+    } catch (error) {
+      setFeedback({ key: authErrorFeedbackKey(mode, error), tone: 'error' });
     } finally {
       setBusy(false);
       setCaptchaReset((current) => current + 1);
@@ -135,12 +152,8 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         />
 
         {feedback && (
-          <p className={feedback === 'error' || feedback === 'captcha' ? 'beta-feedback beta-feedback--error' : 'beta-feedback'} role={feedback === 'error' || feedback === 'captcha' ? 'alert' : 'status'}>
-            {t(feedback === 'confirmation'
-              ? production ? 'beta.productionConfirmation' : 'beta.confirmation'
-              : feedback === 'recovery'
-                ? production ? 'beta.productionRecoverySent' : 'beta.recoverySent'
-                : feedback === 'captcha' ? 'beta.captchaRequired' : 'beta.error')}
+          <p className={feedback.tone === 'error' ? 'beta-feedback beta-feedback--error' : 'beta-feedback'} role={feedback.tone === 'error' ? 'alert' : 'status'}>
+            {t(feedback.key)}
           </p>
         )}
 
