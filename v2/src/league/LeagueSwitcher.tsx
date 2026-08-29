@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import { useLeague } from './LeagueProvider';
@@ -61,17 +61,18 @@ async function loadAccessibleLeagues(
 
 export function LeagueSwitcher({
   isPlatformOwner,
+  navigateToLeague,
   onSwitch,
   userId,
 }: {
   isPlatformOwner: boolean;
+  navigateToLeague?: (destination: string) => void;
   onSwitch?: () => void;
   userId: string;
 }) {
   const { branding, client, leagueSlug, setLeagueSlug } = useLeague();
   const { t } = useI18n();
   const location = useLocation();
-  const navigate = useNavigate();
   const switcherRef = useRef<HTMLDivElement>(null);
   const optionsId = useId();
   const [open, setOpen] = useState(false);
@@ -134,7 +135,12 @@ export function LeagueSwitcher({
     if (slug === leagueSlug) return;
 
     setLeagueSlug(slug);
-    navigate(leagueSwitcherDestination(location.pathname, location.search, location.hash, slug), { replace: true });
+    const destination = leagueSwitcherDestination(location.pathname, location.search, location.hash, slug);
+    if (navigateToLeague) {
+      navigateToLeague(destination);
+      return;
+    }
+    window.location.replace(destination);
   };
 
   if (loading || leagues.length < 2) {

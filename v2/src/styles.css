@@ -3429,6 +3429,40 @@ p { color: var(--muted); }
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
 }
 
+/* Every structural product surface follows the active personal theme. */
+.app-shell :is(
+  .case-queue,
+  .operations-menu,
+  .admin-inline-form,
+  .admin-data-panel,
+  .result-review-table-wrap,
+  .graphics-workbench,
+  .graphics-preview-panel,
+  .demo-coverage,
+  .profile-personalization,
+  .profile-create-league,
+  .profile-join-requests,
+  .profile-session
+) {
+  color: var(--brand-text);
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background));
+}
+.app-shell :is(.case-row:hover, .case-row--active, .operations-menu a:hover, .operations-menu a:focus-visible, .notification-list :is(button, a):hover) {
+  background: color-mix(in srgb, var(--brand-primary) 11%, var(--brand-surface));
+}
+.app-shell :is(.result-revision-reference, .result-revision-notice, .result-revision-summary, .admin-view-tabs a[aria-current="page"], .notification-meta b) {
+  border-color: color-mix(in srgb, var(--brand-accent) 34%, var(--line));
+  background: color-mix(in srgb, var(--brand-accent) 10%, var(--brand-surface));
+}
+.app-shell .result-review-table th {
+  background: color-mix(in srgb, var(--brand-primary) 9%, var(--brand-surface));
+}
+.app-shell :is(.graphics-choice-list input:checked + span, .graphics-format-list input:checked + span) {
+  border-color: var(--brand-primary);
+  background: color-mix(in srgb, var(--brand-primary) 14%, var(--brand-surface));
+}
+
 .vora-insight {
   background:
     radial-gradient(circle at 12% 50%, color-mix(in srgb, var(--brand-primary) 22%, transparent), transparent 30%),

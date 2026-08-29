@@ -31,7 +31,6 @@ vi.mock('./LeagueProvider', () => ({
 
 vi.mock('react-router-dom', () => ({
   useLocation: () => ({ hash: '#main', pathname: '/home', search: '?tab=career&league=league-one' }),
-  useNavigate: () => mocks.navigate,
 }));
 
 function accessibleLeaguesClient() {
@@ -94,7 +93,7 @@ describe('leagueSwitcherDestination', () => {
 describe('LeagueSwitcher', () => {
   it('uses a controlled mobile-safe menu and switches the selected league', async () => {
     const onSwitch = vi.fn();
-    render(createElement(LeagueSwitcher, { isPlatformOwner: false, onSwitch, userId: 'user-1' }));
+    render(createElement(LeagueSwitcher, { isPlatformOwner: false, navigateToLeague: mocks.navigate, onSwitch, userId: 'user-1' }));
 
     const trigger = await screen.findByRole('button', { name: 'Liga wechseln: League One' });
     expect(document.querySelector('details')).not.toBeInTheDocument();
@@ -106,10 +105,7 @@ describe('LeagueSwitcher', () => {
     fireEvent.click(screen.getByRole('menuitemradio', { name: /League Two.*league-two/ }));
 
     await waitFor(() => expect(mocks.setLeagueSlug).toHaveBeenCalledWith('league-two'));
-    expect(mocks.navigate).toHaveBeenCalledWith(
-      '/home?tab=career&league=league-two#main',
-      { replace: true },
-    );
+    expect(mocks.navigate).toHaveBeenCalledWith('/home?tab=career&league=league-two#main');
     expect(onSwitch).toHaveBeenCalledOnce();
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });

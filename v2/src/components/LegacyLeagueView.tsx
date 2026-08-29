@@ -76,12 +76,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const [height, setHeight] = useState(760);
-  const source = useMemo(() => {
-    const params = new URLSearchParams(search);
-    params.set('embed', '1');
-    if (!params.has('league')) params.set('league', leagueSlug);
-    return `/${page}.html?${params.toString()}`;
-  }, [leagueSlug, page, search]);
+  const source = useMemo(() => legacyLeagueSource(page, search, leagueSlug), [leagueSlug, page, search]);
 
   useEffect(() => () => cleanupRef.current?.(), []);
 
@@ -157,4 +152,11 @@ export function LegacyLeagueView({ page, title, search = '' }: {
       />
     </div>
   );
+}
+
+export function legacyLeagueSource(page: string, search: string, leagueSlug: string): string {
+  const params = new URLSearchParams(search);
+  params.set('embed', '1');
+  params.set('league', leagueSlug);
+  return `/${page}.html?${params.toString()}`;
 }
