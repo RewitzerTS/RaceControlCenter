@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { AppState, EmptyState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
@@ -77,9 +78,9 @@ export function GraphicsStudioPage() {
     }
   }
 
-  if (!allowed) return <main className="driver-state" id="main-content"><span className="state-mark">21</span><div><h1>{t('graphics.denied')}</h1></div></main>;
-  if (loadError) return <main className="driver-state" id="main-content"><span className="state-mark">!</span><div><h1>{t('graphics.loadError')}</h1></div></main>;
-  if (!workspace || !model) return <main className="driver-state" id="main-content"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>;
+  if (!allowed) return <AppState copy="Du benötigst die Rolle Ligaleitung, um Ligagrafiken zu erstellen." title={t('graphics.denied')} tone="denied" />;
+  if (loadError) return <AppState action={<button className="text-action" onClick={() => window.location.reload()} type="button">Erneut versuchen</button>} copy="Rennergebnisse und Grafikvorlagen konnten nicht geladen werden." title={t('graphics.loadError')} tone="error" />;
+  if (!workspace || !model) return <AppState copy="Ergebnisse und Grafikvorlagen werden für die Vorschau vorbereitet." title={t('pending')} tone="loading" />;
 
   return <main className="graphics-studio" id="main-content">
     <header className="graphics-header">
@@ -109,6 +110,6 @@ export function GraphicsStudioPage() {
       </section>
     </div>
 
-    <section className="graphics-history" aria-labelledby="graphics-history-title"><div><h2 id="graphics-history-title">{t('graphics.history')}</h2><p>{t('graphics.historyCopy')}</p></div>{workspace.recent_renders.length ? <ol>{workspace.recent_renders.map((render) => <li key={render.id}><div><strong>{t(TYPE_KEYS[render.graphic_type])}</strong><span>{t(FORMAT_KEYS[render.graphic_format])}</span></div><span className={`render-status render-status--${render.status}`}>{t(render.status === 'outdated' ? 'graphics.outdated' : 'graphics.ready')}</span><time dateTime={render.generated_at}>{formatDate(render.generated_at)}</time></li>)}</ol> : <p className="empty-copy">{t('graphics.historyEmpty')}</p>}</section>
+    <section className="graphics-history" aria-labelledby="graphics-history-title"><div><h2 id="graphics-history-title">{t('graphics.history')}</h2><p>{t('graphics.historyCopy')}</p></div>{workspace.recent_renders.length ? <ol>{workspace.recent_renders.map((render) => <li key={render.id}><div><strong>{t(TYPE_KEYS[render.graphic_type])}</strong><span>{t(FORMAT_KEYS[render.graphic_format])}</span></div><span className={`render-status render-status--${render.status}`}>{t(render.status === 'outdated' ? 'graphics.outdated' : 'graphics.ready')}</span><time dateTime={render.generated_at}>{formatDate(render.generated_at)}</time></li>)}</ol> : <EmptyState copy={t('graphics.historyEmpty')} title="Noch keine Exporte" />}</section>
   </main>;
 }

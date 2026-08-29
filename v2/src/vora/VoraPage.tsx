@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthProvider';
+import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { loadVoraSnapshot, type VoraSnapshot } from './vora';
@@ -23,9 +24,9 @@ export function VoraPage() {
     return () => { active = false; };
   }, [client, user]);
 
-  if (!user) return <main className="driver-state" id="main-content"><span className="state-mark">V</span><div><h1>{t('vora.signedOutTitle')}</h1><p>{t('vora.signedOutCopy')}</p></div></main>;
-  if (error) return <main className="driver-state" id="main-content"><span className="state-mark">V</span><div><h1>{t('vora.errorTitle')}</h1><p>{t('vora.errorCopy')}</p></div></main>;
-  if (!snapshot) return <main className="driver-state" id="main-content"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>;
+  if (!user) return <AppState copy={t('vora.signedOutCopy')} title={t('vora.signedOutTitle')} tone="info" />;
+  if (error) return <AppState action={<button className="text-action" onClick={() => window.location.reload()} type="button">Erneut versuchen</button>} copy={t('vora.errorCopy')} title={t('vora.errorTitle')} tone="error" />;
+  if (!snapshot) return <AppState copy="Deine Renndaten werden für VORA ausgewertet." title={t('pending')} tone="loading" />;
 
   const metrics: Array<[MessageKey, number | string]> = [
     ['vora.starts', snapshot.career.starts], ['vora.wins', snapshot.career.wins], ['vora.podiums', snapshot.career.podiums],

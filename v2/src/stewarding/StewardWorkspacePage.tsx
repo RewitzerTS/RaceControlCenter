@@ -1,4 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { AppState, EmptyState } from '../components/AppState';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
@@ -94,9 +95,9 @@ export function StewardWorkspacePage() {
     finally { setBusy(false); }
   }
 
-  if (roleLoading) return <main className="driver-state"><span className="state-mark">RV</span><div><h1>{t('pending')}</h1></div></main>;
+  if (roleLoading) return <AppState copy="Berechtigungen und Steward-Fälle werden geprüft." title={t('pending')} tone="loading" />;
   if (!flags.stewardWorkspace) {
-    return <main className="driver-state" id="main-content"><span className="state-mark">16</span><div><p className="section-label">{t('steward.eyebrow')}</p><h1>{t('steward.deniedTitle')}</h1><p>{t('steward.deniedCopy')}</p></div></main>;
+    return <AppState copy={t('steward.deniedCopy')} title={t('steward.deniedTitle')} tone="denied" />;
   }
 
   return (
@@ -120,7 +121,7 @@ export function StewardWorkspacePage() {
       <div className="case-layout">
         <section className="case-queue" aria-label={t('steward.queue')}>
           <div className="case-section-title"><span>{t('steward.queue')}</span><small>{t('steward.pagination')}</small></div>
-          {loading ? <p>{t('pending')}</p> : snapshot.cases.length === 0 ? <p className="empty-copy">{t('steward.empty')}</p> : snapshot.cases.map((item) => (
+          {loading ? <p aria-live="polite" role="status">{t('pending')}</p> : snapshot.cases.length === 0 ? <EmptyState action={permitted ? <button className="text-action" onClick={() => setShowCreate(true)} type="button">{t('steward.newCase')}</button> : undefined} copy={t('steward.empty')} title="Keine Steward-Fälle" /> : snapshot.cases.map((item) => (
             <button key={item.id} type="button" className={item.id === selectedId ? 'case-row case-row--active' : 'case-row'} onClick={() => setSelectedId(item.id)}>
               <span><strong>{item.case_number}</strong><StatusPill value={item.status} /></span>
               <b>{item.title}</b>

@@ -1,7 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { createElement } from 'react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { I18nProvider } from '../i18n/I18nProvider';
 import type { AiResultAnalysis } from './imageResultImport';
 import type { LeagueDriver } from './operations';
-import { buildResultReviewRows, resultReviewRowsToImported } from './ResultImportReviewTable';
+import { buildResultReviewRows, ResultImportReviewTable, resultReviewRowsToImported } from './ResultImportReviewTable';
 
 const drivers: LeagueDriver[] = [{
   id: 'driver-1',
@@ -32,6 +35,10 @@ const analysis: AiResultAnalysis = {
 };
 
 describe('result import review table', () => {
+  beforeEach(() => {
+    globalThis.localStorage.setItem('racevora.locale', 'de');
+  });
+
   it('matches recognized names and retains every visible race value', () => {
     const [row] = buildResultReviewRows(analysis, drivers);
     expect(row).toMatchObject({
@@ -58,5 +65,15 @@ describe('result import review table', () => {
       race_time: '27:24,905',
       points: 25,
     })]);
+  });
+
+  it('provides a compact per-driver editor for mobile layouts', () => {
+    const rows = buildResultReviewRows(analysis, drivers);
+    render(createElement(I18nProvider, null, createElement(ResultImportReviewTable, { drivers, onChange: vi.fn(), rows })));
+
+    expect(screen.getByText('Punkte fehlen')).toBeTruthy();
+    expect(screen.getAllByText('Erkannt: Esteban OCON')).toHaveLength(2);
+    expect(screen.getByLabelText('Punkte Mobil Zeile 1')).toBeTruthy();
+    expect(screen.getByLabelText('Fahrer Mobil Zeile 1')).toBeTruthy();
   });
 });

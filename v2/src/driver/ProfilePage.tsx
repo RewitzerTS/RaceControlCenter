@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { THEME_PRESETS } from '../league/leagueBranding';
 import { useDriverIdentity } from './DriverIdentityProvider';
@@ -25,10 +26,10 @@ export function ProfilePage() {
   }, [user]);
 
   if (authLoading || identityLoading) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('home.loadingTitle')}</h1><p>{t('home.loadingCopy')}</p></div></main>;
+    return <AppState copy={t('home.loadingCopy')} title={t('home.loadingTitle')} tone="loading" />;
   }
   if (!user) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">P</span><div><h1>{t('profile.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink></div></main>;
+    return <AppState action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink>} copy={t('home.signedOutCopy')} title={t('profile.signedOutTitle')} />;
   }
 
   async function saveProfile(event: FormEvent<HTMLFormElement>) {

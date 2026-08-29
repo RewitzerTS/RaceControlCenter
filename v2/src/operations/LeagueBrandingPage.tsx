@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { AppState } from '../components/AppState';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import { loadLeagueBranding, updateLeagueBranding, uploadLeagueLogo, type LeagueBranding } from './operations';
@@ -18,14 +19,22 @@ export function LeagueBrandingPage() {
   const [saved, setSaved] = useState(false);
   const allowed = role === 'league_admin' || role === 'platform_owner';
 
-  useEffect(() => {
-    if (!allowed) return;
-    let active = true;
+  const loadBranding = useCallback(async () => {
     setLoading(true);
     setError('');
-    void loadLeagueBranding(client, leagueSlug).then((data) => { if (active) { setBranding(data); setLoading(false); } }).catch((reason) => { if (active) { setError(reason instanceof Error ? reason.message : 'Branding konnte nicht geladen werden.'); setLoading(false); } });
-    return () => { active = false; };
-  }, [allowed, client, leagueSlug]);
+    try {
+      setBranding(await loadLeagueBranding(client, leagueSlug));
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Branding konnte nicht geladen werden.');
+    } finally {
+      setLoading(false);
+    }
+  }, [client, leagueSlug]);
+
+  useEffect(() => {
+    if (!allowed) return;
+    void loadBranding();
+  }, [allowed, loadBranding]);
 
   function patch<K extends keyof LeagueBranding>(key: K, value: LeagueBranding[K]) { setBranding((current) => ({ ...current, [key]: value })); setSaved(false); }
 
@@ -44,8 +53,9 @@ export function LeagueBrandingPage() {
     finally { setSaving(false); }
   }
 
-  if (!allowed) return <main className="driver-state" id="main-content"><span className="state-mark">17</span><div><h1>Zugriff verweigert</h1></div></main>;
-  if (loading) return <main className="driver-state" id="main-content"><span className="state-mark">B</span><div><h1>Branding wird geladen …</h1></div></main>;
+  if (!allowed) return <AppState copy="Du benötigst die Rolle Ligaleitung, um das Erscheinungsbild der Liga zu bearbeiten." title="Zugriff verweigert" tone="denied" />;
+  if (loading) return <AppState copy="Name, Logo, Links und Darstellung der Liga werden geladen." title="Branding wird geladen" tone="loading" />;
+  if (error && !branding.id) return <AppState action={<button className="text-action" onClick={() => void loadBranding()} type="button">Erneut versuchen</button>} copy={error} title="Branding konnte nicht geladen werden" tone="error" />;
   return <main className="operations-page admin-form-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">Ligaleitung · {leagueSlug}</p><h1>Branding</h1><p>Name, Logo und Links der ausgewählten Liga verwalten. Dein persönliches Farbthema stellst du im Profil ein.</p></div><NavLink className="text-link" to="/admin">Zur Ligaleitung</NavLink></header>
     <div className="branding-layout branding-layout--identity">

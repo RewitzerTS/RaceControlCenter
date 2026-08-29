@@ -1,5 +1,12 @@
+import { render, screen } from '@testing-library/react';
+import { createElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
-import { activateCreatedLeague, leagueSetupDestination } from './LeagueCreatePage';
+import { activateCreatedLeague, LeagueCreatePage, leagueSetupDestination } from './LeagueCreatePage';
+
+vi.mock('../league/LeagueProvider', () => ({
+  useLeague: () => ({ client: {}, setLeagueSlug: vi.fn() }),
+}));
 
 describe('leagueSetupDestination', () => {
   it('opens the season setup in the newly-created league context', () => {
@@ -17,5 +24,13 @@ describe('leagueSetupDestination', () => {
       'set:my-new-league',
       'replace:/admin/season/setup?league=my-new-league',
     ]);
+  });
+
+  it('keeps technical URL and visibility settings secondary by default', () => {
+    render(createElement(MemoryRouter, null, createElement(LeagueCreatePage)));
+
+    expect(screen.getByLabelText('Name der Liga')).toBeTruthy();
+    const advanced = screen.getByText('Weitere Einstellungen').closest('details');
+    expect(advanced?.open).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
@@ -25,6 +26,34 @@ export function activeSeasonRaces(workspace: RaceAdminWorkspace) {
   return activeSeason ? workspace.races.filter((race) => race.season_id === activeSeason.id) : [];
 }
 
+function MobileRaceRows({ races, formatDate }: {
+  races: RaceAdminWorkspace['races'];
+  formatDate: ReturnType<typeof useI18n>['formatDate'];
+}) {
+  return <ol className="mobile-admin-data-list">{races.map((race) => <li key={race.id}>
+    <div className="mobile-admin-data-heading"><span>R{race.round_number}</span><div><strong>{race.grand_prix_name}</strong><small>{race.circuit_name || race.season_name}{race.has_sprint ? ' · Sprint' : ''}</small></div><span className={`admin-status admin-status--${race.status}`}>{STATUS_LABELS[race.status] ?? race.status}</span></div>
+    <dl><div><dt>Termin</dt><dd>{race.race_date ? formatDate(race.race_date) : 'Offen'}</dd></div><div><dt>Ergebnis</dt><dd>{race.result_status ? `V${race.result_version} · ${STATUS_LABELS[race.result_status] ?? race.result_status}` : 'Noch offen'}</dd></div><div><dt>Starter</dt><dd>{race.result_count}</dd></div></dl>
+  </li>)}</ol>;
+}
+
+function MobileDriverStandings({ workspace, formatNumber }: {
+  workspace: RaceAdminWorkspace;
+  formatNumber: ReturnType<typeof useI18n>['formatNumber'];
+}) {
+  return <ol className="mobile-standing-list">{workspace.driver_standings.map((entry, index) => <li key={entry.driver_id}>
+    <span>{index + 1}</span><div><strong>{entry.display_name}</strong><small>{entry.gamertag ?? `${entry.starts} Starts`}</small></div><b>{formatNumber(entry.points)} Pkt.</b><small>{entry.wins} Siege · {entry.podiums} Podien</small>
+  </li>)}</ol>;
+}
+
+function MobileTeamStandings({ workspace, formatNumber }: {
+  workspace: RaceAdminWorkspace;
+  formatNumber: ReturnType<typeof useI18n>['formatNumber'];
+}) {
+  return <ol className="mobile-standing-list">{workspace.team_standings.map((entry, index) => <li key={entry.team_name}>
+    <span>{index + 1}</span><div><strong>{entry.team_name}</strong><small>{entry.podiums} Podien</small></div><b>{formatNumber(entry.points)} Pkt.</b><small>{entry.wins} Siege</small>
+  </li>)}</ol>;
+}
+
 export function LeagueRacesPage() {
   const { client, leagueSlug } = useLeague();
   const { role } = useRole();
@@ -38,16 +67,19 @@ export function LeagueRacesPage() {
   const allowed = role === 'league_admin' || role === 'platform_owner';
   const mode: ViewMode = pathname.endsWith('/results') ? 'results' : pathname.endsWith('/standings') ? 'standings' : 'races';
 
+  const reload = useCallback(async () => {
+    setError('');
+    setWorkspace(await loadRaceAdminWorkspace(client));
+  }, [client]);
+
   useEffect(() => {
     if (!allowed) return;
-    let active = true;
-    void loadRaceAdminWorkspace(client).then((data) => { if (active) setWorkspace(data); }).catch((reason) => { if (active) setError(reason instanceof Error ? reason.message : 'Rennverwaltung konnte nicht geladen werden.'); });
-    return () => { active = false; };
-  }, [allowed, client]);
+    void reload().catch((reason) => setError(reason instanceof Error ? reason.message : 'Rennverwaltung konnte nicht geladen werden.'));
+  }, [allowed, reload]);
 
-  if (!allowed) return <main className="driver-state" id="main-content"><span className="state-mark">17</span><div><h1>Zugriff verweigert</h1></div></main>;
-  if (!workspace && !error) return <main className="driver-state" id="main-content"><span className="state-mark">R</span><div><h1>Rennverwaltung wird geladen …</h1></div></main>;
-  if (!workspace) return <main className="driver-state" id="main-content"><span className="state-mark">!</span><div><h1>Rennverwaltung nicht verfügbar</h1><p>{error}</p></div></main>;
+  if (!allowed) return <AppState copy="Du benötigst die Rolle Ligaleitung, um Rennen, Ergebnisse und Wertungen zu verwalten." title="Zugriff verweigert" tone="denied" />;
+  if (!workspace && !error) return <AppState copy="Rennkalender, Ergebnisstände und Wertungen werden geladen." title="Rennverwaltung wird geladen" tone="loading" />;
+  if (!workspace) return <AppState action={<button className="text-action" onClick={() => void reload().catch((reason) => setError(reason instanceof Error ? reason.message : 'Rennverwaltung konnte nicht geladen werden.'))} type="button">Erneut versuchen</button>} copy={error} title="Rennverwaltung nicht verfügbar" tone="error" />;
 
   const visibleRaces = activeSeasonRaces(workspace);
   const officialRaces = visibleRaces.filter((race) => race.result_status === 'active').length;
@@ -85,6 +117,13 @@ export function LeagueRacesPage() {
     </section>}
     {error && <p className="form-error" role="alert">{error}</p>}
     {mode === 'results' && stewardRevisions.length > 0 && <section className="result-revision-summary" aria-labelledby="steward-revisions-title"><div><p className="section-label">Nachvollziehbare Änderungen</p><h2 id="steward-revisions-title">Steward-Revisionen</h2><p>Diese offiziellen Ergebnisse wurden durch abgeschlossene Steward-Fälle aktualisiert.</p></div><ul>{stewardRevisions.map((race) => <li key={race.id}><span><strong>R{race.round_number} · {race.grand_prix_name}</strong><small>{race.result_revision?.stewardCaseNumber} · {race.result_revision?.stewardOutcome}</small></span><b>V{race.result_revision?.resultVersion}</b></li>)}</ul></section>}
-    {mode !== 'standings' ? <section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">{mode === 'races' ? 'Kalender' : 'Revisionsstatus'}</p><h2>{mode === 'races' ? 'Rennwochenenden' : 'Veröffentlichte Ergebnisse'}</h2></div><strong>{visibleRaces.length}</strong></div><div className="responsive-table"><table><thead><tr><th>Rd.</th><th>Grand Prix</th><th>Termin</th><th>Rennen</th><th>Ergebnis</th><th>Starter</th></tr></thead><tbody>{visibleRaces.map((race) => <tr key={race.id}><td>{race.round_number}</td><td><strong>{race.grand_prix_name}</strong><small>{race.circuit_name || race.season_name}{race.has_sprint ? ' · Sprint' : ''}</small></td><td>{race.race_date ? formatDate(race.race_date) : 'Offen'}</td><td><span className={`admin-status admin-status--${race.status}`}>{STATUS_LABELS[race.status] ?? race.status}</span></td><td>{race.result_status ? <><strong>V{race.result_version}</strong><small>{STATUS_LABELS[race.result_status] ?? race.result_status}</small></> : <span className="admin-status">Noch offen</span>}</td><td>{race.result_count}</td></tr>)}</tbody></table></div></section> : <div className="standings-grid"><section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">Fahrer-WM</p><h2>Fahrerwertung</h2></div><strong>{workspace.driver_standings.length}</strong></div><div className="responsive-table"><table><thead><tr><th>Pos.</th><th>Fahrer</th><th>Punkte</th><th>Siege</th><th>Podien</th></tr></thead><tbody>{workspace.driver_standings.map((entry, index) => <tr key={entry.driver_id}><td>{index + 1}</td><td><strong>{entry.display_name}</strong><small>{entry.gamertag ?? `${entry.starts} Starts`}</small></td><td><strong>{formatNumber(entry.points)}</strong></td><td>{entry.wins}</td><td>{entry.podiums}</td></tr>)}</tbody></table></div></section><section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">Team-WM</p><h2>Teamwertung</h2></div><strong>{workspace.team_standings.length}</strong></div><div className="responsive-table"><table><thead><tr><th>Pos.</th><th>Team</th><th>Punkte</th><th>Siege</th></tr></thead><tbody>{workspace.team_standings.map((entry, index) => <tr key={entry.team_name}><td>{index + 1}</td><td><strong>{entry.team_name}</strong><small>{entry.podiums} Podien</small></td><td><strong>{formatNumber(entry.points)}</strong></td><td>{entry.wins}</td></tr>)}</tbody></table></div></section></div>}
+    {mode !== 'standings' ? <section className="admin-data-panel">
+      <div className="admin-panel-heading"><div><p className="section-label">{mode === 'races' ? 'Kalender' : 'Revisionsstatus'}</p><h2>{mode === 'races' ? 'Rennwochenenden' : 'Veröffentlichte Ergebnisse'}</h2></div><strong>{visibleRaces.length}</strong></div>
+      <div className="responsive-table admin-data-table"><table><thead><tr><th>Rd.</th><th>Grand Prix</th><th>Termin</th><th>Rennen</th><th>Ergebnis</th><th>Starter</th></tr></thead><tbody>{visibleRaces.map((race) => <tr key={race.id}><td>{race.round_number}</td><td><strong>{race.grand_prix_name}</strong><small>{race.circuit_name || race.season_name}{race.has_sprint ? ' · Sprint' : ''}</small></td><td>{race.race_date ? formatDate(race.race_date) : 'Offen'}</td><td><span className={`admin-status admin-status--${race.status}`}>{STATUS_LABELS[race.status] ?? race.status}</span></td><td>{race.result_status ? <><strong>V{race.result_version}</strong><small>{STATUS_LABELS[race.result_status] ?? race.result_status}</small></> : <span className="admin-status">Noch offen</span>}</td><td>{race.result_count}</td></tr>)}</tbody></table></div>
+      <MobileRaceRows formatDate={formatDate} races={visibleRaces}/>
+    </section> : <div className="standings-grid">
+      <section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">Fahrer-WM</p><h2>Fahrerwertung</h2></div><strong>{workspace.driver_standings.length}</strong></div><div className="responsive-table admin-data-table"><table><thead><tr><th>Pos.</th><th>Fahrer</th><th>Punkte</th><th>Siege</th><th>Podien</th></tr></thead><tbody>{workspace.driver_standings.map((entry, index) => <tr key={entry.driver_id}><td>{index + 1}</td><td><strong>{entry.display_name}</strong><small>{entry.gamertag ?? `${entry.starts} Starts`}</small></td><td><strong>{formatNumber(entry.points)}</strong></td><td>{entry.wins}</td><td>{entry.podiums}</td></tr>)}</tbody></table></div><MobileDriverStandings formatNumber={formatNumber} workspace={workspace}/></section>
+      <section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">Team-WM</p><h2>Teamwertung</h2></div><strong>{workspace.team_standings.length}</strong></div><div className="responsive-table admin-data-table"><table><thead><tr><th>Pos.</th><th>Team</th><th>Punkte</th><th>Siege</th></tr></thead><tbody>{workspace.team_standings.map((entry, index) => <tr key={entry.team_name}><td>{index + 1}</td><td><strong>{entry.team_name}</strong><small>{entry.podiums} Podien</small></td><td><strong>{formatNumber(entry.points)}</strong></td><td>{entry.wins}</td></tr>)}</tbody></table></div><MobileTeamStandings formatNumber={formatNumber} workspace={workspace}/></section>
+    </div>}
   </main>;
 }

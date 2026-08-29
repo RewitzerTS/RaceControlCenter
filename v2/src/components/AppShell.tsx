@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import raceVoraMark from '../../../assets/images/racevora-mark.svg';
 import { useAuth } from '../auth/AuthProvider';
@@ -19,6 +19,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { LeagueSwitcher } from '../league/LeagueSwitcher';
 import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from '../league/leagueBranding';
 import { useRole } from '../roles/RoleProvider';
+import { AppState } from './AppState';
 
 const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
 const CareerPage = lazy(() => import('../driver/CareerPage').then((module) => ({ default: module.CareerPage })));
@@ -40,18 +41,26 @@ const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ defau
 const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').then((module) => ({ default: module.GraphicsStudioPage })));
 const DemoE2EPage = lazy(() => import('../demo/DemoE2EPage').then((module) => ({ default: module.DemoE2EPage })));
 
-type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
+type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'more' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
 
 export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   icon: IconName;
   key: MessageKey;
+  mobilePrimary: boolean;
   path: string;
 }> = [
-  { icon: 'home', key: 'nav.home', path: '/home' },
-  { icon: 'racing', key: 'nav.racing', path: '/racing' },
-  { icon: 'career', key: 'nav.career', path: '/career' },
-  { icon: 'vora', key: 'nav.vora', path: '/vora' },
+  { icon: 'home', key: 'nav.home', mobilePrimary: true, path: '/home' },
+  { icon: 'racing', key: 'nav.racing', mobilePrimary: true, path: '/racing' },
+  { icon: 'career', key: 'nav.career', mobilePrimary: true, path: '/career' },
+  { icon: 'vora', key: 'nav.vora', mobilePrimary: false, path: '/vora' },
 ];
+
+export const MOBILE_PRIMARY_NAV_ITEMS = DRIVER_NAV_ITEMS.filter((item) => item.mobilePrimary);
+
+export function isMobileMoreRoute(pathname: string): boolean {
+  return ['/vora', '/stewarding', '/admin', '/owner', '/notifications', '/profile', '/leagues']
+    .some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
 
 function NavIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -61,6 +70,7 @@ function NavIcon({ name }: { name: IconName }) {
     vora: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5Z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7Z" /></>,
     profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6" /></>,
     league: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
+    more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
     steward: <><path d="M12 3 5 6v5c0 4.5 2.7 8 7 10 4.3-2 7-5.5 7-10V6Z" /><path d="m9 12 2 2 4-5" /></>,
     admin: <><path d="M4 5h16v14H4Z" /><path d="M4 9h16M9 9v10" /></>,
     owner: <><path d="m12 3 2.2 4.6 5.1.7-3.7 3.6.9 5.1-4.5-2.4L7.5 17l.9-5.1-3.7-3.6 5.1-.7Z" /></>,
@@ -140,7 +150,11 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
     <div className="driver-navigation" aria-label={t('nav.driver')}>
       {DRIVER_NAV_ITEMS.map((item) => (
         <NavLink
-          className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'}
+          className={({ isActive }) => [
+            'nav-item',
+            !item.mobilePrimary && 'nav-item--mobile-secondary',
+            isActive && 'nav-item--active',
+          ].filter(Boolean).join(' ')}
           end={item.path === '/home'}
           key={item.path}
           onClick={onNavigate}
@@ -151,6 +165,91 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
         </NavLink>
       ))}
     </div>
+  );
+}
+
+function MobilePrimaryNavigation({
+  moreActive,
+  navigationOpen,
+  onNavigate,
+  onToggleMore,
+}: {
+  moreActive: boolean;
+  navigationOpen: boolean;
+  onNavigate: () => void;
+  onToggleMore: () => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <nav aria-label={t('nav.mobile')} className="mobile-primary-navigation">
+      {MOBILE_PRIMARY_NAV_ITEMS.map((item) => (
+        <NavLink
+          className={({ isActive }) => isActive ? 'mobile-primary-item mobile-primary-item--active' : 'mobile-primary-item'}
+          end={item.path === '/home'}
+          key={item.path}
+          onClick={onNavigate}
+          to={item.path}
+        >
+          <NavIcon name={item.icon} />
+          <span>{t(item.key)}</span>
+        </NavLink>
+      ))}
+      <button
+        aria-controls="mobile-more-navigation"
+        aria-expanded={navigationOpen}
+        className={moreActive || navigationOpen ? 'mobile-primary-item mobile-primary-item--active' : 'mobile-primary-item'}
+        onClick={onToggleMore}
+        type="button"
+      >
+        <NavIcon name="more" />
+        <span>{t('nav.more')}</span>
+      </button>
+    </nav>
+  );
+}
+
+function MobileMoreNavigation({
+  canAdmin,
+  canOwner,
+  canSteward,
+  open,
+  onNavigate,
+  user,
+}: {
+  canAdmin: boolean;
+  canOwner: boolean;
+  canSteward: boolean;
+  open: boolean;
+  onNavigate: () => void;
+  user: boolean;
+}) {
+  const { t } = useI18n();
+  return (
+    <nav
+      aria-hidden={!open}
+      aria-label={t('nav.more')}
+      className={open ? 'mobile-more-navigation mobile-more-navigation--open' : 'mobile-more-navigation'}
+      id="mobile-more-navigation"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') onNavigate();
+      }}
+    >
+      <div className="mobile-more-heading">
+        <strong>{t('nav.more')}</strong>
+        <button aria-label={t('nav.close')} onClick={onNavigate} type="button">×</button>
+      </div>
+      <div className="mobile-more-links">
+        <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/vora"><NavIcon name="vora" /><span>{t('nav.vora')}</span></NavLink>
+        {canSteward && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
+        {canAdmin && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/admin"><NavIcon name="admin" /><span>{t('nav.admin')}</span></NavLink>}
+        {canOwner && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
+      </div>
+      <div className="mobile-more-tools">
+        <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={onNavigate} to="/profile"><NavIcon name="profile" /><span>{t('nav.profile')}</span></NavLink>
+        <LanguageControl />
+        {!user && <NavLink className="session-state session-state--link" onClick={onNavigate} to="/login?mode=signin">{t('beta.action')}</NavLink>}
+      </div>
+    </nav>
   );
 }
 
@@ -199,6 +298,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
   const onboardingRequired = user?.user_metadata?.onboarding_complete === false;
   const closeNavigation = () => setNavigationOpen(false);
+  const moreRouteActive = isMobileMoreRoute(location.pathname);
+  const routeLoading = <AppState copy={t('home.loadingCopy')} title={t('pending')} tone="loading" />;
+
+  useEffect(() => setNavigationOpen(false), [location.pathname, location.search]);
 
   if (!authLoading && onboardingRequired && location.pathname !== '/onboarding') {
     return <Navigate replace to="/onboarding" />;
@@ -224,10 +327,21 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           />
         )}
 
+        {canNotify && (
+          <NavLink
+            aria-label={t('nav.notifications')}
+            className={({ isActive }) => isActive ? 'mobile-header-notifications mobile-header-notifications--active' : 'mobile-header-notifications'}
+            onClick={closeNavigation}
+            to="/notifications"
+          >
+            <NavIcon name="bell" />
+          </NavLink>
+        )}
+
         <button
           aria-controls="main-navigation"
           aria-expanded={navigationOpen}
-          aria-label={navigationOpen ? 'Navigation schließen' : 'Navigation öffnen'}
+          aria-label={t('nav.mobile')}
           className="mobile-toggle"
           onClick={() => setNavigationOpen((current) => !current)}
           type="button"
@@ -262,6 +376,26 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </div>
       </header>}
 
+      {!embeddedAccess && navigationOpen && <button aria-label={t('nav.close')} className="mobile-navigation-scrim" onClick={closeNavigation} type="button" />}
+      {!embeddedAccess && (
+        <MobileMoreNavigation
+          canAdmin={canAdmin}
+          canOwner={canOwner}
+          canSteward={canSteward}
+          onNavigate={closeNavigation}
+          open={navigationOpen}
+          user={Boolean(user)}
+        />
+      )}
+      {!embeddedAccess && (
+        <MobilePrimaryNavigation
+          moreActive={moreRouteActive}
+          navigationOpen={navigationOpen}
+          onNavigate={closeNavigation}
+          onToggleMore={() => setNavigationOpen((current) => !current)}
+        />
+      )}
+
       <div className={embeddedAccess ? 'shell-frame shell-frame--embedded-access' : 'shell-frame'}>
 
         <Routes key={leagueSlug}>
@@ -269,34 +403,34 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/home" element={<DriverHomePage />} />
           <Route path="/racing" element={<RacingPage />} />
           <Route path="/racing/*" element={<RacingPage />} />
-          <Route path="/career" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
-          <Route path="/career/*" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">C</span><div><h1>{t('pending')}</h1></div></main>}><CareerPage /></Suspense>} />
-          <Route path="/vora" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">V</span><div><h1>{t('pending')}</h1></div></main>}><VoraPage /></Suspense>} />
-          <Route path="/profile" element={<Suspense fallback={<main className="driver-state"><span className="state-mark">P</span><div><h1>{t('pending')}</h1></div></main>}><ProfilePage /></Suspense>} />
+          <Route path="/career" element={<Suspense fallback={routeLoading}><CareerPage /></Suspense>} />
+          <Route path="/career/*" element={<Suspense fallback={routeLoading}><CareerPage /></Suspense>} />
+          <Route path="/vora" element={<Suspense fallback={routeLoading}><VoraPage /></Suspense>} />
+          <Route path="/profile" element={<Suspense fallback={routeLoading}><ProfilePage /></Suspense>} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/auth/confirm" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="confirm" />} />
           <Route path="/auth/reset" element={<AuthLinkPage appEnvironment={environment.appEnvironment} mode="reset" />} />
-          <Route path="/stewarding" element={accessLoading ? <main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main> : canSteward ? <Suspense fallback={<main className="driver-state"><span className="state-mark">16</span><div><h1>{t('pending')}</h1></div></main>}><StewardWorkspacePage /></Suspense> : <Navigate replace to="/home" />} />
-          <Route path="/admin" element={accessLoading ? <main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">17</span><div><h1>{t('pending')}</h1></div></main>}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/branding" element={accessLoading ? <main className="driver-state"><span className="state-mark">B</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">B</span><div><h1>{t('pending')}</h1></div></main>}><LeagueBrandingPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/users" element={accessLoading ? <main className="driver-state"><span className="state-mark">U</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">U</span><div><h1>{t('pending')}</h1></div></main>}><LeagueMembersPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/drivers" element={accessLoading ? <main className="driver-state"><span className="state-mark">D</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">D</span><div><h1>{t('pending')}</h1></div></main>}><LeagueDriversPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/races" element={accessLoading ? <main className="driver-state"><span className="state-mark">R</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">R</span><div><h1>{t('pending')}</h1></div></main>}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/season/setup" element={accessLoading ? <main className="driver-state"><span className="state-mark">S</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">S</span><div><h1>{t('pending')}</h1></div></main>}><SeasonSetupPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/results" element={accessLoading ? <main className="driver-state"><span className="state-mark">R</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">R</span><div><h1>{t('pending')}</h1></div></main>}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/standings" element={accessLoading ? <main className="driver-state"><span className="state-mark">W</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">W</span><div><h1>{t('pending')}</h1></div></main>}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/teams" element={accessLoading ? <main className="driver-state"><span className="state-mark">T</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">T</span><div><h1>{t('pending')}</h1></div></main>}><LeagueTeamsPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/rules" element={accessLoading ? <main className="driver-state"><span className="state-mark">§</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">§</span><div><h1>{t('pending')}</h1></div></main>}><LeagueRulesPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/results/import" element={accessLoading ? <main className="driver-state"><span className="state-mark">I</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">I</span><div><h1>{t('pending')}</h1></div></main>}><ResultImportPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/audit" element={accessLoading ? <main className="driver-state"><span className="state-mark">A</span><div><h1>{t('pending')}</h1></div></main> : canAdmin ? <Suspense fallback={<main className="driver-state"><span className="state-mark">A</span><div><h1>{t('pending')}</h1></div></main>}><LeagueAuditPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/admin/graphics" element={accessLoading ? <main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main> : canCreateGraphics ? <Suspense fallback={<main className="driver-state"><span className="state-mark">21</span><div><h1>{t('pending')}</h1></div></main>}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
-          <Route path="/owner" element={accessLoading ? <main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">18</span><div><h1>{t('pending')}</h1></div></main>}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/leagues/new" element={authLoading ? <main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main> : user ? <Suspense fallback={<main className="driver-state"><span className="state-mark">L</span><div><h1>{t('pending')}</h1></div></main>}><LeagueCreatePage /></Suspense> : <Navigate replace to="/login?mode=signin" />} />
+          <Route path="/stewarding" element={accessLoading ? routeLoading : canSteward ? <Suspense fallback={routeLoading}><StewardWorkspacePage /></Suspense> : <Navigate replace to="/home" />} />
+          <Route path="/admin" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><AdminWorkspacePage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/branding" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueBrandingPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/users" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueMembersPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/drivers" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueDriversPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/races" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/season/setup" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><SeasonSetupPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/results" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/standings" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/teams" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueTeamsPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/rules" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRulesPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/results/import" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><ResultImportPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/audit" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueAuditPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/graphics" element={accessLoading ? routeLoading : canCreateGraphics ? <Suspense fallback={routeLoading}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
+          <Route path="/owner" element={accessLoading ? routeLoading : canOwner ? <Suspense fallback={routeLoading}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/leagues/new" element={authLoading ? routeLoading : user ? <Suspense fallback={routeLoading}><LeagueCreatePage /></Suspense> : <Navigate replace to="/login?mode=signin" />} />
           <Route path="/owner/leagues/new" element={<Navigate replace to="/leagues/new" />} />
-          <Route path="/owner/demo" element={accessLoading ? <main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main> : canOwner ? <Suspense fallback={<main className="driver-state"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
-          <Route path="/notifications" element={authLoading ? <main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main> : canNotify ? <Suspense fallback={<main className="driver-state"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/owner/demo" element={accessLoading ? routeLoading : canOwner ? <Suspense fallback={routeLoading}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/notifications" element={authLoading ? routeLoading : canNotify ? <Suspense fallback={routeLoading}><NotificationCenterPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/race-hub" element={<LegacyRouteRedirect to="/racing" />} />
           <Route path="/kalender" element={<LegacyRouteRedirect to="/racing/calendar" />} />
           <Route path="/ergebnisse" element={<LegacyRouteRedirect to="/racing/results" />} />

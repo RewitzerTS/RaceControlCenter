@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { AppState, EmptyState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { loadInbox, markInboxItemRead, type InboxNotification } from './operations';
@@ -28,11 +29,11 @@ export function NotificationCenterPage() {
     } catch { setError(true); }
   }
 
-  if (items === null) return <main className="driver-state" id="main-content"><span className="state-mark">19</span><div><h1>{t('pending')}</h1></div></main>;
+  if (items === null) return <AppState copy="Deine aktuellen Hinweise werden geladen." title={t('pending')} tone="loading" />;
   return <main className="operations-page notification-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">{t('notification.eyebrow')}</p><h1>{t('notification.title')}</h1><p>{t('notification.copy')}</p></div></header>
     {error && <p className="inline-error" role="alert">{t('notification.error')}</p>}
-    {!user ? <p className="empty-copy">{t('notification.signedOut')}</p> : items.length === 0 ? <p className="empty-copy">{t('notification.empty')}</p> : <ol className="notification-list">{items.map((item) => <NotificationItem formatDate={formatDate} formatTime={formatTime} item={item} key={item.id} markRead={markRead} t={t} />)}</ol>}
+    {!user ? <EmptyState copy={t('notification.signedOut')} title="Keine Benachrichtigungen" /> : items.length === 0 ? <EmptyState copy={t('notification.empty')} title="Alles erledigt" /> : <ol className="notification-list">{items.map((item) => <NotificationItem formatDate={formatDate} formatTime={formatTime} item={item} key={item.id} markRead={markRead} t={t} />)}</ol>}
   </main>;
 }
 

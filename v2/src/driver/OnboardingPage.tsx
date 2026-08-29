@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
@@ -29,7 +30,7 @@ export function OnboardingPage() {
   const [error, setError] = useState('');
   const [requestRefreshKey, setRequestRefreshKey] = useState(0);
 
-  if (authLoading) return <main className="driver-state" id="main-content"><span className="state-mark">01</span><div><h1>{t('pending')}</h1></div></main>;
+  if (authLoading) return <AppState copy="Dein Konto und der aktuelle Einrichtungsstand werden geladen." title={t('pending')} tone="loading" />;
   if (!user) return <Navigate replace to="/login?mode=signin" />;
 
   function continueToLeague(event: FormEvent<HTMLFormElement>) {

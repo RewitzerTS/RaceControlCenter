@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 
 interface DriverIdentitySummary {
@@ -20,12 +20,12 @@ const DriverIdentityContext = createContext<DriverIdentityContextValue | null>(n
 
 async function resolveDriverIdentity(
   client: LeagueSupabaseClient,
-  user: User,
+  userId: User['id'],
 ): Promise<DriverIdentitySummary | null> {
   const identityResponse = await client
     .from('driver_identities')
     .select('id, profile_number, status')
-    .eq('user_id', user.id)
+    .eq('user_id', userId)
     .maybeSingle();
 
   if (identityResponse.error) throw identityResponse.error;
@@ -55,19 +55,24 @@ export function DriverIdentityProvider({ client, user, children }: PropsWithChil
   const [identity, setIdentity] = useState<DriverIdentitySummary | null>(null);
   const [loading, setLoading] = useState(Boolean(user));
   const [error, setError] = useState<string | null>(null);
+  const userId = user?.id ?? null;
+  const activeUserIdRef = useRef<string | null>(userId);
 
   useEffect(() => {
     let active = true;
-    setIdentity(null);
     setError(null);
 
-    if (!user) {
+    if (!userId) {
+      setIdentity(null);
+      activeUserIdRef.current = null;
       setLoading(false);
       return () => { active = false; };
     }
 
+    if (activeUserIdRef.current !== userId) setIdentity(null);
+    activeUserIdRef.current = userId;
     setLoading(true);
-    void resolveDriverIdentity(client, user)
+    void resolveDriverIdentity(client, userId)
       .then((nextIdentity) => {
         if (active) setIdentity(nextIdentity);
       })
@@ -79,7 +84,7 @@ export function DriverIdentityProvider({ client, user, children }: PropsWithChil
       });
 
     return () => { active = false; };
-  }, [client, user]);
+  }, [client, userId]);
 
   const value = useMemo(
     () => ({ identity, loading, error }),

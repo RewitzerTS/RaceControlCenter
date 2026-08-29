@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { AppState, EmptyState } from '../components/AppState';
 import { LegacyLeagueView } from '../components/LegacyLeagueView';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
@@ -46,23 +47,36 @@ export function raceStatusLabel(status: string, t: ReturnType<typeof useI18n>['t
 }
 
 const RACING_SECTIONS = [
-  { key: 'racing.overview', to: '/racing' },
-  { key: 'racing.calendar', to: '/racing/calendar' },
-  { key: 'racing.results', to: '/racing/results' },
-  { key: 'racing.championship', to: '/racing/standings' },
-  { key: 'racing.gridTitle', to: '/racing/grid' },
-  { key: 'racing.tracks', to: '/racing/tracks' },
-  { key: 'racing.rules', to: '/racing/rules' },
-  { key: 'racing.history', to: '/racing/history' },
+  { key: 'racing.overview', mobilePrimary: true, to: '/racing' },
+  { key: 'racing.calendar', mobilePrimary: true, to: '/racing/calendar' },
+  { key: 'racing.results', mobilePrimary: true, to: '/racing/results' },
+  { key: 'racing.championship', mobilePrimary: true, to: '/racing/standings' },
+  { key: 'racing.gridTitle', mobilePrimary: false, to: '/racing/grid' },
+  { key: 'racing.tracks', mobilePrimary: false, to: '/racing/tracks' },
+  { key: 'racing.rules', mobilePrimary: false, to: '/racing/rules' },
+  { key: 'racing.history', mobilePrimary: false, to: '/racing/history' },
 ] as const;
+
+export const MOBILE_RACING_PRIMARY_PATHS = RACING_SECTIONS.filter((item) => item.mobilePrimary).map((item) => item.to);
+export const MOBILE_RACING_MORE_PATHS = RACING_SECTIONS.filter((item) => !item.mobilePrimary).map((item) => item.to);
 
 function RacingNavigation() {
   const { t } = useI18n();
+  const location = useLocation();
+  const secondaryActive = MOBILE_RACING_MORE_PATHS.some((path) => location.pathname.startsWith(path));
   return (
     <nav aria-label={t('racing.navigation')} className="section-navigation">
       {RACING_SECTIONS.map((item) => (
-        <NavLink end={item.to === '/racing'} key={item.to} to={item.to}>{t(item.key)}</NavLink>
+        <NavLink className={item.mobilePrimary ? 'section-navigation-link--primary' : 'section-navigation-link--secondary'} end={item.to === '/racing'} key={item.to} to={item.to}>{item.to === '/racing/standings' ? <><span className="racing-nav-label--full">{t(item.key)}</span><span className="racing-nav-label--compact">{t('racing.championshipShort')}</span></> : t(item.key)}</NavLink>
       ))}
+      <details className={`section-navigation-more${secondaryActive ? ' active' : ''}`}>
+        <summary>{t('nav.more')}</summary>
+        <div>
+          {RACING_SECTIONS.filter((item) => !item.mobilePrimary).map((item) => (
+            <NavLink key={item.to} to={item.to}>{t(item.key)}</NavLink>
+          ))}
+        </div>
+      </details>
     </nav>
   );
 }
@@ -238,7 +252,7 @@ function RacingOverview() {
   }
 
   if (error && races.length === 0) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">!</span><div><h1>{t('racing.errorTitle')}</h1><p>{t('home.errorCopy')}</p><button className="text-action" type="button" onClick={() => void loadRaces()}>{t('home.retry')}</button></div></main>;
+    return <AppState action={<button className="text-action" type="button" onClick={() => void loadRaces()}>{t('home.retry')}</button>} copy={t('home.errorCopy')} title={t('racing.errorTitle')} tone="error" />;
   }
 
   return (
@@ -251,14 +265,21 @@ function RacingOverview() {
         <span>{t('racing.officialCopy')}</span>
       </section>
 
-      <section className="racing-layout">
+      {races.length === 0 ? (
+        <section className="racing-empty-overview">
+          <EmptyState
+            action={<NavLink className="text-link" to="/racing/history?view=seasons">{t('racing.history')}</NavLink>}
+            copy={t('racing.empty')}
+            title={t('racing.calendar')}
+          />
+        </section>
+      ) : <section className="racing-layout">
         <aside className="dashboard-card race-browser" aria-labelledby="race-browser-title">
           <div className="section-heading">
             <div><p className="section-label">{t('racing.calendar')}</p><h1 id="race-browser-title">{t('admin.races')}</h1></div>
             <strong>{formatNumber(races.length)}</strong>
           </div>
-          {races.length === 0 ? <p className="empty-copy">{t('racing.empty')}</p> : (
-            <ol className="race-list">
+          <ol className="race-list">
               {races.map((race) => (
                 <li key={race.id}>
                   <button
@@ -273,8 +294,7 @@ function RacingOverview() {
                   </button>
                 </li>
               ))}
-            </ol>
-          )}
+          </ol>
         </aside>
 
         <section className="dashboard-card race-result-card" aria-labelledby="race-result-title">
@@ -293,14 +313,14 @@ function RacingOverview() {
               </div>
               {revision?.stewardCaseNumber && <aside className="result-revision-notice" aria-label={t('racing.resultRevision')}><div><strong>{t('racing.resultRevision')}</strong><span>{t('racing.resultRevisionCase', { caseNumber: revision.stewardCaseNumber })}</span></div><div><strong>V{formatNumber(revision.resultVersion)}</strong><small>{t('racing.currentOfficialVersion')}</small></div></aside>}
               {!selectedRace.current_result_version_id ? (
-                <p className="empty-copy">{t('racing.noOfficialResult')}</p>
+                <EmptyState copy={t('racing.noOfficialResult')} title={t('racing.officialResult')} />
               ) : resultsLoading ? (
-                <p className="empty-copy">{t('racing.resultsLoading')}</p>
+                <p aria-live="polite" className="empty-copy" role="status">{t('racing.resultsLoading')}</p>
               ) : results.length === 0 ? (
-                <p className="empty-copy">{t('racing.noOfficialResult')}</p>
+                <EmptyState copy={t('racing.noOfficialResult')} title={t('racing.officialResult')} />
               ) : (
                 <div className="responsive-table result-table-wrap">
-                  <table>
+                  <table className="result-table-desktop">
                     <thead><tr><th>{t('racing.position')}</th><th>{t('racing.driver')}</th><th>{t('racing.grid')}</th><th>{t('racing.time')}</th><th>{t('racing.fastestLap')}</th><th>{t('graphics.points')}</th></tr></thead>
                     <tbody>
                       {results.map((result) => (
@@ -315,12 +335,28 @@ function RacingOverview() {
                       ))}
                     </tbody>
                   </table>
+                  <ol className="mobile-result-list">
+                    {results.map((result) => (
+                      <li key={result.id}>
+                        <div className="mobile-result-heading">
+                          <span>{result.finish_position == null ? '—' : `P${formatNumber(result.finish_position)}`}</span>
+                          <div><strong>{result.driver?.display_name ?? result.driver_id.slice(0, 8)}</strong><small>{classificationLabel(result.classification_status, t)}</small></div>
+                          <b>{formatNumber(result.awarded_points)} {t('graphics.points')}</b>
+                        </div>
+                        <dl>
+                          <div><dt>{t('racing.grid')}</dt><dd>{result.grid_position == null ? '—' : `P${formatNumber(result.grid_position)}`}</dd></div>
+                          <div><dt>{t('racing.time')}</dt><dd>{result.race_time ?? '—'}</dd></div>
+                          <div><dt>{t('racing.fastestLap')}</dt><dd>{result.fastest_lap_time ?? '—'}</dd></div>
+                        </dl>
+                      </li>
+                    ))}
+                  </ol>
                 </div>
               )}
             </>
-          ) : <p className="empty-copy">{t('racing.empty')}</p>}
+          ) : <EmptyState copy={t('racing.empty')} title={t('racing.officialResult')} />}
         </section>
-      </section>
+      </section>}
     </main>
   );
 }

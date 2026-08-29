@@ -11,8 +11,17 @@ Fertige HTML-Templates für **Authentication → Email Templates** im Supabase D
 | Invite user | `invite-user.html` | `Deine Einladung zu RaceVora` |
 | Magic link | `magic-link.html` | `Dein RaceVora Login-Link` |
 | Change email address | `change-email.html` | `Neue E-Mail-Adresse für RaceVora bestätigen` |
+| Reauthentication | `reauthentication.html` | `{{ .Token }} ist dein RaceVora Sicherheitscode` |
 
-Die Templates verwenden die offiziell unterstützten Supabase-Go-Template-Variablen `{{ .ConfirmationURL }}`, `{{ .Email }}` und beim E-Mail-Wechsel `{{ .NewEmail }}`.
+Die Link-Templates verwenden die offiziell unterstützten Supabase-Go-Template-Variablen `{{ .ConfirmationURL }}`, `{{ .Email }}` und beim E-Mail-Wechsel `{{ .NewEmail }}`. Die Re-Authentifizierungs-Mail verwendet den sechsstelligen Code `{{ .Token }}`.
+
+## In Supabase einfügen
+
+1. Im Supabase Dashboard das gewünschte Projekt öffnen.
+2. **Authentication → Email Templates** öffnen.
+3. Das passende Template auswählen.
+4. Die Betreffzeile aus der Tabelle und den vollständigen Inhalt der zugehörigen HTML-Datei einfügen.
+5. Speichern und anschließend mit einer echten Testadresse prüfen.
 
 ## Redirect-Verhalten
 

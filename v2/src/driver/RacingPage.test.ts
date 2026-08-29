@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { useI18n } from '../i18n/I18nProvider';
-import { classificationLabel, raceStatusLabel } from './RacingPage';
+import {
+  classificationLabel,
+  MOBILE_RACING_MORE_PATHS,
+  MOBILE_RACING_PRIMARY_PATHS,
+  raceStatusLabel,
+} from './RacingPage';
 
 const translations: Record<string, string> = {
   'racing.classification.classified': 'Klassifiziert',
@@ -26,5 +31,15 @@ describe('localized racing status labels', () => {
     expect(classificationLabel('classified', t)).toBe('Klassifiziert');
     expect(classificationLabel('dnf', t)).toBe('Ausgeschieden');
     expect(classificationLabel('not_classified', t)).toBe('Nicht klassifiziert');
+  });
+});
+
+describe('mobile racing navigation', () => {
+  it('keeps the four core racing destinations directly visible', () => {
+    expect(MOBILE_RACING_PRIMARY_PATHS).toEqual(['/racing', '/racing/calendar', '/racing/results', '/racing/standings']);
+  });
+
+  it('moves supporting destinations into More', () => {
+    expect(MOBILE_RACING_MORE_PATHS).toEqual(['/racing/grid', '/racing/tracks', '/racing/rules', '/racing/history']);
   });
 });

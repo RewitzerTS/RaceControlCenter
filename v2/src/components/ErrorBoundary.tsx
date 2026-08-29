@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type PropsWithChildren, type ReactNode } from 'react';
+import { AppState } from './AppState';
 
 interface ErrorBoundaryState {
   failed: boolean;
@@ -18,11 +19,12 @@ export class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundarySta
   render(): ReactNode {
     if (this.state.failed) {
       return (
-        <main className="fatal-state" id="main-content">
-          <p className="eyebrow">V2 Staging</p>
-          <h1>Die Anwendung wurde sicher angehalten.</h1>
-          <p>Es wurden keine weiteren Datenanfragen ausgeführt. Bitte Konfiguration und Protokoll prüfen.</p>
-        </main>
+        <AppState
+          action={<button className="primary-action" onClick={() => window.location.reload()} type="button">Seite neu laden</button>}
+          copy="Ein unerwarteter Fehler hat diese Ansicht unterbrochen. Lade die Seite neu, um fortzufahren."
+          title="RaceVora konnte nicht weiterladen"
+          tone="error"
+        />
       );
     }
     return this.props.children;

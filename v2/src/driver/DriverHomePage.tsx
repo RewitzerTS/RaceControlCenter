@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
@@ -14,27 +14,6 @@ function formatAchievementCode(code: string | null): string {
     .replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase());
 }
 
-function DriverState({
-  action,
-  copy,
-  title,
-}: {
-  action?: ReactNode;
-  copy: string;
-  title: string;
-}) {
-  return (
-    <main className="driver-state" id="main-content">
-      <span className="state-mark" aria-hidden="true">RV</span>
-      <div>
-        <h1>{title}</h1>
-        <p>{copy}</p>
-        {action}
-      </div>
-    </main>
-  );
-}
-
 export function DriverHomePage() {
   const { loading: authLoading, user } = useAuth();
   const { error: identityError, identity, loading: identityLoading } = useDriverIdentity();
@@ -44,11 +23,11 @@ export function DriverHomePage() {
   const { error, loading, reload, snapshot } = useDriverHome(client, identity?.id ?? null);
 
   if (authLoading || identityLoading) {
-    return <DriverState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} />;
+    return <AppState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} tone="loading" />;
   }
   if (!user) {
     return (
-      <DriverState
+      <AppState
         title={t('home.signedOutTitle')}
         copy={t('home.signedOutCopy')}
         action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink>}
@@ -56,25 +35,27 @@ export function DriverHomePage() {
     );
   }
   if (identityError || !identity || identity.status !== 'active') {
-    return <DriverState title={t('home.identityTitle')} copy={t('home.identityCopy')} />;
+    return <AppState title={t('home.identityTitle')} copy={t('home.identityCopy')} tone="info" />;
   }
   if (identity.linkedDriverCount === 0) {
     return (
-      <DriverState
+      <AppState
         title={t('profile.createLeague')}
         copy={t('profile.createLeagueCopy')}
+        tone="empty"
         action={<NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink>}
       />
     );
   }
   if (loading) {
-    return <DriverState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} />;
+    return <AppState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} tone="loading" />;
   }
   if (error) {
     return (
-      <DriverState
+      <AppState
         title={t('home.errorTitle')}
         copy={t('home.errorCopy')}
+        tone="error"
         action={<button className="text-action" type="button" onClick={reload}>{t('home.retry')}</button>}
       />
     );

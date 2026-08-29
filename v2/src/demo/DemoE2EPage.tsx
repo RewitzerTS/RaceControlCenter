@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
@@ -35,9 +36,9 @@ export function DemoE2EPage() {
     return () => { active = false; };
   }, [client, leagueSlug, role, setLeagueSlug]);
 
-  if (role !== 'platform_owner') return <main className="driver-state" id="main-content"><span className="state-mark">22</span><div><h1>{t('demo.denied')}</h1></div></main>;
-  if (failed) return <main className="driver-state" id="main-content"><span className="state-mark">!</span><div><h1>{t('demo.error')}</h1><p>{t('demo.errorCopy')}</p></div></main>;
-  if (!snapshot) return <main className="driver-state" id="main-content"><span className="state-mark">22</span><div><h1>{t('pending')}</h1></div></main>;
+  if (role !== 'platform_owner') return <AppState copy="Dieser isolierte Prüfraum ist ausschließlich für den Platform Owner verfügbar." title={t('demo.denied')} tone="denied" />;
+  if (failed) return <AppState action={<button className="text-action" onClick={() => window.location.reload()} type="button">Erneut versuchen</button>} copy={t('demo.errorCopy')} title={t('demo.error')} tone="error" />;
+  if (!snapshot) return <AppState copy="Die isolierten E2E-Prüfdaten werden geladen." title={t('pending')} tone="loading" />;
 
   const covered = completeCoverage(snapshot);
   return <main className="demo-cockpit" id="main-content">

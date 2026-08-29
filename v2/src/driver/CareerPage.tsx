@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import { AppState } from '../components/AppState';
 import { LegacyLeagueView } from '../components/LegacyLeagueView';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
@@ -33,19 +34,27 @@ export function CareerPage() {
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { client, leagueSlug } = useLeague();
   const { formatDate, formatNumber, t } = useI18n();
-  const { error, loading, reload, snapshot } = useDriverHome(client, identity?.id ?? null);
+  const careerSection = location.pathname === '/career/profile'
+    ? { page: 'fahrer-profil', title: t('career.driverProfile') }
+    : location.pathname === '/career/compare'
+      ? { page: 'head-to-head', title: t('career.compare') }
+      : null;
+  const { error, loading, reload, snapshot } = useDriverHome(
+    client,
+    careerSection ? null : identity?.id ?? null,
+  );
 
-  if (authLoading || identityLoading || loading) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('home.loadingTitle')}</h1><p>{t('home.loadingCopy')}</p></div></main>;
+  if (authLoading || identityLoading || (!careerSection && loading)) {
+    return <AppState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} tone="loading" />;
   }
   if (!user) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('home.signedOutTitle')}</h1><p>{t('home.signedOutCopy')}</p><NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink></div></main>;
+    return <AppState action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink>} copy={t('home.signedOutCopy')} title={t('home.signedOutTitle')} />;
   }
   if (!identity || identity.status !== 'active' || identity.linkedDriverCount === 0) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">C</span><div><h1>{t('career.linkTitle')}</h1><p>{t('career.linkCopy')}</p><NavLink className="text-link" to="/profile">{t('route.profileTitle')}</NavLink></div></main>;
+    return <AppState action={<NavLink className="text-link" to="/profile">{t('route.profileTitle')}</NavLink>} copy={t('career.linkCopy')} title={t('career.linkTitle')} tone="empty" />;
   }
   if (error) {
-    return <main className="driver-state" id="main-content"><span className="state-mark" aria-hidden="true">!</span><div><h1>{t('home.errorTitle')}</h1><p>{t('home.errorCopy')}</p><button className="text-action" type="button" onClick={reload}>{t('home.retry')}</button></div></main>;
+    return <AppState action={<button className="text-action" type="button" onClick={reload}>{t('home.retry')}</button>} copy={t('home.errorCopy')} title={t('home.errorTitle')} tone="error" />;
   }
 
   const careerSearch = new URLSearchParams(location.search);
@@ -53,12 +62,6 @@ export function CareerPage() {
     if (!careerSearch.has('driver')) careerSearch.set('driver', identity.driverId);
     careerSearch.set('profile_number', String(identity.profileNumber));
   }
-  const careerSection = location.pathname === '/career/profile'
-    ? { page: 'fahrer-profil', title: t('career.driverProfile') }
-    : location.pathname === '/career/compare'
-      ? { page: 'head-to-head', title: t('career.compare') }
-      : null;
-
   if (careerSection) {
     return (
       <main className="career-page dashboard-shell integrated-section-page" id="main-content">
