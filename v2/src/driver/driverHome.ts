@@ -89,6 +89,31 @@ export function levelProgress(progression: Progression | null): number {
   return Math.max(0, Math.min(100, (progression.xp_into_level / levelWindow) * 100));
 }
 
+const ACHIEVEMENT_METRIC_ORDER = [
+  'starts',
+  'wins',
+  'podiums',
+  'poles',
+  'fastest_laps',
+  'classified_finishes',
+  'leagues_competed',
+] as const;
+
+export function highestAchievementTiers(achievements: DriverAchievement[]): DriverAchievement[] {
+  const highestByMetric = new Map<string, DriverAchievement>();
+
+  achievements.forEach((achievement) => {
+    const current = highestByMetric.get(achievement.metric);
+    if (!current || achievement.threshold > current.threshold) {
+      highestByMetric.set(achievement.metric, achievement);
+    }
+  });
+
+  return ACHIEVEMENT_METRIC_ORDER
+    .map((metric) => highestByMetric.get(metric))
+    .filter((achievement): achievement is DriverAchievement => Boolean(achievement));
+}
+
 const CHALLENGE_ROTATION_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function nextChallengeRotation(challenges: DriverChallenge[], now = Date.now()): number | null {

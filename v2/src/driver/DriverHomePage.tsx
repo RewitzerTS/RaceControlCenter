@@ -4,16 +4,11 @@ import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
+import { AchievementBadge } from './AchievementBadge';
+import { ChallengeRotationCountdown } from './ChallengeRotationCountdown';
 import { useDriverIdentity } from './DriverIdentityProvider';
-import { levelProgress, selectDriverHero, useDriverHome } from './driverHome';
+import { highestAchievementTiers, levelProgress, selectDriverHero, useDriverHome } from './driverHome';
 import { LevelGauge } from './LevelGauge';
-
-function formatAchievementCode(code: string | null): string {
-  if (!code) return '';
-  return code
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase());
-}
 
 export function DriverHomePage() {
   const { loading: authLoading, user } = useAuth();
@@ -71,6 +66,7 @@ export function DriverHomePage() {
   const progression = snapshot.progression;
   const career = snapshot.career;
   const progress = levelProgress(progression);
+  const achievementTiers = highestAchievementTiers(snapshot.achievements);
   const hero = heroKind === 'season-complete'
     ? {
         action: t('home.hero.seasonCompleteAction'),
@@ -203,7 +199,26 @@ export function DriverHomePage() {
           <h2 id="achievements-title">{t('home.achievements')}</h2>
           <strong>{formatNumber(snapshot.achievementCount)}</strong>
           <p>{plural('home.achievementCount', snapshot.achievementCount)}</p>
-          <p className="achievement-latest"><span>{t('home.latestAchievement')}</span><strong>{snapshot.latestAchievement ? formatAchievementCode(snapshot.latestAchievement) : t('home.noLatestAchievement')}</strong></p>
+          {achievementTiers.length > 0 && (
+            <ul className="achievement-summary-badges">
+              {achievementTiers.map((achievement) => {
+                const title = t(achievement.titleKey as MessageKey, {
+                  metric: t((`metric.${achievement.metric}`) as MessageKey),
+                  threshold: formatNumber(achievement.threshold),
+                });
+                return (
+                  <li key={achievement.metric}>
+                    <AchievementBadge
+                      code={achievement.code}
+                      metric={achievement.metric}
+                      threshold={achievement.threshold}
+                      title={title}
+                    />
+                  </li>
+                );
+              })}
+            </ul>
+          )}
           <NavLink className="btn-secondary-ghost text-link" to="/career">{t('home.openCareer')}</NavLink>
         </article>
 
@@ -215,6 +230,7 @@ export function DriverHomePage() {
             </div>
             <span>{snapshot.challenges.length}/3</span>
           </div>
+          <ChallengeRotationCountdown challenges={snapshot.challenges} />
           {snapshot.challenges.length === 0 ? (
             <p className="empty-copy">{t('home.noChallenges')}</p>
           ) : (

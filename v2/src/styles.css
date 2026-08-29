@@ -4020,29 +4020,29 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .level-gauge-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 20px 22px;
+  gap: 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--line);
 }
 
 .level-gauge-header > div:not(.level-gauge-meta) { min-width: 0; }
-.level-gauge-header h2 { margin: 0 0 4px; font-size: 1.18rem; }
-.level-gauge-header p { margin: 0; font-size: 0.78rem; }
+.level-gauge-header h2 { margin: 0 0 2px; font-size: 0.96rem; }
+.level-gauge-header p { margin: 0; font-size: 0.68rem; }
 
 .level-gauge-icon {
-  width: 42px;
-  height: 42px;
+  width: 32px;
+  height: 32px;
   display: grid;
-  flex: 0 0 42px;
+  flex: 0 0 32px;
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--brand-accent) 38%, var(--line));
-  border-radius: 10px;
+  border-radius: 8px;
   color: var(--brand-accent);
   background: color-mix(in srgb, var(--brand-accent) 9%, var(--brand-surface));
 }
 
 .level-gauge-icon svg {
-  width: 24px;
+  width: 19px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -4054,16 +4054,16 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 6px;
   margin-left: auto;
 }
 
 .level-gauge-pill {
-  min-height: 32px;
+  min-height: 27px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 12px;
+  gap: 6px;
+  padding: 0 9px;
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 800;
@@ -4089,7 +4089,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   background: color-mix(in srgb, var(--brand-surface) 90%, var(--brand-background));
 }
 
-.level-gauge-instrument { padding: 18px 22px 0; }
+.level-gauge-instrument { padding: 8px 14px 0; }
 
 .level-gauge-topline {
   display: grid;
@@ -4114,9 +4114,9 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .level-gauge-dot--target { background: var(--brand-primary); }
 
 .level-gauge {
-  width: min(100%, 720px);
+  width: min(100%, 400px);
   display: block;
-  margin: -10px auto -4px;
+  margin: -8px auto -2px;
   overflow: visible;
 }
 
@@ -4164,16 +4164,11 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   text-anchor: middle;
 }
 
-.level-gauge-core-pill {
-  fill: color-mix(in srgb, var(--brand-accent) 10%, var(--brand-surface));
-  stroke: color-mix(in srgb, var(--brand-accent) 38%, var(--line));
-}
-
-.level-gauge-core-pill-text {
+.level-gauge-percentage {
   fill: var(--brand-accent);
-  font-size: 10px;
+  font-size: 17px;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
   text-anchor: middle;
 }
 
@@ -4192,11 +4187,11 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .level-gauge-hub-highlight { fill: #fff; opacity: 0.7; }
 
 .level-gauge-stats {
-  min-height: 92px;
+  min-height: 58px;
   display: grid;
   grid-template-columns: 1fr 1px 1fr 1px 1fr;
   align-items: center;
-  padding: 0 26px;
+  padding: 0 16px;
   border-top: 1px solid var(--line);
   background: color-mix(in srgb, var(--brand-surface) 88%, var(--brand-background));
 }
@@ -4204,33 +4199,56 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .level-gauge-stats > div { display: grid; gap: 2px; }
 .level-gauge-stats > div:nth-of-type(2) { justify-items: center; text-align: center; }
 .level-gauge-stats > div:last-child { justify-items: end; text-align: right; }
-.level-gauge-stats > i { width: 1px; height: 44px; background: var(--line-strong); }
-.level-gauge-stats span { color: var(--muted); font-size: 0.68rem; }
-.level-gauge-stats strong { font-size: 1.35rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.level-gauge-stats small { color: color-mix(in srgb, var(--brand-text) 52%, var(--brand-surface)); font-size: 0.62rem; }
+.level-gauge-stats > i { width: 1px; height: 30px; background: var(--line-strong); }
+.level-gauge-stats span { color: var(--muted); font-size: 0.6rem; }
+.level-gauge-stats strong { font-size: 1rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.level-gauge-stats small { color: color-mix(in srgb, var(--brand-text) 52%, var(--brand-surface)); font-size: 0.56rem; }
 
 .level-gauge-lifetime {
   margin: 0;
-  padding: 10px 22px;
+  padding: 7px 14px;
   border-top: 1px solid var(--line);
   color: var(--muted);
   background: color-mix(in srgb, var(--brand-surface) 92%, var(--brand-background));
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   text-align: center;
 }
 
+.achievement-summary-badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
+  gap: 8px;
+  margin: 1rem 0 1.2rem;
+  padding: 0.85rem 0;
+  border-block: 1px solid var(--line);
+  list-style: none;
+}
+
+.achievement-summary-badges li {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+}
+
+.achievement-summary-badges .achievement-badge {
+  width: 52px;
+  height: 62px;
+}
+
 @media (max-width: 620px) {
-  .level-gauge-header { align-items: flex-start; padding: 16px; }
+  .level-gauge-header { align-items: center; padding: 9px 10px; }
   .level-gauge-header p,
   .level-gauge-pill--balance,
   .level-gauge-topline b { display: none; }
-  .level-gauge-icon { width: 38px; height: 38px; flex-basis: 38px; }
+  .level-gauge-icon { width: 30px; height: 30px; flex-basis: 30px; }
   .level-gauge-meta { flex-wrap: nowrap; }
   .level-gauge-instrument { padding-inline: 6px; }
-  .level-gauge-topline { padding-inline: 10px; }
-  .level-gauge-stats { min-height: 82px; padding-inline: 16px; }
-  .level-gauge-stats strong { font-size: 1.05rem; }
-  .level-gauge-stats small { max-width: 12ch; }
+  .level-gauge-topline { padding-inline: 8px; }
+  .level-gauge-stats { min-height: 58px; padding-inline: 10px; }
+  .level-gauge-stats strong { font-size: 0.92rem; }
+  .level-gauge-stats small { max-width: 11ch; }
+  .achievement-summary-badges { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .achievement-summary-badges .achievement-badge { width: 40px; height: 48px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4256,6 +4274,6 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .achievement-list li { align-items: center; gap: 0.7rem; }
   .achievement-badge { width: 54px; height: 66px; }
   .achievement-list li > span { align-self: flex-start; padding-top: 0.25rem; }
-  .challenge-countdown { align-items: flex-start; flex-direction: column; gap: 0.3rem; }
+  .challenge-countdown { align-items: center; flex-direction: row; gap: 0.5rem; }
 }
 

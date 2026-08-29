@@ -117,8 +117,6 @@ export function LevelGauge({
           <g>{scaleLabels}</g>
           <text className="level-gauge-level-label" x="300" y="165">LEVEL</text>
           <text className="level-gauge-level-number" x="300" y="230">{level}</text>
-          <rect className="level-gauge-core-pill" height="28" rx="14" width="124" x="238" y="244" />
-          <text className="level-gauge-core-pill-text" x="300" y="263">{t('home.levelComplete', { progress: roundedProgress })}</text>
           <path
             className="level-gauge-needle"
             d="M 286 289 L 486 294 L 286 299 Z"
@@ -128,6 +126,7 @@ export function LevelGauge({
           <circle className="level-gauge-hub-ring" cx="300" cy="294" r="22" />
           <circle className="level-gauge-hub-core" cx="300" cy="294" r="9" />
           <circle className="level-gauge-hub-highlight" cx="297" cy="291" r="3" />
+          <text className="level-gauge-percentage" x="300" y="345">{roundedProgress}%</text>
         </svg>
       </div>
 

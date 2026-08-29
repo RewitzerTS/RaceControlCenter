@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { levelProgress, nextChallengeRotation, selectDriverHero, type DriverHomeSnapshot } from './driverHome';
+import { highestAchievementTiers, levelProgress, nextChallengeRotation, selectDriverHero, type DriverAchievement, type DriverHomeSnapshot } from './driverHome';
 
 const emptySnapshot: DriverHomeSnapshot = {
   activeSeason: null,
@@ -99,6 +99,26 @@ describe('Driver Home rules', () => {
       xp_into_level: 0,
       xp_to_next_level: 0,
     })).toBe(100);
+  });
+
+  it('selects the highest unlocked Achievement tier for every metric', () => {
+    const achievement = (metric: string, threshold: number): DriverAchievement => ({
+      code: `${metric}_${threshold}`,
+      currentValue: threshold,
+      descriptionKey: 'achievement.description',
+      metric,
+      rewardVc: 100,
+      threshold,
+      titleKey: 'achievement.title',
+      unlockedAt: null,
+    });
+
+    expect(highestAchievementTiers([
+      achievement('wins', 1),
+      achievement('starts', 10),
+      achievement('wins', 5),
+      achievement('starts', 1),
+    ]).map(({ code }) => code)).toEqual(['starts_10', 'wins_5']);
   });
 
   it('uses the scheduled Challenge end as the next rotation', () => {

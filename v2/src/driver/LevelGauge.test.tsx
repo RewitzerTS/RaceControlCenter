@@ -7,7 +7,7 @@ describe('LevelGauge', () => {
   beforeEach(() => localStorage.setItem('racevora.locale', 'de'));
 
   it('renders the live driver progression as an accessible gauge', () => {
-    render(
+    const { container } = render(
       <I18nProvider>
         <LevelGauge
           balance={1525}
@@ -27,5 +27,7 @@ describe('LevelGauge', () => {
     expect(screen.getByText('680 XP gesammelt')).toBeInTheDocument();
     expect(screen.getByText('1.525 VC')).toBeInTheDocument();
     expect(screen.getByText('4.365 Lifetime XP')).toBeInTheDocument();
+    expect(container.querySelector('.level-gauge-core-pill')).not.toBeInTheDocument();
+    expect(container.querySelector('.level-gauge-percentage')).toHaveTextContent('68%');
   });
 });
