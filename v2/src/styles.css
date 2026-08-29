@@ -3344,19 +3344,26 @@ p { color: var(--muted); }
   .site-header,
   .header-inner,
   .brand { min-height: 82px; }
-  .brand-logo { width: 74px; height: 74px; }
-  .brand { min-width: 0; flex: 0 0 auto; gap: 8px; }
-  .brand-text { display: none; }
+  .brand-logo { width: 64px; height: 64px; }
+  .brand { min-width: 0; flex: 1 1 auto; gap: 8px; }
+  .brand-text { min-width: 0; display: block; }
   .brand-title {
-    max-width: 22ch;
+    max-width: 100%;
     overflow: hidden;
     font-size: 0.84rem;
     letter-spacing: 0.035em;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .brand-subtitle { display: none; }
-  .brand-subtitle { letter-spacing: 0.12em; }
+  .brand-subtitle {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .header-inner { gap: 8px; }
   .league-switcher { min-width: 0; max-width: 132px; flex: 1 1 132px; }
   .mobile-toggle { flex: 0 0 46px; }
@@ -3400,6 +3407,26 @@ p { color: var(--muted); }
 }
 .app-shell :where(input, textarea)::placeholder {
   color: color-mix(in srgb, var(--brand-text) 48%, var(--brand-surface));
+}
+
+/* Form surfaces and controls must follow the selected league theme. */
+.app-shell :is(.admin-form, .onboarding-card, .steward-form, .beta-access-form) {
+  border-color: var(--line);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand-accent) 9%, transparent), transparent 40%),
+    color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background));
+}
+.app-shell :is(.admin-form, .onboarding-form, .steward-form, .beta-access-form) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+.app-shell :is(.admin-data-panel, .result-review-table) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  color: var(--brand-text);
+  border-color: var(--control-border);
+  background: var(--control-background);
+}
+.app-shell :is(.admin-form, .onboarding-form, .steward-form, .beta-access-form) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
+.app-shell :is(.admin-data-panel, .result-review-table) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
+  border-color: color-mix(in srgb, var(--brand-primary) 68%, var(--brand-text));
+  background: var(--control-background-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
 }
 
 .vora-insight {
