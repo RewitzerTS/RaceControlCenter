@@ -249,7 +249,7 @@ export function DriverHomePage() {
         </article>
 
         <article className="dashboard-card vora-preview" aria-labelledby="vora-title">
-          <span className="vora-mark" aria-hidden="true"><img alt="" decoding="async" height="720" src="/assets/vora/vora-headset-portrait.webp" width="671" /></span>
+          <span className="vora-mark" aria-hidden="true"><img alt="" decoding="async" height="720" src="/assets/vora/vora-headset-portrait-v2.webp" width="676" /></span>
           <div>
             <p className="section-label">{t('home.voraInsight')}</p>
             <h2 id="vora-title">{t('home.voraTitle')}</h2>

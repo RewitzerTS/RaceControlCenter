@@ -1,4 +1,4 @@
-import { useId, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
 
 type LevelGaugeProps = {
@@ -29,6 +29,8 @@ export function LevelGauge({
   xpToNextLevel,
 }: LevelGaugeProps) {
   const { formatNumber, t } = useI18n();
+  const instrumentRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const rawId = useId().replaceAll(':', '');
   const arcGradientId = `level-gauge-arc-${rawId}`;
   const needleGradientId = `level-gauge-needle-${rawId}`;
@@ -43,6 +45,27 @@ export function LevelGauge({
   const arcStyle = {
     '--level-gauge-progress': safeProgress,
   } as CSSProperties;
+
+  useEffect(() => {
+    const instrument = instrumentRef.current;
+    if (!instrument) return;
+    if (!('IntersectionObserver' in window)) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      setIsVisible(true);
+      observer.disconnect();
+    }, {
+      rootMargin: '0px 0px -10% 0px',
+      threshold: 0.25,
+    });
+
+    observer.observe(instrument);
+    return () => observer.disconnect();
+  }, []);
 
   const ticks = Array.from({ length: 41 }, (_, index) => {
     const angle = 180 + index * 4.5;
@@ -81,7 +104,10 @@ export function LevelGauge({
         </div>
       </header>
 
-      <div className="level-gauge-instrument">
+      <div
+        className={`level-gauge-instrument${isVisible ? ' level-gauge-instrument--visible' : ''}`}
+        ref={instrumentRef}
+      >
         <div className="level-gauge-topline">
           <span><i className="level-gauge-dot" aria-hidden="true" />{t('home.levelShort', { level })}</span>
           <b>{t('home.levelCollected', { xp: formatNumber(xpIntoLevel) })}</b>

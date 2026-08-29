@@ -47,7 +47,6 @@ export function raceStatusLabel(status: string, t: ReturnType<typeof useI18n>['t
 }
 
 const RACING_SECTIONS = [
-  { key: 'racing.overview', mobilePrimary: true, to: '/racing' },
   { key: 'racing.calendar', mobilePrimary: true, to: '/racing/calendar' },
   { key: 'racing.results', mobilePrimary: true, to: '/racing/results' },
   { key: 'racing.championship', mobilePrimary: true, to: '/racing/standings' },
@@ -67,7 +66,7 @@ function RacingNavigation() {
   return (
     <nav aria-label={t('racing.navigation')} className="section-navigation">
       {RACING_SECTIONS.map((item) => (
-        <NavLink className={item.mobilePrimary ? 'section-navigation-link--primary' : 'section-navigation-link--secondary'} end={item.to === '/racing'} key={item.to} to={item.to}>{item.to === '/racing/standings' ? <><span className="racing-nav-label--full">{t(item.key)}</span><span className="racing-nav-label--compact">{t('racing.championshipShort')}</span></> : t(item.key)}</NavLink>
+        <NavLink className={item.mobilePrimary ? 'section-navigation-link--primary' : 'section-navigation-link--secondary'} key={item.to} to={item.to}>{item.to === '/racing/standings' ? <><span className="racing-nav-label--full">{t(item.key)}</span><span className="racing-nav-label--compact">{t('racing.championshipShort')}</span></> : t(item.key)}</NavLink>
       ))}
       <details className={`section-navigation-more${secondaryActive ? ' active' : ''}`}>
         <summary>{t('nav.more')}</summary>

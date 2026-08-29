@@ -30,7 +30,7 @@ export function VoraPage() {
 
   return <main className="vora-page" id="main-content">
     <header className="vora-header"><div><p className="section-label">{t('vora.eyebrow')}</p><h1>{t('vora.title')}</h1><p>{t('vora.copy')}</p></div></header>
-    <section className="vora-insight" aria-labelledby="vora-insight-title"><div className="vora-avatar" aria-hidden="true"><img alt="" decoding="async" height="720" src="/assets/vora/vora-headset-portrait.webp" width="671" /></div><div><p>{t('vora.currentInsight')}</p><h2 id="vora-insight-title">{t(snapshot.insight.title_key as MessageKey)}</h2><p>{t(snapshot.insight.body_key as MessageKey)}</p></div></section>
+    <section className="vora-insight" aria-labelledby="vora-insight-title"><div className="vora-avatar" aria-hidden="true"><img alt="" decoding="async" height="720" src="/assets/vora/vora-headset-portrait-v2.webp" width="676" /></div><div><p>{t('vora.currentInsight')}</p><h2 id="vora-insight-title">{t(snapshot.insight.title_key as MessageKey)}</h2><p>{t(snapshot.insight.body_key as MessageKey)}</p></div></section>
     <section className="vora-racing-line" aria-label={t('vora.career')}>
       {metrics.map(([key, value]) => <div key={key}><span>{t(key)}</span><strong>{typeof value === 'number' ? formatNumber(value) : value}</strong></div>)}
       <div className="vora-progression"><span>{t('vora.progression')}</span><strong>{t('vora.levelRank', { level: snapshot.progression.level, rank: snapshot.progression.rank })}</strong><small>{t('vora.nextLevel', { xp: formatNumber(snapshot.progression.xp_to_next_level) })}</small></div>

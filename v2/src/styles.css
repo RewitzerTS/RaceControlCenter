@@ -4139,10 +4139,13 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .level-gauge-track { stroke: color-mix(in srgb, var(--brand-accent-2) 28%, var(--brand-surface)); stroke-width: 16; }
 .level-gauge-arc {
   stroke-width: 16;
-  stroke-dasharray: var(--level-gauge-progress, 0) 100;
+  stroke-dasharray: 0 100;
   filter: drop-shadow(0 0 5px color-mix(in srgb, var(--brand-accent) 18%, transparent));
-  animation: level-gauge-arc-reveal 1.05s cubic-bezier(.22, 1, .36, 1) both;
   transition: stroke-dasharray 220ms var(--ease-out);
+}
+
+.level-gauge-instrument--visible .level-gauge-arc {
+  animation: level-gauge-arc-reveal 1.05s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 @keyframes level-gauge-arc-reveal {
@@ -4191,11 +4194,14 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   stroke: color-mix(in srgb, var(--brand-text) 88%, var(--brand-accent));
   stroke-width: 0.75;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-  transform: rotate(var(--level-gauge-angle, -180deg));
+  transform: rotate(-180deg);
   transform-box: view-box;
   transform-origin: 300px 294px;
-  animation: level-gauge-needle-sweep 1.15s cubic-bezier(.22, 1, .36, 1) both;
   transition: transform 220ms var(--ease-out);
+}
+
+.level-gauge-instrument--visible .level-gauge-needle {
+  animation: level-gauge-needle-sweep 1.15s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 @keyframes level-gauge-needle-sweep {
@@ -4277,6 +4283,8 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 @media (prefers-reduced-motion: reduce) {
   .level-gauge-arc,
   .level-gauge-needle { animation: none; transition: none; }
+  .level-gauge-arc { stroke-dasharray: var(--level-gauge-progress, 0) 100; }
+  .level-gauge-needle { transform: rotate(var(--level-gauge-angle, -180deg)); }
 }
 .challenge-countdown {
   display: flex;

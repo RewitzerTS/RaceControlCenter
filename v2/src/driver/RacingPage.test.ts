@@ -35,8 +35,8 @@ describe('localized racing status labels', () => {
 });
 
 describe('mobile racing navigation', () => {
-  it('keeps the four core racing destinations directly visible', () => {
-    expect(MOBILE_RACING_PRIMARY_PATHS).toEqual(['/racing', '/racing/calendar', '/racing/results', '/racing/standings']);
+  it('keeps the three core racing destinations directly visible', () => {
+    expect(MOBILE_RACING_PRIMARY_PATHS).toEqual(['/racing/calendar', '/racing/results', '/racing/standings']);
   });
 
   it('moves supporting destinations into More', () => {

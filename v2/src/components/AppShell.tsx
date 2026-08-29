@@ -426,7 +426,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         <Routes key={leagueSlug}>
           <Route path="/" element={<Navigate replace to="/home" />} />
           <Route path="/home" element={<DriverHomePage />} />
-          <Route path="/racing" element={<RacingPage />} />
+          <Route path="/racing" element={<Navigate replace to={{ pathname: '/racing/calendar', search: location.search, hash: location.hash }} />} />
           <Route path="/racing/*" element={<RacingPage />} />
           <Route path="/career" element={<Suspense fallback={routeLoading}><CareerPage /></Suspense>} />
           <Route path="/career/*" element={<Suspense fallback={routeLoading}><CareerPage /></Suspense>} />
