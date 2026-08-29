@@ -33,6 +33,13 @@ const calendarPage = await readFile(resolve(distRoot, 'kalender.html'), 'utf8');
 if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')) {
   throw new Error('Integrated calendar must cache-bust its updated lifecycle navigation.');
 }
+if (!calendarPage.includes('/v1-assets/js/data/tracks.js?v=v2-local-flags-1')) {
+  throw new Error('Integrated calendar must cache-bust the local country-flag source.');
+}
+const integratedTracks = await readFile(resolve(distRoot, 'v1-assets', 'js', 'data', 'tracks.js'), 'utf8');
+if (!integratedTracks.includes('`/v1-assets/images/flags/${lower}.svg`') || integratedTracks.includes('flagcdn.com')) {
+  throw new Error('Integrated Racing pages must load country flags from local RaceVora assets.');
+}
 
 const seasonArchivePage = await readFile(resolve(distRoot, 'saison-archiv.html'), 'utf8');
 if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-4')) {

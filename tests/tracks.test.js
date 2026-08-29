@@ -13,6 +13,9 @@ function assert(condition, message) {
 const f1_25Tracks = context.window.getTracksForSeasonGame('f1_25');
 const f1_26Tracks = context.window.getTracksForSeasonGame('f1_26');
 
+assert(context.window.getFlagImageUrl('IT') === 'assets/images/flags/it.svg', 'Flags should use local RaceVora assets');
+assert(!context.window.getFlagImageUrl('IT').includes('flagcdn.com'), 'Flags must not depend on an external CDN');
+
 assert(f1_25Tracks.length === 24, 'F1 25 should expose 24 calendar tracks');
 assert(f1_26Tracks.length === 24, 'F1 26 should expose 24 calendar tracks');
 assert(f1_25Tracks.some((track) => track.key === 'spain' && track.grandPrixName === 'Spanien GP'), 'F1 25 should keep Barcelona as Spanien GP');
