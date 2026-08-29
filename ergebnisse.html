@@ -51,9 +51,26 @@
         <div class="results-trend-heading results-trend-heading--enhanced">
           <div class="results-chart-heading-copy">
             <h3>Punkteverlauf</h3>
-            <p>Kumulierte WM-Punkte nach jedem Rennen. Die aktuellen Top 5 werden hervorgehoben, das restliche Feld bleibt zur Einordnung sichtbar.</p>
+            <p>Kumulierte WM-Punkte nach jedem Rennen. Im Fokus stehen die Meisterschaftsspitze und dein eigenes Fahrerprofil.</p>
           </div>
-          <span class="results-trend-hint">Tipp: Querformat</span>
+        </div>
+        <div class="results-chart-focus" aria-label="Fahrer im Punkteverlauf auswählen">
+          <div class="results-chart-focus-modes" role="group" aria-label="Punkteverlauf filtern">
+            <button type="button" class="results-chart-focus-mode is-active" data-results-focus-mode="leaders" aria-pressed="true">Spitze</button>
+            <button type="button" class="results-chart-focus-mode" data-results-focus-mode="own" aria-pressed="false" disabled>Mein Fahrer</button>
+            <button type="button" class="results-chart-focus-mode" data-results-focus-mode="compare" aria-pressed="false">Vergleich</button>
+          </div>
+          <div class="results-chart-compare-fields" id="results-chart-compare-fields" hidden>
+            <label>
+              <span>Fahrer 1</span>
+              <select id="results-chart-compare-a" aria-label="Ersten Vergleichsfahrer auswählen"></select>
+            </label>
+            <label>
+              <span>Fahrer 2</span>
+              <select id="results-chart-compare-b" aria-label="Zweiten Vergleichsfahrer auswählen"></select>
+            </label>
+          </div>
+          <span class="results-chart-focus-status" id="results-chart-focus-status" aria-live="polite">Spitze wird geladen …</span>
         </div>
         <div class="results-chart-frame">
           <canvas id="results-trend-chart" height="120"></canvas>

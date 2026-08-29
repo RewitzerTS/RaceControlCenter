@@ -1,4 +1,206 @@
 let trendChartInstance = null;
+let trendFocusMode = 'leaders';
+let trendFocusMatrixData = null;
+let trendFocusOwnDriverId = '';
+let trendFocusCompareKeys = [];
+let trendFocusBreakpointBound = false;
+
+function getTrendRowKey(entry, index = 0) {
+  return String(entry?.driver?.id || entry?.id || entry?.driver || `row-${index}`);
+}
+
+function getTrendLeaderCount(compact = false) {
+  return compact ? 3 : 5;
+}
+
+function selectTrendFocusKeys(rows = [], options = {}) {
+  const compact = options.compact === true;
+  const mode = options.mode || 'leaders';
+  const ownDriverId = String(options.ownDriverId || '');
+  const rowKeys = rows.map((entry, index) => getTrendRowKey(entry, index));
+  const validKeys = new Set(rowKeys);
+  const selected = new Set();
+
+  if (mode === 'own') {
+    if (validKeys.has(ownDriverId)) selected.add(ownDriverId);
+  } else if (mode === 'compare') {
+    if (validKeys.has(ownDriverId)) selected.add(ownDriverId);
+    (options.compareKeys || []).slice(0, 2).forEach((key) => {
+      const normalized = String(key || '');
+      if (validKeys.has(normalized)) selected.add(normalized);
+    });
+  } else {
+    rowKeys.slice(0, getTrendLeaderCount(compact)).forEach((key) => selected.add(key));
+    if (validKeys.has(ownDriverId)) selected.add(ownDriverId);
+  }
+
+  if (!selected.size) {
+    rowKeys.slice(0, getTrendLeaderCount(compact)).forEach((key) => selected.add(key));
+  }
+
+  return [...selected];
+}
+
+async function fetchOwnDriverId(drivers = []) {
+  if (!window.supabaseClient) return '';
+  const availableDriverIds = new Set(drivers.map((driver) => String(driver.id || '')).filter(Boolean));
+
+  try {
+    const identityResponse = await window.supabaseClient
+      .from('driver_identities')
+      .select('id')
+      .limit(1)
+      .maybeSingle();
+    if (identityResponse.error || !identityResponse.data?.id) return '';
+
+    const linksResponse = await window.supabaseClient
+      .from('driver_identity_links')
+      .select('driver_id')
+      .eq('driver_identity_id', identityResponse.data.id);
+    if (linksResponse.error) return '';
+
+    const ownLink = (linksResponse.data || []).find((link) => availableDriverIds.has(String(link.driver_id || '')));
+    return ownLink ? String(ownLink.driver_id) : '';
+  } catch (_error) {
+    return '';
+  }
+}
+
+function trendFocusIsCompact() {
+  return window.matchMedia?.('(max-width: 700px)').matches === true;
+}
+
+function getTrendFocusDriverLabel(key) {
+  const rows = trendFocusMatrixData?.rows || [];
+  const index = rows.findIndex((entry, entryIndex) => getTrendRowKey(entry, entryIndex) === String(key || ''));
+  return index >= 0 ? rows[index].driver?.display_name || String(rows[index].driver || '') : '';
+}
+
+function updateTrendFocusControls(visibleKeys) {
+  const buttons = [...document.querySelectorAll('[data-results-focus-mode]')];
+  const compareFields = document.getElementById('results-chart-compare-fields');
+  const ownButton = document.querySelector('[data-results-focus-mode="own"]');
+  const status = document.getElementById('results-chart-focus-status');
+  const ownAvailable = Boolean(trendFocusOwnDriverId);
+
+  if (ownButton) {
+    ownButton.disabled = !ownAvailable;
+    ownButton.title = ownAvailable ? '' : 'Für dieses Konto ist in der aktiven Liga kein Fahrerprofil verknüpft.';
+  }
+
+  buttons.forEach((button) => {
+    const active = button.dataset.resultsFocusMode === trendFocusMode;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+  if (compareFields) compareFields.hidden = trendFocusMode !== 'compare';
+
+  if (!status) return;
+  if (trendFocusMode === 'own') {
+    status.textContent = getTrendFocusDriverLabel(trendFocusOwnDriverId) || 'Kein Fahrerprofil verknüpft';
+    return;
+  }
+  if (trendFocusMode === 'compare') {
+    const names = visibleKeys.map(getTrendFocusDriverLabel).filter(Boolean);
+    status.textContent = names.length ? names.join(' · ') : 'Vergleichsfahrer auswählen';
+    return;
+  }
+
+  const leaderCount = Math.min(getTrendLeaderCount(trendFocusIsCompact()), trendFocusMatrixData?.rows?.length || 0);
+  const ownOutsideLeaders = trendFocusOwnDriverId
+    && !trendFocusMatrixData.rows.slice(0, leaderCount).some((entry, index) => getTrendRowKey(entry, index) === trendFocusOwnDriverId);
+  status.textContent = `Top ${leaderCount}${ownOutsideLeaders ? ' + Mein Fahrer' : ''}`;
+}
+
+function applyTrendFocus() {
+  if (!trendChartInstance || !trendFocusMatrixData) return;
+  const visibleKeys = selectTrendFocusKeys(trendFocusMatrixData.rows, {
+    mode: trendFocusMode,
+    ownDriverId: trendFocusOwnDriverId,
+    compareKeys: trendFocusCompareKeys,
+    compact: trendFocusIsCompact()
+  });
+  const visibleSet = new Set(visibleKeys);
+
+  trendChartInstance.data.datasets.forEach((dataset) => {
+    dataset.hidden = !visibleSet.has(String(dataset.rccFocusKey || ''));
+  });
+  trendChartInstance.update('none');
+  updateTrendFocusControls(visibleKeys);
+  document.dispatchEvent(new CustomEvent('rcc:results-focus-change'));
+}
+
+function syncTrendCompareOptions() {
+  const selectA = document.getElementById('results-chart-compare-a');
+  const selectB = document.getElementById('results-chart-compare-b');
+  if (!selectA || !selectB) return;
+
+  [...selectA.options].forEach((option) => {
+    option.disabled = Boolean(option.value && option.value === selectB.value);
+  });
+  [...selectB.options].forEach((option) => {
+    option.disabled = Boolean(option.value && option.value === selectA.value);
+  });
+}
+
+function setupTrendFocus(matrixData, ownDriverId = '') {
+  trendFocusMatrixData = matrixData;
+  trendFocusOwnDriverId = String(ownDriverId || '');
+  trendFocusMode = 'leaders';
+
+  const rows = matrixData.rows || [];
+  const candidates = rows
+    .map((entry, index) => getTrendRowKey(entry, index))
+    .filter((key) => key !== trendFocusOwnDriverId);
+  trendFocusCompareKeys = candidates.slice(0, 2);
+
+  const optionsMarkup = `
+    <option value="">Fahrer wählen</option>
+    ${rows.map((entry, index) => {
+      const key = getTrendRowKey(entry, index);
+      const label = entry.driver?.display_name || String(entry.driver || 'Unbekannt');
+      return `<option value="${window.escapeHtml(key)}">P${index + 1} · ${window.escapeHtml(label)}</option>`;
+    }).join('')}
+  `;
+  const selectA = document.getElementById('results-chart-compare-a');
+  const selectB = document.getElementById('results-chart-compare-b');
+  if (selectA) {
+    selectA.innerHTML = optionsMarkup;
+    selectA.value = trendFocusCompareKeys[0] || '';
+  }
+  if (selectB) {
+    selectB.innerHTML = optionsMarkup;
+    selectB.value = trendFocusCompareKeys[1] || '';
+  }
+  syncTrendCompareOptions();
+
+  document.querySelectorAll('[data-results-focus-mode]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const nextMode = button.dataset.resultsFocusMode || 'leaders';
+      if (nextMode === 'own' && !trendFocusOwnDriverId) return;
+      trendFocusMode = nextMode;
+      applyTrendFocus();
+    });
+  });
+
+  [selectA, selectB].filter(Boolean).forEach((select) => {
+    select.addEventListener('change', () => {
+      trendFocusCompareKeys = [selectA?.value || '', selectB?.value || ''].filter(Boolean);
+      syncTrendCompareOptions();
+      applyTrendFocus();
+    });
+  });
+
+  if (!trendFocusBreakpointBound && window.matchMedia) {
+    const mediaQuery = window.matchMedia('(max-width: 700px)');
+    mediaQuery.addEventListener?.('change', () => {
+      if (trendFocusMode === 'leaders') applyTrendFocus();
+    });
+    trendFocusBreakpointBound = true;
+  }
+
+  applyTrendFocus();
+}
 
 function getRaceFlagFromCountryCode(countryCode) {
   const emoji = window.getFlagEmoji?.(countryCode);
@@ -221,7 +423,7 @@ function renderTrendChart(matrixData) {
   const chartRaces = matrixData.completedRaces.slice().sort((a, b) => Number(a.round_number || 0) - Number(b.round_number || 0));
   const labels = chartRaces.map((race) => `R${race.round_number}`);
   const raceOrder = new Map(matrixData.completedRaces.map((race, index) => [race.id, index]));
-  const datasets = matrixData.rows.map((entry) => {
+  const datasets = matrixData.rows.map((entry, entryIndex) => {
     let running = 0;
     const chronologicalCells = chartRaces.map((race) => entry.raceCells[raceOrder.get(race.id)]);
     const data = chronologicalCells.map((cell) => {
@@ -230,6 +432,8 @@ function renderTrendChart(matrixData) {
     });
     return {
       label: entry.driver.display_name,
+      rccFocusKey: getTrendRowKey(entry, entryIndex),
+      rccStandingIndex: entryIndex,
       data,
       tension: 0.25,
       fill: false,
@@ -259,7 +463,8 @@ function renderTrendChart(matrixData) {
             color: legendLabelColor,
             boxWidth: 10,
             usePointStyle: true,
-            padding: 14
+            padding: 14,
+            filter: (item, chartData) => chartData.datasets[item.datasetIndex]?.hidden !== true
           }
         }
       },
@@ -301,8 +506,10 @@ async function loadResultsPage() {
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
     const matrixData = buildMatrixData(drivers, races, raceResults, resolver);
+    const ownDriverId = await fetchOwnDriverId(drivers);
     renderMatrix(wrap, labelEl, matrixData);
     renderTrendChart(matrixData);
+    setupTrendFocus(matrixData, ownDriverId);
   } catch (error) {
     console.error(error);
     wrap.innerHTML = '<div class="notice">Fehler beim Laden der Saisonergebnisse.</div>';
@@ -314,3 +521,9 @@ async function loadResultsPage() {
 document.addEventListener('DOMContentLoaded', () => {
   loadResultsPage();
 });
+
+window.RCCResultsFocusUtils = {
+  getTrendLeaderCount,
+  getTrendRowKey,
+  selectTrendFocusKeys
+};

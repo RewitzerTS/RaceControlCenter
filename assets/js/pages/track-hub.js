@@ -36,17 +36,12 @@
     byId('track-hub-starts').textContent = totals.starts;
     byId('track-hub-laps').textContent = totals.laps;
 
-    byId('track-hub-grid').innerHTML = calculated.length ? calculated.map(({ track, stats }) => `
+    byId('track-hub-grid').innerHTML = calculated.length ? calculated.map(({ track }) => `
       <a class="track-hub-card" href="${scopedHref('strecken-profil.html', { track: track.key, season: state.seasonId || null })}">
-        <div class="track-hub-map">${window.createTrackMapSvg?.(track.track) || ''}</div>
+        <div class="track-hub-map">${window.createTrackMapSvg?.(track.track, { showInfo: false }) || ''}</div>
         <div>
           <h3>${esc(track.grandPrixName)}</h3>
           <p>${esc(track.circuitName)}</p>
-        </div>
-        <div class="track-hub-kpis">
-          <span>${stats.races} ${stats.races === 1 ? 'Rennen' : 'Rennen'}</span>
-          <span>${stats.leaders.wins?.name ? `Rekordsieger: ${esc(stats.leaders.wins.name)}` : 'Noch kein Sieger'}</span>
-          <span>${stats.bestLap ? `Bestzeit: ${esc(stats.bestLap.text)}` : 'Keine Bestzeit'}</span>
         </div>
       </a>`).join('') : '<div class="driver-empty">Für diesen Zeitraum sind noch keine gefahrenen Strecken vorhanden.</div>';
 

@@ -45,11 +45,14 @@
   function styleBaseChart(chart) {
     if (!chart?.data?.datasets?.length) return;
     const t = theme();
-    const topCount = Math.min(5, chart.data.datasets.length);
+    const visibleIndexes = chart.data.datasets
+      .map((dataset, index) => (dataset.hidden === true ? -1 : index))
+      .filter((index) => index >= 0);
 
     chart.data.datasets.forEach((dataset, index) => {
-      const highlighted = index < topCount;
-      const color = highlighted ? t.palette[index % t.palette.length] : rgba(t.muted, .26);
+      const visibleIndex = visibleIndexes.indexOf(index);
+      const highlighted = visibleIndex >= 0;
+      const color = highlighted ? t.palette[visibleIndex % t.palette.length] : rgba(t.muted, .26);
       dataset.borderColor = color;
       dataset.backgroundColor = rgba(color, .1);
       dataset.pointBackgroundColor = color;
@@ -62,7 +65,7 @@
     });
 
     chart.options.plugins.legend.labels.color = t.text;
-    chart.options.plugins.legend.labels.filter = (_item, data) => data.datasetIndex < topCount;
+    chart.options.plugins.legend.labels.filter = (item, data) => data.datasets[item.datasetIndex]?.hidden !== true;
     chart.options.plugins.legend.labels.boxWidth = 9;
     chart.options.plugins.legend.labels.padding = 16;
     chart.options.plugins.tooltip = {
@@ -101,7 +104,7 @@
     const t = theme();
     const labels = [...(sourceChart.data.labels || [])];
     const all = sourceChart.data.datasets;
-    const top = all.slice(0, Math.min(5, all.length));
+    const top = all.filter((dataset) => dataset.hidden !== true).slice(0, 6);
     const leaders = labels.map((_, raceIndex) => Math.max(0, ...all.map((dataset) => Number(dataset.data?.[raceIndex] || 0))));
 
     const datasets = top.map((dataset, index) => ({
@@ -187,6 +190,7 @@
   function init() {
     refresh();
     document.addEventListener('rcc:page-content-ready', refresh);
+    document.addEventListener('rcc:results-focus-change', refresh);
 
     const observer = new MutationObserver((mutations) => {
       if (mutations.some((mutation) => mutation.attributeName === 'data-theme' || mutation.attributeName === 'style')) refresh();
