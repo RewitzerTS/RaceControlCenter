@@ -253,7 +253,7 @@ export function DriverHomePage() {
           <div>
             <p className="section-label">{t('home.voraInsight')}</p>
             <h2 id="vora-title">{t('home.voraTitle')}</h2>
-            <p>{t('home.voraPending')}</p>
+            <p>{t('home.voraCopy')}</p>
             <NavLink className="btn-secondary-ghost text-link" to="/vora">Vora</NavLink>
           </div>
         </article>
