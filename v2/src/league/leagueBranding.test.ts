@@ -1,5 +1,10 @@
-import { describe, expect, it } from 'vitest';
-import { fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './leagueBranding';
+import { afterEach, describe, expect, it } from 'vitest';
+import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './leagueBranding';
+
+afterEach(() => {
+  document.querySelector('meta[name="theme-color"]')?.remove();
+  document.documentElement.removeAttribute('style');
+});
 
 describe('personal theme resolution', () => {
   it('accepts the numeric theme_id stored in Supabase user metadata', () => {
@@ -14,6 +19,16 @@ describe('personal theme resolution', () => {
     expect(resolveTheme({ theme_id: '6' }).id).toBe(6);
     expect(resolveTheme({ theme_preset: 4 }).id).toBe(4);
     expect(resolveTheme({ theme_id: 'unknown' }).id).toBe(0);
+  });
+
+  it('colors the browser safe area with the active theme surface', () => {
+    const branding = fallbackLeagueBranding('racevora');
+    branding.theme = { ...branding.theme, background: '#101820', surface: '#142433' };
+
+    applyLeagueBranding(branding);
+
+    expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', '#142433');
+    expect(document.documentElement.style.backgroundColor).toBe('rgb(20, 36, 51)');
   });
 });
 

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
-import { Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import raceVoraMark from '../../../assets/images/racevora-mark.svg';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
@@ -41,7 +41,7 @@ const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ defau
 const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').then((module) => ({ default: module.GraphicsStudioPage })));
 const DemoE2EPage = lazy(() => import('../demo/DemoE2EPage').then((module) => ({ default: module.DemoE2EPage })));
 
-type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'more' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
+type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'logout' | 'more' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
 
 export const DRIVER_NAV_ITEMS: ReadonlyArray<{
   icon: IconName;
@@ -75,6 +75,7 @@ function NavIcon({ name }: { name: IconName }) {
     admin: <><path d="M4 5h16v14H4Z" /><path d="M4 9h16M9 9v10" /></>,
     owner: <><path d="m12 3 2.2 4.6 5.1.7-3.7 3.6.9 5.1-4.5-2.4L7.5 17l.9-5.1-3.7-3.6 5.1-.7Z" /></>,
     bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></>,
+    logout: <><path d="M10 5H5v14h5" /><path d="M14 8l4 4-4 4" /><path d="M8 12h10" /></>,
   };
   return (
     <svg aria-hidden="true" className="nav-icon" viewBox="0 0 24 24">
@@ -214,14 +215,20 @@ function MobileMoreNavigation({
   canSteward,
   open,
   onNavigate,
-  user,
+  onSignOut,
+  isPlatformOwner,
+  signingOut,
+  userId,
 }: {
   canAdmin: boolean;
   canOwner: boolean;
   canSteward: boolean;
   open: boolean;
   onNavigate: () => void;
-  user: boolean;
+  onSignOut: () => void;
+  isPlatformOwner: boolean;
+  signingOut: boolean;
+  userId: string | null;
 }) {
   const { t } = useI18n();
   return (
@@ -245,9 +252,12 @@ function MobileMoreNavigation({
         {canOwner && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
       </div>
       <div className="mobile-more-tools">
+        {userId && <div className="mobile-more-league-switcher"><LeagueSwitcher isPlatformOwner={isPlatformOwner} onSwitch={onNavigate} userId={userId} /></div>}
         <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={onNavigate} to="/profile"><NavIcon name="profile" /><span>{t('nav.profile')}</span></NavLink>
         <LanguageControl />
-        {!user && <NavLink className="session-state session-state--link" onClick={onNavigate} to="/login?mode=signin">{t('beta.action')}</NavLink>}
+        {userId
+          ? <button className="nav-item menu-sign-out" disabled={signingOut} onClick={onSignOut} type="button"><NavIcon name="logout" /><span>{signingOut ? t('pending') : t('shell.signOut')}</span></button>
+          : <NavLink className="session-state session-state--link" onClick={onNavigate} to="/login?mode=signin">{t('beta.action')}</NavLink>}
       </div>
     </nav>
   );
@@ -274,12 +284,15 @@ function roleLabel(role: ReturnType<typeof useRole>['role'], t: ReturnType<typeo
 
 export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [navigationOpen, setNavigationOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutFailed, setSignOutFailed] = useState(false);
   const { t } = useI18n();
   const { branding, leagueSlug } = useLeague();
   const { loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
-  const { loading: authLoading, user } = useAuth();
+  const { loading: authLoading, signOut, user } = useAuth();
   const displayBranding = shouldUseStandardRaceVoraBranding({
     authenticated: Boolean(user),
     authLoading,
@@ -298,6 +311,20 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
   const onboardingRequired = user?.user_metadata?.onboarding_complete === false;
   const closeNavigation = () => setNavigationOpen(false);
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    setSignOutFailed(false);
+    try {
+      await signOut();
+      closeNavigation();
+      navigate('/login?mode=signin', { replace: true });
+    } catch {
+      setSignOutFailed(true);
+    } finally {
+      setSigningOut(false);
+    }
+  };
   const moreRouteActive = isMobileMoreRoute(location.pathname);
   const routeLoading = <AppState copy={t('home.loadingCopy')} title={t('pending')} tone="loading" />;
 
@@ -318,14 +345,6 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
             <small className="brand-subtitle">{displayBranding.subtitle || 'Race Management Platform'}</small>
           </span>
         </NavLink>
-
-        {user && (
-          <LeagueSwitcher
-            isPlatformOwner={role === 'platform_owner'}
-            onSwitch={closeNavigation}
-            userId={user.id}
-          />
-        )}
 
         {canNotify && (
           <NavLink
@@ -357,6 +376,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
             {canOwner && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
           </div>
           <div className="header-tools">
+            {user && <div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner={role === 'platform_owner'} onSwitch={closeNavigation} userId={user.id} /></div>}
             {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
             <NavLink
@@ -368,11 +388,13 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
               <span>{t('nav.profile')}</span>
             </NavLink>
             <LanguageControl />
+            {user && <button className="nav-item menu-sign-out" disabled={signingOut} onClick={() => void handleSignOut()} type="button"><NavIcon name="logout" /><span>{signingOut ? t('pending') : t('shell.signOut')}</span></button>}
             {!user && (
               <NavLink className="session-state session-state--link" onClick={closeNavigation} to="/login?mode=signin">{t('beta.action')}</NavLink>
             )}
           </div>
         </nav>
+        {signOutFailed && <span className="header-session-error" role="alert">{t('profile.signOutError')}</span>}
         </div>
       </header>}
 
@@ -383,8 +405,11 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           canOwner={canOwner}
           canSteward={canSteward}
           onNavigate={closeNavigation}
+          onSignOut={() => void handleSignOut()}
           open={navigationOpen}
-          user={Boolean(user)}
+          isPlatformOwner={role === 'platform_owner'}
+          signingOut={signingOut}
+          userId={user?.id || null}
         />
       )}
       {!embeddedAccess && (

@@ -44,4 +44,10 @@ const comparison = utils.selectTrendFocusKeys(rows, {
 });
 assert(comparison.join(',') === 'driver-8,driver-2,driver-3', 'Comparison should show own driver plus at most two unique competitors');
 
+const immediateSetupIndex = code.indexOf('setupTrendFocus(matrixData);');
+const identityLookupIndex = code.indexOf('void fetchOwnDriverId(drivers).then');
+assert(immediateSetupIndex >= 0, 'The leader focus should be initialized immediately');
+assert(identityLookupIndex > immediateSetupIndex, 'Identity lookup must run after the leader focus is already active');
+assert(!fs.readFileSync('ergebnisse.html', 'utf8').includes('Spitze wird geladen'), 'The static fallback must not promise an endless loading state');
+
 console.log('results focus tests passed');

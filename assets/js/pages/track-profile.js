@@ -45,7 +45,11 @@
   function renderHero(stats, info) {
     byId('track-profile-name').textContent = stats.meta.grandPrixName;
     byId('track-profile-circuit').textContent = stats.meta.circuitName;
-    byId('track-profile-country').textContent = [info?.country, info?.shortName].filter(Boolean).join(' · ') || 'RaceVora Strecke';
+    const countryCode = stats.meta.track?.countryCode || '';
+    const countryLabel = [info?.country, info?.shortName].filter(Boolean).join(' · ') || 'RaceVora Strecke';
+    const flag = window.createFlagBadge?.(countryCode, `${info?.country || stats.meta.grandPrixName} Flagge`)
+      || `<span class="track-flag-fallback" aria-hidden="true">${window.getFlagEmoji?.(countryCode) || '🏁'}</span>`;
+    byId('track-profile-country').innerHTML = `${flag}<span>${esc(countryLabel)}</span>`;
     byId('track-profile-map').innerHTML = window.createTrackMapSvg?.(stats.meta.track) || '';
     byId('track-profile-tags').innerHTML = [info?.trackType, info?.direction].filter(Boolean).map((value) => `<span>${esc(value)}</span>`).join('');
     byId('track-profile-lap').textContent = stats.bestLap?.text || '—';

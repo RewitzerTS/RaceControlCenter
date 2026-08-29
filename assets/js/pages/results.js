@@ -148,6 +148,10 @@ function setupTrendFocus(matrixData, ownDriverId = '') {
   trendFocusOwnDriverId = String(ownDriverId || '');
   trendFocusMode = 'leaders';
 
+  // Apply the useful default immediately. Building the optional comparison
+  // controls must never leave the chart in a permanent loading state.
+  applyTrendFocus();
+
   const rows = matrixData.rows || [];
   const candidates = rows
     .map((entry, index) => getTrendRowKey(entry, index))
@@ -199,6 +203,12 @@ function setupTrendFocus(matrixData, ownDriverId = '') {
     trendFocusBreakpointBound = true;
   }
 
+  applyTrendFocus();
+}
+
+function updateTrendFocusOwnDriver(ownDriverId = '') {
+  if (!trendFocusMatrixData) return;
+  trendFocusOwnDriverId = String(ownDriverId || '');
   applyTrendFocus();
 }
 
@@ -506,10 +516,15 @@ async function loadResultsPage() {
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
     const matrixData = buildMatrixData(drivers, races, raceResults, resolver);
-    const ownDriverId = await fetchOwnDriverId(drivers);
     renderMatrix(wrap, labelEl, matrixData);
     renderTrendChart(matrixData);
-    setupTrendFocus(matrixData, ownDriverId);
+    setupTrendFocus(matrixData);
+
+    // Identity resolution is an enhancement, not a prerequisite for the
+    // chart. Slow or unavailable identity queries must not block the Top 5/3.
+    void fetchOwnDriverId(drivers).then((ownDriverId) => {
+      if (trendFocusMatrixData === matrixData) updateTrendFocusOwnDriver(ownDriverId);
+    });
   } catch (error) {
     console.error(error);
     wrap.innerHTML = '<div class="notice">Fehler beim Laden der Saisonergebnisse.</div>';

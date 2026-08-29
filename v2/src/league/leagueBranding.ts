@@ -98,6 +98,14 @@ export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {
     '--brand-on-primary': theme.textOnPrimary,
   };
   for (const [name, value] of Object.entries(variables)) root.style.setProperty(name, value);
+  root.style.backgroundColor = theme.surface;
+  let themeColor = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (!themeColor) {
+    themeColor = document.createElement('meta');
+    themeColor.name = 'theme-color';
+    document.head.appendChild(themeColor);
+  }
+  themeColor.content = theme.surface || theme.background;
   root.dataset.leagueTheme = String(theme.id);
   root.dataset.leagueSlug = branding.slug;
   window.dispatchEvent(new CustomEvent('racevora:theme-changed'));
