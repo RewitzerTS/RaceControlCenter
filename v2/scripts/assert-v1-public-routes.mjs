@@ -152,11 +152,38 @@ if (!driverProfile.includes('state.profileNumber')
   throw new Error('Driver profile number display is not connected to the global profile number fallback.');
 }
 const driverProfilePage = await readFile(resolve(distRoot, 'fahrer-profil.html'), 'utf8');
+const teamProfilePage = await readFile(resolve(distRoot, 'team-profil.html'), 'utf8');
+const trackProfilePage = await readFile(resolve(distRoot, 'strecken-profil.html'), 'utf8');
 const headToHeadPage = await readFile(resolve(distRoot, 'head-to-head.html'), 'utf8');
 if (!driverProfilePage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')
     || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-profile-number-2')
     || !headToHeadPage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')) {
   throw new Error('Integrated Career pages do not cache-bust the profile number data fix.');
+}
+for (const [name, source] of [
+  ['driver', driverProfilePage],
+  ['team', teamProfilePage],
+  ['track', trackProfilePage],
+]) {
+  if (!source.includes('/v1-assets/css/pages/profile-theme.css')) {
+    throw new Error(`Integrated ${name} profile does not load the shared personal-theme surface rules.`);
+  }
+}
+const profileTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'profile-theme.css'), 'utf8');
+if (!profileTheme.includes('var(--primary)')
+    || !profileTheme.includes('var(--secondary)')
+    || !profileTheme.includes('.driver-stat-card--accent')) {
+  throw new Error('Integrated profile hero and accent cards do not follow personal theme tokens.');
+}
+
+const resultsPage = await readFile(resolve(distRoot, 'ergebnisse.html'), 'utf8');
+if (!resultsPage.includes('/v1-assets/css/pages/results-theme.css?v=v2-fastest-lap-violet-1')) {
+  throw new Error('Integrated results must cache-bust the semantic fastest-lap color fix.');
+}
+const resultsTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'results-theme.css'), 'utf8');
+if (!resultsTheme.includes('--results-fastest-lap: #d8a4ff')
+    || !resultsTheme.includes('background: var(--results-fastest-lap) !important')) {
+  throw new Error('Fastest-lap point chips must retain their violet semantic color across themes.');
 }
 
 const newsBackend = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-f1-news-backend.js'), 'utf8');

@@ -1797,7 +1797,16 @@ body {
   border-radius: 999px;
   background: rgba(10, 31, 55, 0.82);
 }
-.role-chip { max-width: 150px; padding: 0 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.role-chip {
+  max-width: 150px;
+  padding: 0 0.8rem;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--brand-primary) 58%, var(--line-strong));
+  color: var(--brand-text);
+  background: color-mix(in srgb, var(--brand-primary) 16%, var(--brand-surface));
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .language-control select { min-width: 96px; padding-inline: 0.85rem 1.7rem; }
 .account-action { padding: 0 0.75rem; }
 .session-state { padding: 0 0.9rem; }

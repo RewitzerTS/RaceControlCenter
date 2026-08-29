@@ -86,6 +86,13 @@ for (const table of ['races', 'race_results']) {
 if (!racing.includes(".eq('result_version_id', selectedRace.current_result_version_id)")) {
   violations.push('Racing does not pin results to the current official version');
 }
+if (!racing.includes("page !== 'team-profil' && page !== 'strecken-profil'")
+    || !racing.includes('{showIntegratedHeading && <header className="integrated-section-heading">')) {
+  violations.push('Team and track profile routes still duplicate their embedded page heading');
+}
+if (!styles.includes('color-mix(in srgb, var(--brand-primary) 16%, var(--brand-surface))')) {
+  violations.push('The account role chip does not follow the active personal theme');
+}
 if (!career.includes('useDriverHome') || !career.includes('identity.linkedDriverCount === 0')) {
   violations.push('Career does not use confirmed projections or protect the unlinked-driver state');
 }

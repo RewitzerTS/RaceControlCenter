@@ -88,7 +88,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/pages/hall-of-fame.js', '/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')
     .replaceAll('/v1-assets/js/pages/results-status-markers.js', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1')
     .replaceAll('/v1-assets/js/components/racevora-team-logo-resilience.js', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1')
-    .replaceAll('/v1-assets/css/pages/results-theme.css', '/v1-assets/css/pages/results-theme.css?v=v2-racing-fix-1')
+    .replaceAll('/v1-assets/css/pages/results-theme.css', '/v1-assets/css/pages/results-theme.css?v=v2-fastest-lap-violet-1')
     .replaceAll('/v1-assets/css/pages/results-status-markers.css', '/v1-assets/css/pages/results-status-markers.css?v=v2-racing-fix-1')
     .replace(/\s*<script>\s*if \(location\.hash === '#wm-dynamics'\) document\.documentElement\.classList\.add\('wm-dynamics-preview'\);\s*<\/script>/g, '\n  <script src="/v1-assets/js/results-preview.js"></script>')
     .replace(/\s*<link rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net" crossorigin>\s*/g, '\n')

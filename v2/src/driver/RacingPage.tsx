@@ -117,13 +117,15 @@ function RacingSectionView() {
     ];
   }
 
+  const showIntegratedHeading = page !== 'team-profil' && page !== 'strecken-profil';
+
   return (
     <main className="racing-page dashboard-shell integrated-section-page" id="main-content">
       <RacingNavigation />
-      <header className="integrated-section-heading">
+      {showIntegratedHeading && <header className="integrated-section-heading">
         <div><h1>{title}</h1><p>{t('racing.sectionCopy')}</p></div>
         {switches.length > 0 && <nav aria-label={title} className="section-view-switcher">{switches.map((item) => <NavLink className={`${location.pathname}${location.search}` === item.to ? 'active' : ''} key={item.to} to={item.to}>{item.label}</NavLink>)}</nav>}
-      </header>
+      </header>}
       <LegacyLeagueView page={page} search={location.search} title={title} />
     </main>
   );

@@ -1,4 +1,9 @@
 /* Results page: tenant-theme coverage and chart presentation. */
+body[data-page="ergebnisse"] {
+  --results-fastest-lap: #d8a4ff;
+  --results-fastest-lap-border: #ebd0ff;
+  --results-fastest-lap-ink: #24102f;
+}
 body[data-page="ergebnisse"] .table-card,
 body[data-page="ergebnisse"] .results-chart-panel {
   border-color: color-mix(in srgb, var(--accent) 20%, var(--line));
@@ -66,10 +71,10 @@ body[data-page="ergebnisse"] .results-points-value {
 }
 
 body[data-page="ergebnisse"] .results-points-value--fl-chip {
-  color: var(--text-on-primary, #fff) !important;
-  background: var(--primary) !important;
-  border-color: color-mix(in srgb, var(--primary) 72%, var(--text)) !important;
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 22%, transparent);
+  color: var(--results-fastest-lap-ink) !important;
+  background: var(--results-fastest-lap) !important;
+  border-color: var(--results-fastest-lap-border) !important;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--results-fastest-lap) 28%, transparent);
 }
 
 body[data-page="ergebnisse"] .results-points-value--bot {
