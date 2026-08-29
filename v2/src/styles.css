@@ -602,21 +602,23 @@ h2 {
 
 .vora-preview {
   display: grid;
-  grid-template-columns: 52px 1fr;
+  grid-template-columns: clamp(52px, 7vw, 64px) minmax(0, 1fr);
+  align-items: start;
   gap: 1rem;
   padding: 1.4rem;
   background: linear-gradient(145deg, rgba(118, 83, 199, 0.24), rgba(44, 143, 166, 0.12));
 }
 .vora-mark {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(166, 139, 231, 0.55);
-  color: #d9cbff;
-  font-size: 1.2rem;
-  font-weight: 850;
+  width: clamp(50px, 6.5vw, 60px);
+  height: clamp(58px, 7.5vw, 70px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
 }
+.vora-mark img { width: 100%; height: 100%; display: block; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 4px 4px color-mix(in srgb, var(--brand-background) 48%, transparent)); }
 .vora-preview h2 { margin-bottom: 0.6rem; }
 .vora-preview p:last-child { margin-bottom: 0; }
 
@@ -3104,7 +3106,7 @@ p { color: var(--muted); }
 .achievement-summary { border-top-color: var(--line); }
 .achievement-summary > strong { color: var(--text); }
 .vora-preview { min-height: 0; padding: 22px; border: 1px solid var(--line); border-radius: 16px; }
-.vora-mark { border-color: color-mix(in srgb, var(--brand-accent) 36%, transparent); color: var(--brand-accent); background: color-mix(in srgb, var(--brand-accent) 10%, transparent); }
+.vora-mark { border-color: transparent; background: transparent; }
 .level-meter { border-radius: 999px; background: rgba(255, 255, 255, 0.08); }
 .level-meter > span,
 .challenge-progress i b { background: linear-gradient(90deg, var(--brand-accent), var(--brand-primary)); }
