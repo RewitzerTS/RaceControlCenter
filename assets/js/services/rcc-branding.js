@@ -32,8 +32,8 @@
       background: '#100003', surface: '#240007', text: '#FFFFFF', textOnPrimary: '#FFFFFF'
     },
     {
-      id: '4', name: 'Alpine Neon', subtitle: 'Blau · Pink · Dunkelblau',
-      primary: '#00A1E8', secondary: '#FF87BC', accent1: '#0057B8', accent2: '#FFFFFF',
+      id: '4', name: 'Neon Glacier', subtitle: 'Pink · Electric Blue · Dunkelblau',
+      primary: '#FF87BC', secondary: '#00A1E8', accent1: '#0057B8', accent2: '#FFFFFF',
       background: '#07131A', surface: '#0E2530', text: '#FFFFFF', textOnPrimary: '#081015'
     },
     {
@@ -47,7 +47,7 @@
       background: '#061A16', surface: '#0D2A24', text: '#FFFFFF', textOnPrimary: '#08100D'
     },
     {
-      id: '7', name: 'Audi Carbon', subtitle: 'Audi Red · Carbon · Titanium',
+      id: '7', name: 'Carbon Pulse', subtitle: 'Signalrot · Carbon · Titan',
       primary: '#FF2D00', secondary: '#111111', accent1: '#A6A6A6', accent2: '#FFFFFF',
       background: '#090909', surface: '#1A1A1A', text: '#FFFFFF', textOnPrimary: '#111111'
     }

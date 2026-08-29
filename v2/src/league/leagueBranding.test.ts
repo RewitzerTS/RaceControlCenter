@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './leagueBranding';
+import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding, THEME_PRESETS } from './leagueBranding';
 
 afterEach(() => {
   document.querySelector('meta[name="theme-color"]')?.remove();
@@ -29,6 +29,27 @@ describe('personal theme resolution', () => {
 
     expect(document.querySelector('meta[name="theme-color"]')).toHaveAttribute('content', '#142433');
     expect(document.documentElement.style.backgroundColor).toBe('rgb(20, 36, 51)');
+  });
+
+  it('offers RaceVora plus eleven independently named team-inspired palettes', () => {
+    expect(THEME_PRESETS).toHaveLength(12);
+    expect(THEME_PRESETS.map((theme) => theme.id)).toEqual([...Array(12).keys()]);
+    expect(THEME_PRESETS.find((theme) => theme.id === 4)).toMatchObject({
+      name: 'Neon Glacier',
+      primary: '#FF87BC',
+      secondary: '#00A1E8',
+    });
+    expect(THEME_PRESETS.slice(8).map((theme) => theme.name)).toEqual([
+      'Midnight Charge',
+      'Azure Sprint',
+      'Velocity Steel',
+      'Golden Crest',
+    ]);
+  });
+
+  it('keeps protected constructor names out of every public theme name', () => {
+    const protectedNames = /mercedes|mclaren|ferrari|red bull|racing bulls|aston martin|alpine|williams|haas|audi|cadillac/i;
+    THEME_PRESETS.forEach((theme) => expect(theme.name).not.toMatch(protectedNames));
   });
 });
 
