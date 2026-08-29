@@ -40,6 +40,19 @@ const integratedTracks = await readFile(resolve(distRoot, 'v1-assets', 'js', 'da
 if (!integratedTracks.includes('`/v1-assets/images/flags/${lower}.svg`') || integratedTracks.includes('flagcdn.com')) {
   throw new Error('Integrated Racing pages must load country flags from local RaceVora assets.');
 }
+const trackHubPage = await readFile(resolve(distRoot, 'strecken.html'), 'utf8');
+if (!trackHubPage.includes('/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')
+    || !trackHubPage.includes('/v1-assets/css/pages/track-hub-theme.css')) {
+  throw new Error('Integrated track hub must load the current themed, info-hint-free card assets.');
+}
+const integratedTrackHub = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'track-hub.js'), 'utf8');
+if (!integratedTrackHub.includes('createTrackMapSvg?.(track.track, { showInfo: false })')) {
+  throw new Error('Integrated track cards must not render track-info hint buttons.');
+}
+const trackHubTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'track-hub-theme.css'), 'utf8');
+if (!trackHubTheme.includes('var(--primary)') || !trackHubTheme.includes('.track-hub-card .track-map-info-hint')) {
+  throw new Error('Integrated track hub accent card must follow theme tokens and hide stale info hints.');
+}
 
 const seasonArchivePage = await readFile(resolve(distRoot, 'saison-archiv.html'), 'utf8');
 if (!seasonArchivePage.includes('/v1-assets/js/pages/season-archive.js?v=v2-season-archive-4')) {

@@ -1,0 +1,12 @@
+.track-stat-grid .driver-stat-card--accent {
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--border-color, var(--line)));
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--primary) 24%, var(--surface)),
+    color-mix(in srgb, var(--secondary) 12%, var(--surface-2, var(--surface)))
+  );
+}
+
+.track-hub-card .track-map-info-hint {
+  display: none;
+}
