@@ -4145,7 +4145,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 }
 
 .level-gauge-instrument--visible .level-gauge-arc {
-  animation: level-gauge-arc-reveal 1.05s cubic-bezier(.22, 1, .36, 1) both;
+  animation: level-gauge-arc-reveal 1.25s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 @keyframes level-gauge-arc-reveal {
@@ -4201,7 +4201,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 }
 
 .level-gauge-instrument--visible .level-gauge-needle {
-  animation: level-gauge-needle-sweep 1.15s cubic-bezier(.22, 1, .36, 1) both;
+  animation: level-gauge-needle-sweep 1.35s cubic-bezier(.22, 1, .36, 1) both;
 }
 
 @keyframes level-gauge-needle-sweep {
