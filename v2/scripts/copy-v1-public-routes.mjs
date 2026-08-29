@@ -75,6 +75,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/v1-assets/vendor/supabase.js')
     .replaceAll('https://cdn.jsdelivr.net/npm/chart.js', '/v1-assets/vendor/chart.umd.min.js')
     .replaceAll('/v1-assets/js/services/rcc-f1-news-backend.js', '/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')
+    .replaceAll('/v1-assets/js/layout.js', '/v1-assets/js/layout.js?v=v2-internal-i18n-1')
     .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')
     .replaceAll('/v1-assets/js/data/tracks.js', '/v1-assets/js/data/tracks.js?v=v2-local-flags-1')
     .replaceAll('/v1-assets/js/pages/track-hub.js', '/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')

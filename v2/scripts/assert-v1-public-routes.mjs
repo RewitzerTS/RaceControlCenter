@@ -208,6 +208,12 @@ if (!layout.includes("parsed.querySelectorAll('script')")) {
 if (!layout.includes('const reactRoute=') || !layout.includes('(?:race-hub|racing|career|vora|profile|admin') || !layout.includes("if(reactRoute)return `${url.pathname}${url.search}${url.hash}`")) {
   throw new Error('V2 platform navigation must retain the active league context.');
 }
+if (/googtrans|googleTranslate|google_translate|translate\.google/i.test(layout)) {
+  throw new Error('V1 public routes must not load Google Translate or create its translation cookie.');
+}
+if (!layout.includes("const RCC_LANGUAGE_STORAGE_KEY = 'racevora.locale'") || !layout.includes('document.documentElement.lang=selectedLanguage')) {
+  throw new Error('V1 public routes must retain the internal RaceVora language preference.');
+}
 
 const integratedRedirect = await readFile(resolve(distRoot, 'v1-assets', 'js', 'integrated-route-redirect.js'), 'utf8');
 for (const [page, route] of [
@@ -228,6 +234,9 @@ if (!integratedRedirect.includes("p.get('embed')==='1'")) {
 }
 for (const page of requiredPages) {
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
+  if (!source.includes('/v1-assets/js/layout.js?v=v2-internal-i18n-1')) {
+    throw new Error(`${page}.html must cache-bust the Google-Translate-free layout.`);
+  }
   if (!source.includes(`data-racevora-integrated-route="${page}"`) || !source.includes('/v1-assets/js/integrated-route-redirect.js')) {
     throw new Error(`${page}.html is not connected to its integrated V2 destination.`);
   }

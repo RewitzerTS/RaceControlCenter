@@ -3,7 +3,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
-import { loadVoraSnapshot, type VoraSnapshot } from './vora';
+import { loadVoraSnapshot, selectVoraCatalogInsight, type VoraSnapshot } from './vora';
 
 export function VoraPage() {
   const { user } = useAuth();
@@ -27,10 +27,13 @@ export function VoraPage() {
     ['vora.starts', snapshot.career.starts], ['vora.wins', snapshot.career.wins], ['vora.podiums', snapshot.career.podiums],
     ['vora.averageFinish', snapshot.career.average_finish ? formatNumber(snapshot.career.average_finish, { maximumFractionDigits: 1 }) : t('vora.noAverage')],
   ];
+  const catalogInsight = selectVoraCatalogInsight(snapshot);
+  const insightTitle = catalogInsight?.title ?? t(snapshot.insight.title_key as MessageKey);
+  const insightBody = catalogInsight?.body ?? t(snapshot.insight.body_key as MessageKey);
 
   return <main className="vora-page" id="main-content">
     <header className="vora-header"><div><p className="section-label">{t('vora.eyebrow')}</p><h1>{t('vora.title')}</h1><p>{t('vora.copy')}</p></div></header>
-    <section className="vora-insight" aria-labelledby="vora-insight-title"><div className="vora-avatar" aria-hidden="true"><img alt="" decoding="async" height="720" src="/assets/vora/vora-headset-portrait-v2.webp" width="676" /></div><div><p>{t('vora.currentInsight')}</p><h2 id="vora-insight-title">{t(snapshot.insight.title_key as MessageKey)}</h2><p>{t(snapshot.insight.body_key as MessageKey)}</p></div></section>
+    <section className="vora-insight" aria-labelledby="vora-insight-title"><div className="vora-avatar" aria-hidden="true"><img alt="" decoding="async" height="720" src="/assets/vora/vora-headset-portrait-v2.webp" width="676" /></div><div className="vora-insight-copy"><p>{t('vora.currentInsight')}</p><h2 id="vora-insight-title">{insightTitle}</h2><p className="vora-insight-body">{insightBody}</p>{catalogInsight ? <p className="vora-insight-focus">{catalogInsight.focus}</p> : null}</div></section>
     <section className="vora-racing-line" aria-label={t('vora.career')}>
       {metrics.map(([key, value]) => <div key={key}><span>{t(key)}</span><strong>{typeof value === 'number' ? formatNumber(value) : value}</strong></div>)}
       <div className="vora-progression"><span>{t('vora.progression')}</span><strong>{t('vora.levelRank', { level: snapshot.progression.level, rank: snapshot.progression.rank })}</strong><small>{t('vora.nextLevel', { xp: formatNumber(snapshot.progression.xp_to_next_level) })}</small></div>
