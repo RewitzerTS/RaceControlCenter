@@ -255,8 +255,9 @@ function getRaceTrackMeta(race) {
 }
 
 function createFlagBadge(countryCode, label = 'Flagge') {
-  const flagUrl = window.getFlagImageUrl?.(countryCode);
+  const flagUrl = window.getFlagImageUrl?.(countryCode) || '';
   const emoji = window.getFlagEmoji?.(countryCode) || '🏁';
+  const normalizedCountryCode = String(countryCode || '').trim().toUpperCase();
 
   if (!flagUrl) {
     return `
@@ -267,17 +268,13 @@ function createFlagBadge(countryCode, label = 'Flagge') {
   }
 
   return `
-    <span class="flag-badge" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}">
-      <img
-        src="${escapeHtml(flagUrl)}"
-        alt="${escapeHtml(label)}"
-        loading="lazy"
-        width="24"
-        height="18"
-        referrerpolicy="no-referrer"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';"
-      >
-      <span class="flag-fallback-emoji" aria-hidden="true" style="display:none">${emoji}</span>
+    <span
+      class="flag-badge flag-badge-local"
+      title="${escapeHtml(label)}"
+      aria-label="${escapeHtml(label)}"
+      ${normalizedCountryCode ? `data-country-code="${escapeHtml(normalizedCountryCode)}"` : ''}
+    >
+      <img src="${escapeHtml(flagUrl)}" alt="" loading="lazy" width="24" height="18">
     </span>
   `;
 }
@@ -288,6 +285,16 @@ function createTrackMapSvg(track, options = {}) {
   const label = escapeHtml(track?.circuitName || track?.grandPrixName || 'Track Map');
   const rawTrackName = track?.circuitName || track?.grandPrixName || '';
   const cardClass = options.cardClass ? ` ${escapeHtml(options.cardClass)}` : '';
+  const trackInfoButton = options.showInfo === false
+    ? ''
+    : `
+      <button
+        type="button"
+        class="track-map-info-hint"
+        data-trackinfo-open="${escapeHtml(rawTrackName)}"
+        aria-label="Streckeninfos zu ${label} öffnen"
+      >ℹ️</button>
+    `;
 
   if (!mapUrl) {
     return '<div class="track-map-placeholder">Track Map folgt</div>';
@@ -305,12 +312,7 @@ function createTrackMapSvg(track, options = {}) {
       >
         <img class="track-map-image" src="${escapeHtml(mapUrl)}" alt="${label} Track Map" loading="lazy">
       </button>
-      <button
-        type="button"
-        class="track-map-info-hint"
-        data-trackinfo-open="${escapeHtml(rawTrackName)}"
-        aria-label="Streckeninfos zu ${label} öffnen"
-      >ℹ️</button>
+      ${trackInfoButton}
     </div>
   `;
 }
@@ -344,7 +346,7 @@ function createRaceCard(race) {
     : ''}
             </div>
             <div class="track-map-card">
-              ${createTrackMapSvg(track)}
+              ${createTrackMapSvg(track, { showInfo: false })}
             </div>
           </div>
         </div>

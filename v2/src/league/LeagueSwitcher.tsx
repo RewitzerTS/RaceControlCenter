@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 import type { LeagueSupabaseClient } from '../lib/supabase';
@@ -72,7 +72,9 @@ export function LeagueSwitcher({
   const { t } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
-  const switcherRef = useRef<HTMLDetailsElement>(null);
+  const switcherRef = useRef<HTMLDivElement>(null);
+  const optionsId = useId();
+  const [open, setOpen] = useState(false);
   const [leagues, setLeagues] = useState<AccessibleLeague[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadedForLeagueSlug, setLoadedForLeagueSlug] = useState<string | null>(null);
@@ -114,7 +116,7 @@ export function LeagueSwitcher({
   useEffect(() => {
     const closeWhenClickingOutside = (event: PointerEvent) => {
       if (!switcherRef.current?.contains(event.target as Node | null)) {
-        switcherRef.current?.removeAttribute('open');
+        setOpen(false);
       }
     };
     document.addEventListener('pointerdown', closeWhenClickingOutside);
@@ -126,8 +128,8 @@ export function LeagueSwitcher({
     [branding.name, leagueSlug, leagues],
   );
 
-  const selectLeague = (slug: string, details: HTMLDetailsElement | null) => {
-    details?.removeAttribute('open');
+  const selectLeague = (slug: string) => {
+    setOpen(false);
     onSwitch?.();
     if (slug === leagueSlug) return;
 
@@ -151,23 +153,35 @@ export function LeagueSwitcher({
   }
 
   return (
-    <details
+    <div
       className="league-switcher"
       ref={switcherRef}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) event.currentTarget.removeAttribute('open');
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
       }}
       onKeyDown={(event) => {
-        if (event.key === 'Escape') event.currentTarget.removeAttribute('open');
+        if (event.key === 'Escape') {
+          setOpen(false);
+          switcherRef.current?.querySelector<HTMLButtonElement>('.league-switcher__trigger')?.focus();
+        }
       }}
     >
-      <summary aria-label={`${t('leagueSwitcher.change')}: ${currentLeagueName}`} title={t('leagueSwitcher.change')}>
+      <button
+        aria-controls={optionsId}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        aria-label={`${t('leagueSwitcher.change')}: ${currentLeagueName}`}
+        className="league-switcher__trigger"
+        onClick={() => setOpen((current) => !current)}
+        title={t('leagueSwitcher.change')}
+        type="button"
+      >
         <span className="league-switcher__copy">
           <small>{t('leagueSwitcher.active')}</small>
           <strong>{currentLeagueName}</strong>
         </span>
-      </summary>
-      <div aria-label={t('leagueSwitcher.change')} className="league-switcher__options" role="menu">
+      </button>
+      {open && <div aria-label={t('leagueSwitcher.change')} className="league-switcher__options" id={optionsId} role="menu">
         {leagues.map((league) => {
           const selected = league.slug === leagueSlug;
           return (
@@ -175,7 +189,7 @@ export function LeagueSwitcher({
               aria-checked={selected}
               className={selected ? 'league-switcher__option league-switcher__option--active' : 'league-switcher__option'}
               key={league.id}
-              onClick={(event) => selectLeague(league.slug, event.currentTarget.closest('details'))}
+              onClick={() => selectLeague(league.slug)}
               role="menuitemradio"
               type="button"
             >
@@ -187,7 +201,7 @@ export function LeagueSwitcher({
             </button>
           );
         })}
-      </div>
-    </details>
+      </div>}
+    </div>
   );
 }

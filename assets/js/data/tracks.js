@@ -82,7 +82,7 @@ function getFlagEmoji(countryCode) {
 function getFlagImageUrl(countryCode) {
   const lower = String(countryCode || '').toLowerCase();
   if (!/^[a-z]{2}$/.test(lower)) return '';
-  return `https://flagcdn.com/h40/${lower}.png`;
+  return `assets/images/flags/${lower}.svg`;
 }
 
 window.RCC_TRACKS = RCC_TRACKS;
