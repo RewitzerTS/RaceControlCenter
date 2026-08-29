@@ -4010,6 +4010,233 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .achievement-badge__number { fill: var(--brand-text); font: 900 15px/1 Arial, sans-serif; letter-spacing: -0.03em; }
 .achievement-badge__label { fill: color-mix(in srgb, var(--brand-text) 76%, var(--badge-hue)); font: 800 5.5px/1 Arial, sans-serif; letter-spacing: 0.12em; }
 .achievement-badge__rank { fill: var(--badge-hue); }
+
+/* Driver home: detailed, theme-aware level instrument. */
+.level-gauge-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.level-gauge-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--line);
+}
+
+.level-gauge-header > div:not(.level-gauge-meta) { min-width: 0; }
+.level-gauge-header h2 { margin: 0 0 4px; font-size: 1.18rem; }
+.level-gauge-header p { margin: 0; font-size: 0.78rem; }
+
+.level-gauge-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--brand-accent) 38%, var(--line));
+  border-radius: 10px;
+  color: var(--brand-accent);
+  background: color-mix(in srgb, var(--brand-accent) 9%, var(--brand-surface));
+}
+
+.level-gauge-icon svg {
+  width: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.level-gauge-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.level-gauge-pill {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.level-gauge-pill--progress {
+  color: var(--brand-accent);
+  background: color-mix(in srgb, var(--brand-accent) 10%, var(--brand-surface));
+}
+
+.level-gauge-pill--progress i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-accent) 12%, transparent);
+}
+
+.level-gauge-pill--balance {
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--brand-surface) 90%, var(--brand-background));
+}
+
+.level-gauge-instrument { padding: 18px 22px 0; }
+
+.level-gauge-topline {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.level-gauge-topline span { display: flex; align-items: center; gap: 7px; }
+.level-gauge-topline span:last-child { justify-content: flex-end; }
+.level-gauge-topline b { color: color-mix(in srgb, var(--brand-text) 78%, var(--brand-surface)); font-size: 0.68rem; }
+
+.level-gauge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+}
+
+.level-gauge-dot--target { background: var(--brand-primary); }
+
+.level-gauge {
+  width: min(100%, 720px);
+  display: block;
+  margin: -10px auto -4px;
+  overflow: visible;
+}
+
+.level-gauge-outer,
+.level-gauge-track,
+.level-gauge-arc {
+  fill: none;
+  stroke-linecap: round;
+}
+
+.level-gauge-outer { stroke: color-mix(in srgb, var(--brand-background) 76%, #000); stroke-width: 26; }
+.level-gauge-track { stroke: color-mix(in srgb, var(--brand-accent-2) 28%, var(--brand-surface)); stroke-width: 16; }
+.level-gauge-arc {
+  stroke-width: 16;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--brand-accent) 18%, transparent));
+  transition: stroke-dasharray 220ms var(--ease-out);
+}
+
+.level-gauge-tick { stroke: color-mix(in srgb, var(--brand-text) 30%, var(--brand-surface)); stroke-width: 1.5; stroke-linecap: round; }
+.level-gauge-tick--medium { stroke: color-mix(in srgb, var(--brand-text) 42%, var(--brand-surface)); stroke-width: 2; }
+.level-gauge-tick--major { stroke: color-mix(in srgb, var(--brand-text) 56%, var(--brand-surface)); stroke-width: 3; }
+.level-gauge-tick--active { stroke: var(--brand-accent); }
+
+.level-gauge-scale-label {
+  fill: color-mix(in srgb, var(--brand-text) 55%, var(--brand-surface));
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.level-gauge-level-label {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-anchor: middle;
+}
+
+.level-gauge-level-number {
+  fill: var(--brand-text);
+  font-size: 76px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-anchor: middle;
+}
+
+.level-gauge-core-pill {
+  fill: color-mix(in srgb, var(--brand-accent) 10%, var(--brand-surface));
+  stroke: color-mix(in srgb, var(--brand-accent) 38%, var(--line));
+}
+
+.level-gauge-core-pill-text {
+  fill: var(--brand-accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+}
+
+.level-gauge-needle {
+  stroke: color-mix(in srgb, var(--brand-text) 88%, var(--brand-accent));
+  stroke-width: 0.75;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  transform: rotate(var(--level-gauge-angle, -180deg));
+  transform-box: view-box;
+  transform-origin: 300px 294px;
+  transition: transform 220ms var(--ease-out);
+}
+
+.level-gauge-hub-ring { fill: color-mix(in srgb, var(--brand-accent-2) 28%, var(--brand-surface)); stroke: var(--brand-accent); stroke-width: 4; }
+.level-gauge-hub-core { fill: var(--brand-text); }
+.level-gauge-hub-highlight { fill: #fff; opacity: 0.7; }
+
+.level-gauge-stats {
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr 1px 1fr;
+  align-items: center;
+  padding: 0 26px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--brand-surface) 88%, var(--brand-background));
+}
+
+.level-gauge-stats > div { display: grid; gap: 2px; }
+.level-gauge-stats > div:nth-of-type(2) { justify-items: center; text-align: center; }
+.level-gauge-stats > div:last-child { justify-items: end; text-align: right; }
+.level-gauge-stats > i { width: 1px; height: 44px; background: var(--line-strong); }
+.level-gauge-stats span { color: var(--muted); font-size: 0.68rem; }
+.level-gauge-stats strong { font-size: 1.35rem; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.level-gauge-stats small { color: color-mix(in srgb, var(--brand-text) 52%, var(--brand-surface)); font-size: 0.62rem; }
+
+.level-gauge-lifetime {
+  margin: 0;
+  padding: 10px 22px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--brand-surface) 92%, var(--brand-background));
+  font-size: 0.68rem;
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  .level-gauge-header { align-items: flex-start; padding: 16px; }
+  .level-gauge-header p,
+  .level-gauge-pill--balance,
+  .level-gauge-topline b { display: none; }
+  .level-gauge-icon { width: 38px; height: 38px; flex-basis: 38px; }
+  .level-gauge-meta { flex-wrap: nowrap; }
+  .level-gauge-instrument { padding-inline: 6px; }
+  .level-gauge-topline { padding-inline: 10px; }
+  .level-gauge-stats { min-height: 82px; padding-inline: 16px; }
+  .level-gauge-stats strong { font-size: 1.05rem; }
+  .level-gauge-stats small { max-width: 12ch; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .level-gauge-arc,
+  .level-gauge-needle { transition: none; }
+}
 .challenge-countdown {
   display: flex;
   align-items: center;

@@ -6,6 +6,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { levelProgress, selectDriverHero, useDriverHome } from './driverHome';
+import { LevelGauge } from './LevelGauge';
 
 function formatAchievementCode(code: string | null): string {
   if (!code) return '';
@@ -187,25 +188,15 @@ export function DriverHomePage() {
       </section>
 
       <section className="v2-dashboard-grid">
-        <article className="dashboard-card v2-progress-card" aria-labelledby="progression-title">
-          <div className="section-heading">
-            <div>
-              <p className="section-label">{t('home.progression')}</p>
-              <h2 id="progression-title">{t('home.levelRank', {
-                level: progression?.level ?? 1,
-                rank: progression?.rank ?? t('home.unranked'),
-              })}</h2>
-            </div>
-            <strong className="vc-balance">{formatNumber(snapshot.wallet?.balance ?? 0)} VC</strong>
-          </div>
-          <div className="level-meter" role="progressbar" aria-label={t('home.xpProgress')} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}>
-            <span style={{ width: String(progress) + '%' }} />
-          </div>
-          <div className="progress-meta">
-            <span>{formatNumber(progression?.lifetime_xp ?? 0)} {t('home.lifetimeXp')}</span>
-            <span>{progression?.level === 100 ? t('immortal') : t('home.xpRemaining', { xp: formatNumber(progression?.xp_to_next_level ?? 1000) })}</span>
-          </div>
-        </article>
+        <LevelGauge
+          balance={snapshot.wallet?.balance ?? 0}
+          level={progression?.level ?? 1}
+          lifetimeXp={progression?.lifetime_xp ?? 0}
+          progress={progress}
+          rank={progression?.rank ?? t('home.unranked')}
+          xpIntoLevel={progression?.xp_into_level ?? 0}
+          xpToNextLevel={progression?.xp_to_next_level ?? 1000}
+        />
 
         <article className="dashboard-card achievement-summary" aria-labelledby="achievements-title">
           <p className="section-label">{t('home.careerMoment')}</p>
