@@ -40,6 +40,9 @@ export function LevelGauge({
   const needleStyle = {
     '--level-gauge-angle': `${-180 + safeProgress * 1.8}deg`,
   } as CSSProperties;
+  const arcStyle = {
+    '--level-gauge-progress': safeProgress,
+  } as CSSProperties;
 
   const ticks = Array.from({ length: 41 }, (_, index) => {
     const angle = 180 + index * 4.5;
@@ -111,7 +114,7 @@ export function LevelGauge({
             d="M 60 294 A 240 240 0 0 1 540 294"
             pathLength="100"
             stroke={`url(#${arcGradientId})`}
-            strokeDasharray={`${safeProgress} 100`}
+            style={arcStyle}
           />
           <g>{ticks}</g>
           <g>{scaleLabels}</g>

@@ -140,7 +140,6 @@ export function DriverHomePage() {
             <p className="hero-kicker">{hero.kicker}</p>
           </div>
           <h1 id="driver-hero-title">{t('home.greeting', { name: displayName })}</h1>
-          <p className="hero-subcopy">{hero.title} {hero.copy}</p>
           <div className="next-race-showcase">
             <span className="section-label">{seasonCompleted ? t('home.seasonStatus') : t('home.nextRace')}</span>
             <strong>{seasonCompleted ? t('home.noActiveSeason') : snapshot.nextRace?.grand_prix_name ?? t('home.noRaceScheduled')}</strong>
