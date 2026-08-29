@@ -1185,8 +1185,9 @@ h2 {
 .vora-source { flex: 0 0 auto; display: grid; gap: 0.25rem; padding: 0.75rem 1rem; border: 1px solid var(--line-strong); }
 .vora-source span { color: var(--muted); font-size: 0.68rem; }
 .vora-source strong { color: #a9efd7; font-size: 0.75rem; }
-.vora-insight { min-height: 300px; display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 4vw, 3rem); margin: 2.5rem 0 0; padding: clamp(1.5rem, 5vw, 4rem); border: 1px solid rgba(166, 139, 231, 0.44); background: radial-gradient(circle at 12% 50%, rgba(118, 83, 199, 0.23), transparent 30%), linear-gradient(120deg, #071a30, #071f35); }
-.vora-avatar { width: 82px; height: 82px; display: grid; place-items: center; border: 1px solid rgba(166, 139, 231, 0.7); color: #d9cbff; font-size: 2rem; font-weight: 850; transform: rotate(-3deg); }
+.vora-insight { min-height: 300px; display: grid; grid-template-columns: 180px minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 4vw, 3rem); overflow: hidden; margin: 2.5rem 0 0; padding: clamp(1.5rem, 5vw, 4rem); border: 1px solid rgba(166, 139, 231, 0.44); background: radial-gradient(circle at 12% 50%, rgba(118, 83, 199, 0.23), transparent 30%), linear-gradient(120deg, #071a30, #071f35); }
+.vora-avatar { width: 174px; height: 210px; display: flex; align-self: end; align-items: flex-end; justify-content: center; }
+.vora-avatar img { width: 100%; height: 100%; display: block; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 8px 8px color-mix(in srgb, var(--brand-background) 54%, transparent)); }
 .vora-insight > div:last-child > p:first-child { margin: 0 0 0.65rem; color: var(--teal-bright); font-size: 0.72rem; font-weight: 800; }
 .vora-insight h2 { max-width: 850px; margin-bottom: 0.9rem; font-size: 2.5rem; }
 .vora-insight > div:last-child > p:last-child { max-width: 68ch; margin: 0; }
@@ -1441,7 +1442,7 @@ h2 {
   .vora-header { align-items: flex-start; flex-direction: column; }
   .vora-source { width: 100%; }
   .vora-insight { grid-template-columns: 1fr; min-height: 0; }
-  .vora-avatar { width: 64px; height: 64px; }
+  .vora-avatar { width: 124px; height: 142px; justify-self: start; }
   .vora-racing-line { grid-template-columns: repeat(2, 1fr); }
   .vora-racing-line > div:nth-child(3n) { border-right: 1px solid var(--line); }
   .vora-racing-line > div:nth-child(even) { border-right: 0; }
@@ -3703,7 +3704,7 @@ img, svg, video, canvas { max-width: 100%; }
   .admin-header-actions > *, .admin-form-actions > * { flex: 1 1 auto; justify-content: center; }
   .admin-driver-metrics, .admin-race-metrics, .operations-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .vora-insight { grid-template-columns: 1fr; }
-  .vora-avatar { width: 64px; height: 64px; }
+  .vora-avatar { width: 112px; height: 128px; justify-self: start; }
   .vora-racing-line { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .vora-racing-line > div:nth-child(odd) { border-right: 1px solid var(--line); }
   .vora-racing-line > div:nth-child(even) { border-right: 0; }
