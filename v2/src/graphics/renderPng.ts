@@ -293,7 +293,7 @@ function drawRaceVoraFooter(context: CanvasRenderingContext2D, theme: GraphicThe
   context.fillStyle = theme.line;
   context.fillRect(552, 1305, 1, 30);
   drawInstagramIcon(context, 602, 1320, theme.primary);
-  drawText(context, '@RACEVORA', 628, 1320, 220, 20, theme.text, 550, 15);
+  drawText(context, '@RACE.VORA', 628, 1320, 220, 20, theme.text, 550, 15);
 }
 
 async function drawRaceResultPortrait(context: CanvasRenderingContext2D, model: GraphicModel, theme: GraphicTheme, options: GraphicRenderOptions) {

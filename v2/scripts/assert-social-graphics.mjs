@@ -25,7 +25,7 @@ const requirements = [
   [graphics.includes('paginateGraphicModel') && !graphics.includes("slice(0, 8)"), 'complete balanced race-result pagination'],
   [renderer.includes("canvas.toBlob") && renderer.includes("'image/png'"), 'PNG renderer'],
   [renderer.includes('readGraphicTheme') && renderer.includes('resolveRaceResultPortraitTemplate'), 'personal-theme SVG renderer'],
-  [renderer.includes('drawLeagueIdentity') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACEVORA'), 'league header and fixed RaceVora footer'],
+  [renderer.includes('drawLeagueIdentity') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACE.VORA'), 'league header and fixed RaceVora footer'],
   [portraitTemplate.includes('data-rv-template="race-result-portrait"') && portraitTemplate.includes('id="slot-table"') && portraitTemplate.includes('data-max-rows="11"'), 'editable 4:5 race-result pilot template'],
   [renderer.includes('square: { width: 1080, height: 1080 }') && renderer.includes('story: { width: 1080, height: 1920 }') && renderer.includes('landscape: { width: 1920, height: 1080 }'), 'exact dimensions'],
 ];

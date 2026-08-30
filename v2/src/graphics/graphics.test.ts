@@ -55,6 +55,8 @@ describe('Social Graphics model', () => {
     expect(pages).toHaveLength(2);
     expect(pages.map((page) => page.model.rows.length)).toEqual([10, 10]);
     expect(pages.flatMap((page) => page.model.rows).map((row) => row.primary)).toEqual(rows.map((row) => row.primary));
+    expect(pages[0]?.model.rows.at(-1)).toMatchObject({ rank: '10', primary: 'Driver 10' });
+    expect(pages[1]?.model.rows.at(-1)).toMatchObject({ rank: '20', primary: 'Driver 20' });
 
     const twentyTwo = paginateGraphicModel({ ...model, rows: [...rows, ...rows.slice(0, 2)] }, 11);
     expect(twentyTwo.map((page) => page.model.rows.length)).toEqual([11, 11]);
