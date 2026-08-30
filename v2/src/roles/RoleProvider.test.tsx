@@ -15,6 +15,29 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+function membershipClient(
+  rpc: ReturnType<typeof vi.fn>,
+  memberships: Array<{ league_id: string; role: string }>,
+  leagues: Array<{ id: string; slug: string }>,
+): LeagueSupabaseClient {
+  return {
+    rpc,
+    from: vi.fn((table: string) => table === 'league_members'
+      ? {
+          select: () => ({
+            eq: async () => ({ data: memberships, error: null }),
+          }),
+        }
+      : {
+          select: () => ({
+            in: () => ({
+              eq: async () => ({ data: leagues, error: null }),
+            }),
+          }),
+        }),
+  } as unknown as LeagueSupabaseClient;
+}
+
 describe('RoleProvider', () => {
   afterEach(cleanup);
 
@@ -24,7 +47,17 @@ describe('RoleProvider', () => {
     const rpc = vi.fn()
       .mockReturnValueOnce(oldRole.promise)
       .mockReturnValueOnce(newRole.promise);
-    const client = { rpc } as unknown as LeagueSupabaseClient;
+    const client = membershipClient(
+      rpc,
+      [
+        { league_id: 'old-id', role: 'driver' },
+        { league_id: 'new-id', role: 'league_admin' },
+      ],
+      [
+        { id: 'old-id', slug: 'old-league' },
+        { id: 'new-id', slug: 'new-league' },
+      ],
+    );
     const user = { id: 'user-1' } as User;
 
     const view = render(<RoleProvider client={client} leagueSlug="old-league" user={user}><Probe /></RoleProvider>);
@@ -43,7 +76,11 @@ describe('RoleProvider', () => {
 
   it('keeps the resolved role when the same authenticated user object is refreshed', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: 'league_admin', error: null });
-    const client = { rpc } as unknown as LeagueSupabaseClient;
+    const client = membershipClient(
+      rpc,
+      [{ league_id: 'test-id', role: 'league_admin' }],
+      [{ id: 'test-id', slug: 'test-league' }],
+    );
     const initialUser = { id: 'user-1', updated_at: '2026-08-28T10:00:00Z' } as User;
 
     const view = render(<RoleProvider client={client} leagueSlug="test-league" user={initialUser}><Probe /></RoleProvider>);

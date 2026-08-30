@@ -71,6 +71,20 @@ values
   ('20000000-0000-0000-0000-000000000002', 'Beta League', 'beta-league', true, '{"published": true}'),
   ('30000000-0000-0000-0000-000000000003', 'Owner League', 'owner-league', true, '{"published": true, "owner_only": true}');
 
+insert into auth.users (
+  id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+)
+values (
+  '40000000-0000-0000-0000-000000000004',
+  'authenticated',
+  'authenticated',
+  'phase3-no-membership@example.invalid',
+  '{}',
+  '{}',
+  now(),
+  now()
+);
+
 set local role anon;
 set local request.headers = '{"x-rcc-league-slug":"alpha-league"}';
 
@@ -98,6 +112,7 @@ $$;
 
 
 reset role;
+select set_config('request.jwt.claims', '{"sub":"40000000-0000-0000-0000-000000000004","role":"authenticated"}', true);
 set local role authenticated;
 set local request.headers = '{"x-rcc-league-slug":"alpha-league"}';
 
@@ -106,11 +121,11 @@ declare
   visible_ids uuid[];
 begin
   select array_agg(id order by id) into visible_ids from public.leagues;
-  if visible_ids is distinct from array['10000000-0000-0000-0000-000000000001'::uuid] then
-    raise exception 'authenticated tenant isolation failed: %', visible_ids;
+  if visible_ids is not null then
+    raise exception 'authenticated tenant isolation failed: non-member saw %', visible_ids;
   end if;
   if public.is_platform_owner() then
-    raise exception 'anonymous authenticated context resolved as platform owner';
+    raise exception 'authenticated non-member resolved as platform owner';
   end if;
 end;
 $$;

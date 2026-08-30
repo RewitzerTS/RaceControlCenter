@@ -179,8 +179,8 @@ reset role;
 select set_config('request.headers', '{"x-rcc-league-slug":"phase-five-beta"}', true);
 do $$
 begin
-  if public.current_app_role() <> 'driver' then
-    raise exception 'active global identity did not fall back to driver outside membership';
+  if public.current_app_role() is not null then
+    raise exception 'non-member identity received a tenant role outside membership';
   end if;
 end;
 $$;

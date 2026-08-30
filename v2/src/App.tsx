@@ -8,7 +8,7 @@ import { FeatureFlagProvider } from './features/FeatureFlagProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
 import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
-import { RoleProvider } from './roles/RoleProvider';
+import { RoleProvider, useRole } from './roles/RoleProvider';
 
 export function resetRouteScroll(hash: string): void {
   if (hash) {
@@ -22,15 +22,8 @@ export function resetRouteScroll(hash: string): void {
 
 function AuthorizedShell({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
   const location = useLocation();
-  const { branding, client, leagueSlug } = useLeague();
-  const { loading: authLoading, user } = useAuth();
-  const useStandardBranding = shouldUseStandardRaceVoraBranding({
-    authenticated: Boolean(user),
-    authLoading,
-    leagueSlug,
-    pathname: location.pathname,
-    search: location.search,
-  });
+  const { client, leagueSlug } = useLeague();
+  const { user } = useAuth();
 
   useLayoutEffect(() => {
     resetRouteScroll(location.hash);
@@ -42,6 +35,28 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
     return () => { window.history.scrollRestoration = previous; };
   }, []);
 
+  return (
+    <DriverIdentityProvider client={client} user={user}>
+      <RoleProvider client={client} leagueSlug={leagueSlug} user={user}>
+        <AuthorizedExperience environment={environment} />
+      </RoleProvider>
+    </DriverIdentityProvider>
+  );
+}
+
+function AuthorizedExperience({ environment }: { environment: Parameters<typeof AppShell>[0]['environment'] }) {
+  const location = useLocation();
+  const { branding, leagueSlug } = useLeague();
+  const { loading: authLoading, user } = useAuth();
+  const { loading: roleLoading, role } = useRole();
+  const useStandardBranding = (!roleLoading && Boolean(user) && !role) || shouldUseStandardRaceVoraBranding({
+    authenticated: Boolean(user),
+    authLoading,
+    leagueSlug,
+    pathname: location.pathname,
+    search: location.search,
+  });
+
   useEffect(() => {
     if (useStandardBranding || !user) {
       applyLeagueBranding(fallbackLeagueBranding('racevora'));
@@ -51,13 +66,7 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
     applyLeagueBranding({ ...branding, theme: resolveTheme({ theme_id: themePreset }) });
   }, [branding, useStandardBranding, user]);
 
-  return (
-    <DriverIdentityProvider client={client} user={user}>
-      <RoleProvider client={client} leagueSlug={leagueSlug} user={user}>
-        <AppShell environment={environment} />
-      </RoleProvider>
-    </DriverIdentityProvider>
-  );
+  return <AppShell environment={environment} />;
 }
 
 export default function App() {

@@ -16,6 +16,7 @@ vi.mock('../i18n/I18nProvider', () => ({
       'leagueSwitcher.change': 'Liga wechseln',
       'leagueSwitcher.current': 'Aktiv',
       'leagueSwitcher.error': 'Fehler',
+      'leagueSwitcher.none': 'Keine Liga',
     })[key] ?? key,
   }),
 }));
@@ -91,6 +92,22 @@ describe('leagueSwitcherDestination', () => {
 });
 
 describe('LeagueSwitcher', () => {
+  it('never presents the default tenant as an accessible league without membership', async () => {
+    mocks.client = {
+      from: vi.fn(() => ({
+        select: () => ({
+          eq: async () => ({ data: [], error: null }),
+        }),
+      })),
+    };
+
+    render(createElement(LeagueSwitcher, { isPlatformOwner: false, userId: 'new-user' }));
+
+    expect(await screen.findByText('Keine Liga')).toBeInTheDocument();
+    expect(screen.queryByText('League One')).not.toBeInTheDocument();
+    expect(mocks.setLeagueSlug).not.toHaveBeenCalled();
+  });
+
   it('uses a controlled mobile-safe menu and switches the selected league', async () => {
     const onSwitch = vi.fn();
     render(createElement(LeagueSwitcher, { isPlatformOwner: false, navigateToLeague: mocks.navigate, onSwitch, userId: 'user-1' }));

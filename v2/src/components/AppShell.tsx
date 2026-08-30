@@ -152,11 +152,12 @@ function LanguageControl() {
   );
 }
 
-function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
+function DriverNavigation({ hasLeagueAccess, onNavigate }: { hasLeagueAccess: boolean; onNavigate?: () => void }) {
   const { t } = useI18n();
+  const items = hasLeagueAccess ? DRIVER_NAV_ITEMS : DRIVER_NAV_ITEMS.filter((item) => item.path === '/home');
   return (
     <div className="driver-navigation" aria-label={t('nav.driver')}>
-      {DRIVER_NAV_ITEMS.map((item) => (
+      {items.map((item) => (
         <NavLink
           className={({ isActive }) => [
             'nav-item',
@@ -177,20 +178,23 @@ function DriverNavigation({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function MobilePrimaryNavigation({
+  hasLeagueAccess,
   moreActive,
   navigationOpen,
   onNavigate,
   onToggleMore,
 }: {
+  hasLeagueAccess: boolean;
   moreActive: boolean;
   navigationOpen: boolean;
   onNavigate: () => void;
   onToggleMore: () => void;
 }) {
   const { t } = useI18n();
+  const items = hasLeagueAccess ? MOBILE_PRIMARY_NAV_ITEMS : MOBILE_PRIMARY_NAV_ITEMS.filter((item) => item.path === '/home');
   return (
     <nav aria-label={t('nav.mobile')} className="mobile-primary-navigation">
-      {MOBILE_PRIMARY_NAV_ITEMS.map((item) => (
+      {items.map((item) => (
         <NavLink
           className={({ isActive }) => isActive ? 'mobile-primary-item mobile-primary-item--active' : 'mobile-primary-item'}
           end={item.path === '/home'}
@@ -220,6 +224,7 @@ function MobileMoreNavigation({
   canAdmin,
   canOwner,
   canSteward,
+  hasLeagueAccess,
   open,
   onNavigate,
   onSignOut,
@@ -230,6 +235,7 @@ function MobileMoreNavigation({
   canAdmin: boolean;
   canOwner: boolean;
   canSteward: boolean;
+  hasLeagueAccess: boolean;
   open: boolean;
   onNavigate: () => void;
   onSignOut: () => void;
@@ -253,13 +259,13 @@ function MobileMoreNavigation({
         <button aria-label={t('nav.close')} onClick={onNavigate} type="button">×</button>
       </div>
       <div className="mobile-more-links">
-        <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/vora"><NavIcon name="vora" /><span>{t('nav.vora')}</span></NavLink>
+        {hasLeagueAccess && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/vora"><NavIcon name="vora" /><span>{t('nav.vora')}</span></NavLink>}
         {canSteward && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
         {canAdmin && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/admin"><NavIcon name="admin" /><span>{t('nav.admin')}</span></NavLink>}
         {canOwner && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
       </div>
       <div className="mobile-more-tools">
-        {userId && <div className="mobile-more-league-switcher"><LeagueSwitcher isPlatformOwner={isPlatformOwner} onSwitch={onNavigate} userId={userId} /></div>}
+        {userId && hasLeagueAccess && <div className="mobile-more-league-switcher"><LeagueSwitcher isPlatformOwner={isPlatformOwner} onSwitch={onNavigate} userId={userId} /></div>}
         <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={onNavigate} to="/profile"><NavIcon name="profile" /><span>{t('nav.profile')}</span></NavLink>
         <LanguageControl />
         {userId
@@ -297,10 +303,12 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const [signOutFailed, setSignOutFailed] = useState(false);
   const { t } = useI18n();
   const { branding, leagueSlug } = useLeague();
-  const { loading: roleLoading, role } = useRole();
+  const { error: roleError, loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
   const { loading: authLoading, signOut, user } = useAuth();
-  const displayBranding = shouldUseStandardRaceVoraBranding({
+  const hasLeagueAccess = Boolean(role);
+  const canUseLeagueFeatures = !user || hasLeagueAccess;
+  const displayBranding = (!roleLoading && Boolean(user) && !hasLeagueAccess) || shouldUseStandardRaceVoraBranding({
     authenticated: Boolean(user),
     authLoading,
     leagueSlug,
@@ -334,6 +342,23 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   };
   const moreRouteActive = isMobileMoreRoute(location.pathname);
   const routeLoading = <AppState copy={t('home.loadingCopy')} title={t('pending')} tone="loading" />;
+  const noLeagueAccess = <AppState
+    action={<>
+      <NavLink className="primary-action" to="/onboarding">{t('home.joinLeague')}</NavLink>
+      <NavLink className="text-action" to="/leagues/new">{t('home.createLeague')}</NavLink>
+    </>}
+    copy={t('home.noLeagueCopy')}
+    title={t('home.noLeagueTitle')}
+    tone="empty"
+  />;
+  const leagueAccessError = <AppState copy={t('home.leagueAccessErrorCopy')} title={t('home.leagueAccessErrorTitle')} tone="error" />;
+  const leagueRoute = (content: ReactNode) => accessLoading
+    ? routeLoading
+    : user && roleError
+      ? leagueAccessError
+      : user && !hasLeagueAccess
+        ? noLeagueAccess
+        : content;
 
   useEffect(() => setNavigationOpen(false), [location.pathname, location.search]);
 
@@ -376,16 +401,16 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </button>
 
         <nav className={navigationOpen ? 'main-navigation main-nav main-navigation--open' : 'main-navigation main-nav'} id="main-navigation" aria-label={t('nav.driver')}>
-          <DriverNavigation onNavigate={closeNavigation} />
+          <DriverNavigation hasLeagueAccess={canUseLeagueFeatures} onNavigate={closeNavigation} />
           <div className="privileged-navigation">
             {canSteward && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active steward-nav-item' : 'nav-item steward-nav-item'} to="/stewarding"><NavIcon name="steward" /><span>{t('nav.stewarding')}</span></NavLink>}
             {canAdmin && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/admin"><NavIcon name="admin" /><span>{t('nav.admin')}</span></NavLink>}
             {canOwner && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
           </div>
           <div className="header-tools">
-            {user && <div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner={role === 'platform_owner'} onSwitch={closeNavigation} userId={user.id} /></div>}
+            {user && hasLeagueAccess && <div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner={role === 'platform_owner'} onSwitch={closeNavigation} userId={user.id} /></div>}
             {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
-            <span className="role-chip">{roleLoading ? t('pending') : roleLabel(role, t)}</span>
+            <span className="role-chip">{roleLoading ? t('pending') : user && !role ? t('leagueSwitcher.none') : roleLabel(role, t)}</span>
             <NavLink
               className={({ isActive }) => isActive ? 'nav-item nav-item--active topbar-profile-link' : 'nav-item topbar-profile-link'}
               onClick={closeNavigation}
@@ -411,6 +436,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           canAdmin={canAdmin}
           canOwner={canOwner}
           canSteward={canSteward}
+          hasLeagueAccess={canUseLeagueFeatures}
           onNavigate={closeNavigation}
           onSignOut={() => void handleSignOut()}
           open={navigationOpen}
@@ -421,6 +447,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       )}
       {!embeddedAccess && (
         <MobilePrimaryNavigation
+          hasLeagueAccess={canUseLeagueFeatures}
           moreActive={moreRouteActive}
           navigationOpen={navigationOpen}
           onNavigate={closeNavigation}
@@ -432,12 +459,12 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
         <Routes key={leagueSlug}>
           <Route path="/" element={<Navigate replace to="/home" />} />
-          <Route path="/home" element={<DriverHomePage />} />
-          <Route path="/racing" element={<Navigate replace to={{ pathname: '/racing/calendar', search: location.search, hash: location.hash }} />} />
-          <Route path="/racing/*" element={<RacingPage />} />
-          <Route path="/career" element={<Suspense fallback={routeLoading}><CareerPage /></Suspense>} />
-          <Route path="/career/*" element={<Suspense fallback={routeLoading}><CareerPage /></Suspense>} />
-          <Route path="/vora" element={<Suspense fallback={routeLoading}><VoraPage /></Suspense>} />
+          <Route path="/home" element={leagueRoute(<DriverHomePage />)} />
+          <Route path="/racing" element={leagueRoute(<Navigate replace to={{ pathname: '/racing/calendar', search: location.search, hash: location.hash }} />)} />
+          <Route path="/racing/*" element={leagueRoute(<RacingPage />)} />
+          <Route path="/career" element={leagueRoute(<Suspense fallback={routeLoading}><CareerPage /></Suspense>)} />
+          <Route path="/career/*" element={leagueRoute(<Suspense fallback={routeLoading}><CareerPage /></Suspense>)} />
+          <Route path="/vora" element={leagueRoute(<Suspense fallback={routeLoading}><VoraPage /></Suspense>)} />
           <Route path="/profile" element={<Suspense fallback={routeLoading}><ProfilePage /></Suspense>} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />

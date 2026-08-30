@@ -20,7 +20,7 @@ export function OnboardingPage() {
   const { completeOnboarding, loading: authLoading, user } = useAuth();
   const { t } = useI18n();
   const { client } = useLeague();
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(() => user?.user_metadata?.onboarding_complete === true ? 2 : 1);
   const [displayName, setDisplayName] = useState(() => String(user?.user_metadata?.display_name ?? ''));
   const [gamertag, setGamertag] = useState(() => String(user?.user_metadata?.gamertag ?? ''));
   const [realName, setRealName] = useState(() => String(user?.user_metadata?.real_name ?? ''));

@@ -7,6 +7,10 @@ const migration = await readFile(
   resolve(root, 'supabase/migrations/20260820154039_v2_normalize_role_model.sql'),
   'utf8',
 );
+const membershipCorrection = await readFile(
+  resolve(root, 'supabase/migrations/20260830231726_enforce_membership_scoped_league_access.sql'),
+  'utf8',
+);
 const regression = await readFile(resolve(root, 'supabase/tests/phase-5-role-model.sql'), 'utf8');
 
 const contracts = [
@@ -25,6 +29,19 @@ const violations = contracts
   .filter((contract) => !migration.toLowerCase().includes(contract.toLowerCase()))
   .map((contract) => `missing role-model contract: ${contract}`);
 
+const correctionContracts = [
+  'create or replace function public.matches_requested_league',
+  'drop policy if exists "v2 authenticated read permitted leagues"',
+  'or (select private.is_league_member(id))',
+  'create or replace function public.current_app_role()',
+  'a global driver identity never grants league access',
+  'authenticated reads require platform ownership or an approved membership',
+];
+
+violations.push(...correctionContracts
+  .filter((contract) => !membershipCorrection.toLowerCase().includes(contract.toLowerCase()))
+  .map((contract) => `missing membership-bound correction: ${contract}`));
+
 if (/check\s*\(\s*role\s+in\s*\([^)]*platform_owner/i.test(migration)) {
   violations.push('platform_owner can be stored as a league role');
 }
@@ -39,6 +56,9 @@ if (!/driver capability crossed the requested tenant/i.test(regression)) {
 }
 if (!/platform_owner was assigned through league membership/i.test(regression)) {
   violations.push('role regression does not prove owner separation');
+}
+if (!/non-member identity received a tenant role outside membership/i.test(regression)) {
+  violations.push('role regression does not prove that identity alone grants no tenant role');
 }
 
 if (violations.length > 0) {

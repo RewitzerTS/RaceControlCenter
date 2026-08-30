@@ -11,10 +11,52 @@ interface RoleContextValue {
 
 const RoleContext = createContext<RoleContextValue | null>(null);
 
-async function resolveRole(client: LeagueSupabaseClient): Promise<AppRole | null> {
+interface LeagueMembershipRow {
+  league_id: string;
+  role: string | null;
+}
+
+interface LeagueScopeRow {
+  id: string;
+  slug: string;
+}
+
+export function membershipRoleForLeague(
+  memberships: ReadonlyArray<LeagueMembershipRow>,
+  leagues: ReadonlyArray<LeagueScopeRow>,
+  leagueSlug: string,
+): AppRole | null {
+  const league = leagues.find((item) => item.slug === leagueSlug);
+  if (!league) return null;
+  return mapLegacyLeagueRole(memberships.find((item) => item.league_id === league.id)?.role);
+}
+
+async function resolveRole(
+  client: LeagueSupabaseClient,
+  leagueSlug: string,
+  userId: string,
+): Promise<AppRole | null> {
   const response = await client.rpc('current_app_role');
   if (response.error) throw response.error;
-  return mapLegacyLeagueRole(response.data);
+  if (mapLegacyLeagueRole(response.data) === 'platform_owner') return 'platform_owner';
+
+  // Do not trust a legacy identity-based "driver" fallback here. A league role
+  // is only valid after the user's own membership and its league were proven.
+  const { data: memberships, error: membershipError } = await client
+    .from('league_members')
+    .select('league_id, role')
+    .eq('user_id', userId);
+  if (membershipError) throw membershipError;
+  if (!memberships?.length) return null;
+
+  const { data: leagues, error: leagueError } = await client
+    .from('leagues')
+    .select('id, slug')
+    .in('id', memberships.map((membership) => membership.league_id))
+    .eq('status', 'active');
+  if (leagueError) throw leagueError;
+
+  return membershipRoleForLeague(memberships, leagues ?? [], leagueSlug);
 }
 
 export function RoleProvider({ client, leagueSlug, user, children }: PropsWithChildren<{
@@ -40,7 +82,7 @@ export function RoleProvider({ client, leagueSlug, user, children }: PropsWithCh
     }
 
     setLoading(true);
-    void resolveRole(client)
+    void resolveRole(client, leagueSlug, userId)
       .then((nextRole) => {
         if (active) setRole(nextRole);
       })

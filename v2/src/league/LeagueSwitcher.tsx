@@ -125,8 +125,10 @@ export function LeagueSwitcher({
   }, []);
 
   const currentLeagueName = useMemo(
-    () => leagues.find((league) => league.slug === leagueSlug)?.name || branding.name || leagueSlug,
-    [branding.name, leagueSlug, leagues],
+    () => !loading && leagues.length === 0
+      ? t('leagueSwitcher.none')
+      : leagues.find((league) => league.slug === leagueSlug)?.name || branding.name || leagueSlug,
+    [branding.name, leagueSlug, leagues, loading, t],
   );
 
   const selectLeague = (slug: string) => {
