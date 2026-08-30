@@ -7,9 +7,10 @@ function assert(condition, message) {
 }
 
 assert(
-  trackHub.includes("createTrackMapSvg?.(track.track, { showInfo: false })"),
-  'Track hub cards must render their maps without info buttons'
+  trackHub.includes('createTrackMapSvg?.(track.track)'),
+  'Track hub cards must use the global info-button-free track map component'
 );
+assert(!trackHub.includes('showInfo'), 'Track hub cards must not retain a local info-button override');
 assert(!trackHub.includes('track-hub-kpis'), 'Track hub cards must not render KPI chips');
 assert(!trackHub.includes('Rekordsieger:'), 'Track hub cards must not render record winner chips');
 assert(!trackHub.includes('Bestzeit:'), 'Track hub cards must not render best-time chips');

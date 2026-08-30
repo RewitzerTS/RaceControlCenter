@@ -38,7 +38,7 @@
 
     byId('track-hub-grid').innerHTML = calculated.length ? calculated.map(({ track }) => `
       <a class="track-hub-card" href="${scopedHref('strecken-profil.html', { track: track.key, season: state.seasonId || null })}">
-        <div class="track-hub-map">${window.createTrackMapSvg?.(track.track, { showInfo: false }) || ''}</div>
+        <div class="track-hub-map">${window.createTrackMapSvg?.(track.track) || ''}</div>
         <div class="track-hub-copy">
           <div class="track-hub-heading">
             ${window.createFlagBadge?.(track.track?.countryCode, `${track.grandPrixName} Flagge`) || `<span class="track-flag-fallback" aria-hidden="true">${window.getFlagEmoji?.(track.track?.countryCode) || '🏁'}</span>`}

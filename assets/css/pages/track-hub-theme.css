@@ -6,7 +6,3 @@
     color-mix(in srgb, var(--secondary) 12%, var(--surface-2, var(--surface)))
   );
 }
-
-.track-hub-card .track-map-info-hint {
-  display: none;
-}

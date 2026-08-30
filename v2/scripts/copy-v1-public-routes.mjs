@@ -76,6 +76,8 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('https://cdn.jsdelivr.net/npm/chart.js', '/v1-assets/vendor/chart.umd.min.js')
     .replaceAll('/v1-assets/js/services/rcc-f1-news-backend.js', '/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')
     .replaceAll('/v1-assets/js/layout.js', '/v1-assets/js/layout.js?v=v2-internal-i18n-1')
+    .replaceAll('/v1-assets/js/utils.js', '/v1-assets/js/utils.js?v=v2-no-track-info-1')
+    .replaceAll('/v1-assets/js/app.js', '/v1-assets/js/app.js?v=v2-no-track-info-1')
     .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')
     .replaceAll('/v1-assets/js/data/tracks.js', '/v1-assets/js/data/tracks.js?v=v2-local-flags-1')
     .replaceAll('/v1-assets/js/pages/track-hub.js', '/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')
@@ -277,4 +279,4 @@ for (const page of publicPages) {
   await writeFile(cleanRoute, transformHtml(source, true, page), 'utf8');
 }
 
-console.log(`Restored ${publicPages.length} complete V1 public views inside V2, including track maps and track information.`);
+console.log(`Restored ${publicPages.length} complete V1 public views inside V2, including track maps and local flags.`);

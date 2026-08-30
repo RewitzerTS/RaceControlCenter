@@ -13,10 +13,10 @@ const styles = await readFile(resolve(root, 'src/styles.css'), 'utf8');
 const violations = [];
 
 for (const nav of [
-  "{ icon: 'home', key: 'nav.home', path: '/home' }",
-  "{ icon: 'racing', key: 'nav.racing', path: '/racing' }",
-  "{ icon: 'career', key: 'nav.career', path: '/career' }",
-  "{ icon: 'vora', key: 'nav.vora', path: '/vora' }",
+  "icon: 'home', key: 'nav.home'",
+  "icon: 'racing', key: 'nav.racing'",
+  "icon: 'career', key: 'nav.career'",
+  "icon: 'vora', key: 'nav.vora'",
 ]) {
   if (!shell.includes(nav)) violations.push(`missing Driver navigation contract: ${nav}`);
 }
@@ -30,7 +30,7 @@ if (!shell.includes('<Route path="/home" element={<DriverHomePage />} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
 for (const route of [
-  '<Route path="/racing" element={<RacingPage />} />',
+  '<Route path="/racing/*" element={<RacingPage />} />',
   '<Route path="/career" element={<Suspense',
   '<Route path="/profile" element={<Suspense',
 ]) {
@@ -86,9 +86,11 @@ for (const table of ['races', 'race_results']) {
 if (!racing.includes(".eq('result_version_id', selectedRace.current_result_version_id)")) {
   violations.push('Racing does not pin results to the current official version');
 }
-if (!racing.includes("page !== 'team-profil' && page !== 'strecken-profil'")
-    || !racing.includes('{showIntegratedHeading && <header className="integrated-section-heading">')) {
-  violations.push('Team and track profile routes still duplicate their embedded page heading');
+if (racing.includes('integrated-section-heading') || racing.includes("t('racing.sectionCopy')")) {
+  violations.push('Racing routes still duplicate their embedded page heading');
+}
+if (!racing.includes('section-view-switcher section-view-switcher--standalone')) {
+  violations.push('Racing subviews lost their driver/team or history view switcher');
 }
 if (!styles.includes('color-mix(in srgb, var(--brand-primary) 16%, var(--brand-surface))')) {
   violations.push('The account role chip does not follow the active personal theme');

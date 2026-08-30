@@ -28,11 +28,9 @@ countryCodes.forEach((countryCode) => {
 });
 
 const imola = context.window.findTrackByGrandPrixName('Emilia-Romagna GP');
-const calendarMap = context.window.createTrackMapSvg(imola, { showInfo: false });
-assert(!calendarMap.includes('track-map-info-hint'), 'Calendar track map should not render an info button');
-
-const detailMap = context.window.createTrackMapSvg(imola);
-assert(detailMap.includes('track-map-info-hint'), 'Track details may keep the dedicated info button');
+const calendarMap = context.window.createTrackMapSvg(imola);
+assert(!calendarMap.includes('track-map-info-hint'), 'Track maps must not render an info button');
+assert(!calendarMap.includes('data-trackinfo-open'), 'Track maps must not retain a track-info trigger');
 
 assert(
   /body\[data-page="kalender"\] \.calendar-toggle-row\s*\{[\s\S]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/.test(calendarCss),

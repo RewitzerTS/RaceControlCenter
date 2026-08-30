@@ -36,6 +36,10 @@ if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-season-archive-
 if (!calendarPage.includes('/v1-assets/js/data/tracks.js?v=v2-local-flags-1')) {
   throw new Error('Integrated calendar must cache-bust the local country-flag source.');
 }
+if (!calendarPage.includes('/v1-assets/js/utils.js?v=v2-no-track-info-1')
+    || !calendarPage.includes('/v1-assets/js/app.js?v=v2-no-track-info-1')) {
+  throw new Error('Integrated calendar must cache-bust the globally info-button-free track map assets.');
+}
 const integratedTracks = await readFile(resolve(distRoot, 'v1-assets', 'js', 'data', 'tracks.js'), 'utf8');
 if (!integratedTracks.includes('`/v1-assets/images/flags/${lower}.svg`') || integratedTracks.includes('flagcdn.com')) {
   throw new Error('Integrated Racing pages must load country flags from local RaceVora assets.');
@@ -46,12 +50,24 @@ if (!trackHubPage.includes('/v1-assets/js/pages/track-hub.js?v=v2-track-hub-them
   throw new Error('Integrated track hub must load the current themed, info-hint-free card assets.');
 }
 const integratedTrackHub = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'track-hub.js'), 'utf8');
-if (!integratedTrackHub.includes('createTrackMapSvg?.(track.track, { showInfo: false })')) {
-  throw new Error('Integrated track cards must not render track-info hint buttons.');
+if (!integratedTrackHub.includes('createTrackMapSvg?.(track.track)') || integratedTrackHub.includes('showInfo')) {
+  throw new Error('Integrated track cards must use the global info-button-free track map component.');
 }
 const trackHubTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'track-hub-theme.css'), 'utf8');
-if (!trackHubTheme.includes('var(--primary)') || !trackHubTheme.includes('.track-hub-card .track-map-info-hint')) {
-  throw new Error('Integrated track hub accent card must follow theme tokens and hide stale info hints.');
+if (!trackHubTheme.includes('var(--primary)') || trackHubTheme.includes('track-map-info-hint')) {
+  throw new Error('Integrated track hub accent card must follow theme tokens without stale info-hint styles.');
+}
+const integratedUtils = await readFile(resolve(distRoot, 'v1-assets', 'js', 'utils.js'), 'utf8');
+if (integratedUtils.includes('track-map-info-hint')
+    || integratedUtils.includes('data-trackinfo-open')
+    || integratedUtils.includes('showInfo')) {
+  throw new Error('Integrated track maps must not generate track-info hint buttons.');
+}
+const integratedApp = await readFile(resolve(distRoot, 'v1-assets', 'js', 'app.js'), 'utf8');
+if (integratedApp.includes('trackinfo-modal')
+    || integratedApp.includes('initTrackInfoModal')
+    || integratedApp.includes('data-trackinfo-open')) {
+  throw new Error('Integrated Racing pages must not bind the removed track-info modal.');
 }
 
 const seasonArchivePage = await readFile(resolve(distRoot, 'saison-archiv.html'), 'utf8');

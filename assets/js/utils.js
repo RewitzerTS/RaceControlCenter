@@ -283,18 +283,7 @@ function createTrackMapSvg(track, options = {}) {
   const mapFile = track?.trackMapFile;
   const mapUrl = mapFile ? `assets/trackmaps/${mapFile}` : '';
   const label = escapeHtml(track?.circuitName || track?.grandPrixName || 'Track Map');
-  const rawTrackName = track?.circuitName || track?.grandPrixName || '';
   const cardClass = options.cardClass ? ` ${escapeHtml(options.cardClass)}` : '';
-  const trackInfoButton = options.showInfo === false
-    ? ''
-    : `
-      <button
-        type="button"
-        class="track-map-info-hint"
-        data-trackinfo-open="${escapeHtml(rawTrackName)}"
-        aria-label="Streckeninfos zu ${label} öffnen"
-      >ℹ️</button>
-    `;
 
   if (!mapUrl) {
     return '<div class="track-map-placeholder">Track Map folgt</div>';
@@ -312,7 +301,6 @@ function createTrackMapSvg(track, options = {}) {
       >
         <img class="track-map-image" src="${escapeHtml(mapUrl)}" alt="${label} Track Map" loading="lazy">
       </button>
-      ${trackInfoButton}
     </div>
   `;
 }
@@ -346,7 +334,7 @@ function createRaceCard(race) {
     : ''}
             </div>
             <div class="track-map-card">
-              ${createTrackMapSvg(track, { showInfo: false })}
+              ${createTrackMapSvg(track)}
             </div>
           </div>
         </div>
