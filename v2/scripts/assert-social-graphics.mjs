@@ -7,6 +7,7 @@ const landscapeMigration = fs.readFileSync(path.join(root, 'supabase/migrations/
 const page = fs.readFileSync(path.join(root, 'src/graphics/GraphicsStudioPage.tsx'), 'utf8');
 const graphics = fs.readFileSync(path.join(root, 'src/graphics/graphics.ts'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'src/graphics/renderPng.ts'), 'utf8');
+const portraitTemplate = fs.readFileSync(path.join(root, 'src/graphics/templates/race-result-portrait.svg'), 'utf8');
 
 const requirements = [
   [migration.includes('social_graphic_renders'), 'render manifests'],
@@ -18,8 +19,14 @@ const requirements = [
   [migration.includes("perform private.complete_domain_event_processing(p_processing_id, 'graphics'"), 'independent downstream processor'],
   [migration.includes("where flag_key = 'graphics_enabled'"), 'server feature flag'],
   [page.includes('renderGraphicPng') && page.includes('recordGraphicRender') && !page.includes("t('graphics.copy')"), 'compact PNG render and manifest flow'],
+  [page.includes('graphicPages.map') && page.includes('graphics-page-navigation'), 'multi-page preview and export flow'],
+  [page.includes('graphicBranding') && page.includes('branding: graphicBranding'), 'league-specific graphic header binding'],
   [graphics.includes("['square', 'portrait', 'story', 'landscape']"), 'landscape format selection'],
+  [graphics.includes('paginateGraphicModel') && !graphics.includes("slice(0, 8)"), 'complete balanced race-result pagination'],
   [renderer.includes("canvas.toBlob") && renderer.includes("'image/png'"), 'PNG renderer'],
+  [renderer.includes('readGraphicTheme') && renderer.includes('resolveRaceResultPortraitTemplate'), 'personal-theme SVG renderer'],
+  [renderer.includes('drawLeagueIdentity') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACEVORA'), 'league header and fixed RaceVora footer'],
+  [portraitTemplate.includes('data-rv-template="race-result-portrait"') && portraitTemplate.includes('id="slot-table"') && portraitTemplate.includes('data-max-rows="11"'), 'editable 4:5 race-result pilot template'],
   [renderer.includes('square: { width: 1080, height: 1080 }') && renderer.includes('story: { width: 1080, height: 1920 }') && renderer.includes('landscape: { width: 1920, height: 1080 }'), 'exact dimensions'],
 ];
 

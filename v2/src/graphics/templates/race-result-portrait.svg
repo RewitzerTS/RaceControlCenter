@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" data-rv-template="race-result-portrait" data-graphic-type="race-result" data-format="portrait">
+  <style>
+    :root {
+      --rv-background: #080b10;
+      --rv-surface: #111720;
+      --rv-surface-alt: #19212d;
+      --rv-primary: #d8af4f;
+      --rv-secondary: #7653c7;
+      --rv-accent: #78c5d5;
+      --rv-text: #f7f5ef;
+      --rv-muted: #b7bec9;
+      --rv-line: #343c49;
+      --rv-on-primary: #090b0f;
+    }
+    .rv-background { fill: var(--rv-background); }
+    .rv-surface { fill: var(--rv-surface); }
+    .rv-surface-alt { fill: var(--rv-surface-alt); }
+    .rv-primary-fill { fill: var(--rv-primary); }
+    .rv-secondary-fill { fill: var(--rv-secondary); }
+    .rv-accent-fill { fill: var(--rv-accent); }
+    .rv-primary-stroke { fill: none; stroke: var(--rv-primary); }
+    .rv-secondary-stroke { fill: none; stroke: var(--rv-secondary); }
+    .rv-line-stroke { fill: none; stroke: var(--rv-line); }
+    .rv-slot { fill: none; stroke: none; pointer-events: none; }
+    .rv-crisp { vector-effect: non-scaling-stroke; }
+  </style>
+  <defs>
+    <linearGradient id="rv-background-gradient" x1="0" y1="0" x2="1080" y2="1350" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--rv-background)"/>
+      <stop offset="0.56" stop-color="var(--rv-surface)"/>
+      <stop offset="1" stop-color="var(--rv-background)"/>
+    </linearGradient>
+    <linearGradient id="rv-hero-primary" x1="1080" y1="0" x2="470" y2="330" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--rv-primary)" stop-opacity="0.42"/>
+      <stop offset="0.58" stop-color="var(--rv-secondary)" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="var(--rv-background)" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rv-hero-sweep" x1="1020" y1="26" x2="540" y2="352" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--rv-accent)" stop-opacity="0.34"/>
+      <stop offset="0.48" stop-color="var(--rv-primary)" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="var(--rv-primary)" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rv-table" x1="36" y1="386" x2="1044" y2="1106" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--rv-surface-alt)" stop-opacity="0.88"/>
+      <stop offset="0.28" stop-color="var(--rv-background)" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="var(--rv-background)" stop-opacity="0.74"/>
+    </linearGradient>
+    <linearGradient id="rv-footer" x1="0" y1="1128" x2="1080" y2="1350" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--rv-surface-alt)" stop-opacity="0.52"/>
+      <stop offset="0.5" stop-color="var(--rv-background)"/>
+      <stop offset="1" stop-color="var(--rv-surface)"/>
+    </linearGradient>
+    <radialGradient id="rv-hero-glow" cx="0" cy="0" r="1" gradientTransform="translate(820 180) rotate(149) scale(410 310)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="var(--rv-primary)" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="var(--rv-primary)" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="rv-canvas-clip"><rect width="1080" height="1350"/></clipPath>
+  </defs>
+  <g id="background" clip-path="url(#rv-canvas-clip)">
+    <rect width="1080" height="1350" fill="url(#rv-background-gradient)"/>
+    <ellipse cx="820" cy="180" rx="410" ry="310" fill="url(#rv-hero-glow)"/>
+    <path d="M1080 0H690L512 350H1080Z" fill="url(#rv-hero-primary)"/>
+    <path d="M1080 38L862 38L612 350H740Z" fill="url(#rv-hero-sweep)" opacity="0.74"/>
+    <path d="M1080 182L938 182L806 350H894Z" class="rv-primary-fill" opacity="0.08"/>
+    <rect y="1128" width="1080" height="222" fill="url(#rv-footer)"/>
+  </g>
+  <g id="surface">
+    <rect x="36" y="386" width="1008" height="720" rx="10" fill="url(#rv-table)"/>
+    <path d="M36 396Q36 386 46 386H1044V451H36Z" class="rv-primary-fill" opacity="0.055"/>
+  </g>
+  <g id="decoration-primary" clip-path="url(#rv-canvas-clip)">
+    <path d="M618 306C732 246 750 121 862 90C936 70 1004 91 1080 136" class="rv-primary-stroke rv-crisp" stroke-width="8" stroke-linecap="round" opacity="0.55"/>
+    <path d="M628 329C742 270 773 150 875 120C948 99 1012 120 1080 157" class="rv-primary-stroke rv-crisp" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 14" opacity="0.5"/>
+    <circle cx="862" cy="90" r="8" class="rv-primary-fill"/>
+    <circle cx="862" cy="90" r="16" class="rv-primary-stroke rv-crisp" stroke-width="2" opacity="0.42"/>
+  </g>
+  <g id="decoration-secondary" clip-path="url(#rv-canvas-clip)">
+    <path d="M498 350L694 20H756L560 350Z" class="rv-secondary-fill" opacity="0.08"/>
+    <path d="M760 350L970 0H1002L792 350Z" class="rv-accent-fill" opacity="0.09"/>
+    <path d="M0 1348C160 1308 284 1320 414 1350" class="rv-secondary-stroke rv-crisp" stroke-width="3" opacity="0.24"/>
+  </g>
+  <g id="content-frame">
+    <path d="M36 386H1044" class="rv-primary-stroke rv-crisp" stroke-width="2" opacity="0.78"/>
+    <path d="M36 451H1044M36 1106H1044M36 1128H1044M36 1290H1044" class="rv-line-stroke rv-crisp" stroke-width="1" opacity="0.82"/>
+    <path d="M134 451V1106M468 451V1106M930 451V1106" class="rv-line-stroke rv-crisp" stroke-width="1" opacity="0.58"/>
+    <path d="M36 386H188" class="rv-primary-stroke rv-crisp" stroke-width="5"/>
+    <path d="M892 386H1044" class="rv-primary-stroke rv-crisp" stroke-width="5" opacity="0.65"/>
+  </g>
+  <g id="slots">
+    <rect id="slot-logo" class="rv-slot" x="44" y="32" width="560" height="58" data-slot="logo"/>
+    <rect id="slot-eyebrow" class="rv-slot" x="44" y="100" width="420" height="40" data-slot="eyebrow"/>
+    <rect id="slot-title" class="rv-slot" x="44" y="132" width="570" height="154" data-slot="title"/>
+    <rect id="slot-subtitle" class="rv-slot" x="44" y="298" width="760" height="48" data-slot="subtitle"/>
+    <rect id="slot-page-number" class="rv-slot" x="828" y="300" width="208" height="42" data-slot="page-number"/>
+    <rect id="slot-table" class="rv-slot" x="36" y="386" width="1008" height="720" data-slot="table" data-max-rows="11" data-rank-column-width="98" data-value-column-width="114"/>
+    <rect id="slot-footer" class="rv-slot" x="36" y="1128" width="1008" height="204" data-slot="footer"/>
+  </g>
+</svg>

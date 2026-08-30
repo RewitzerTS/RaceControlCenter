@@ -62,6 +62,12 @@ export type GraphicModel = {
   source: Record<string, Json | undefined>;
 };
 
+export type GraphicPage = {
+  model: GraphicModel;
+  pageNumber: number;
+  pageCount: number;
+};
+
 function object(value: Json | null): Record<string, Json | undefined> {
   if (!value || Array.isArray(value) || typeof value !== 'object') throw new Error('Unexpected Social Graphics payload.');
   return value;
@@ -78,13 +84,14 @@ export async function recordGraphicRender(
   model: GraphicModel,
   format: GraphicFormat,
   digest: string,
+  presentation?: unknown,
 ) {
   const response = await client.rpc('record_social_graphic_render', {
     p_graphic_type: model.type,
     p_graphic_format: format,
     p_result_version_id: model.resultVersionId as string,
     p_source_digest: digest,
-    p_source_payload: model.source,
+    p_source_payload: (presentation ? { ...model.source, presentation } : model.source) as Json,
   });
   if (response.error) throw response.error;
   return response.data;
@@ -100,7 +107,7 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
   const resultVersionId = ['race_result', 'podium', 'winner'].includes(type) ? result?.id ?? null : null;
 
   if (type === 'race_result') {
-    const rows = (result?.rows ?? []).slice(0, 8).map((row) => ({
+    const rows = (result?.rows ?? []).map((row) => ({
       rank: row.position ? String(row.position).padStart(2, '0') : row.status.toUpperCase(),
       primary: row.driver,
       secondary: row.team,
@@ -128,6 +135,23 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
   return { type, eyebrow: labels.achievement, title: achievement?.driver ?? labels.noData, subtitle: achievement?.code.replaceAll('_', ' ') ?? '', hero: achievement ? String(achievement.value) : undefined, rows: [], footer: labels.official, resultVersionId, source: { type, league: workspace.league, achievement } as unknown as Record<string, Json> };
 }
 
+export function paginateGraphicModel(model: GraphicModel, maximumRows: number): GraphicPage[] {
+  if (!Number.isInteger(maximumRows) || maximumRows < 1) throw new Error('Graphic page size must be a positive integer.');
+  const pageCount = Math.max(1, Math.ceil(model.rows.length / maximumRows));
+  if (pageCount === 1) return [{ model, pageNumber: 1, pageCount: 1 }];
+
+  const minimumPageSize = Math.floor(model.rows.length / pageCount);
+  const largerPageCount = model.rows.length % pageCount;
+  let offset = 0;
+  return Array.from({ length: pageCount }, (_, index) => {
+    const pageSize = minimumPageSize + (index < largerPageCount ? 1 : 0);
+    const pageNumber = index + 1;
+    const pageRows = model.rows.slice(offset, offset + pageSize);
+    offset += pageSize;
+    return { model: { ...model, rows: pageRows }, pageNumber, pageCount };
+  });
+}
+
 function canonicalize(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalize).join(',')}]`;
   if (value && typeof value === 'object') {
@@ -136,13 +160,14 @@ function canonicalize(value: unknown): string {
   return JSON.stringify(value) ?? 'null';
 }
 
-export async function digestGraphicSource(model: GraphicModel, format: GraphicFormat): Promise<string> {
-  const bytes = new TextEncoder().encode(canonicalize({ format, source: model.source }));
+export async function digestGraphicSource(model: GraphicModel, format: GraphicFormat, presentation?: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(canonicalize({ format, presentation, source: model.source }));
   const hash = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export function graphicFilename(workspace: GraphicsWorkspace, type: GraphicType, format: GraphicFormat) {
+export function graphicFilename(workspace: GraphicsWorkspace, type: GraphicType, format: GraphicFormat, pageNumber = 1, pageCount = 1) {
   const version = workspace.latest_result?.version ? `-v${workspace.latest_result.version}` : '';
-  return `racevora-${workspace.league.slug}-${type}-${format}${version}.png`;
+  const page = pageCount > 1 ? `-${String(pageNumber).padStart(2, '0')}` : '';
+  return `racevora-${workspace.league.slug}-${type}-${format}${version}${page}.png`;
 }

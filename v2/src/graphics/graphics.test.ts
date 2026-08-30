@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphicModel, digestGraphicSource, graphicFilename, type GraphicLabels, type GraphicsWorkspace } from './graphics';
-import { GRAPHIC_DIMENSIONS } from './renderPng';
+import { buildGraphicModel, digestGraphicSource, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
+import { GRAPHIC_DIMENSIONS, mixGraphicColors, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
 
 const labels: GraphicLabels = {
   raceResult: 'Race Result', podium: 'Podium', winner: 'Winner', driverStandings: 'Driver Standings', teamStandings: 'Team Standings', achievement: 'Achievement',
@@ -39,8 +39,38 @@ describe('Social Graphics model', () => {
 
   it('creates a stable SHA-256 source digest and versioned filename', async () => {
     const model = buildGraphicModel(workspace, 'winner', labels);
-    await expect(digestGraphicSource(model, 'story')).resolves.toMatch(/^[0-9a-f]{64}$/);
+    const digest = await digestGraphicSource(model, 'story');
+    const presentedDigest = await digestGraphicSource(model, 'story', { branding: { name: 'RaceVora Demo' }, theme: { primary: '#7653C7' } });
+    expect(digest).toMatch(/^[0-9a-f]{64}$/);
+    expect(presentedDigest).toMatch(/^[0-9a-f]{64}$/);
+    expect(presentedDigest).not.toBe(digest);
     expect(graphicFilename(workspace, 'winner', 'story')).toBe('racevora-demo-winner-story-v2.png');
+    expect(graphicFilename(workspace, 'race_result', 'portrait', 2, 2)).toBe('racevora-demo-race_result-portrait-v2-02.png');
+  });
+
+  it('balances complete race results across pages of at most eleven drivers', () => {
+    const model = buildGraphicModel(workspace, 'race_result', labels);
+    const rows = Array.from({ length: 20 }, (_, index) => ({ ...model.rows[0], rank: String(index + 1), primary: `Driver ${index + 1}` }));
+    const pages = paginateGraphicModel({ ...model, rows }, 11);
+    expect(pages).toHaveLength(2);
+    expect(pages.map((page) => page.model.rows.length)).toEqual([10, 10]);
+    expect(pages.flatMap((page) => page.model.rows).map((row) => row.primary)).toEqual(rows.map((row) => row.primary));
+
+    const twentyTwo = paginateGraphicModel({ ...model, rows: [...rows, ...rows.slice(0, 2)] }, 11);
+    expect(twentyTwo.map((page) => page.model.rows.length)).toEqual([11, 11]);
+  });
+
+  it('injects the active theme into the editable portrait pilot template', () => {
+    const theme: GraphicTheme = {
+      background: '#010203', surface: '#111213', surfaceAlt: '#212223', primary: '#313233', secondary: '#414243',
+      accent: '#515253', text: '#F1F2F3', muted: '#A1A2A3', line: '#616263', onPrimary: '#717273',
+    };
+    const svg = resolveRaceResultPortraitTemplate(theme);
+    expect(svg).toContain('data-rv-template="race-result-portrait"');
+    expect(svg).toContain('id="slot-table"');
+    expect(svg).toContain(theme.primary);
+    expect(svg).not.toContain('var(--rv-primary)');
+    expect(mixGraphicColors('#000000', '#FFFFFF', 0.5)).toBe('#808080');
   });
 
   it('uses exact export dimensions for all four formats', () => {

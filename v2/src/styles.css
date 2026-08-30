@@ -1243,6 +1243,13 @@ h2 {
 .graphics-preview-panel { min-width: 0; display: grid; place-items: center; align-content: start; gap: 1rem; padding: clamp(1.25rem, 4vw, 3rem); background: #020f1c; }
 .graphics-preview-heading { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 .graphics-preview-heading span { color: var(--muted); font-size: 0.72rem; }
+.graphic-canvas-preview { width: min(100%, 650px); height: auto; display: block; border: 1px solid color-mix(in srgb, var(--brand-accent) 36%, transparent); background: var(--brand-background); }
+.graphic-canvas-preview--story { width: min(100%, 430px); }
+.graphics-page-navigation { display: flex; align-items: center; justify-content: center; gap: 0.75rem; }
+.graphics-page-navigation button { width: 44px; min-height: 44px; border: 1px solid var(--line); border-radius: 50%; color: var(--brand-text); background: var(--brand-surface); font: inherit; font-weight: 850; cursor: pointer; }
+.graphics-page-navigation button:hover:not(:disabled), .graphics-page-navigation button:focus-visible:not(:disabled) { border-color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 12%, var(--brand-surface)); }
+.graphics-page-navigation button:disabled { opacity: 0.38; cursor: not-allowed; }
+.graphics-page-navigation span { min-width: 110px; color: var(--brand-text); font-size: 0.76rem; font-weight: 750; text-align: center; }
 .graphic-preview { width: min(100%, 650px); display: flex; flex-direction: column; overflow: hidden; padding: 6.8%; border: 1px solid rgba(120, 197, 213, 0.36); background: radial-gradient(circle at 100% 0%, rgba(120, 197, 213, 0.15), transparent 28%), linear-gradient(145deg, #031727, #102849); }
 .graphic-preview--square { aspect-ratio: 1 / 1; }
 .graphic-preview--portrait { aspect-ratio: 4 / 5; }
