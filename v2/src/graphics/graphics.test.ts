@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphicModel, digestGraphicSource, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
+import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
 import { GRAPHIC_DIMENSIONS, mixGraphicColors, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
 
 const labels: GraphicLabels = {
@@ -13,8 +13,8 @@ const workspace: GraphicsWorkspace = {
     id: 'result-v2', version: 2, race_id: 'race-1', race_name: 'Belgian Grand Prix', circuit: 'Spa-Francorchamps', country_code: 'BE', race_date: '2026-08-20', round: 7,
     rows: [
       { position: 1, driver: 'Alex Apex', team: 'Vora Racing', points: 25, status: 'classified', raceTime: '42:13,500', raceTimeMs: 2533500 },
-      { position: 2, driver: 'Sam Slipstream', team: 'Vector Motorsport', points: 18, status: 'classified' },
-      { position: 3, driver: 'Jordan Grid', team: 'Vora Racing', points: 15, status: 'classified' },
+      { position: 2, driver: 'Sam Slipstream', team: 'Vector Motorsport', points: 18, status: 'classified', raceTimeMs: 2606494 },
+      { position: 3, driver: 'Jordan Grid', team: 'Vora Racing', points: 15, status: 'DNF' },
     ],
   },
   driver_standings: [{ position: 1, driver: 'Alex Apex', points: 88, wins: 3 }],
@@ -49,7 +49,14 @@ describe('Social Graphics model', () => {
     expect(model.title).toBe('Canadian Grand Prix');
     expect(model.subtitle).toBe('Circuit Gilles Villeneuve');
     expect(model.rows[0]?.detail).toBe('42:13,500');
+    expect(model.rows[1]?.detail).toBe('+01:12.994');
+    expect(model.rows[2]?.detail).toBe('DNF');
     expect(model.source.result).toMatchObject({ country_code: 'BE' });
+  });
+
+  it('formats official race gaps with minutes, seconds and milliseconds', () => {
+    expect(formatRaceGap(3294)).toBe('+00:03.294');
+    expect(formatRaceGap(72994)).toBe('+01:12.994');
   });
 
   it('keeps standings global to the structured standings snapshot, without a result binding', () => {

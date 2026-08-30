@@ -189,17 +189,53 @@ function points(value: number, label: string) {
   return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)} ${label}`;
 }
 
+export function formatRaceGap(milliseconds: number) {
+  const totalMilliseconds = Math.max(0, Math.round(milliseconds));
+  const totalMinutes = Math.floor(totalMilliseconds / 60_000);
+  const seconds = Math.floor((totalMilliseconds % 60_000) / 1_000);
+  const millisecondRemainder = totalMilliseconds % 1_000;
+  return `+${String(totalMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millisecondRemainder).padStart(3, '0')}`;
+}
+
+function raceResultTime(row: ResultRow, winnerTimeMs: number | null) {
+  const status = row.status.trim().toUpperCase();
+  const recordedTime = row.raceTime?.trim();
+
+  if (row.position === 1) {
+    return recordedTime || (status === 'CLASSIFIED' ? '—' : status);
+  }
+
+  if (
+    winnerTimeMs !== null
+    && typeof row.raceTimeMs === 'number'
+    && Number.isFinite(row.raceTimeMs)
+    && row.raceTimeMs >= winnerTimeMs
+  ) {
+    return formatRaceGap(row.raceTimeMs - winnerTimeMs);
+  }
+
+  if (recordedTime?.startsWith('+')) {
+    return recordedTime.replace(',', '.');
+  }
+
+  return status === 'CLASSIFIED' ? '—' : status;
+}
+
 export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicType, labels: GraphicLabels): GraphicModel {
   const result = workspace.latest_result;
   const footer = result ? `${labels.official} · ${labels.resultVersion} ${result.version}` : labels.official;
   const resultVersionId = ['race_result', 'podium', 'winner'].includes(type) ? result?.id ?? null : null;
 
   if (type === 'race_result') {
+    const winner = (result?.rows ?? []).find((row) => row.position === 1);
+    const winnerTimeMs = typeof winner?.raceTimeMs === 'number' && Number.isFinite(winner.raceTimeMs)
+      ? winner.raceTimeMs
+      : null;
     const rows = (result?.rows ?? []).map((row) => ({
       rank: row.position ? String(row.position).padStart(2, '0') : row.status.toUpperCase(),
       primary: row.driver,
       secondary: row.team,
-      detail: row.raceTime?.trim() || row.status.toUpperCase(),
+      detail: raceResultTime(row, winnerTimeMs),
       value: points(row.points, labels.points),
     }));
     return { type, eyebrow: labels.raceResult, title: result?.race_name ?? labels.noData, subtitle: result?.circuit ?? `${labels.round} ${result?.round ?? '—'}`, rows, footer, resultVersionId, source: { type, league: workspace.league, result } as unknown as Record<string, Json> };

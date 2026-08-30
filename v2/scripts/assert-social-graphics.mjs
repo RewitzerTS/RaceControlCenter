@@ -28,7 +28,7 @@ const requirements = [
   [renderer.includes("canvas.toBlob") && renderer.includes("'image/png'"), 'PNG renderer'],
   [renderer.includes('readGraphicTheme') && renderer.includes('resolveRaceResultPortraitTemplate'), 'personal-theme SVG renderer'],
   [renderer.includes('drawPilotGraphic') && !renderer.includes('drawDefaultGraphic') && renderer.includes("achievement: ['CAREER', 'ACHIEVEMENT']"), 'shared pilot design across all templates and formats'],
-  [graphics.includes('raceTime') && renderer.includes("'TIME'") && portraitTemplate.includes('data-detail-column="race-time"'), 'official race times in result graphics'],
+  [graphics.includes('raceTime') && graphics.includes('formatRaceGap') && renderer.includes("'TIME'") && portraitTemplate.includes('data-detail-column="race-time"'), 'winner time and calculated race gaps in result graphics'],
   [renderer.includes('drawLeagueIdentity') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACE.VORA'), 'league header and fixed RaceVora footer'],
   [fs.existsSync(footerLogo) && renderer.includes('racevora-logo-white.png') && !renderer.includes('drawRaceVoraMark'), 'official RaceVora footer logo asset'],
   [graphics.includes('country_code') && renderer.includes('drawCountryFlag') && renderer.includes('/v1-assets/images/flags'), 'official race country flag in graphic header'],
