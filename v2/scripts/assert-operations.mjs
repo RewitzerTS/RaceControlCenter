@@ -38,7 +38,7 @@ for (const contract of [
 for (const contract of ["to=\"/admin\"", "to=\"/owner\"", "to=\"/notifications\"", 'canSteward', 'canAdmin', 'canOwner', 'canNotify', 'loading: authLoading', 'accessLoading ?']) if (!shell.includes(contract)) violations.push('missing shell contract: ' + contract);
 if (shell.includes('features.leagueAdmin &&')) violations.push('obsolete V1 admin rollout gate is still active');
 for (const contract of ['path="/admin/users"', 'path="/admin/drivers"', 'path="/admin/races"', 'path="/admin/results"', 'path="/admin/standings"', 'path="/admin/teams"', 'path="/admin/rules"', 'path="/admin/results/import"', 'path="/admin/audit"']) if (!shell.includes(contract)) violations.push('missing V1 admin route: ' + contract);
-for (const contract of ['resolvedScope', 'resolvedScope !== currentScope', '[client, leagueSlug, user]']) if (!roleProvider.includes(contract)) violations.push('missing user-and-league-scoped role gate: ' + contract);
+for (const contract of ['resolvedScope', 'resolvedScope !== currentScope', '[client, leagueSlug, userId]']) if (!roleProvider.includes(contract)) violations.push('missing user-and-league-scoped role gate: ' + contract);
 for (const contract of ['role === \'league_admin\'', 'role === \'platform_owner\'', 'loadAdminSnapshot']) if (!admin.includes(contract)) violations.push('missing admin role contract: ' + contract);
 for (const contract of ['get_league_member_admin_workspace', 'add_existing_league_member_by_email', 'set_league_member_role', 'remove_league_member', 'get_league_driver_admin_workspace', 'upsert_league_driver']) if (!adminParity.includes(contract)) violations.push('missing V1 admin parity RPC: ' + contract);
 for (const contract of ['get_league_configuration_workspace', 'update_league_rules', 'rename_league_team', 'create_league_result_draft', 'publish_league_result_draft']) if (!completionMigration.includes(contract)) violations.push('missing V1 completion RPC: ' + contract);
@@ -50,10 +50,25 @@ for (const contract of ['create table public.race_penalties', 'steward_case_id u
 for (const contract of ['LeagueTeamsPage', 'LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseResultCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
 if (admin.includes('folgt in der V1-Migration') || admin.includes('operations-menu__pending')) violations.push('V1 migration still exposes pending admin placeholders');
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);
-for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', 'Fahrer anlegen', 'Bearbeiten']) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
+for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', "copy('drivers.create')", "copy('shared.edit')"]) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
 for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
 for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
+if (!styles.includes('.app-shell .operations-metrics {')
+    || !styles.includes('color-mix(in srgb, var(--brand-primary) 14%, transparent)')
+    || !styles.includes('color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background))')) {
+  violations.push('Owner and admin overview metrics do not follow the active personal theme');
+}
+const createLeagueButton = styles.match(/\.operations-menu \.operations-create-league \{([\s\S]*?)\}/)?.[1] ?? '';
+if (!createLeagueButton.includes('color: var(--brand-on-primary)')
+    || !createLeagueButton.includes('background: var(--brand-gradient)')
+    || /#2c8fa6|#5a32a3/i.test(createLeagueButton)) {
+  violations.push('The create-league action does not follow the active personal theme');
+}
+if (!styles.includes('.app-shell :is(.admin-form, .admin-inline-form, .onboarding-form, .steward-form, .beta-access-form)')
+    || !styles.includes('outline: 3px solid var(--brand-primary)')) {
+  violations.push('Admin inline form controls do not follow the active personal theme');
+}
 for (const contract of ['rollback;', 'league admin entered global Owner Control', 'notification leaked to another user', 'audit history was mutable']) if (!test.includes(contract)) violations.push('missing SQL regression: ' + contract);
 for (const contract of ['begin;', 'season completion accepted an upcoming race', 'blocked season completion still archived the season', 'rollback;']) if (!seasonCompletionTest.includes(contract)) violations.push('missing season completion regression: ' + contract);
 for (const contract of ['begin;', 'race_penalties compatibility table is missing', 'anonymous race_penalties privileges are unsafe', 'policies do not enforce tenant, role, driver and case scope', 'rollback;']) if (!racePenaltyTest.includes(contract)) violations.push('missing race penalties compatibility regression: ' + contract);

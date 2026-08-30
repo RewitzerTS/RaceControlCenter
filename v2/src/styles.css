@@ -64,7 +64,7 @@ h2 {
 }
 
 :focus-visible {
-  outline: 3px solid #69d5e6;
+  outline: 3px solid var(--brand-primary);
   outline-offset: 4px;
 }
 
@@ -3419,13 +3419,13 @@ p { color: var(--muted); }
     radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand-accent) 9%, transparent), transparent 40%),
     color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background));
 }
-.app-shell :is(.admin-form, .onboarding-form, .steward-form, .beta-access-form) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
+.app-shell :is(.admin-form, .admin-inline-form, .onboarding-form, .steward-form, .beta-access-form) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea),
 .app-shell :is(.admin-data-panel, .result-review-table) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
   color: var(--brand-text);
   border-color: var(--control-border);
   background: var(--control-background);
 }
-.app-shell :is(.admin-form, .onboarding-form, .steward-form, .beta-access-form) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
+.app-shell :is(.admin-form, .admin-inline-form, .onboarding-form, .steward-form, .beta-access-form) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus,
 .app-shell :is(.admin-data-panel, .result-review-table) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea):focus {
   border-color: color-mix(in srgb, var(--brand-primary) 68%, var(--brand-text));
   background: var(--control-background-focus);
@@ -3464,6 +3464,19 @@ p { color: var(--muted); }
 .app-shell :is(.graphics-choice-list input:checked + span, .graphics-format-list input:checked + span) {
   border-color: var(--brand-primary);
   background: color-mix(in srgb, var(--brand-primary) 14%, var(--brand-surface));
+}
+
+.app-shell .operations-metrics {
+  color: var(--brand-text);
+  border-color: color-mix(in srgb, var(--brand-primary) 28%, var(--line));
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand-primary) 14%, transparent), transparent 46%),
+    color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background));
+  box-shadow: none;
+}
+.app-shell .operations-metrics > div {
+  border-color: color-mix(in srgb, var(--brand-primary) 16%, var(--line));
 }
 
 .vora-insight {
@@ -3878,14 +3891,15 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   padding: 0.65rem 1rem;
   border: 0;
   border-radius: 999px;
-  background: linear-gradient(110deg, #2c8fa6, #5a32a3);
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(44, 143, 166, 0.2);
+  color: var(--brand-on-primary);
+  background: var(--brand-gradient);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--brand-primary) 32%, transparent);
   font-weight: 800;
 }
 .operations-menu .operations-create-league:hover,
 .operations-menu .operations-create-league:focus-visible {
-  background: linear-gradient(110deg, #329db6, #6840b3);
+  background: var(--brand-gradient);
+  filter: brightness(1.07);
 }
 .operations-menu-groups { display: grid; gap: 0.45rem; padding: 0.7rem; }
 .operations-menu-groups details + details { margin-top: 0; }
