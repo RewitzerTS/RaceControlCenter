@@ -91,11 +91,22 @@ export function levelProgress(progression: Progression | null): number {
 
 const ACHIEVEMENT_METRIC_ORDER = [
   'starts',
+  'first_race_wins',
   'wins',
+  'wins_after_dnf',
+  'wins_after_two_dnfs',
+  'wins_from_grid_10',
+  'win_streak',
   'podiums',
+  'podiums_after_dnf',
+  'podiums_from_grid_15',
   'poles',
+  'pole_streak',
   'fastest_laps',
+  'fastest_lap_streak',
+  'perfect_weekends',
   'classified_finishes',
+  'classified_streak',
   'leagues_competed',
 ] as const;
 
@@ -174,7 +185,6 @@ async function loadSnapshot(
       .from('achievement_definitions')
       .select('code, description_key, metric, reward_vc, sort_order, threshold, title_key')
       .eq('is_active', true)
-      .eq('is_core', true)
       .order('sort_order'),
     client
       .from('driver_achievements')

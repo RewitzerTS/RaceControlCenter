@@ -118,7 +118,16 @@ describe('Driver Home rules', () => {
       achievement('starts', 10),
       achievement('wins', 5),
       achievement('starts', 1),
-    ]).map(({ code }) => code)).toEqual(['starts_10', 'wins_5']);
+      achievement('perfect_weekends', 1),
+      achievement('wins_after_dnf', 1),
+      achievement('first_race_wins', 1),
+    ]).map(({ code }) => code)).toEqual([
+      'starts_10',
+      'first_race_wins_1',
+      'wins_5',
+      'wins_after_dnf_1',
+      'perfect_weekends_1',
+    ]);
   });
 
   it('uses the scheduled Challenge end as the next rotation', () => {

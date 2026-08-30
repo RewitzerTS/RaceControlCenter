@@ -251,7 +251,7 @@ set local role authenticated;
 
 do $$
 begin
-  if (select count(*) from public.achievement_definitions) <> 50
+  if (select count(*) from public.achievement_definitions) <> 61
      or (select count(*) from public.driver_achievements) <> 6
      or (select count(*) from public.driver_achievement_events) <> 12 then
     raise exception 'driver cannot read own global Achievement history and definitions';
