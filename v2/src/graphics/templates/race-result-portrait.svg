@@ -82,7 +82,7 @@
   <g id="content-frame">
     <path d="M36 386H1044" class="rv-primary-stroke rv-crisp" stroke-width="2" opacity="0.78"/>
     <path d="M36 451H1044M36 1106H1044M36 1128H1044M36 1290H1044" class="rv-line-stroke rv-crisp" stroke-width="1" opacity="0.82"/>
-    <path d="M134 451V1106M468 451V1106M930 451V1106" class="rv-line-stroke rv-crisp" stroke-width="1" opacity="0.58"/>
+    <path d="M134 451V1106M477 451V1106M778 451V1106M932 451V1106" class="rv-line-stroke rv-crisp" stroke-width="1" opacity="0.58"/>
     <path d="M36 386H188" class="rv-primary-stroke rv-crisp" stroke-width="5"/>
     <path d="M892 386H1044" class="rv-primary-stroke rv-crisp" stroke-width="5" opacity="0.65"/>
   </g>
@@ -92,7 +92,7 @@
     <rect id="slot-title" class="rv-slot" x="44" y="132" width="570" height="154" data-slot="title"/>
     <rect id="slot-subtitle" class="rv-slot" x="44" y="298" width="760" height="48" data-slot="subtitle"/>
     <rect id="slot-page-number" class="rv-slot" x="828" y="300" width="208" height="42" data-slot="page-number"/>
-    <rect id="slot-table" class="rv-slot" x="36" y="386" width="1008" height="720" data-slot="table" data-max-rows="11" data-rank-column-width="98" data-value-column-width="114"/>
+    <rect id="slot-table" class="rv-slot" x="36" y="386" width="1008" height="720" data-slot="table" data-max-rows="11" data-rank-column-width="98" data-detail-column="race-time" data-detail-column-width="154" data-value-column-width="112"/>
     <rect id="slot-footer" class="rv-slot" x="36" y="1128" width="1008" height="204" data-slot="footer"/>
   </g>
 </svg>

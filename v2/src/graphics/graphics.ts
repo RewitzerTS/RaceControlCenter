@@ -6,7 +6,7 @@ export const GRAPHIC_FORMATS = ['square', 'portrait', 'story', 'landscape'] as c
 
 export type GraphicType = (typeof GRAPHIC_TYPES)[number];
 export type GraphicFormat = (typeof GRAPHIC_FORMATS)[number];
-export type ResultRow = { position: number | null; driver: string; team: string; points: number; status: string };
+export type ResultRow = { position: number | null; driver: string; team: string; points: number; status: string; raceTime?: string | null; raceTimeMs?: number | null };
 export type GraphicsResult = {
   id: string;
   version: number;
@@ -45,6 +45,7 @@ export type GraphicLabels = {
   teamStandings: string;
   achievement: string;
   points: string;
+  time: string;
   wins: string;
   round: string;
   resultVersion: string;
@@ -58,7 +59,7 @@ export type GraphicModel = {
   title: string;
   subtitle: string;
   hero?: string;
-  rows: Array<{ rank: string; primary: string; secondary: string; value: string }>;
+  rows: Array<{ rank: string; primary: string; secondary: string; detail?: string; value: string }>;
   footer: string;
   resultVersionId: string | null;
   source: Record<string, Json | undefined>;
@@ -121,7 +122,7 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
       .single(),
     client
       .from('result_version_rows')
-      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,row_order,driver:drivers!result_version_rows_driver_id_fkey(display_name,league_team)')
+      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,race_time,race_time_ms,row_order,driver:drivers!result_version_rows_driver_id_fkey(display_name,league_team)')
       .eq('result_version_id', option.result_version_id)
       .order('row_order', { ascending: true }),
   ]);
@@ -134,6 +135,8 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
     classification_status: string;
     points_team_name: string | null;
     car_name_snapshot: string | null;
+    race_time: string | null;
+    race_time_ms: number | null;
     driver: { display_name: string; league_team: string | null } | Array<{ display_name: string; league_team: string | null }> | null;
   };
   const rows = (rowsResponse.data as unknown as ResultRecord[]).map((row) => {
@@ -144,6 +147,8 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
       team: row.points_team_name ?? row.car_name_snapshot ?? driver?.league_team ?? 'Independent',
       points: row.awarded_points,
       status: row.classification_status,
+      raceTime: row.race_time,
+      raceTimeMs: row.race_time_ms,
     };
   });
 
@@ -191,6 +196,7 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
       rank: row.position ? String(row.position).padStart(2, '0') : row.status.toUpperCase(),
       primary: row.driver,
       secondary: row.team,
+      detail: row.raceTime?.trim() || row.status.toUpperCase(),
       value: points(row.points, labels.points),
     }));
     return { type, eyebrow: labels.raceResult, title: result?.race_name ?? labels.noData, subtitle: result?.circuit ?? `${labels.round} ${result?.round ?? '—'}`, rows, footer, resultVersionId, source: { type, league: workspace.league, result } as unknown as Record<string, Json> };
@@ -201,15 +207,15 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
   }
   if (type === 'winner') {
     const winner = (result?.rows ?? []).find((row) => row.position === 1);
-    return { type, eyebrow: labels.winner, title: winner?.driver ?? labels.noData, subtitle: result?.race_name ?? '', hero: winner?.team, rows: [], footer, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, winner } : null } as unknown as Record<string, Json> };
+    return { type, eyebrow: labels.winner, title: winner?.driver ?? labels.noData, subtitle: result?.race_name ?? '', hero: winner?.team, rows: [], footer, resultVersionId, source: { type, league: workspace.league, result: result ? { ...result, rows: undefined, winner } : null } as unknown as Record<string, Json> };
   }
   if (type === 'driver_standings') {
     const rows = workspace.driver_standings.slice(0, 10).map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: row.driver ?? labels.noData, secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
-    return { type, eyebrow: labels.driverStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, rows: workspace.driver_standings } as unknown as Record<string, Json> };
+    return { type, eyebrow: labels.driverStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, race_date: result.race_date, round: result.round } : null, rows: workspace.driver_standings } as unknown as Record<string, Json> };
   }
   if (type === 'team_standings') {
     const rows = workspace.team_standings.slice(0, 10).map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: row.team ?? labels.noData, secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
-    return { type, eyebrow: labels.teamStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, rows: workspace.team_standings } as unknown as Record<string, Json> };
+    return { type, eyebrow: labels.teamStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, race_date: result.race_date, round: result.round } : null, rows: workspace.team_standings } as unknown as Record<string, Json> };
   }
   const achievement = workspace.latest_achievement;
   return { type, eyebrow: labels.achievement, title: achievement?.driver ?? labels.noData, subtitle: achievement?.code.replaceAll('_', ' ') ?? '', hero: achievement ? String(achievement.value) : undefined, rows: [], footer: labels.official, resultVersionId, source: { type, league: workspace.league, achievement } as unknown as Record<string, Json> };

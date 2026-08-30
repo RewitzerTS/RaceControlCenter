@@ -107,7 +107,7 @@ export function GraphicsStudioPage() {
           : options;
         setWorkspace(data);
         setResultOptions(availableOptions);
-        setSelectedResult(data.latest_result);
+        setSelectedResult(null);
         setSelectedResultVersionId(data.latest_result?.id ?? availableOptions[0]?.result_version_id ?? null);
       })
       .catch(() => { if (active) setLoadError(true); });
@@ -116,12 +116,6 @@ export function GraphicsStudioPage() {
 
   useEffect(() => {
     if (!workspace || !selectedResultVersionId) return;
-    if (workspace.latest_result?.id === selectedResultVersionId) {
-      setSelectedResult(workspace.latest_result);
-      setResultLoading(false);
-      setResultError(false);
-      return;
-    }
     const option = resultOptions.find((candidate) => candidate.result_version_id === selectedResultVersionId);
     if (!option) {
       setResultLoading(false);
@@ -142,7 +136,7 @@ export function GraphicsStudioPage() {
   const labels: GraphicLabels = useMemo(() => ({
     raceResult: t('graphics.type.raceResult'), podium: t('graphics.type.podium'), winner: t('graphics.type.winner'),
     driverStandings: t('graphics.type.driverStandings'), teamStandings: t('graphics.type.teamStandings'), achievement: t('graphics.type.achievement'),
-    points: t('graphics.points'), wins: t('graphics.wins'), round: t('graphics.round'), resultVersion: t('graphics.resultVersion'),
+    points: t('graphics.points'), time: t('graphics.time'), wins: t('graphics.wins'), round: t('graphics.round'), resultVersion: t('graphics.resultVersion'),
     official: t('graphics.official'), noData: t('graphics.noData'),
   }), [t]);
   const isResultBound = RESULT_BOUND_TYPES.includes(type);
@@ -178,7 +172,6 @@ export function GraphicsStudioPage() {
       });
       const refreshed = await loadGraphicsWorkspace(client);
       setWorkspace(refreshed);
-      if (refreshed.latest_result?.id === selectedResultVersionId) setSelectedResult(refreshed.latest_result);
       setState('done');
     } catch {
       setState('error');

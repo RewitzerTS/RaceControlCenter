@@ -26,6 +26,8 @@ const requirements = [
   [graphics.includes('paginateGraphicModel') && !graphics.includes("slice(0, 8)"), 'complete balanced race-result pagination'],
   [renderer.includes("canvas.toBlob") && renderer.includes("'image/png'"), 'PNG renderer'],
   [renderer.includes('readGraphicTheme') && renderer.includes('resolveRaceResultPortraitTemplate'), 'personal-theme SVG renderer'],
+  [renderer.includes('drawPilotGraphic') && !renderer.includes('drawDefaultGraphic') && renderer.includes("achievement: ['CAREER', 'ACHIEVEMENT']"), 'shared pilot design across all templates and formats'],
+  [graphics.includes('raceTime') && renderer.includes("'TIME'") && portraitTemplate.includes('data-detail-column="race-time"'), 'official race times in result graphics'],
   [renderer.includes('drawLeagueIdentity') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACE.VORA'), 'league header and fixed RaceVora footer'],
   [portraitTemplate.includes('data-rv-template="race-result-portrait"') && portraitTemplate.includes('id="slot-table"') && portraitTemplate.includes('data-max-rows="11"'), 'editable 4:5 race-result pilot template'],
   [renderer.includes('square: { width: 1080, height: 1080 }') && renderer.includes('story: { width: 1080, height: 1920 }') && renderer.includes('landscape: { width: 1920, height: 1080 }'), 'exact dimensions'],
