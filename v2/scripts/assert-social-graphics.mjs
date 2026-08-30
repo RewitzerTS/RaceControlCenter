@@ -3,20 +3,24 @@ import path from 'node:path';
 
 const root = process.cwd();
 const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260820192437_v2_social_graphics.sql'), 'utf8');
+const landscapeMigration = fs.readFileSync(path.join(root, 'supabase/migrations/20260830093000_add_landscape_social_graphics.sql'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'src/graphics/GraphicsStudioPage.tsx'), 'utf8');
+const graphics = fs.readFileSync(path.join(root, 'src/graphics/graphics.ts'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'src/graphics/renderPng.ts'), 'utf8');
 
 const requirements = [
   [migration.includes('social_graphic_renders'), 'render manifests'],
   [migration.includes("graphic_type in ('race_result', 'podium', 'winner', 'driver_standings', 'team_standings', 'achievement')"), 'six launch templates'],
-  [migration.includes("graphic_format in ('square', 'portrait', 'story')"), 'three launch formats'],
+  [migration.includes("graphic_format in ('square', 'portrait', 'story', 'landscape')"), 'four launch formats'],
+  [landscapeMigration.includes("graphic_format in ('square', 'portrait', 'story', 'landscape')"), 'existing database landscape upgrade'],
   [migration.includes('result_version_id'), 'result version binding'],
   [migration.includes("event_record.event_type in ('result.revised', 'result.voided')"), 'revision invalidation'],
   [migration.includes("perform private.complete_domain_event_processing(p_processing_id, 'graphics'"), 'independent downstream processor'],
   [migration.includes("where flag_key = 'graphics_enabled'"), 'server feature flag'],
-  [page.includes('renderGraphicPng') && page.includes('recordGraphicRender'), 'PNG render and manifest flow'],
+  [page.includes('renderGraphicPng') && page.includes('recordGraphicRender') && !page.includes("t('graphics.copy')"), 'compact PNG render and manifest flow'],
+  [graphics.includes("['square', 'portrait', 'story', 'landscape']"), 'landscape format selection'],
   [renderer.includes("canvas.toBlob") && renderer.includes("'image/png'"), 'PNG renderer'],
-  [renderer.includes('square: { width: 1080, height: 1080 }') && renderer.includes('story: { width: 1080, height: 1920 }'), 'exact dimensions'],
+  [renderer.includes('square: { width: 1080, height: 1080 }') && renderer.includes('story: { width: 1080, height: 1920 }') && renderer.includes('landscape: { width: 1920, height: 1080 }'), 'exact dimensions'],
 ];
 
 const missing = requirements.filter(([ok]) => !ok).map(([, label]) => label);

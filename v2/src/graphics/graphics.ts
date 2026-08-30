@@ -2,7 +2,7 @@ import type { Json } from '../types/database';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 
 export const GRAPHIC_TYPES = ['race_result', 'podium', 'winner', 'driver_standings', 'team_standings', 'achievement'] as const;
-export const GRAPHIC_FORMATS = ['square', 'portrait', 'story'] as const;
+export const GRAPHIC_FORMATS = ['square', 'portrait', 'story', 'landscape'] as const;
 
 export type GraphicType = (typeof GRAPHIC_TYPES)[number];
 export type GraphicFormat = (typeof GRAPHIC_FORMATS)[number];

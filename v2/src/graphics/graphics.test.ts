@@ -43,7 +43,7 @@ describe('Social Graphics model', () => {
     expect(graphicFilename(workspace, 'winner', 'story')).toBe('racevora-demo-winner-story-v2.png');
   });
 
-  it('uses exact launch dimensions for all three formats', () => {
-    expect(GRAPHIC_DIMENSIONS).toEqual({ square: { width: 1080, height: 1080 }, portrait: { width: 1080, height: 1350 }, story: { width: 1080, height: 1920 } });
+  it('uses exact export dimensions for all four formats', () => {
+    expect(GRAPHIC_DIMENSIONS).toEqual({ square: { width: 1080, height: 1080 }, portrait: { width: 1080, height: 1350 }, story: { width: 1080, height: 1920 }, landscape: { width: 1920, height: 1080 } });
   });
 });

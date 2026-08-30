@@ -32,6 +32,7 @@ const FORMAT_KEYS: Record<GraphicFormat, MessageKey> = {
   square: 'graphics.format.square',
   portrait: 'graphics.format.portrait',
   story: 'graphics.format.story',
+  landscape: 'graphics.format.landscape',
 };
 
 export function GraphicsStudioPage() {
@@ -84,7 +85,7 @@ export function GraphicsStudioPage() {
 
   return <main className="graphics-studio" id="main-content">
     <header className="graphics-header">
-      <div><p className="section-label">{t('graphics.eyebrow')}</p><h1>{t('graphics.title')}</h1><p>{t('graphics.copy')}</p></div>
+      <div><p className="section-label">{t('graphics.eyebrow')}</p><h1>{t('graphics.title')}</h1></div>
       <NavLink className="text-link" to="/admin">{t('graphics.back')}</NavLink>
     </header>
 

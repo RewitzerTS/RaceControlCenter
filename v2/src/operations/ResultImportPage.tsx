@@ -34,7 +34,6 @@ export function ResultImportPage() {
   const [drivers, setDrivers] = useState<DriverAdminWorkspace | null>(null);
   const [config, setConfig] = useState<ConfigurationWorkspace | null>(null);
   const [raceId, setRaceId] = useState('');
-  const [reason, setReason] = useState('');
   const [csv, setCsv] = useState('driver;finish_position;grid_position;points;team_name;car_name;pit_stops;fastest_lap_time;race_time\n');
   const [reviewRows, setReviewRows] = useState<ResultReviewRow[]>([]);
   const [files, setFiles] = useState<File[]>([]);
@@ -103,7 +102,8 @@ export function ResultImportPage() {
       const rows = reviewRows.length
         ? resultReviewRowsToImported(reviewRows, drivers?.drivers ?? [], copy)
         : parseResultCsv(csv);
-      await createLeagueResultDraft(client, raceId, rows, reason);
+      const changeReason = copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv');
+      await createLeagueResultDraft(client, raceId, rows, changeReason);
       await reload();
       setMessage(copy('import.draftSaved'));
       setMessageTone('success');
@@ -139,9 +139,8 @@ export function ResultImportPage() {
   return <main className="operations-page admin-management-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">{copy('shared.scope', { league: leagueSlug })}</p><h1>{copy('import.title')}</h1><p>{copy('import.copy')}</p></div><NavLink className="text-link" to="/admin">{copy('shared.back')}</NavLink></header>
     <section className="admin-form result-import-form">
-      <div className="admin-form-columns">
+      <div className="admin-form-columns result-import-race-row">
         <label><span>{copy('import.selectRace')}</span><select required value={raceId} onChange={(event) => setRaceId(event.target.value)}><option value="">{copy('import.chooseRace')}</option>{availableRaces.map((race) => <option key={race.id} value={race.id}>R{race.round_number} · {race.grand_prix_name}</option>)}</select></label>
-        <label><span>{copy('import.reason')}</span><input minLength={3} maxLength={500} placeholder={copy('import.reasonPlaceholder')} value={reason} onChange={(event) => setReason(event.target.value)}/></label>
       </div>
       <fieldset className="result-import-source"><legend>{copy('import.method')}</legend><div><label className={importMethod === 'images' ? 'is-selected' : ''}><input checked={importMethod === 'images'} name="result-import-method" onChange={() => { setImportMethod('images'); setReviewRows([]); }} type="radio"/><span><strong>{copy('import.images')}</strong><small>{copy('import.imagesHint')}</small></span></label><label className={importMethod === 'csv' ? 'is-selected' : ''}><input checked={importMethod === 'csv'} name="result-import-method" onChange={() => { setImportMethod('csv'); setReviewRows([]); }} type="radio"/><span><strong>{copy('import.csv')}</strong><small>{copy('import.csvHint')}</small></span></label></div></fieldset>
       {importMethod === 'images'
@@ -154,7 +153,7 @@ export function ResultImportPage() {
         : importMethod === 'csv'
           ? <label><span>{copy('import.checkCsv')}</span><textarea aria-describedby="result-review-hint" aria-label={copy('import.checkCsv')} rows={12} value={csv} onChange={(event) => setCsv(event.target.value)}/><small id="result-review-hint">{copy('import.checkCsvHint')}</small></label>
           : <div className="result-import-waiting"><strong>{copy('import.waitingTitle')}</strong><p>{copy('import.waitingCopy')}</p></div>}
-      <div className="admin-form-actions result-import-save-actions"><button className="primary-action" disabled={busy !== '' || !raceId || reason.trim().length < 3 || !saveReady} onClick={() => void create()} type="button">{copy('import.saveDraft')}</button><small>{copy('import.officialUnchanged')}</small></div>
+      <div className="admin-form-actions result-import-save-actions"><button className="primary-action" disabled={busy !== '' || !raceId || !saveReady} onClick={() => void create()} type="button">{copy('import.saveDraft')}</button><small>{copy('import.officialUnchanged')}</small></div>
     </section>
     <section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">{copy('import.release')}</p><h2>{copy('import.reviewedDrafts')}</h2></div><strong>{config.result_drafts.length}</strong></div>{config.result_drafts.length ? <div className="workflow-list">{config.result_drafts.map((draft) => <article key={draft.id}><div><h3>{draft.race_name} · V{draft.version_number}</h3><p>{draft.change_reason}</p><small>{copy('import.rows', { count: draft.row_count, status: draft.status })}</small></div><button className="primary-action" disabled={busy !== ''} onClick={() => void publish(draft.id)} type="button">{copy('import.publishNow')}</button></article>)}</div> : <EmptyState copy={copy('import.noDraftsCopy')} title={copy('import.noDraftsTitle')} />}</section>
   </main>;

@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest] = await Promise.all([
+const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, resultImportPage, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest] = await Promise.all([
   'supabase/migrations/20260820184740_v2_admin_owner_notifications.sql',
   'supabase/migrations/20260821202014_v2_notification_vora_processors.sql',
   'supabase/migrations/20260822112925_v2_v1_admin_members_drivers.sql',
@@ -15,6 +15,7 @@ const [migration, processors, adminParity, completionMigration, seasonAuditFix, 
   'src/components/AppShell.tsx', 'src/roles/RoleProvider.tsx', 'src/operations/AdminWorkspacePage.tsx',
   'src/operations/LeagueMembersPage.tsx', 'src/operations/LeagueDriversPage.tsx',
   'src/operations/V1CompletionPages.tsx',
+  'src/operations/ResultImportPage.tsx',
   'src/operations/OwnerControlPage.tsx', 'src/operations/NotificationCenterPage.tsx',
   'src/styles.css', 'supabase/tests/phase-17-19-operations.sql',
   'supabase/tests/phase-32-season-completion-guard.sql',
@@ -49,6 +50,9 @@ for (const contract of ['upcoming_race_count', 'missing_result_count', "rv.statu
 for (const contract of ['create table public.race_penalties', 'steward_case_id uuid', 'private.has_league_capability', 'public.matches_requested_league', 'd.league_id = s.league_id', 'alter table public.race_penalties enable row level security']) if (!racePenaltyCompatibility.includes(contract)) violations.push('missing race penalties compatibility contract: ' + contract);
 for (const contract of ['LeagueTeamsPage', 'LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseResultCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
 if (admin.includes('folgt in der V1-Migration') || admin.includes('operations-menu__pending')) violations.push('V1 migration still exposes pending admin placeholders');
+if (admin.includes("t('admin.preview')") || admin.includes('to="/racing"')) violations.push('obsolete admin user-preview action is still visible');
+if (resultImportPage.includes("copy('import.reason')") || resultImportPage.includes('reason.trim()')) violations.push('result import still asks for a redundant manual change reason');
+for (const contract of ["copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv')", 'result-import-race-row']) if (!resultImportPage.includes(contract)) violations.push('missing automatic result-import audit reason contract: ' + contract);
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);
 for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', "copy('drivers.create')", "copy('shared.edit')"]) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
 for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
@@ -68,6 +72,11 @@ if (!createLeagueButton.includes('color: var(--brand-on-primary)')
 if (!styles.includes('.app-shell :is(.admin-form, .admin-inline-form, .onboarding-form, .steward-form, .beta-access-form)')
     || !styles.includes('outline: 3px solid var(--brand-primary)')) {
   violations.push('Admin inline form controls do not follow the active personal theme');
+}
+if (!styles.includes('.app-shell .result-import-form input[type="file"]')
+    || !styles.includes('::file-selector-button')
+    || !styles.includes('background: var(--brand-gradient)')) {
+  violations.push('Result-import file controls do not follow the active personal theme');
 }
 for (const contract of ['rollback;', 'league admin entered global Owner Control', 'notification leaked to another user', 'audit history was mutable']) if (!test.includes(contract)) violations.push('missing SQL regression: ' + contract);
 for (const contract of ['begin;', 'season completion accepted an upcoming race', 'blocked season completion still archived the season', 'rollback;']) if (!seasonCompletionTest.includes(contract)) violations.push('missing season completion regression: ' + contract);

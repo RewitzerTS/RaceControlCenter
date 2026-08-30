@@ -104,7 +104,7 @@ export function AdminWorkspacePage() {
       <nav className="operations-menu" aria-labelledby="admin-navigation-title">
         <div className="operations-menu-heading">
           <h2 id="admin-navigation-title">{t('admin.navigation')}</h2>
-          <div className="operations-menu-actions"><NavLink className="text-link" to="/racing">{t('admin.preview')}</NavLink><NavLink className="primary-action operations-create-league" to="/leagues/new">{t('profile.createLeague')}</NavLink></div>
+          <div className="operations-menu-actions"><NavLink className="primary-action operations-create-league" to="/leagues/new">{t('profile.createLeague')}</NavLink></div>
         </div>
         <div className="operations-menu-groups">
           {ADMIN_AREAS.map((area) => <details key={area.title} open={openAreas.has(area.title)}><summary onClick={(event) => { event.preventDefault(); setOpenAreas((current) => { const next = new Set(current); if (next.has(area.title)) next.delete(area.title); else next.add(area.title); return next; }); }}>{t(area.title)}</summary><div>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}</NavLink>)}</div></details>)}

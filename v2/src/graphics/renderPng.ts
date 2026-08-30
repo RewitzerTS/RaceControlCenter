@@ -4,6 +4,7 @@ export const GRAPHIC_DIMENSIONS: Record<GraphicFormat, { width: number; height: 
   square: { width: 1080, height: 1080 },
   portrait: { width: 1080, height: 1350 },
   story: { width: 1080, height: 1920 },
+  landscape: { width: 1920, height: 1080 },
 };
 
 function fitText(context: CanvasRenderingContext2D, value: string, maxWidth: number, startSize: number, weight = 700) {
@@ -30,7 +31,8 @@ export function drawGraphic(canvas: HTMLCanvasElement, model: GraphicModel, form
   if (!context) throw new Error('PNG renderer is not available.');
 
   const { width, height } = dimensions;
-  const margin = 82;
+  const isLandscape = format === 'landscape';
+  const margin = isLandscape ? 112 : 82;
   const gradient = context.createLinearGradient(0, 0, width, height);
   gradient.addColorStop(0, '#031727');
   gradient.addColorStop(0.58, '#0b2440');
@@ -53,18 +55,18 @@ export function drawGraphic(canvas: HTMLCanvasElement, model: GraphicModel, form
   drawText(context, model.eyebrow.toUpperCase(), width - margin, 94, 500, 26, '#b9c5d1', 700);
   context.textAlign = 'left';
 
-  const titleY = format === 'story' ? 310 : 250;
-  drawText(context, model.title, margin, titleY, width - margin * 2, format === 'story' ? 92 : 80, '#f7f9fc', 800);
+  const titleY = format === 'story' ? 310 : isLandscape ? 230 : 250;
+  drawText(context, model.title, margin, titleY, width - margin * 2, format === 'story' ? 92 : isLandscape ? 88 : 80, '#f7f9fc', 800);
   drawText(context, model.subtitle, margin, titleY + 68, width - margin * 2, 32, '#b9c5d1', 500);
 
   if (model.hero) {
-    const heroY = format === 'story' ? 760 : 610;
-    drawText(context, model.hero, margin, heroY, width - margin * 2, format === 'story' ? 116 : 96, '#a68be7', 800);
+    const heroY = format === 'story' ? 760 : isLandscape ? 540 : 610;
+    drawText(context, model.hero, margin, heroY, width - margin * 2, format === 'story' ? 116 : isLandscape ? 104 : 96, '#a68be7', 800);
   }
 
   if (model.rows.length) {
     const availableHeight = height - titleY - 250;
-    const rowHeight = Math.min(format === 'story' ? 118 : 88, Math.floor(availableHeight / model.rows.length));
+    const rowHeight = Math.min(format === 'story' ? 118 : isLandscape ? 82 : 88, Math.floor(availableHeight / model.rows.length));
     const startY = titleY + 145;
     model.rows.forEach((row, index) => {
       const y = startY + rowHeight * index;
@@ -73,10 +75,10 @@ export function drawGraphic(canvas: HTMLCanvasElement, model: GraphicModel, form
         context.fillRect(margin, y - 39, width - margin * 2, 1);
       }
       drawText(context, row.rank, margin, y, 90, 30, '#78c5d5', 800);
-      drawText(context, row.primary, margin + 110, y, 470, 34, '#f7f9fc', 700);
-      drawText(context, row.secondary, margin + 110, y + 32, 430, 21, '#b9c5d1', 500);
+      drawText(context, row.primary, margin + 110, y, isLandscape ? 900 : 470, 34, '#f7f9fc', 700);
+      drawText(context, row.secondary, margin + 110, y + 32, isLandscape ? 860 : 430, 21, '#b9c5d1', 500);
       context.textAlign = 'right';
-      drawText(context, row.value, width - margin, y + 7, 270, 27, '#f7f9fc', 700);
+      drawText(context, row.value, width - margin, y + 7, isLandscape ? 420 : 270, 27, '#f7f9fc', 700);
       context.textAlign = 'left';
     });
   }

@@ -40,7 +40,7 @@ begin
     id, league_id, result_version_id, graphic_type, graphic_format,
     source_digest, source_payload
   ) values (
-    render_id, league_id, result_v1, 'winner', 'story',
+    render_id, league_id, result_v1, 'winner', 'landscape',
     repeat('a', 64), jsonb_build_object('result_version_id', result_v1)
   );
 

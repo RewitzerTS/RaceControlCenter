@@ -42,6 +42,7 @@ describe('ResultImportPage', () => {
     render(<I18nProvider><MemoryRouter><ResultImportPage /></MemoryRouter></I18nProvider>);
 
     expect(await screen.findByRole('heading', { name: 'Ergebnisbilder auswählen' })).toBeTruthy();
+    expect(screen.queryByRole('textbox', { name: /Änderungsgrund/ })).toBeNull();
     expect(screen.queryByRole('heading', { name: 'CSV-Datei auswählen' })).toBeNull();
     expect(screen.queryByRole('textbox', { name: 'CSV-Daten prüfen' })).toBeNull();
 

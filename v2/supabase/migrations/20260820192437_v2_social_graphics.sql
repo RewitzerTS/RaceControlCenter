@@ -16,7 +16,7 @@ create table public.social_graphic_renders (
   constraint social_graphic_type_check check (
     graphic_type in ('race_result', 'podium', 'winner', 'driver_standings', 'team_standings', 'achievement')
   ),
-  constraint social_graphic_format_check check (graphic_format in ('square', 'portrait', 'story')),
+  constraint social_graphic_format_check check (graphic_format in ('square', 'portrait', 'story', 'landscape')),
   constraint social_graphic_digest_check check (source_digest ~ '^[0-9a-f]{64}$'),
   constraint social_graphic_payload_object_check check (jsonb_typeof(source_payload) = 'object'),
   constraint social_graphic_status_check check (status in ('ready', 'outdated')),

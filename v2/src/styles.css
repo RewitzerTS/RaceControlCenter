@@ -957,6 +957,7 @@ h2 {
 .team-edit-fields { display: grid; grid-template-columns: repeat(2,minmax(150px,1fr)) auto auto; align-items: end; gap: 0.55rem; }
 .team-edit-fields label { display: grid; gap: 0.35rem; font-size: 0.7rem; }
 .team-edit-fields input, .result-import-form select { min-height: 44px; padding: 0.6rem 0.7rem; border: 1px solid var(--line-strong); border-radius: 10px; background: #061b30; color: var(--text); }
+.result-import-race-row { grid-template-columns: minmax(260px, 520px); }
 .result-import-methods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .result-import-source { display: grid; gap: 0.65rem; margin: 0; padding: 0; border: 0; }
 .result-import-source legend { margin-bottom: 0.65rem; color: var(--text); font-size: 0.78rem; font-weight: 800; }
@@ -1219,7 +1220,6 @@ h2 {
 }
 .graphics-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
 .graphics-header h1 { max-width: 820px; }
-.graphics-header p:last-child { max-width: 68ch; margin: 0.85rem 0 0; }
 .graphics-workbench { display: grid; grid-template-columns: minmax(280px, 0.62fr) minmax(420px, 1.38fr); border: 1px solid var(--line-strong); background: #04182b; }
 .graphics-controls { padding: clamp(1.25rem, 3vw, 2.25rem); border-right: 1px solid var(--line); }
 .graphics-controls h2, .graphics-preview-panel h2, .graphics-history h2 { margin: 0; font-size: 1.05rem; }
@@ -1247,6 +1247,7 @@ h2 {
 .graphic-preview--square { aspect-ratio: 1 / 1; }
 .graphic-preview--portrait { aspect-ratio: 4 / 5; }
 .graphic-preview--story { width: min(100%, 430px); aspect-ratio: 9 / 16; }
+.graphic-preview--landscape { aspect-ratio: 16 / 9; }
 .graphic-preview-brand { display: flex; justify-content: space-between; gap: 1rem; color: var(--teal-bright); font-size: clamp(0.55rem, 1vw, 0.75rem); letter-spacing: 0.08em; }
 .graphic-preview-brand span { color: var(--muted); text-align: right; text-transform: uppercase; }
 .graphic-preview-title { margin-top: clamp(1rem, 4vw, 3rem); }
@@ -3431,6 +3432,32 @@ p { color: var(--muted); }
   background: var(--control-background-focus);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-primary) 18%, transparent);
 }
+.app-shell .result-import-form input[type="file"] {
+  width: 100%;
+  min-height: 52px;
+  padding: 0.45rem;
+  color: var(--brand-text);
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--control-background);
+  font: inherit;
+}
+.app-shell .result-import-form input[type="file"]::file-selector-button {
+  min-height: 36px;
+  margin-right: 0.75rem;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 8px;
+  color: var(--brand-on-primary);
+  background: var(--brand-gradient);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.app-shell .result-import-form input[type="file"]:hover::file-selector-button,
+.app-shell .result-import-form input[type="file"]:focus-visible::file-selector-button {
+  filter: brightness(1.07);
+}
 
 /* Every structural product surface follows the active personal theme. */
 .app-shell :is(
@@ -3877,13 +3904,6 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 }
 .operations-menu-heading h2 { margin: 0; font-size: 1.05rem; }
 .operations-menu-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.55rem; }
-.operations-menu-actions .text-link {
-  width: auto;
-  min-height: 44px;
-  justify-content: center;
-  padding-inline: 0.8rem;
-  border-radius: 999px;
-}
 .operations-menu .operations-create-league {
   width: auto;
   min-height: 44px;
@@ -3963,8 +3983,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .admin-next-action { align-items: stretch; flex-direction: column; }
   .admin-next-action .primary-action { width: 100%; }
   .operations-menu-heading { align-items: stretch; flex-direction: column; }
-  .operations-menu-actions { display: grid; grid-template-columns: 1fr 1fr; }
-  .operations-menu-actions .text-link { width: 100%; }
+  .operations-menu-actions { display: grid; grid-template-columns: 1fr; }
   .operations-menu .operations-create-league { width: 100%; }
   .operations-menu-groups details > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
