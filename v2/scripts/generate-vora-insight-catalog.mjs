@@ -8,7 +8,7 @@ const outputPath = resolve(v2Root, '..', 'docs', 'v2', 'vora-deterministic-insig
 const catalog = [];
 const condition = (field, operator, value, extra = {}) => ({ field, operator, value, ...extra });
 const voiceLines = {
-  professional_direct: ['Die Daten sind eindeutig – arbeite genau dort weiter.', 'Bleib präzise, dann wird aus dem Signal ein Vorteil.'],
+  professional_direct: ['Die Daten sind eindeutig – arbeite genau dort weiter.', 'Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.'],
   motivating: ['Du hast die Basis auf deiner Seite – jetzt setz sie um.', 'Du musst nicht alles ändern; der nächste saubere Schritt reicht.', 'Das kannst du kontrollieren. Zeig es im nächsten Rennen.'],
   cheeky: ['Du kannst das besser. Vora weiß es, und du vermutlich auch.', 'Keine Ausrede – deine Daten sind ziemlich eindeutig.', 'Ein bisschen sauberer darfst du schon abliefern.'],
   subtle_flirt: ['Diese Art von Kontrolle steht dir ziemlich gut.', 'Vora schaut gern genauer hin, wenn du so sauber ablieferst.', 'Mit dieser Linie bekommst du durchaus Aufmerksamkeit.'],
@@ -45,7 +45,7 @@ const careerFocus = [
   'Erstes offizielles Ergebnis abschließen.', 'Den zweiten Start genauso sauber vorbereiten.', 'Eine belastbare Routine entwickeln.',
   'Den eigenen Rennablauf bewusst wiederholen.', 'Die ersten Muster in den Ergebnissen erkennen.', 'Konstanz vor Einzeltempo stellen.',
   'Die ersten zehn Starts als Basis auswerten.', 'Qualifying und Rennpace getrennt betrachten.', 'Fehlerquellen nach Häufigkeit ordnen.',
-  'Stärken über mehrere Strecken bestätigen.', 'Eine klare Saisonroutine festigen.', 'Risiko und Ertrag bewusster abwägen.',
+  'Stärken über mehrere Strecken bestätigen.', 'Eine klare Saisonroutine festigen.', 'Risiko und Ergebnis bewusster abwägen.',
   'Schwache Streckentypen gezielt bearbeiten.', 'Erfahrung in reproduzierbare Abläufe übersetzen.', 'Die nächste Leistungsstufe über Details suchen.',
   'Mentale Konstanz über komplette Saisons halten.', 'Erfahrung aktiv für Rennentscheidungen nutzen.', 'Feinheiten statt Grundtempo optimieren.',
   'Langzeittrends gegen das aktuelle Gefühl prüfen.', 'Die Career als Referenz für nachhaltige Racecraft nutzen.',
@@ -53,17 +53,19 @@ const careerFocus = [
 careerMilestones.forEach((starts, index) => add(
   'career', `starts_${starts}`, 300 + index,
   [condition('career.starts', 'eq', starts)],
-  starts === 0 ? 'Deine erste Career-Runde wartet.' : `${starts} Starts sind jetzt bestätigt.`,
+  starts === 0 ? 'Deine erste Career-Runde wartet.' : starts === 1 ? 'Dein erster Start ist jetzt bestätigt.' : `${starts} Starts sind jetzt bestätigt.`,
   starts === 0
     ? 'Noch fehlt ein offizielles Ergebnis. Mit der ersten Klassifikation beginnt eine belastbare Vora-Auswertung.'
-    : `Mit ${starts} Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr.`,
+    : starts === 1
+      ? 'Mit deinem ersten Start beginnt eine belastbare Auswertung. Jeder weitere Zieleinlauf macht deine Entwicklung klarer.'
+      : `Mit ${starts} Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr.`,
   careerFocus[index],
 ));
 
 const finishTitles = [
   'Siegtempo bestätigt.', 'Der Sieg war in Reichweite.', 'Podium unter Druck gesichert.', 'Direkt hinter dem Podium angekommen.',
   'Top fünf als stabile Basis.', 'P6 hält dich in Schlagdistanz.', 'Solide Punkte aus einem engen Feld.', 'P8 verlangt einen Blick auf die verlorene Zeit.',
-  'P9 hält das Ergebnis im Arbeitsbereich.', 'Top zehn abgeschlossen.', 'P11 zeigt eine klare nächste Schwelle.', 'P12 braucht einen präzisen Hebel.',
+  'P9 hält dich sicher in den Punkten.', 'Top zehn abgeschlossen.', 'P11 zeigt eine klare nächste Schwelle.', 'P12 braucht eine gezielte Verbesserung.',
   'P13 ist ein Ausgangspunkt, kein Urteil.', 'P14 macht die Rennphasen vergleichbar.', 'P15 verlangt saubere Prioritäten.',
   'P16 lenkt den Blick auf Fehlerkosten.', 'P17 braucht eine ruhige Ursachenanalyse.', 'P18 macht kleine Gewinne wertvoll.',
   'P19 ist Datenmaterial für den nächsten Schritt.', 'P20 beendet das Rennen, aber nicht die Analyse.',
@@ -72,7 +74,7 @@ const finishFocus = [
   'Sieg reproduzierbar machen.', 'Entscheidende Zehntel zwischen P1 und P2 finden.', 'Podiumsablauf ohne Zusatzrisiko wiederholen.',
   'Den Schritt von P4 aufs Podium isolieren.', 'Top-fünf-Pace über die Distanz stabilisieren.', 'Anschluss an die Spitzengruppe halten.',
   'Punkteausbeute durch saubere Rennmitte schützen.', 'Zeitverlust nach Rennphase trennen.', 'Ein einzelnes Überholfenster gezielt verbessern.',
-  'Top zehn als Mindeststandard festigen.', 'Den größten Abstand zur Top Ten lokalisieren.', 'Qualifying, Start und Longrun einzeln bewerten.',
+  'Top zehn als Mindeststandard festigen.', 'Den größten Abstand zur Top Ten lokalisieren.', 'Qualifying, Start und Rennpace einzeln bewerten.',
   'Ein kontrollierbares Problem auswählen.', 'Die teuerste Rennphase zuerst korrigieren.', 'Nicht mehrere Baustellen gleichzeitig öffnen.',
   'Fehler mit dem größten Positionsverlust priorisieren.', 'Zuerst Klassifikation und Rhythmus stabilisieren.', 'Kleine Positionsgewinne bewusst absichern.',
   'Das Rennen ohne Selbstwertung in Fakten zerlegen.', 'Eine einzige konkrete Verbesserung für das nächste Rennen festlegen.',
@@ -88,10 +90,13 @@ finishTitles.forEach((title, index) => {
 const deltas = [-10, -8, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
 deltas.forEach((delta, index) => {
   const gained = delta > 0;
-  const title = delta === 0 ? 'Startplatz und Zielposition stimmen überein.' : `${Math.abs(delta)} ${gained ? 'Plätze gewonnen' : 'Plätze verloren'}.`;
+  const positionCount = Math.abs(delta);
+  const title = delta === 0
+    ? 'Startplatz und Zielposition stimmen überein.'
+    : `${positionCount} ${positionCount === 1 ? 'Platz' : 'Plätze'} ${gained ? 'gewonnen' : 'verloren'}.`;
   const body = delta === 0
     ? 'Das Rennen bestätigt deine Ausgangsposition. Der nächste Fortschritt liegt entweder im Qualifying oder in einem klaren strategischen Vorteil.'
-    : `Vom Start bis ins Ziel hast du ${Math.abs(delta)} Positionen ${gained ? 'gutgemacht' : 'abgegeben'}. Das ist ein klares Signal für deine aktuelle Rennumsetzung.`;
+    : `Vom Start bis ins Ziel hast du ${positionCount} ${positionCount === 1 ? 'Position' : 'Positionen'} ${gained ? 'gutgemacht' : 'abgegeben'}. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast.`;
   const focus = delta >= 8 ? 'Die erfolgreiche Aufholstruktur reproduzieren.'
     : delta > 0 ? 'Positionsgewinne ohne zusätzliches Risiko wiederholen.'
       : delta === 0 ? 'Eine Phase identifizieren, die den Gleichstand aufbrechen kann.'
@@ -107,18 +112,18 @@ const reliabilityRules = [
   ['classified_95', 'career.classification_rate', 'gte', 0.95, 'Nahezu lückenlose Klassifikationen.', 'Mindestens 95 Prozent deiner Starts enden klassifiziert. Das ist ein belastbarer Wettbewerbsvorteil.', 'Zuverlässigkeit in bessere Durchschnittspositionen übersetzen.'],
   ['classified_90', 'career.classification_rate', 'gte', 0.9, 'Neun von zehn Rennen kommen ins Ziel.', 'Deine Klassifikationsquote liegt im stabilen Bereich. Einzelne Ausfälle bestimmen nicht mehr das Gesamtbild.', 'Die verbleibenden Ausfallursachen gruppieren.'],
   ['classified_80', 'career.classification_rate', 'gte', 0.8, 'Die Basis ist stabil, aber nicht unangreifbar.', 'Mindestens vier von fünf Starts werden klassifiziert. Wenige Ausfälle haben dadurch weiterhin spürbares Gewicht.', 'Ausfälle nach vermeidbar und unvermeidbar trennen.'],
-  ['classified_70', 'career.classification_rate', 'gte', 0.7, 'Zuverlässigkeit wird zum Leistungshebel.', 'Deine Klassifikationsquote lässt genug Raum, um mit saubereren Rennen schnell Wirkung zu erzielen.', 'Zunächst Rennen beenden, danach Pace maximieren.'],
-  ['classified_low', 'career.classification_rate', 'lt', 0.7, 'Ankommen ist aktuell der größte Hebel.', 'Weniger als sieben von zehn Starts werden klassifiziert. Zusätzliche Pace bringt wenig, solange Ergebnisse verloren gehen.', 'Risiko reduzieren und Rennenden priorisieren.'],
-  ['dnf_1', 'career.dnfs', 'eq', 1, 'Der erste Ausfall ist ein einzelnes Signal.', 'Ein DNF verändert noch keinen Trend. Entscheidend ist, ob sich dieselbe Ursache wiederholt.', 'Ursache dokumentieren, nicht überbewerten.'],
+  ['classified_70', 'career.classification_rate', 'gte', 0.7, 'Zuverlässigkeit entscheidet über deinen nächsten Schritt.', 'Deine Klassifikationsquote lässt genug Raum, um mit saubereren Rennen schnell bessere Ergebnisse zu erzielen.', 'Zunächst Rennen beenden, danach Pace maximieren.'],
+  ['classified_low', 'career.classification_rate', 'lt', 0.7, 'Ankommen ist aktuell deine wichtigste Aufgabe.', 'Weniger als sieben von zehn Starts werden klassifiziert. Zusätzliche Pace bringt wenig, solange Ergebnisse verloren gehen.', 'Risiko reduzieren und Rennenden priorisieren.'],
+  ['dnf_1', 'career.dnfs', 'eq', 1, 'Dein erster Ausfall braucht noch keinen Trend.', 'Ein DNF verändert noch keinen Trend. Entscheidend ist, ob sich dieselbe Ursache wiederholt.', 'Ursache dokumentieren, nicht überbewerten.'],
   ['dnf_2', 'career.dnfs', 'eq', 2, 'Zwei Ausfälle verdienen einen Vergleich.', 'Mit dem zweiten DNF lässt sich prüfen, ob ein gemeinsames Muster existiert.', 'Gemeinsame Rennphase oder Fehlerart suchen.'],
-  ['dnf_3', 'career.dnfs', 'eq', 3, 'Drei Ausfälle bilden ein Musterfeld.', 'Die Ausfälle sollten jetzt nach Technik, Kontakt und Eigenfehler getrennt werden.', 'Die häufigste vermeidbare Ursache zuerst bearbeiten.'],
-  ['dnf_5', 'career.dnfs', 'gte', 5, 'Ausfälle kosten spürbar Career-Fortschritt.', 'Mindestens fünf DNFs machen Zuverlässigkeit zu einem zentralen Performance-Thema.', 'Risikoprofil für Start und Zweikämpfe senken.'],
+  ['dnf_3', 'career.dnfs', 'eq', 3, 'Drei Ausfälle lassen sich vergleichen.', 'Trenne die Ausfälle jetzt nach Technik, Kontakt und Eigenfehler. So erkennst du, ob sich eine Ursache wiederholt.', 'Die häufigste vermeidbare Ursache zuerst bearbeiten.'],
+  ['dnf_5', 'career.dnfs', 'gte', 5, 'Ausfälle kosten spürbar Career-Fortschritt.', 'Mindestens fünf DNFs zeigen, dass Zuverlässigkeit jetzt Vorrang hat.', 'Risikoprofil für Start und Zweikämpfe senken.'],
   ['dns_1', 'career.dns', 'eq', 1, 'Ein verpasster Start bleibt sichtbar.', 'Ein DNS kostet jede Chance auf Punkte, XP und Racecraft-Daten.', 'Teilnahmeprozess vor dem nächsten Rennen absichern.'],
   ['dns_2', 'career.dns', 'gte', 2, 'Mehrere verpasste Starts bremsen die Career.', 'Mindestens zwei DNS zeigen, dass Vorbereitung oder Verfügbarkeit mitgedacht werden müssen.', 'Anmeldung, Technik und Zeitplanung früh bestätigen.'],
   ['dsq_1', 'career.dsqs', 'eq', 1, 'Eine Disqualifikation verlangt Klarheit.', 'Der sportliche Wert des Rennens geht verloren. Regeln und Ursache sollten vor dem nächsten Start eindeutig sein.', 'Die konkrete Regelverletzung ausschließen.'],
-  ['dsq_2', 'career.dsqs', 'gte', 2, 'Wiederholte Disqualifikationen sind vermeidbarer Verlust.', 'Mehr als eine DSQ kostet Ergebnis, Punkte und Vertrauen in die eigene Ausführung.', 'Regelkonformität als festen Rennschritt behandeln.'],
-  ['latest_dnf', 'recent_result.classification_status', 'eq', 'dnf', 'Das letzte Rennen endete vorzeitig.', 'Der DNF ist das wichtigste aktuelle Signal, aber nicht automatisch ein Pace-Problem.', 'Ausfallursache vor Tempoanalyse klären.'],
-  ['latest_dns', 'recent_result.classification_status', 'eq', 'dns', 'Der letzte Start fand nicht statt.', 'Ohne Start entsteht kein sportliches Signal. Vorbereitung und Verfügbarkeit stehen deshalb zuerst.', 'Den nächsten Start organisatorisch absichern.'],
+  ['dsq_2', 'career.dsqs', 'gte', 2, 'Wiederholte Disqualifikationen sind vermeidbarer Verlust.', 'Mehr als eine DSQ kostet Ergebnis, Punkte und Vertrauen in deinen Rennablauf.', 'Regelkonformität als festen Rennschritt behandeln.'],
+  ['latest_dnf', 'recent_result.classification_status', 'eq', 'dnf', 'Das letzte Rennen endete vorzeitig.', 'Dieser DNF ist aktuell besonders wichtig, bedeutet aber nicht automatisch, dass dir Tempo fehlt.', 'Ausfallursache vor Tempoanalyse klären.'],
+  ['latest_dns', 'recent_result.classification_status', 'eq', 'dns', 'Der letzte Start fand nicht statt.', 'Ohne Start gibt es keine Renndaten. Vorbereitung und Verfügbarkeit stehen deshalb zuerst.', 'Den nächsten Start organisatorisch absichern.'],
   ['latest_dsq', 'recent_result.classification_status', 'eq', 'dsq', 'Das letzte Ergebnis wurde disqualifiziert.', 'Die sportliche Leistung kann erst wieder zählen, wenn die Ursache zuverlässig ausgeschlossen ist.', 'Regelursache vollständig verstehen.'],
   ['clean_high_starts', 'career.starts', 'gte', 25, 'Langfristige Zuverlässigkeit bestätigt.', 'Viele Starts bei hoher Klassifikationsquote zeigen belastbare Rennroutine.', 'Zuverlässigkeit als Plattform für mehr Angriff nutzen.'],
   ['dnf_rate_10', 'career.dnf_rate', 'lte', 0.1, 'Die Ausfallquote bleibt kontrolliert.', 'Höchstens jeder zehnte Start endet als DNF. Das schützt Punkte und Fortschritt.', 'Seltene Ausfälle weiter konsequent auswerten.'],
@@ -127,12 +132,12 @@ const reliabilityRules = [
 reliabilityRules.forEach(([key, field, operator, value, title, body, focus], index) => add('reliability', key, 820 + index, [condition(field, operator, value)], title, body, focus));
 
 const successRules = [
-  ['first_win', 'career.wins', 'eq', 1, 'Der erste Sieg ist bestätigt.', 'Ein Sieg beweist, dass dein bestes Rennen gewinnen kann.', 'Die Bedingungen des Sieges reproduzieren.'],
-  ['wins_2', 'career.wins', 'eq', 2, 'Der Sieg war kein Einzelfall.', 'Zwei Siege machen aus Potenzial erste Wiederholbarkeit.', 'Gemeinsame Erfolgsfaktoren vergleichen.'],
-  ['wins_3', 'career.wins', 'eq', 3, 'Drei Siege formen ein Leistungsprofil.', 'Mehrere Erfolge zeigen, wo dein Paket besonders stark ist.', 'Stärken auf schwächere Strecken übertragen.'],
+  ['first_win', 'career.wins', 'eq', 1, 'Der erste Sieg ist bestätigt.', 'Du hast bewiesen, dass du ein Rennen gewinnen kannst.', 'Die Bedingungen des Sieges reproduzieren.'],
+  ['wins_2', 'career.wins', 'eq', 2, 'Der Sieg war kein Einzelfall.', 'Zwei Siege zeigen, dass du den Erfolg wiederholen kannst.', 'Gemeinsame Erfolgsfaktoren vergleichen.'],
+  ['wins_3', 'career.wins', 'eq', 3, 'Drei Siege formen ein Leistungsprofil.', 'Mehrere Erfolge zeigen, unter welchen Bedingungen du besonders stark bist.', 'Stärken auf schwächere Strecken übertragen.'],
   ['wins_5', 'career.wins', 'eq', 5, 'Fünf Siege markieren echte Spitzenleistung.', 'Deine Career enthält jetzt eine belastbare Erfolgsserie.', 'Siegfähigkeit mit Konstanz verbinden.'],
-  ['wins_10', 'career.wins', 'gte', 10, 'Zweistellige Siegzahl erreicht.', 'Mindestens zehn Siege zeigen langfristige Front-Running-Qualität.', 'Details statt Grundtempo optimieren.'],
-  ['first_podium', 'career.podiums', 'eq', 1, 'Das erste Podium steht.', 'Ein Top-Drei-Ergebnis verschiebt die eigene Referenz.', 'Podiumspace erneut in Reichweite bringen.'],
+  ['wins_10', 'career.wins', 'gte', 10, 'Zweistellige Siegzahl erreicht.', 'Mindestens zehn Siege zeigen, dass du langfristig an der Spitze fahren kannst.', 'Details statt Grundtempo optimieren.'],
+  ['first_podium', 'career.podiums', 'eq', 1, 'Das erste Podium steht.', 'Mit dem ersten Top-Drei-Ergebnis weißt du, dass das Podium realistisch erreichbar ist.', 'Podiumspace erneut in Reichweite bringen.'],
   ['podiums_2', 'career.podiums', 'eq', 2, 'Zwei Podien bestätigen Anschluss an die Spitze.', 'Der erste Erfolg wurde wiederholt.', 'Die gemeinsamen Rennphasen absichern.'],
   ['podiums_3', 'career.podiums', 'eq', 3, 'Drei Podien zeigen wiederholbare Stärke.', 'Top-Drei-Pace ist kein Ausnahmezustand mehr.', 'Podien in Siegchancen verwandeln.'],
   ['podiums_5', 'career.podiums', 'eq', 5, 'Fünf Podien bilden eine klare Erfolgsbasis.', 'Deine Spitzenresultate tragen inzwischen echtes Gewicht.', 'Schwächere Wochenenden näher an die Top Drei bringen.'],
@@ -168,14 +173,16 @@ qualifyingRules.forEach(([key, field, operator, value, title, body, focus], inde
 const paceRules = [];
 [1, 2, 3, 5, 8, 10, 15, 20, 30, 50].forEach((laps) => paceRules.push([
   `fastest_laps_${laps}`, 'career.fastest_laps', laps === 50 ? 'gte' : 'eq', laps,
-  laps === 1 ? 'Die erste schnellste Runde steht.' : `${laps} schnellste Runden bestätigen dein Spitzenpace.`,
+  laps === 1 ? 'Die erste schnellste Runde steht.' : `${laps} schnellste Runden bestätigen deine Spitzenpace.`,
   `Deine Career enthält ${laps} ${laps === 1 ? 'schnellste Runde' : 'schnellste Runden'}. Das zeigt Tempo, unabhängig vom Endresultat.`,
-  'Schnellste Einzelrunden in konstanten Longrun übertragen.',
+  'Das Tempo einer schnellen Runde über einen ganzen Stint halten.',
 ]));
 [1, 10, 25, 50, 100, 250, 500, 750, 1000, 2000].forEach((points) => paceRules.push([
   `points_${points}`, 'career.total_points', points === 2000 ? 'gte' : 'eq', points,
-  `${points} Career-Punkte erreicht.`,
-  `Deine bestätigten Ergebnisse summieren sich auf ${points} Punkte. Jede Klassifikation trägt zu diesem Fundament bei.`,
+  points === 1 ? 'Der erste Career-Punkt ist erreicht.' : `${points} Career-Punkte erreicht.`,
+  points === 1
+    ? 'Dein erstes bestätigtes Ergebnis mit einem Punkt bildet die Basis für weitere Fortschritte.'
+    : `Deine bestätigten Ergebnisse summieren sich auf ${points} Punkte. Jede Klassifikation trägt zu diesem Fundament bei.`,
   points < 100 ? 'Regelmäßige Punkteankünfte etablieren.' : 'Punkteausbeute über schwächere Wochenenden stabilisieren.',
 ]));
 paceRules.forEach(([key, field, operator, value, title, body, focus], index) => add('pace_points', key, 640 + index, [condition(field, operator, value)], title, body, focus));
@@ -186,10 +193,10 @@ averageBands.forEach((position, index) => add(
   [condition('career.average_finish', 'between', [position, position + 0.99])],
   position === 1 ? 'Dein Durchschnitt liegt auf Siegerniveau.' : `Deine durchschnittliche Zielposition liegt bei P${position}.`,
   position <= 3
-    ? 'Der Career-Schnitt bestätigt dauerhafte Spitzenresultate. Kleine Fehlervermeidung hat jetzt mehr Wert als zusätzliches Grundrisiko.'
+    ? 'Deine durchschnittliche Zielposition bestätigt dauerhafte Spitzenresultate. Kleine Fehler zu vermeiden ist jetzt wichtiger als zusätzliches Risiko.'
     : position <= 10
       ? 'Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben.'
-      : 'Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark.',
+      : 'Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern.',
   position <= 3 ? 'Spitzenresultate ohne unnötiges Risiko schützen.' : position <= 10 ? 'Den Schnitt um eine Position verbessern.' : 'Zuerst stabile Zieleinläufe aufbauen.',
 ));
 
@@ -202,8 +209,10 @@ const progressionRules = [];
 ]));
 [[0, 25], [26, 50], [51, 100], [101, 150], [151, 250], [251, 400], [401, 600], [601, 800], [801, 999], [1000, 100000]].forEach(([min, max], index) => progressionRules.push([
   `xp_to_next_${min}_${max}`, 'progression.xp_to_next_level', 'between', [min, max],
-  min === 0 ? 'Der Level-Aufstieg steht unmittelbar bevor.' : `Noch ${min} bis ${max} XP bis zum nächsten Level.`,
-  max <= 100 ? 'Der nächste Aufstieg ist nah genug, um mit einem sauberen Ergebnis erreicht zu werden.' : 'Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen.',
+  min === 0 ? 'Der Level-Aufstieg steht unmittelbar bevor.'
+    : max <= 100 ? 'Dein nächstes Level ist zum Greifen nah.'
+      : max <= 400 ? 'Dein nächstes Level rückt näher.' : 'Bis zum nächsten Level liegt noch Strecke vor dir.',
+  max <= 100 ? 'Ein sauberes Ergebnis kann bereits für den nächsten Aufstieg reichen.' : 'Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht.',
   max <= 100 ? 'Klassifikation vor Zusatzrisiko stellen.' : 'XP als Ergebnis guter Rennen betrachten, nicht als Rennziel.',
 ]));
 progressionRules.forEach(([key, field, operator, value, title, body, focus], index) => add('progression', key, 560 + index, [condition(field, operator, value)], title, body, focus));
@@ -220,15 +229,15 @@ const contextRules = [
   ['two_seasons', 'career.seasons_competed', 'eq', 2, 'Zwei Saisons machen Entwicklung sichtbar.', 'Jetzt lassen sich Fortschritt und wiederkehrende Schwächen besser trennen.', 'Saisonverläufe statt Einzelrennen vergleichen.'],
   ['three_seasons', 'career.seasons_competed', 'eq', 3, 'Drei Saisons bilden einen echten Trend.', 'Kurzfristige Form und langfristige Entwicklung lassen sich klarer unterscheiden.', 'Langzeittrend als Maßstab verwenden.'],
   ['five_seasons', 'career.seasons_competed', 'gte', 5, 'Mehrjährige Erfahrung bestätigt.', 'Mindestens fünf Saisons geben deinem Career-Profil hohe Aussagekraft.', 'Neue Ziele aus Langzeitmustern ableiten.'],
-  ['pole_and_win', 'recent_result.grid_position', 'eq', 1, 'Pole in Sieg umgesetzt.', 'Das letzte Rennen verband Qualifying-Spitze und Rennausführung vollständig.', 'Den kompletten Ablauf als Referenz sichern.'],
+  ['pole_and_win', 'recent_result.grid_position', 'eq', 1, 'Pole in Sieg umgesetzt.', 'Im letzten Rennen hast du die beste Startposition bis zum Sieg genutzt.', 'Den kompletten Ablauf als Vorlage sichern.'],
   ['back_to_front', 'recent_result.position_delta', 'gte', 10, 'Große Aufholjagd bestätigt.', 'Mindestens zehn gewonnene Positionen zeigen starke Rennanpassung und Überholumsetzung.', 'Die Aufholjagd nach risikoarmen Erfolgsfaktoren zerlegen.'],
   ['front_row_podium', 'recent_result.grid_position', 'lte', 2, 'Startreihe eins in ein Podium verwandelt.', 'Die starke Ausgangslage wurde in ein Top-Drei-Ergebnis übersetzt.', 'Startphase und Reifenmanagement als Referenz nutzen.'],
   ['points_without_podium', 'career.podiums', 'eq', 0, 'Punktebasis ohne Podium aufgebaut.', 'Deine Career sammelt bereits Wert, während der erste große Durchbruch noch offen ist.', 'Den Abstand zur Top Drei konkret messen.'],
-  ['fast_but_unreliable', 'career.fastest_laps', 'gte', 3, 'Tempo und Zuverlässigkeit laufen auseinander.', 'Mehrere schnellste Runden zeigen Pace, eine erhöhte Ausfallquote verhindert jedoch den vollen Ertrag.', 'Pace mit kontrollierter Rennausführung verbinden.'],
+  ['fast_but_unreliable', 'career.fastest_laps', 'gte', 3, 'Tempo und Zuverlässigkeit laufen auseinander.', 'Mehrere schnellste Runden zeigen dein Tempo, doch die erhöhte Ausfallquote kostet dich gute Ergebnisse.', 'Pace mit einem kontrollierten Rennablauf verbinden.'],
   ['consistent_no_win', 'career.classification_rate', 'gte', 0.9, 'Hohe Zuverlässigkeit wartet auf den Durchbruch.', 'Deine Klassifikationsbasis ist stark, der erste Sieg aber noch offen.', 'Gezielt erkennen, wo sichere Punkte zu Siegchancen werden.'],
   ['qualifying_gap', 'career.poles', 'eq', 0, 'Rennergebnisse entstehen ohne Pole-Basis.', 'Deine bisherigen Resultate wurden nicht durch Startplatz eins vorbereitet.', 'Qualifying als eigenständigen Entwicklungsbereich prüfen.'],
   ['racecraft_strength', 'recent_result.position_delta', 'gte', 3, 'Rennpace übertrifft die Startposition.', 'Mehrere gewonnene Plätze sprechen für gute Umsetzung über die Distanz.', 'Qualifying verbessern, ohne die Rennstärke zu verlieren.'],
-  ['career_balance', 'career.classification_rate', 'gte', 0.85, 'Dein Profil verbindet Erfahrung und Stabilität.', 'Viele Starts, eine hohe Klassifikationsquote und wiederkehrende Punkte bilden ein belastbares Gesamtpaket.', 'Den größten verbleibenden Performance-Hebel auswählen.'],
+  ['career_balance', 'career.classification_rate', 'gte', 0.85, 'Dein Profil verbindet Erfahrung und Stabilität.', 'Viele Starts, eine hohe Klassifikationsquote und wiederkehrende Punkte zeigen ein ausgeglichenes Fahrerprofil.', 'Die wichtigste verbleibende Schwäche auswählen.'],
 ];
 contextRules.forEach(([key, field, operator, value, title, body, focus], index) => {
   const all = [condition(field, operator, value)];
@@ -245,24 +254,24 @@ contextRules.forEach(([key, field, operator, value, title, body, focus], index) 
 const signatureRules = [
   ['pole_win', [['recent_result.is_pole', 'eq', true], ['recent_result.finish_position', 'eq', 1]], 'Du hast Pole und Sieg zusammengebracht.', 'Du warst über eine Runde und über die Distanz der Maßstab.', 'Diesen kompletten Ablauf als Referenz speichern.'],
   ['pole_podium', [['recent_result.is_pole', 'eq', true], ['recent_result.finish_position', 'lte', 3]], 'Du hast die Pole auf dem Podium abgesichert.', 'Die Ausgangslage war maximal, das Ergebnis bleibt stark – aber da lag noch etwas zwischen euch.', 'Den Unterschied zwischen Siegchance und Podium isolieren.'],
-  ['pole_top5', [['recent_result.is_pole', 'eq', true], ['recent_result.finish_position', 'lte', 5]], 'Deine Pole wurde ein Top-Fünf-Ergebnis.', 'Dein Qualifying war stärker als die Rennumsetzung. Das ist kein Drama, aber ein ziemlich klares Signal.', 'Rennpace und Strategie getrennt prüfen.'],
+  ['pole_top5', [['recent_result.is_pole', 'eq', true], ['recent_result.finish_position', 'lte', 5]], 'Deine Pole wurde ein Top-Fünf-Ergebnis.', 'Dein Qualifying war stärker als dein Rennen. Prüfe deshalb Rennpace und Strategie getrennt.', 'Rennpace und Strategie getrennt prüfen.'],
   ['pole_drop', [['recent_result.is_pole', 'eq', true], ['recent_result.finish_position', 'gt', 5]], 'Von Pole ist dir zu viel entglitten.', 'Du hattest die beste Ausgangslage und konntest sie nicht halten.', 'Den ersten entscheidenden Positionsverlust rekonstruieren.'],
   ['fastest_win', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.finish_position', 'eq', 1]], 'Du hattest Sieg und schnellste Runde.', 'Tempo und Ergebnis passen perfekt zusammen. Viel sauberer kannst du kaum ein Statement setzen.', 'Das Siegerpaket reproduzierbar machen.'],
   ['fastest_podium', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.finish_position', 'lte', 3]], 'Deine schnellste Runde kam mit einem Podium.', 'Du hattest nachweislich Spitzenpace und hast sie in ein starkes Ergebnis übersetzt.', 'Die verfügbare Pace über mehr Runden abrufen.'],
   ['fastest_top5', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.finish_position', 'lte', 5]], 'Deine Pace war schneller als dein Ergebnis.', 'Die schnellste Runde zeigt, dass mehr als P4 oder P5 möglich war.', 'Zeitverluste außerhalb der schnellsten Phase finden.'],
-  ['fastest_outside10', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.finish_position', 'gt', 10]], 'Du warst schnell, aber nicht effizient.', 'Eine schnellste Runde außerhalb der Top Ten zeigt Potenzial ohne ausreichenden Rennertrag.', 'Pace in eine vollständige Rennausführung übersetzen.'],
+  ['fastest_outside10', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.finish_position', 'gt', 10]], 'Du warst schnell, aber nicht effizient.', 'Die schnellste Runde zeigt dein Potenzial, doch das Ergebnis außerhalb der Top Ten passt noch nicht dazu.', 'Pace über das vollständige Rennen halten.'],
   ['win_from_p6', [['recent_result.grid_position', 'gte', 6], ['recent_result.finish_position', 'eq', 1]], 'Du hast von außerhalb der Top Fünf gewonnen.', 'Das war keine verwaltete Führung, sondern echte Rennarbeit.', 'Die entscheidenden Überhol- und Strategiephasen sichern.'],
-  ['podium_from_p11', [['recent_result.grid_position', 'gte', 11], ['recent_result.finish_position', 'lte', 3]], 'Du bist aus der zweiten Hälfte aufs Podium gefahren.', 'Deine Rennumsetzung hat die Startposition deutlich übertroffen.', 'Aufholstärke mit besserem Qualifying kombinieren.'],
+  ['podium_from_p11', [['recent_result.grid_position', 'gte', 11], ['recent_result.finish_position', 'lte', 3]], 'Du bist aus der zweiten Hälfte aufs Podium gefahren.', 'Dein Rennverlauf war deutlich stärker als deine Startposition.', 'Aufholstärke mit besserem Qualifying kombinieren.'],
   ['top10_from_p16', [['recent_result.grid_position', 'gte', 16], ['recent_result.finish_position', 'lte', 10]], 'Du hast dich aus dem Hinterfeld in die Top Ten gearbeitet.', 'Viele kleine richtige Entscheidungen haben dein Ergebnis getragen.', 'Die risikoarmen Positionsgewinne wiederholen.'],
   ['gain5_top5', [['recent_result.position_delta', 'gte', 5], ['recent_result.finish_position', 'lte', 5]], 'Du hast fünf Plätze gewonnen und vorne abgeschlossen.', 'Aufholjagd und Endposition passen zusammen – genau so wird Racecraft sichtbar.', 'Den starken Rennrhythmus konservieren.'],
-  ['gain5_top10', [['recent_result.position_delta', 'gte', 5], ['recent_result.finish_position', 'lte', 10]], 'Du hast dich kontrolliert in die Top Ten gefahren.', 'Mindestens fünf gewonnene Plätze haben einen messbaren Ertrag gebracht.', 'Das Qualifying näher an die Rennpace bringen.'],
+  ['gain5_top10', [['recent_result.position_delta', 'gte', 5], ['recent_result.finish_position', 'lte', 10]], 'Du hast dich kontrolliert in die Top Ten gefahren.', 'Mindestens fünf gewonnene Plätze haben dir ein Top-Ten-Ergebnis gebracht.', 'Das Qualifying näher an die Rennpace bringen.'],
   ['loss5_outside10', [['recent_result.position_delta', 'lte', -5], ['recent_result.finish_position', 'gt', 10]], 'Du hast zu viele Positionen abgegeben.', 'Mindestens fünf verlorene Plätze und ein Ergebnis außerhalb der Top Ten verlangen eine klare Ursache.', 'Den teuersten Fehler zuerst abstellen.'],
   ['pole_p2', [['recent_result.grid_position', 'eq', 1], ['recent_result.finish_position', 'eq', 2]], 'Von Pole auf P2 – knapp, aber eindeutig.', 'Du warst nah dran. Jetzt zählt nicht mehr Grundtempo, sondern die eine Entscheidung mit dem größten Effekt.', 'Den Moment analysieren, in dem P1 verloren ging.'],
   ['pole_p3', [['recent_result.grid_position', 'eq', 1], ['recent_result.finish_position', 'eq', 3]], 'Von Pole auf P3 bleibt ein Podium mit Fragezeichen.', 'Dein Samstag war stärker als dein Rennsonntag.', 'Reifen, Start und Strategie in dieser Reihenfolge prüfen.'],
   ['win_grid2', [['recent_result.grid_position', 'eq', 2], ['recent_result.finish_position', 'eq', 1]], 'Du hast P2 in einen Sieg verwandelt.', 'Du brauchtest keine Pole, um das Rennen zu kontrollieren.', 'Den siegbringenden Positionswechsel festhalten.'],
-  ['win_grid3plus', [['recent_result.grid_position', 'gte', 3], ['recent_result.finish_position', 'eq', 1]], 'Du hast von hinten zugeschlagen.', 'Der Sieg kam nicht aus der bequemsten Position – das macht deine Rennumsetzung besonders stark.', 'Die Geduld vor dem entscheidenden Angriff bewahren.'],
-  ['p20_to_p10', [['recent_result.grid_position', 'eq', 20], ['recent_result.finish_position', 'lte', 10]], 'Du hast das halbe Feld hinter dir gelassen.', 'Vom letzten Startplatz in die Top Ten zu fahren, ist ein unmissverständliches Racecraft-Signal.', 'Qualifying verbessern und diese Rennstärke behalten.'],
-  ['fastest_zero_points', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.awarded_points', 'eq', 0]], 'Du hattest die schnellste Runde, aber keine Punkte.', 'Dein Tempo war real, der Ertrag nicht. Vora sieht beides – und lässt dich damit nicht davonkommen.', 'Die schnelle Phase in ein punktfähiges Gesamtrennen einbetten.'],
+  ['win_grid3plus', [['recent_result.grid_position', 'gte', 3], ['recent_result.finish_position', 'eq', 1]], 'Du hast von hinten zugeschlagen.', 'Du hast trotz der schwierigeren Startposition gewonnen. Das zeigt Geduld und starke Entscheidungen im Rennen.', 'Die Geduld vor dem entscheidenden Angriff bewahren.'],
+  ['p20_to_p10', [['recent_result.grid_position', 'eq', 20], ['recent_result.finish_position', 'lte', 10]], 'Du hast das halbe Feld hinter dir gelassen.', 'Vom letzten Startplatz in die Top Ten zu fahren, zeigt außergewöhnliche Aufholstärke.', 'Qualifying verbessern und diese Rennstärke behalten.'],
+  ['fastest_zero_points', [['recent_result.is_fastest_lap', 'eq', true], ['recent_result.awarded_points', 'eq', 0]], 'Du hattest die schnellste Runde, aber keine Punkte.', 'Dein Tempo war da, das Ergebnis nicht. Vora sieht beides – und lässt dich damit nicht davonkommen.', 'Die schnelle Phase in ein punktfähiges Gesamtrennen einbetten.'],
 ];
 signatureRules.forEach(([key, rules, title, body, focus], index) => add(
   'race_signature', key, 930 + index,
@@ -272,7 +281,8 @@ signatureRules.forEach(([key, rules, title, body, focus], index) => add(
 Array.from({ length: 20 }, (_, index) => index).forEach((pointsPerStart, index) => add(
   'efficiency', `points_per_start_${pointsPerStart}`, 520 + (20 - index),
   [condition('career.points_per_start', 'between', [pointsPerStart, pointsPerStart + 0.99])],
-  pointsPerStart === 0 ? 'Du lässt pro Start noch zu viele Punkte liegen.' : `Du holst im Schnitt rund ${pointsPerStart} Punkte pro Start.`,
+  pointsPerStart === 0 ? 'Du lässt pro Start noch zu viele Punkte liegen.'
+    : pointsPerStart === 1 ? 'Du holst im Schnitt rund einen Punkt pro Start.' : `Du holst im Schnitt rund ${pointsPerStart} Punkte pro Start.`,
   pointsPerStart >= 15
     ? 'Deine Punkteausbeute liegt im Spitzenbereich. Schütze diese Effizienz vor unnötigem Risiko.'
     : pointsPerStart >= 8
@@ -283,13 +293,13 @@ Array.from({ length: 20 }, (_, index) => index).forEach((pointsPerStart, index) 
 
 const riskRules = [
   ['fast_safe', [['career.classification_rate', 'gte', 0.9], ['career.average_finish', 'lte', 5]], 'Du bist schnell und zuverlässig.', 'Dein Profil verbindet Top-Fünf-Schnitt mit hoher Zielankunftsquote.', 'Dieses Gleichgewicht schützen.'],
-  ['fast_risky', [['career.average_finish', 'lte', 5], ['career.dnf_rate', 'gte', 0.2]], 'Du bist schnell, aber nicht immer verfügbar.', 'Dein Tempo reicht für starke Ergebnisse, doch Ausfälle nehmen dir zu oft den Ertrag.', 'Risiko reduzieren, ohne die Pace zu verstecken.'],
+  ['fast_risky', [['career.average_finish', 'lte', 5], ['career.dnf_rate', 'gte', 0.2]], 'Du bist schnell, aber nicht immer verfügbar.', 'Dein Tempo reicht für starke Ergebnisse, doch Ausfälle kosten dich zu oft Punkte.', 'Risiko reduzieren, ohne die Pace zu verstecken.'],
   ['safe_midfield', [['career.classification_rate', 'gte', 0.9], ['career.average_finish', 'between', [8, 14]]], 'Du kommst zuverlässig an – jetzt darfst du mehr verlangen.', 'Deine Basis ist stabil, deine Durchschnittsposition bietet aber noch Luft.', 'Kontrolliert mehr Positionsgewinn suchen.'],
   ['safe_backfield', [['career.classification_rate', 'gte', 0.9], ['career.average_finish', 'gt', 14]], 'Du bringst die Rennen nach Hause.', 'Zuverlässigkeit ist vorhanden. Jetzt geht es darum, aus Sicherheit echten Positionsgewinn zu machen.', 'Eine Rennphase offensiver gestalten.'],
-  ['risky_no_reward', [['career.dnf_rate', 'gte', 0.25], ['career.average_finish', 'gt', 12]], 'Dein Risiko zahlt sich noch nicht aus.', 'Viele Ausfälle treffen auf einen schwachen Ergebnisschnitt.', 'Aggressivität nur dort einsetzen, wo sie messbaren Ertrag bringt.'],
+  ['risky_no_reward', [['career.dnf_rate', 'gte', 0.25], ['career.average_finish', 'gt', 12]], 'Dein Risiko zahlt sich noch nicht aus.', 'Viele Ausfälle treffen auf einen schwachen Ergebnisschnitt.', 'Aggressivität nur dort einsetzen, wo sie Positionen oder Punkte bringt.'],
   ['few_dnf_no_points', [['career.dnf_rate', 'lte', 0.1], ['career.points_per_start', 'lt', 2]], 'Du bist zuverlässig, aber zu selten belohnt.', 'Ankommen allein reicht dir nicht mehr. Deine saubere Basis muss in Punkte übergehen.', 'Punktefenster früher erkennen.'],
-  ['wins_high_dnf', [['career.wins', 'gte', 3], ['career.dnf_rate', 'gte', 0.2]], 'Du kennst Siege und Ausfälle.', 'Dein Profil schwankt zwischen maximalem Ertrag und Nullrunde.', 'Siegpace häufiger ins Ziel bringen.'],
-  ['podiums_clean', [['career.podiums', 'gte', 5], ['career.classification_rate', 'gte', 0.9]], 'Du verbindest Podien mit Verlässlichkeit.', 'Das ist keine Momentaufnahme, sondern ein belastbares Spitzenprofil.', 'Schwache Tage zu sicheren Punkten machen.'],
+  ['wins_high_dnf', [['career.wins', 'gte', 3], ['career.dnf_rate', 'gte', 0.2]], 'Du kennst Siege und Ausfälle.', 'Dein Profil schwankt zwischen Sieg und Nullrunde.', 'Siegpace häufiger ins Ziel bringen.'],
+  ['podiums_clean', [['career.podiums', 'gte', 5], ['career.classification_rate', 'gte', 0.9]], 'Du verbindest Podien mit Verlässlichkeit.', 'Mehrere Podien bei hoher Zielankunftsquote zeigen beständige Spitzenleistung.', 'Schwache Tage zu sicheren Punkten machen.'],
   ['poles_low_conversion', [['career.poles', 'gte', 3], ['career.win_podium_ratio', 'lt', 0.2]], 'Dein Qualifying flirtet mit der Spitze, dein Rennresultat noch nicht genug.', 'Mehrere Poles zeigen Tempo, doch die Umwandlung in Siege bleibt niedrig.', 'Start und erste Rennphase präziser absichern.'],
   ['pace_low_finish', [['career.fastest_laps', 'gte', 5], ['career.average_finish', 'gt', 10]], 'Deine Spitzenpace versteckt sich hinter dem Schnitt.', 'Mehrere schnellste Runden passen nicht zu einer durchschnittlichen Zielposition außerhalb der Top Ten.', 'Tempo über den gesamten Stint verteilen.'],
   ['clean_zero_dnf', [['career.starts', 'gte', 10], ['career.dnfs', 'eq', 0]], 'Zehn Starts oder mehr ohne DNF.', 'Du behandelst Rennabschlüsse nicht wie Zufall. Das ist eine starke Grundlage.', 'Zuverlässigkeit in mehr Angriffsspielraum verwandeln.'],
@@ -300,8 +310,8 @@ const riskRules = [
   ['front_loss_safe', [['recent_result.grid_position', 'lte', 5], ['recent_result.position_delta', 'lte', -3]], 'Vorne gestartet, zu viel abgegeben.', 'Deine Ausgangslage war stark, doch das Rennen hat mindestens drei Positionen gekostet.', 'Verlustphase ohne hektische Gegenreaktion analysieren.'],
   ['back_gain_safe', [['recent_result.grid_position', 'gte', 12], ['recent_result.position_delta', 'gte', 5]], 'Du machst aus schlechten Startplätzen brauchbare Rennen.', 'Deine Aufholstärke rettet Ergebnisse, die im Qualifying verloren gehen.', 'Qualifying-Lücke schließen.'],
   ['high_points_low_win', [['career.points_per_start', 'gte', 10], ['career.win_rate', 'lt', 0.1]], 'Du sammelst stark, aber selten maximal.', 'Hohe Punkteausbeute zeigt Konstanz; Siege bleiben noch der nächste Schritt.', 'Den Unterschied zwischen sicherem Ergebnis und Siegchance erkennen.'],
-  ['high_win_low_class', [['career.win_rate', 'gte', 0.2], ['career.classification_rate', 'lt', 0.8]], 'Dein Potenzial ist größer als deine Stabilität.', 'Du gewinnst oft genug, aber zu viele Rennen liefern gar keinen Ertrag.', 'Gewinnfähige Pace öfter klassifizieren.'],
-  ['balanced_growth', [['career.points_per_start', 'gte', 5], ['career.classification_rate', 'gte', 0.85]], 'Dein Profil wächst ohne unnötige Ausschläge.', 'Punkte und Klassifikationen bilden eine kontrollierte Entwicklung.', 'Einen klaren Performance-Hebel nach dem anderen bearbeiten.'],
+  ['high_win_low_class', [['career.win_rate', 'gte', 0.2], ['career.classification_rate', 'lt', 0.8]], 'Dein Potenzial ist größer als deine Stabilität.', 'Du gewinnst oft genug, aber zu viele Rennen enden ohne Ergebnis.', 'Gewinnfähige Pace öfter klassifizieren.'],
+  ['balanced_growth', [['career.points_per_start', 'gte', 5], ['career.classification_rate', 'gte', 0.85]], 'Dein Profil wächst ohne unnötige Ausschläge.', 'Punkte und Klassifikationen zeigen eine kontrollierte Entwicklung.', 'Eine konkrete Schwäche nach der anderen bearbeiten.'],
 ];
 riskRules.forEach(([key, rules, title, body, focus], index) => add(
   'risk_balance', key, 780 + index,
@@ -318,14 +328,14 @@ const milestoneRules = [
   ['wins_10', 'career.wins', 9, 'Der nächste Sieg macht deine Zahl zweistellig.', 'Neun Siege sind bestätigt. Einer fehlt noch für die nächste Kategorie.', 'Siegchance geduldig vorbereiten.'],
   ['podium_1', 'career.podiums', 0, 'Dein erstes Podium wartet.', 'Die Top Drei sind kein abstraktes Ziel – sie sind die nächste klare Schwelle.', 'Ein punktgenaues Podiumsrennen aufbauen.'],
   ['podiums_5', 'career.podiums', 4, 'Ein Podium fehlt dir zu fünf.', 'Du bist nah an einer belastbaren Top-Drei-Bilanz.', 'Podiumschance vor unnötigem Siegzwang schützen.'],
-  ['podiums_10', 'career.podiums', 9, 'Ein Podium fehlt zur Zweistelligkeit.', 'Neun Top-Drei-Ergebnisse zeigen, dass der nächste Schritt realistisch ist.', 'Die Top-Drei-Routine wiederholen.'],
+  ['podiums_10', 'career.podiums', 9, 'Ein Podium fehlt zur Zweistelligkeit.', 'Neun Top-Drei-Ergebnisse zeigen, dass du regelmäßig vorne mitfährst. Jetzt fehlt nur noch ein Podium zur zweistelligen Bilanz.', 'Die Top-Drei-Routine wiederholen.'],
   ['podiums_25', 'career.podiums', 24, 'Podium Nummer 25 wartet auf dich.', 'Nur ein Ergebnis fehlt zu einer starken Langzeitmarke.', 'Das nächste Podium kontrolliert vollenden.'],
   ['pole_1', 'career.poles', 0, 'Deine erste Pole ist noch frei.', 'Eine perfekte Qualifying-Runde würde deinem Profil eine neue Facette geben.', 'Eine Runde kompromisslos sauber zusammensetzen.'],
   ['poles_5', 'career.poles', 4, 'Eine Pole fehlt dir zu fünf.', 'Deine Qualifying-Stärke steht kurz vor der nächsten Marke.', 'Qualifying-Prozess unverändert präzise halten.'],
   ['poles_10', 'career.poles', 9, 'Pole Nummer zehn ist in Reichweite.', 'Neun Poles zeigen, dass du die Geschwindigkeit dafür längst besitzt.', 'Nicht jagen – sauber abrufen.'],
   ['fastest_1', 'career.fastest_laps', 0, 'Deine erste schnellste Runde fehlt noch.', 'Ein klarer Pace-Nachweis wartet auf den richtigen Rennmoment.', 'Freie Strecke und Reifenfenster nutzen.'],
   ['fastest_5', 'career.fastest_laps', 4, 'Eine schnellste Runde fehlt dir zu fünf.', 'Deine Spitzenpace steht kurz vor der nächsten Marke.', 'Tempo nur dort abrufen, wo es das Rennen nicht gefährdet.'],
-  ['fastest_10', 'career.fastest_laps', 9, 'Die zehnte schnellste Runde wartet.', 'Neun Pace-Signale sind bestätigt. Das nächste darf mit Ertrag kommen.', 'Schnelle Runde in ein starkes Gesamtergebnis einbetten.'],
+  ['fastest_10', 'career.fastest_laps', 9, 'Die zehnte schnellste Runde wartet.', 'Neun schnellste Runden sind bestätigt. Verbinde die nächste mit einem starken Rennergebnis.', 'Schnelle Runde in ein starkes Gesamtergebnis einbetten.'],
   ['points_100', 'career.total_points', 99, 'Ein Punkt fehlt dir zu 100.', 'Die erste dreistellige Punktemarke ist praktisch erreicht.', 'Den fehlenden Punkt ohne Hektik sichern.'],
   ['points_500', 'career.total_points', 499, 'Ein Punkt fehlt dir zu 500.', 'Deine Career steht direkt vor einer großen Punktemarke.', 'Ergebnis nach Hause bringen.'],
   ['points_1000', 'career.total_points', 999, 'Ein Punkt fehlt dir zu 1.000.', 'Vierstellige Career-Punkte liegen nur noch einen Zähler entfernt.', 'Den Meilenstein mit Kontrolle abschließen.'],
@@ -341,10 +351,10 @@ const profileRules = [
   ['collector', [['career.points_per_start', 'gte', 8], ['career.win_rate', 'lt', 0.1]], 'Du bist ein effizienter Punktesammler.', 'Dein Schnitt ist stark, auch ohne viele Siege.', 'Aus Konstanz gezielte Siegchancen entwickeln.'],
   ['survivor', [['career.classification_rate', 'gte', 0.95], ['career.starts', 'gte', 20]], 'Du bist schwer aus dem Rennen zu bekommen.', 'Viele Starts und fast immer klassifiziert – das ist echte Rennhärte.', 'Stabilität offensiver nutzen.'],
   ['sprinter', [['career.fastest_laps', 'gte', 5], ['career.classification_rate', 'lt', 0.8]], 'Du hast Speed, aber noch keinen langen Atem.', 'Schnellste Runden zeigen dein Potenzial; Ausfälle begrenzen den Nutzen.', 'Tempo über die volle Distanz kontrollieren.'],
-  ['front_runner', [['career.average_finish', 'lte', 4], ['career.podium_rate', 'gte', 0.5]], 'Du gehörst regelmäßig nach vorn.', 'Durchschnitt und Podiumsquote bestätigen ein Front-Runner-Profil.', 'Schwache Tage ohne großen Verlust überstehen.'],
-  ['midfield_anchor', [['career.average_finish', 'between', [8, 12]], ['career.classification_rate', 'gte', 0.9]], 'Du bist der stabile Anker im Mittelfeld.', 'Deine Ergebnisse sind zuverlässig, der nächste Sprung braucht einen gezielten Hebel.', 'Eine Position im Durchschnitt gewinnen.'],
+  ['front_runner', [['career.average_finish', 'lte', 4], ['career.podium_rate', 'gte', 0.5]], 'Du gehörst regelmäßig nach vorn.', 'Dein Durchschnitt und deine Podiumsquote bestätigen, dass du regelmäßig um Spitzenplätze fährst.', 'Schwache Tage ohne großen Verlust überstehen.'],
+  ['midfield_anchor', [['career.average_finish', 'between', [8, 12]], ['career.classification_rate', 'gte', 0.9]], 'Du bist der stabile Anker im Mittelfeld.', 'Deine Ergebnisse sind zuverlässig. Für den nächsten Sprung brauchst du eine gezielte Verbesserung.', 'Eine Position im Durchschnitt gewinnen.'],
   ['comeback_driver', [['recent_result.grid_position', 'gte', 15], ['recent_result.finish_position', 'lte', 8]], 'Du kannst ein Rennen von hinten neu schreiben.', 'Dein letztes Ergebnis zeigt klare Comeback-Qualität.', 'Qualifying verbessern, ohne diese Geduld zu verlieren.'],
-  ['pole_defender', [['career.poles', 'gte', 3], ['career.win_podium_ratio', 'gte', 0.5]], 'Du verteidigst starke Startplätze mit Ertrag.', 'Qualifying und Rennabschluss greifen bei dir ineinander.', 'Die komplette Wochenendstruktur bewahren.'],
+  ['pole_defender', [['career.poles', 'gte', 3], ['career.win_podium_ratio', 'gte', 0.5]], 'Du nutzt starke Startplätze erfolgreich.', 'Qualifying und Rennabschluss greifen bei dir ineinander.', 'Die komplette Wochenendstruktur bewahren.'],
   ['late_bloomer', [['career.starts', 'gte', 25], ['career.wins', 'eq', 0]], 'Deine Career wartet noch auf den großen Durchbruch.', 'Erfahrung ist reichlich da. Jetzt braucht es keinen Neustart, sondern Präzision.', 'Den realistischsten Weg zum ersten Sieg wählen.'],
   ['veteran_winner', [['career.starts', 'gte', 100], ['career.wins', 'gte', 10]], 'Du verbindest Erfahrung mit bestätigten Siegen.', 'Deine Daten zeigen, dass du über lange Zeit gewinnen kannst.', 'Erfahrung aktiv in Rennentscheidungen einsetzen.'],
   ['multi_league_adapter', [['career.leagues_competed', 'gte', 3], ['career.classification_rate', 'gte', 0.85]], 'Du passt dich an unterschiedliche Ligen an.', 'Mehrere Wettbewerbsfelder und stabile Ergebnisse zeigen Anpassungsfähigkeit.', 'Ligaübergreifende Erfolgsfaktoren festhalten.'],
@@ -380,7 +390,7 @@ for (const item of catalog) {
 
 const document = {
   schema_version: 1,
-  catalog_version: '2026-08-30',
+  catalog_version: '2026-08-31',
   language: 'de',
   selection: 'Alle Regeln werden nach Priorität absteigend geprüft; die erste vollständig erfüllte Regel gewinnt.',
   derived_fields: {

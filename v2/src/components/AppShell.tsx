@@ -57,6 +57,13 @@ export const DRIVER_NAV_ITEMS: ReadonlyArray<{
 
 export const MOBILE_PRIMARY_NAV_ITEMS = DRIVER_NAV_ITEMS.filter((item) => item.mobilePrimary);
 
+export const LEGAL_FOOTER_LINKS: ReadonlyArray<{ href: string; key: MessageKey }> = [
+  { href: '/impressum.html', key: 'footer.imprint' },
+  { href: '/datenschutz.html', key: 'footer.privacy' },
+  { href: '/agb.html', key: 'footer.terms' },
+  { href: '/widerruf.html', key: 'footer.withdrawal' },
+];
+
 export function isMobileMoreRoute(pathname: string): boolean {
   return ['/vora', '/stewarding', '/admin', '/owner', '/notifications', '/profile', '/leagues']
     .some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -476,8 +483,10 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </Routes>
 
         {!embeddedAccess && <footer className="footer">
-          <span>{t('footerTitle')}</span>
-          <span>{t('shell.footerCopy')}</span>
+          <span className="footer-copyright">{t('footer.copyright', { year: new Date().getFullYear() })}</span>
+          <nav className="footer-legal" aria-label={t('footer.legalNavigation')}>
+            {LEGAL_FOOTER_LINKS.map((link) => <a href={link.href} key={link.href}>{t(link.key)}</a>)}
+          </nav>
         </footer>}
       </div>
     </div>

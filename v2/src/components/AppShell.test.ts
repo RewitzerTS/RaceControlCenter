@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isMobileMoreRoute, MOBILE_PRIMARY_NAV_ITEMS } from './AppShell';
+import { isMobileMoreRoute, LEGAL_FOOTER_LINKS, MOBILE_PRIMARY_NAV_ITEMS } from './AppShell';
 
 describe('mobile app navigation', () => {
   it('keeps exactly the three direct destinations before More', () => {
@@ -16,5 +16,14 @@ describe('mobile app navigation', () => {
     expect(isMobileMoreRoute('/profile')).toBe(true);
     expect(isMobileMoreRoute('/home')).toBe(false);
     expect(isMobileMoreRoute('/racing/calendar')).toBe(false);
+  });
+
+  it('keeps all legal documents directly reachable from every app page', () => {
+    expect(LEGAL_FOOTER_LINKS.map((link) => link.href)).toEqual([
+      '/impressum.html',
+      '/datenschutz.html',
+      '/agb.html',
+      '/widerruf.html',
+    ]);
   });
 });

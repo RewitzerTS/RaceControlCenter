@@ -21,9 +21,25 @@ if (insights.some((insight) => !insight.title || !insight.body || !insight.focus
 if (insights.some((insight) => !insight.focus.startsWith('Dein nächster Fokus:'))) {
   throw new Error('Every insight must address the driver directly.');
 }
+
+const unclearLanguage = [
+  ['abstract Signal wording', /\bSignal(?:e|en|s)?\b/i],
+  ['abstract Hebel wording', /\bHebel\b/i],
+  ['abstract Ertrag wording', /\bErtrag\b/i],
+  ['unexplained performance jargon', /\bPerformance(?:-Thema|-Hebel)?\b/i],
+  ['unexplained stint jargon', /\bLongrun\b/i],
+  ['unexplained front-running jargon', /\bFront-Running\b/i],
+  ['unclear compound wording', /\b(?:Musterfeld|Arbeitsbereich|Rennumsetzung|Rennausführung|Gesamtpaket|Spitzenprofil)\b/i],
+  ['incorrect singular grammar', /\b1 (?:Starts|Plätze|Positionen|Punkte)\b/i],
+];
+for (const [label, pattern] of unclearLanguage) {
+  const match = insights.find((insight) => pattern.test(`${insight.title} ${insight.body} ${insight.focus}`));
+  if (match) throw new Error(`Vora clarity check failed (${label}) in ${match.id}.`);
+}
+
 const doubleEntendres = insights.filter((insight) => insight.voice === 'double_entendre').length;
 if (doubleEntendres < 4 || doubleEntendres > 8) {
   throw new Error(`Double-entendre voice must stay rare, found ${doubleEntendres} of ${insights.length}.`);
 }
 
-console.log(`Vora catalog passed: ${insights.length} insights across ${categories.size} categories; ${doubleEntendres} rare double-entendre lines.`);
+console.log(`Vora catalog passed: ${insights.length} clear insights across ${categories.size} categories; ${doubleEntendres} rare double-entendre lines.`);

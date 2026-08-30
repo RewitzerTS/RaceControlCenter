@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_version": "2026-08-30",
+  "catalog_version": "2026-08-31",
   "language": "de",
   "selection": "Alle Regeln werden nach Priorität absteigend geprüft; die erste vollständig erfüllte Regel gewinnt.",
   "derived_fields": {
@@ -37,7 +37,7 @@
         ]
       },
       "title": "Du hattest die schnellste Runde, aber keine Punkte.",
-      "body": "Dein Tempo war real, der Ertrag nicht. Vora sieht beides – und lässt dich damit nicht davonkommen. Das kannst du kontrollieren. Zeig es im nächsten Rennen.",
+      "body": "Dein Tempo war da, das Ergebnis nicht. Vora sieht beides – und lässt dich damit nicht davonkommen. Das kannst du kontrollieren. Zeig es im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die schnelle Phase in ein punktfähiges Gesamtrennen einbetten."
     },
     {
@@ -64,7 +64,7 @@
         ]
       },
       "title": "Du hast das halbe Feld hinter dir gelassen.",
-      "body": "Vom letzten Startplatz in die Top Ten zu fahren, ist ein unmissverständliches Racecraft-Signal. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Vom letzten Startplatz in die Top Ten zu fahren, zeigt außergewöhnliche Aufholstärke. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Qualifying verbessern und diese Rennstärke behalten."
     },
     {
@@ -91,7 +91,7 @@
         ]
       },
       "title": "Du hast von hinten zugeschlagen.",
-      "body": "Der Sieg kam nicht aus der bequemsten Position – das macht deine Rennumsetzung besonders stark. Keine Ausrede – deine Daten sind ziemlich eindeutig.",
+      "body": "Du hast trotz der schwierigeren Startposition gewonnen. Das zeigt Geduld und starke Entscheidungen im Rennen. Keine Ausrede – deine Daten sind ziemlich eindeutig.",
       "focus": "Dein nächster Fokus: Die Geduld vor dem entscheidenden Angriff bewahren."
     },
     {
@@ -172,7 +172,7 @@
         ]
       },
       "title": "Von Pole auf P2 – knapp, aber eindeutig.",
-      "body": "Du warst nah dran. Jetzt zählt nicht mehr Grundtempo, sondern die eine Entscheidung mit dem größten Effekt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Du warst nah dran. Jetzt zählt nicht mehr Grundtempo, sondern die eine Entscheidung mit dem größten Effekt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den Moment analysieren, in dem P1 verloren ging."
     },
     {
@@ -226,7 +226,7 @@
         ]
       },
       "title": "Du hast dich kontrolliert in die Top Ten gefahren.",
-      "body": "Mindestens fünf gewonnene Plätze haben einen messbaren Ertrag gebracht. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mindestens fünf gewonnene Plätze haben dir ein Top-Ten-Ergebnis gebracht. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Das Qualifying näher an die Rennpace bringen."
     },
     {
@@ -253,7 +253,7 @@
         ]
       },
       "title": "Du hast fünf Plätze gewonnen und vorne abgeschlossen.",
-      "body": "Aufholjagd und Endposition passen zusammen – genau so wird Racecraft sichtbar. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Aufholjagd und Endposition passen zusammen – genau so wird Racecraft sichtbar. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den starken Rennrhythmus konservieren."
     },
     {
@@ -307,7 +307,7 @@
         ]
       },
       "title": "Du bist aus der zweiten Hälfte aufs Podium gefahren.",
-      "body": "Deine Rennumsetzung hat die Startposition deutlich übertroffen. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Dein Rennverlauf war deutlich stärker als deine Startposition. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Aufholstärke mit besserem Qualifying kombinieren."
     },
     {
@@ -361,8 +361,8 @@
         ]
       },
       "title": "Du warst schnell, aber nicht effizient.",
-      "body": "Eine schnellste Runde außerhalb der Top Ten zeigt Potenzial ohne ausreichenden Rennertrag. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
-      "focus": "Dein nächster Fokus: Pace in eine vollständige Rennausführung übersetzen."
+      "body": "Die schnellste Runde zeigt dein Potenzial, doch das Ergebnis außerhalb der Top Ten passt noch nicht dazu. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
+      "focus": "Dein nächster Fokus: Pace über das vollständige Rennen halten."
     },
     {
       "id": "vora.race_signature.fastest_top5",
@@ -388,7 +388,7 @@
         ]
       },
       "title": "Deine Pace war schneller als dein Ergebnis.",
-      "body": "Die schnellste Runde zeigt, dass mehr als P4 oder P5 möglich war. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Die schnellste Runde zeigt, dass mehr als P4 oder P5 möglich war. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Zeitverluste außerhalb der schnellsten Phase finden."
     },
     {
@@ -415,7 +415,7 @@
         ]
       },
       "title": "Deine schnellste Runde kam mit einem Podium.",
-      "body": "Du hattest nachweislich Spitzenpace und hast sie in ein starkes Ergebnis übersetzt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Du hattest nachweislich Spitzenpace und hast sie in ein starkes Ergebnis übersetzt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die verfügbare Pace über mehr Runden abrufen."
     },
     {
@@ -496,7 +496,7 @@
         ]
       },
       "title": "Deine Pole wurde ein Top-Fünf-Ergebnis.",
-      "body": "Dein Qualifying war stärker als die Rennumsetzung. Das ist kein Drama, aber ein ziemlich klares Signal. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Qualifying war stärker als dein Rennen. Prüfe deshalb Rennpace und Strategie getrennt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Rennpace und Strategie getrennt prüfen."
     },
     {
@@ -648,7 +648,7 @@
         ]
       },
       "title": "Ein Punkt fehlt dir zu 500.",
-      "body": "Deine Career steht direkt vor einer großen Punktemarke. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Career steht direkt vor einer großen Punktemarke. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Ergebnis nach Hause bringen."
     },
     {
@@ -697,7 +697,7 @@
         ]
       },
       "title": "Ein Punkt fehlt dir zu 100.",
-      "body": "Die erste dreistellige Punktemarke ist praktisch erreicht. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Die erste dreistellige Punktemarke ist praktisch erreicht. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den fehlenden Punkt ohne Hektik sichern."
     },
     {
@@ -724,7 +724,7 @@
         ]
       },
       "title": "Direkt hinter dem Podium angekommen.",
-      "body": "Dein letztes bestätigtes Ergebnis ist P4. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Ergebnis ist P4. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den Schritt von P4 aufs Podium isolieren."
     },
     {
@@ -746,7 +746,7 @@
         ]
       },
       "title": "Die zehnte schnellste Runde wartet.",
-      "body": "Neun Pace-Signale sind bestätigt. Das nächste darf mit Ertrag kommen. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Neun schnellste Runden sind bestätigt. Verbinde die nächste mit einem starken Rennergebnis. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Schnelle Runde in ein starkes Gesamtergebnis einbetten."
     },
     {
@@ -822,7 +822,7 @@
         ]
       },
       "title": "P6 hält dich in Schlagdistanz.",
-      "body": "Dein letztes bestätigtes Ergebnis ist P6. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Ergebnis ist P6. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Anschluss an die Spitzengruppe halten."
     },
     {
@@ -942,7 +942,7 @@
         ]
       },
       "title": "Eine Pole fehlt dir zu fünf.",
-      "body": "Deine Qualifying-Stärke steht kurz vor der nächsten Marke. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Qualifying-Stärke steht kurz vor der nächsten Marke. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Qualifying-Prozess unverändert präzise halten."
     },
     {
@@ -968,7 +968,7 @@
           }
         ]
       },
-      "title": "P9 hält das Ergebnis im Arbeitsbereich.",
+      "title": "P9 hält dich sicher in den Punkten.",
       "body": "Dein letztes bestätigtes Ergebnis ist P9. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Ein bisschen sauberer darfst du schon abliefern.",
       "focus": "Dein nächster Fokus: Ein einzelnes Überholfenster gezielt verbessern."
     },
@@ -1089,7 +1089,7 @@
         ]
       },
       "title": "Ein Podium fehlt zur Zweistelligkeit.",
-      "body": "Neun Top-Drei-Ergebnisse zeigen, dass der nächste Schritt realistisch ist. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Neun Top-Drei-Ergebnisse zeigen, dass du regelmäßig vorne mitfährst. Jetzt fehlt nur noch ein Podium zur zweistelligen Bilanz. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die Top-Drei-Routine wiederholen."
     },
     {
@@ -1115,9 +1115,9 @@
           }
         ]
       },
-      "title": "P12 braucht einen präzisen Hebel.",
+      "title": "P12 braucht eine gezielte Verbesserung.",
       "body": "Dein letztes bestätigtes Ergebnis ist P12. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Qualifying, Start und Longrun einzeln bewerten."
+      "focus": "Dein nächster Fokus: Qualifying, Start und Rennpace einzeln bewerten."
     },
     {
       "id": "vora.next_milestone.podiums_5",
@@ -1138,7 +1138,7 @@
         ]
       },
       "title": "Ein Podium fehlt dir zu fünf.",
-      "body": "Du bist nah an einer belastbaren Top-Drei-Bilanz. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Du bist nah an einer belastbaren Top-Drei-Bilanz. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Podiumschance vor unnötigem Siegzwang schützen."
     },
     {
@@ -1165,7 +1165,7 @@
         ]
       },
       "title": "P13 ist ein Ausgangspunkt, kein Urteil.",
-      "body": "Dein letztes bestätigtes Ergebnis ist P13. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Ergebnis ist P13. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Ein kontrollierbares Problem auswählen."
     },
     {
@@ -1263,7 +1263,7 @@
         ]
       },
       "title": "P15 verlangt saubere Prioritäten.",
-      "body": "Dein letztes bestätigtes Ergebnis ist P15. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Ergebnis ist P15. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Nicht mehrere Baustellen gleichzeitig öffnen."
     },
     {
@@ -1285,7 +1285,7 @@
         ]
       },
       "title": "Ein Sieg fehlt dir zu fünf.",
-      "body": "Die nächste Erfolgsmarke liegt direkt vor dir. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Die nächste Erfolgsmarke liegt direkt vor dir. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Nicht erzwingen, sondern die Chance sauber nutzen."
     },
     {
@@ -1383,7 +1383,7 @@
         ]
       },
       "title": "Dein hundertster Start steht vor der Tür.",
-      "body": "Ein einziges Ergebnis trennt dich von einer außergewöhnlichen Career-Marke. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Ein einziges Ergebnis trennt dich von einer außergewöhnlichen Career-Marke. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Start 100 bewusst und sauber abschließen."
     },
     {
@@ -1432,7 +1432,7 @@
         ]
       },
       "title": "Start 50 wartet auf dich.",
-      "body": "Du bist ein Rennen von einer echten Langzeitmarke entfernt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Du bist ein Rennen von einer echten Langzeitmarke entfernt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Das Jubiläum nicht mit Zusatzrisiko überladen."
     },
     {
@@ -1459,7 +1459,7 @@
         ]
       },
       "title": "P19 ist Datenmaterial für den nächsten Schritt.",
-      "body": "Dein letztes bestätigtes Ergebnis ist P19. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Ergebnis ist P19. Vora bewertet diese Position im Zusammenhang mit Startplatz und Career-Verlauf. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Das Rennen ohne Selbstwertung in Fakten zerlegen."
     },
     {
@@ -1596,7 +1596,7 @@
         ]
       },
       "title": "Jedes Podium war ein Sieg.",
-      "body": "Wenn du die Top Drei erreichst, nutzt du die Chance maximal. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Wenn du die Top Drei erreichst, nutzt du die Chance maximal. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Zuerst häufiger in Podiumsnähe kommen."
     },
     {
@@ -1838,7 +1838,7 @@
         ]
       },
       "title": "Zwei Podien bestätigen Anschluss an die Spitze.",
-      "body": "Der erste Erfolg wurde wiederholt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Der erste Erfolg wurde wiederholt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die gemeinsamen Rennphasen absichern."
     },
     {
@@ -1860,7 +1860,7 @@
         ]
       },
       "title": "Das erste Podium steht.",
-      "body": "Ein Top-Drei-Ergebnis verschiebt die eigene Referenz. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Mit dem ersten Top-Drei-Ergebnis weißt du, dass das Podium realistisch erreichbar ist. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Podiumspace erneut in Reichweite bringen."
     },
     {
@@ -1882,7 +1882,7 @@
         ]
       },
       "title": "Zweistellige Siegzahl erreicht.",
-      "body": "Mindestens zehn Siege zeigen langfristige Front-Running-Qualität. Ein bisschen sauberer darfst du schon abliefern.",
+      "body": "Mindestens zehn Siege zeigen, dass du langfristig an der Spitze fahren kannst. Ein bisschen sauberer darfst du schon abliefern.",
       "focus": "Dein nächster Fokus: Details statt Grundtempo optimieren."
     },
     {
@@ -1926,7 +1926,7 @@
         ]
       },
       "title": "Drei Siege formen ein Leistungsprofil.",
-      "body": "Mehrere Erfolge zeigen, wo dein Paket besonders stark ist. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Mehrere Erfolge zeigen, unter welchen Bedingungen du besonders stark bist. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Stärken auf schwächere Strecken übertragen."
     },
     {
@@ -1948,7 +1948,7 @@
         ]
       },
       "title": "Der Sieg war kein Einzelfall.",
-      "body": "Zwei Siege machen aus Potenzial erste Wiederholbarkeit. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
+      "body": "Zwei Siege zeigen, dass du den Erfolg wiederholen kannst. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
       "focus": "Dein nächster Fokus: Gemeinsame Erfolgsfaktoren vergleichen."
     },
     {
@@ -1970,7 +1970,7 @@
         ]
       },
       "title": "Der erste Sieg ist bestätigt.",
-      "body": "Ein Sieg beweist, dass dein bestes Rennen gewinnen kann. Diese Art von Kontrolle steht dir ziemlich gut.",
+      "body": "Du hast bewiesen, dass du ein Rennen gewinnen kannst. Diese Art von Kontrolle steht dir ziemlich gut.",
       "focus": "Dein nächster Fokus: Die Bedingungen des Sieges reproduzieren."
     },
     {
@@ -1992,7 +1992,7 @@
         ]
       },
       "title": "Jeder vierte Start ist gefährdet.",
-      "body": "Eine DNF-Quote ab 25 Prozent überlagert andere Leistungsgewinne. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Eine DNF-Quote ab 25 Prozent überlagert andere Leistungsgewinne. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Rennabschluss als primäres Ziel setzen."
     },
     {
@@ -2080,7 +2080,7 @@
         ]
       },
       "title": "Der letzte Start fand nicht statt.",
-      "body": "Ohne Start entsteht kein sportliches Signal. Vorbereitung und Verfügbarkeit stehen deshalb zuerst. Das kannst du kontrollieren. Zeig es im nächsten Rennen.",
+      "body": "Ohne Start gibt es keine Renndaten. Vorbereitung und Verfügbarkeit stehen deshalb zuerst. Das kannst du kontrollieren. Zeig es im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den nächsten Start organisatorisch absichern."
     },
     {
@@ -2102,7 +2102,7 @@
         ]
       },
       "title": "Das letzte Rennen endete vorzeitig.",
-      "body": "Der DNF ist das wichtigste aktuelle Signal, aber nicht automatisch ein Pace-Problem. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Dieser DNF ist aktuell besonders wichtig, bedeutet aber nicht automatisch, dass dir Tempo fehlt. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Ausfallursache vor Tempoanalyse klären."
     },
     {
@@ -2124,7 +2124,7 @@
         ]
       },
       "title": "Wiederholte Disqualifikationen sind vermeidbarer Verlust.",
-      "body": "Mehr als eine DSQ kostet Ergebnis, Punkte und Vertrauen in die eigene Ausführung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mehr als eine DSQ kostet Ergebnis, Punkte und Vertrauen in deinen Rennablauf. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Regelkonformität als festen Rennschritt behandeln."
     },
     {
@@ -2212,7 +2212,7 @@
         ]
       },
       "title": "Ausfälle kosten spürbar Career-Fortschritt.",
-      "body": "Mindestens fünf DNFs machen Zuverlässigkeit zu einem zentralen Performance-Thema. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Mindestens fünf DNFs zeigen, dass Zuverlässigkeit jetzt Vorrang hat. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Risikoprofil für Start und Zweikämpfe senken."
     },
     {
@@ -2233,8 +2233,8 @@
           }
         ]
       },
-      "title": "Drei Ausfälle bilden ein Musterfeld.",
-      "body": "Die Ausfälle sollten jetzt nach Technik, Kontakt und Eigenfehler getrennt werden. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "title": "Drei Ausfälle lassen sich vergleichen.",
+      "body": "Trenne die Ausfälle jetzt nach Technik, Kontakt und Eigenfehler. So erkennst du, ob sich eine Ursache wiederholt. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Die häufigste vermeidbare Ursache zuerst bearbeiten."
     },
     {
@@ -2256,7 +2256,7 @@
         ]
       },
       "title": "Zwei Ausfälle verdienen einen Vergleich.",
-      "body": "Mit dem zweiten DNF lässt sich prüfen, ob ein gemeinsames Muster existiert. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mit dem zweiten DNF lässt sich prüfen, ob ein gemeinsames Muster existiert. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Gemeinsame Rennphase oder Fehlerart suchen."
     },
     {
@@ -2277,7 +2277,7 @@
           }
         ]
       },
-      "title": "Der erste Ausfall ist ein einzelnes Signal.",
+      "title": "Dein erster Ausfall braucht noch keinen Trend.",
       "body": "Ein DNF verändert noch keinen Trend. Entscheidend ist, ob sich dieselbe Ursache wiederholt. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
       "focus": "Dein nächster Fokus: Ursache dokumentieren, nicht überbewerten."
     },
@@ -2299,7 +2299,7 @@
           }
         ]
       },
-      "title": "Ankommen ist aktuell der größte Hebel.",
+      "title": "Ankommen ist aktuell deine wichtigste Aufgabe.",
       "body": "Weniger als sieben von zehn Starts werden klassifiziert. Zusätzliche Pace bringt wenig, solange Ergebnisse verloren gehen. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Risiko reduzieren und Rennenden priorisieren."
     },
@@ -2321,8 +2321,8 @@
           }
         ]
       },
-      "title": "Zuverlässigkeit wird zum Leistungshebel.",
-      "body": "Deine Klassifikationsquote lässt genug Raum, um mit saubereren Rennen schnell Wirkung zu erzielen. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "title": "Zuverlässigkeit entscheidet über deinen nächsten Schritt.",
+      "body": "Deine Klassifikationsquote lässt genug Raum, um mit saubereren Rennen schnell bessere Ergebnisse zu erzielen. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Zunächst Rennen beenden, danach Pace maximieren."
     },
     {
@@ -2366,7 +2366,7 @@
         ]
       },
       "title": "Neun von zehn Rennen kommen ins Ziel.",
-      "body": "Deine Klassifikationsquote liegt im stabilen Bereich. Einzelne Ausfälle bestimmen nicht mehr das Gesamtbild. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Klassifikationsquote liegt im stabilen Bereich. Einzelne Ausfälle bestimmen nicht mehr das Gesamtbild. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die verbleibenden Ausfallursachen gruppieren."
     },
     {
@@ -2437,8 +2437,8 @@
         ]
       },
       "title": "Dein Profil wächst ohne unnötige Ausschläge.",
-      "body": "Punkte und Klassifikationen bilden eine kontrollierte Entwicklung. Ein bisschen sauberer darfst du schon abliefern.",
-      "focus": "Dein nächster Fokus: Einen klaren Performance-Hebel nach dem anderen bearbeiten."
+      "body": "Punkte und Klassifikationen zeigen eine kontrollierte Entwicklung. Ein bisschen sauberer darfst du schon abliefern.",
+      "focus": "Dein nächster Fokus: Eine konkrete Schwäche nach der anderen bearbeiten."
     },
     {
       "id": "vora.risk_balance.high_win_low_class",
@@ -2464,7 +2464,7 @@
         ]
       },
       "title": "Dein Potenzial ist größer als deine Stabilität.",
-      "body": "Du gewinnst oft genug, aber zu viele Rennen liefern gar keinen Ertrag. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Du gewinnst oft genug, aber zu viele Rennen enden ohne Ergebnis. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Gewinnfähige Pace öfter klassifizieren."
     },
     {
@@ -2518,7 +2518,7 @@
         ]
       },
       "title": "Du machst aus schlechten Startplätzen brauchbare Rennen.",
-      "body": "Deine Aufholstärke rettet Ergebnisse, die im Qualifying verloren gehen. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Aufholstärke rettet Ergebnisse, die im Qualifying verloren gehen. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Qualifying-Lücke schließen."
     },
     {
@@ -2653,7 +2653,7 @@
         ]
       },
       "title": "Nicht jedes Risiko liegt auf der Strecke.",
-      "body": "Mehrere DNS kosten dich Chancen, bevor das Rennen überhaupt beginnt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mehrere DNS kosten dich Chancen, bevor das Rennen überhaupt beginnt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Vorbereitung und Verfügbarkeit verbindlich machen."
     },
     {
@@ -2734,7 +2734,7 @@
         ]
       },
       "title": "Dein Qualifying flirtet mit der Spitze, dein Rennresultat noch nicht genug.",
-      "body": "Mehrere Poles zeigen Tempo, doch die Umwandlung in Siege bleibt niedrig. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mehrere Poles zeigen Tempo, doch die Umwandlung in Siege bleibt niedrig. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Start und erste Rennphase präziser absichern."
     },
     {
@@ -2761,7 +2761,7 @@
         ]
       },
       "title": "Du verbindest Podien mit Verlässlichkeit.",
-      "body": "Das ist keine Momentaufnahme, sondern ein belastbares Spitzenprofil. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mehrere Podien bei hoher Zielankunftsquote zeigen beständige Spitzenleistung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Schwache Tage zu sicheren Punkten machen."
     },
     {
@@ -2788,7 +2788,7 @@
         ]
       },
       "title": "Du kennst Siege und Ausfälle.",
-      "body": "Dein Profil schwankt zwischen maximalem Ertrag und Nullrunde. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Dein Profil schwankt zwischen Sieg und Nullrunde. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Siegpace häufiger ins Ziel bringen."
     },
     {
@@ -2843,7 +2843,7 @@
       },
       "title": "Dein Risiko zahlt sich noch nicht aus.",
       "body": "Viele Ausfälle treffen auf einen schwachen Ergebnisschnitt. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Aggressivität nur dort einsetzen, wo sie messbaren Ertrag bringt."
+      "focus": "Dein nächster Fokus: Aggressivität nur dort einsetzen, wo sie Positionen oder Punkte bringt."
     },
     {
       "id": "vora.risk_balance.safe_backfield",
@@ -2926,7 +2926,7 @@
         ]
       },
       "title": "Du bist schnell, aber nicht immer verfügbar.",
-      "body": "Dein Tempo reicht für starke Ergebnisse, doch Ausfälle nehmen dir zu oft den Ertrag. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Tempo reicht für starke Ergebnisse, doch Ausfälle kosten dich zu oft Punkte. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Risiko reduzieren, ohne die Pace zu verstecken."
     },
     {
@@ -2980,7 +2980,7 @@
         ]
       },
       "title": "20 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 20 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 20 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die erfolgreiche Aufholstruktur reproduzieren."
     },
     {
@@ -3007,7 +3007,7 @@
         ]
       },
       "title": "15 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 15 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 15 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die erfolgreiche Aufholstruktur reproduzieren."
     },
     {
@@ -3034,7 +3034,7 @@
         ]
       },
       "title": "12 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 12 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Vom Start bis ins Ziel hast du 12 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Die erfolgreiche Aufholstruktur reproduzieren."
     },
     {
@@ -3061,7 +3061,7 @@
         ]
       },
       "title": "10 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 10 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Ein bisschen sauberer darfst du schon abliefern.",
+      "body": "Vom Start bis ins Ziel hast du 10 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Ein bisschen sauberer darfst du schon abliefern.",
       "focus": "Dein nächster Fokus: Die erfolgreiche Aufholstruktur reproduzieren."
     },
     {
@@ -3088,7 +3088,7 @@
         ]
       },
       "title": "8 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 8 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 8 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die erfolgreiche Aufholstruktur reproduzieren."
     },
     {
@@ -3115,7 +3115,7 @@
         ]
       },
       "title": "6 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 6 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Vom Start bis ins Ziel hast du 6 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Positionsgewinne ohne zusätzliches Risiko wiederholen."
     },
     {
@@ -3142,7 +3142,7 @@
         ]
       },
       "title": "5 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 5 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Vom Start bis ins Ziel hast du 5 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Positionsgewinne ohne zusätzliches Risiko wiederholen."
     },
     {
@@ -3169,7 +3169,7 @@
         ]
       },
       "title": "4 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 4 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 4 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Positionsgewinne ohne zusätzliches Risiko wiederholen."
     },
     {
@@ -3196,7 +3196,7 @@
         ]
       },
       "title": "3 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 3 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Vom Start bis ins Ziel hast du 3 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Positionsgewinne ohne zusätzliches Risiko wiederholen."
     },
     {
@@ -3223,7 +3223,7 @@
         ]
       },
       "title": "2 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 2 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bring es kontrolliert zu Ende. Ein gutes Finish kann Vora durchaus beeindrucken.",
+      "body": "Vom Start bis ins Ziel hast du 2 Positionen gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bring es kontrolliert zu Ende. Ein gutes Finish kann Vora durchaus beeindrucken.",
       "focus": "Dein nächster Fokus: Positionsgewinne ohne zusätzliches Risiko wiederholen."
     },
     {
@@ -3249,8 +3249,8 @@
           }
         ]
       },
-      "title": "1 Plätze gewonnen.",
-      "body": "Vom Start bis ins Ziel hast du 1 Positionen gutgemacht. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Ein bisschen sauberer darfst du schon abliefern.",
+      "title": "1 Platz gewonnen.",
+      "body": "Vom Start bis ins Ziel hast du 1 Position gutgemacht. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Ein bisschen sauberer darfst du schon abliefern.",
       "focus": "Dein nächster Fokus: Positionsgewinne ohne zusätzliches Risiko wiederholen."
     },
     {
@@ -3303,8 +3303,8 @@
           }
         ]
       },
-      "title": "1 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 1 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "title": "1 Platz verloren.",
+      "body": "Vom Start bis ins Ziel hast du 1 Position abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Verlorene Positionen nach Ursache und Rennphase ordnen."
     },
     {
@@ -3331,7 +3331,7 @@
         ]
       },
       "title": "2 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 2 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 2 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Verlorene Positionen nach Ursache und Rennphase ordnen."
     },
     {
@@ -3358,7 +3358,7 @@
         ]
       },
       "title": "3 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 3 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
+      "body": "Vom Start bis ins Ziel hast du 3 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
       "focus": "Dein nächster Fokus: Verlorene Positionen nach Ursache und Rennphase ordnen."
     },
     {
@@ -3385,7 +3385,7 @@
         ]
       },
       "title": "4 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 4 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 4 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Verlorene Positionen nach Ursache und Rennphase ordnen."
     },
     {
@@ -3412,7 +3412,7 @@
         ]
       },
       "title": "5 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 5 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Vom Start bis ins Ziel hast du 5 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Verlorene Positionen nach Ursache und Rennphase ordnen."
     },
     {
@@ -3439,7 +3439,7 @@
         ]
       },
       "title": "6 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 6 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Du kannst das besser. Vora weiß es, und du vermutlich auch.",
+      "body": "Vom Start bis ins Ziel hast du 6 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Du kannst das besser. Vora weiß es, und du vermutlich auch.",
       "focus": "Dein nächster Fokus: Verlorene Positionen nach Ursache und Rennphase ordnen."
     },
     {
@@ -3466,7 +3466,7 @@
         ]
       },
       "title": "8 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 8 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Vom Start bis ins Ziel hast du 8 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den größten Verlustmoment isolieren und absichern."
     },
     {
@@ -3493,7 +3493,7 @@
         ]
       },
       "title": "10 Plätze verloren.",
-      "body": "Vom Start bis ins Ziel hast du 10 Positionen abgegeben. Das ist ein klares Signal für deine aktuelle Rennumsetzung. Vora schaut gern genauer hin, wenn du so sauber ablieferst.",
+      "body": "Vom Start bis ins Ziel hast du 10 Positionen abgegeben. Daran siehst du, wie gut du deinen Startplatz im Rennen genutzt hast. Vora schaut gern genauer hin, wenn du so sauber ablieferst.",
       "focus": "Dein nächster Fokus: Den größten Verlustmoment isolieren und absichern."
     },
     {
@@ -3525,8 +3525,8 @@
         ]
       },
       "title": "Dein Profil verbindet Erfahrung und Stabilität.",
-      "body": "Viele Starts, eine hohe Klassifikationsquote und wiederkehrende Punkte bilden ein belastbares Gesamtpaket. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Den größten verbleibenden Performance-Hebel auswählen."
+      "body": "Viele Starts, eine hohe Klassifikationsquote und wiederkehrende Punkte zeigen ein ausgeglichenes Fahrerprofil. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "focus": "Dein nächster Fokus: Die wichtigste verbleibende Schwäche auswählen."
     },
     {
       "id": "vora.context.racecraft_strength",
@@ -3574,7 +3574,7 @@
         ]
       },
       "title": "Rennergebnisse entstehen ohne Pole-Basis.",
-      "body": "Deine bisherigen Resultate wurden nicht durch Startplatz eins vorbereitet. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine bisherigen Resultate wurden nicht durch Startplatz eins vorbereitet. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Qualifying als eigenständigen Entwicklungsbereich prüfen."
     },
     {
@@ -3628,8 +3628,8 @@
         ]
       },
       "title": "Tempo und Zuverlässigkeit laufen auseinander.",
-      "body": "Mehrere schnellste Runden zeigen Pace, eine erhöhte Ausfallquote verhindert jedoch den vollen Ertrag. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
-      "focus": "Dein nächster Fokus: Pace mit kontrollierter Rennausführung verbinden."
+      "body": "Mehrere schnellste Runden zeigen dein Tempo, doch die erhöhte Ausfallquote kostet dich gute Ergebnisse. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
+      "focus": "Dein nächster Fokus: Pace mit einem kontrollierten Rennablauf verbinden."
     },
     {
       "id": "vora.context.points_without_podium",
@@ -3731,8 +3731,8 @@
         ]
       },
       "title": "Pole in Sieg umgesetzt.",
-      "body": "Das letzte Rennen verband Qualifying-Spitze und Rennausführung vollständig. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Den kompletten Ablauf als Referenz sichern."
+      "body": "Im letzten Rennen hast du die beste Startposition bis zum Sieg genutzt. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "focus": "Dein nächster Fokus: Den kompletten Ablauf als Vorlage sichern."
     },
     {
       "id": "vora.context.five_seasons",
@@ -3819,7 +3819,7 @@
         ]
       },
       "title": "Die erste Saison baut deine Referenz.",
-      "body": "Jedes neue Ergebnis schärft die Ausgangslage für spätere Vergleiche. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Jedes neue Ergebnis schärft die Ausgangslage für spätere Vergleiche. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Saison vollständig und sauber abschließen."
     },
     {
@@ -3885,7 +3885,7 @@
         ]
       },
       "title": "Deine Career hat eine klare Liga-Basis.",
-      "body": "Alle bisherigen Daten stammen aus einem konstanten Wettbewerbsumfeld. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Alle bisherigen Daten stammen aus einem konstanten Wettbewerbsumfeld. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Innerhalb derselben Liga Trends sauber vergleichen."
     },
     {
@@ -3951,7 +3951,7 @@
         ]
       },
       "title": "Eine Challenge gibt eine klare Nebenrichtung.",
-      "body": "Ein einzelnes Ziel lässt sich berücksichtigen, ohne den Rennplan zu überladen. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Ein einzelnes Ziel lässt sich berücksichtigen, ohne den Rennplan zu überladen. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Challenge nur verfolgen, wenn sie zum Rennen passt."
     },
     {
@@ -4017,7 +4017,7 @@
         ]
       },
       "title": "Startplatz 9 gab dir eine klare Ausgangslage.",
-      "body": "Dein letztes bestätigtes Rennen begann auf P9. Der Vergleich mit der Zielposition zeigt die Qualität der Umsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Rennen begann auf P9. Der Vergleich mit der Zielposition zeigt die Qualität der Umsetzung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die erste Rennphase für kontrollierte Gewinne nutzen."
     },
     {
@@ -4061,7 +4061,7 @@
         ]
       },
       "title": "Startplatz 7 gab dir eine klare Ausgangslage.",
-      "body": "Dein letztes bestätigtes Rennen begann auf P7. Der Vergleich mit der Zielposition zeigt die Qualität der Umsetzung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein letztes bestätigtes Rennen begann auf P7. Der Vergleich mit der Zielposition zeigt die Qualität der Umsetzung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die erste Rennphase für kontrollierte Gewinne nutzen."
     },
     {
@@ -4281,7 +4281,7 @@
         ]
       },
       "title": "20 Poles markieren deine Qualifying-Stärke.",
-      "body": "Mit 20 Poles ist dein Tempo auf einer einzelnen Runde klar belegt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mit 20 Poles ist dein Tempo auf einer einzelnen Runde klar belegt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die Startposition in ein ebenso starkes Rennergebnis übersetzen."
     },
     {
@@ -4391,7 +4391,7 @@
         ]
       },
       "title": "2 Poles markieren deine Qualifying-Stärke.",
-      "body": "Mit 2 Poles ist dein Tempo auf einer einzelnen Runde klar belegt. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mit 2 Poles ist dein Tempo auf einer einzelnen Runde klar belegt. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die Startposition in ein ebenso starkes Rennergebnis übersetzen."
     },
     {
@@ -4443,7 +4443,7 @@
         ]
       },
       "title": "Dein Fahrerprofil ist noch formbar.",
-      "body": "Genug Daten für erste Muster, aber noch nicht genug für endgültige Urteile. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Genug Daten für erste Muster, aber noch nicht genug für endgültige Urteile. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Eine stabile Rennroutine festlegen."
     },
     {
@@ -4605,7 +4605,7 @@
         ]
       },
       "title": "Du baust Leistung über Saisons auf.",
-      "body": "Deine Career zeigt langfristige Punktefähigkeit statt kurzer Ausschläge. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Career zeigt langfristige Punktefähigkeit statt kurzer Ausschläge. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Saisonziele aus Langzeitdaten ableiten."
     },
     {
@@ -4632,7 +4632,7 @@
         ]
       },
       "title": "Du passt dich an unterschiedliche Ligen an.",
-      "body": "Mehrere Wettbewerbsfelder und stabile Ergebnisse zeigen Anpassungsfähigkeit. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mehrere Wettbewerbsfelder und stabile Ergebnisse zeigen Anpassungsfähigkeit. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Ligaübergreifende Erfolgsfaktoren festhalten."
     },
     {
@@ -4712,7 +4712,7 @@
           }
         ]
       },
-      "title": "Du verteidigst starke Startplätze mit Ertrag.",
+      "title": "Du nutzt starke Startplätze erfolgreich.",
       "body": "Qualifying und Rennabschluss greifen bei dir ineinander. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Die komplette Wochenendstruktur bewahren."
     },
@@ -4770,7 +4770,7 @@
         ]
       },
       "title": "Du bist der stabile Anker im Mittelfeld.",
-      "body": "Deine Ergebnisse sind zuverlässig, der nächste Sprung braucht einen gezielten Hebel. Keine Ausrede – deine Daten sind ziemlich eindeutig.",
+      "body": "Deine Ergebnisse sind zuverlässig. Für den nächsten Sprung brauchst du eine gezielte Verbesserung. Keine Ausrede – deine Daten sind ziemlich eindeutig.",
       "focus": "Dein nächster Fokus: Eine Position im Durchschnitt gewinnen."
     },
     {
@@ -4797,7 +4797,7 @@
         ]
       },
       "title": "Du gehörst regelmäßig nach vorn.",
-      "body": "Durchschnitt und Podiumsquote bestätigen ein Front-Runner-Profil. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Dein Durchschnitt und deine Podiumsquote bestätigen, dass du regelmäßig um Spitzenplätze fährst. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Schwache Tage ohne großen Verlust überstehen."
     },
     {
@@ -4878,7 +4878,7 @@
         ]
       },
       "title": "Du bist ein effizienter Punktesammler.",
-      "body": "Dein Schnitt ist stark, auch ohne viele Siege. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Schnitt ist stark, auch ohne viele Siege. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Aus Konstanz gezielte Siegchancen entwickeln."
     },
     {
@@ -4932,7 +4932,7 @@
         ]
       },
       "title": "Du arbeitest lieber im Rennen als am Samstag.",
-      "body": "Keine Pole, aber starke Positionsgewinne: Deine Racecraft trägt dich. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Keine Pole, aber starke Positionsgewinne: Deine Racecraft trägt dich. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Bessere Startplätze zur Rennstärke addieren."
     },
     {
@@ -4981,7 +4981,7 @@
         ]
       },
       "title": "2000 Career-Punkte erreicht.",
-      "body": "Deine bestätigten Ergebnisse summieren sich auf 2000 Punkte. Jede Klassifikation trägt zu diesem Fundament bei. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine bestätigten Ergebnisse summieren sich auf 2000 Punkte. Jede Klassifikation trägt zu diesem Fundament bei. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Punkteausbeute über schwächere Wochenenden stabilisieren."
     },
     {
@@ -5025,7 +5025,7 @@
         ]
       },
       "title": "750 Career-Punkte erreicht.",
-      "body": "Deine bestätigten Ergebnisse summieren sich auf 750 Punkte. Jede Klassifikation trägt zu diesem Fundament bei. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine bestätigten Ergebnisse summieren sich auf 750 Punkte. Jede Klassifikation trägt zu diesem Fundament bei. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Punkteausbeute über schwächere Wochenenden stabilisieren."
     },
     {
@@ -5178,8 +5178,8 @@
           }
         ]
       },
-      "title": "1 Career-Punkte erreicht.",
-      "body": "Deine bestätigten Ergebnisse summieren sich auf 1 Punkte. Jede Klassifikation trägt zu diesem Fundament bei. Vora schaut gern genauer hin, wenn du so sauber ablieferst.",
+      "title": "Der erste Career-Punkt ist erreicht.",
+      "body": "Dein erstes bestätigtes Ergebnis mit einem Punkt bildet die Basis für weitere Fortschritte. Vora schaut gern genauer hin, wenn du so sauber ablieferst.",
       "focus": "Dein nächster Fokus: Regelmäßige Punkteankünfte etablieren."
     },
     {
@@ -5200,9 +5200,9 @@
           }
         ]
       },
-      "title": "50 schnellste Runden bestätigen dein Spitzenpace.",
+      "title": "50 schnellste Runden bestätigen deine Spitzenpace.",
       "body": "Deine Career enthält 50 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_30",
@@ -5222,9 +5222,9 @@
           }
         ]
       },
-      "title": "30 schnellste Runden bestätigen dein Spitzenpace.",
+      "title": "30 schnellste Runden bestätigen deine Spitzenpace.",
       "body": "Deine Career enthält 30 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_20",
@@ -5244,9 +5244,9 @@
           }
         ]
       },
-      "title": "20 schnellste Runden bestätigen dein Spitzenpace.",
-      "body": "Deine Career enthält 20 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "title": "20 schnellste Runden bestätigen deine Spitzenpace.",
+      "body": "Deine Career enthält 20 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_15",
@@ -5266,9 +5266,9 @@
           }
         ]
       },
-      "title": "15 schnellste Runden bestätigen dein Spitzenpace.",
+      "title": "15 schnellste Runden bestätigen deine Spitzenpace.",
       "body": "Deine Career enthält 15 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Ein bisschen sauberer darfst du schon abliefern.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_10",
@@ -5288,9 +5288,9 @@
           }
         ]
       },
-      "title": "10 schnellste Runden bestätigen dein Spitzenpace.",
+      "title": "10 schnellste Runden bestätigen deine Spitzenpace.",
       "body": "Deine Career enthält 10 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_8",
@@ -5310,9 +5310,9 @@
           }
         ]
       },
-      "title": "8 schnellste Runden bestätigen dein Spitzenpace.",
-      "body": "Deine Career enthält 8 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "title": "8 schnellste Runden bestätigen deine Spitzenpace.",
+      "body": "Deine Career enthält 8 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_5",
@@ -5332,9 +5332,9 @@
           }
         ]
       },
-      "title": "5 schnellste Runden bestätigen dein Spitzenpace.",
+      "title": "5 schnellste Runden bestätigen deine Spitzenpace.",
       "body": "Deine Career enthält 5 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_3",
@@ -5354,9 +5354,9 @@
           }
         ]
       },
-      "title": "3 schnellste Runden bestätigen dein Spitzenpace.",
+      "title": "3 schnellste Runden bestätigen deine Spitzenpace.",
       "body": "Deine Career enthält 3 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Die Daten sind eindeutig – arbeite genau dort weiter.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_2",
@@ -5376,9 +5376,9 @@
           }
         ]
       },
-      "title": "2 schnellste Runden bestätigen dein Spitzenpace.",
-      "body": "Deine Career enthält 2 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "title": "2 schnellste Runden bestätigen deine Spitzenpace.",
+      "body": "Deine Career enthält 2 schnellste Runden. Das zeigt Tempo, unabhängig vom Endresultat. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.pace_points.fastest_laps_1",
@@ -5400,7 +5400,7 @@
       },
       "title": "Die erste schnellste Runde steht.",
       "body": "Deine Career enthält 1 schnellste Runde. Das zeigt Tempo, unabhängig vom Endresultat. Diese Art von Kontrolle steht dir ziemlich gut.",
-      "focus": "Dein nächster Fokus: Schnellste Einzelrunden in konstanten Longrun übertragen."
+      "focus": "Dein nächster Fokus: Das Tempo einer schnellen Runde über einen ganzen Stint halten."
     },
     {
       "id": "vora.consistency.average_p1",
@@ -5424,7 +5424,7 @@
         ]
       },
       "title": "Dein Durchschnitt liegt auf Siegerniveau.",
-      "body": "Der Career-Schnitt bestätigt dauerhafte Spitzenresultate. Kleine Fehlervermeidung hat jetzt mehr Wert als zusätzliches Grundrisiko. Diese Art von Kontrolle steht dir ziemlich gut.",
+      "body": "Deine durchschnittliche Zielposition bestätigt dauerhafte Spitzenresultate. Kleine Fehler zu vermeiden ist jetzt wichtiger als zusätzliches Risiko. Diese Art von Kontrolle steht dir ziemlich gut.",
       "focus": "Dein nächster Fokus: Spitzenresultate ohne unnötiges Risiko schützen."
     },
     {
@@ -5449,7 +5449,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P2.",
-      "body": "Der Career-Schnitt bestätigt dauerhafte Spitzenresultate. Kleine Fehlervermeidung hat jetzt mehr Wert als zusätzliches Grundrisiko. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Deine durchschnittliche Zielposition bestätigt dauerhafte Spitzenresultate. Kleine Fehler zu vermeiden ist jetzt wichtiger als zusätzliches Risiko. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Spitzenresultate ohne unnötiges Risiko schützen."
     },
     {
@@ -5474,7 +5474,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P3.",
-      "body": "Der Career-Schnitt bestätigt dauerhafte Spitzenresultate. Kleine Fehlervermeidung hat jetzt mehr Wert als zusätzliches Grundrisiko. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine durchschnittliche Zielposition bestätigt dauerhafte Spitzenresultate. Kleine Fehler zu vermeiden ist jetzt wichtiger als zusätzliches Risiko. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Spitzenresultate ohne unnötiges Risiko schützen."
     },
     {
@@ -5574,7 +5574,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P7.",
-      "body": "Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den Schnitt um eine Position verbessern."
     },
     {
@@ -5624,7 +5624,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P9.",
-      "body": "Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den Schnitt um eine Position verbessern."
     },
     {
@@ -5649,7 +5649,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P10.",
-      "body": "Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Schnitt liegt im wettbewerbsfähigen Bereich. Eine bessere schwache Rennphase kann den Durchschnitt sichtbar verschieben. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den Schnitt um eine Position verbessern."
     },
     {
@@ -5674,7 +5674,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P11.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Halte die Linie sauber – Vora mag es, wenn du nicht zu früh einlenkst.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Halte die Linie sauber – Vora mag es, wenn du nicht zu früh einlenkst.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5699,7 +5699,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P12.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5724,7 +5724,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P13.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5749,7 +5749,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P14.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5774,7 +5774,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P15.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Ein bisschen sauberer darfst du schon abliefern.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Ein bisschen sauberer darfst du schon abliefern.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5799,7 +5799,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P16.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5824,7 +5824,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P17.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5849,7 +5849,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P18.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5874,7 +5874,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P19.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5899,7 +5899,7 @@
         ]
       },
       "title": "Deine durchschnittliche Zielposition liegt bei P20.",
-      "body": "Der Durchschnitt zeigt eine klare Entwicklungschance. Regelmäßige Klassifikationen und kleine Positionsgewinne wirken hier besonders stark. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "body": "Dein Durchschnitt kann sich mit regelmäßigen Zieleinläufen und kleinen Positionsgewinnen deutlich verbessern. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: Zuerst stabile Zieleinläufe aufbauen."
     },
     {
@@ -5923,8 +5923,8 @@
           }
         ]
       },
-      "title": "Noch 1000 bis 100000 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "title": "Bis zum nächsten Level liegt noch Strecke vor dir.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -5948,8 +5948,8 @@
           }
         ]
       },
-      "title": "Noch 801 bis 999 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "title": "Bis zum nächsten Level liegt noch Strecke vor dir.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -5973,8 +5973,8 @@
           }
         ]
       },
-      "title": "Noch 601 bis 800 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Das kannst du kontrollieren. Zeig es im nächsten Rennen.",
+      "title": "Bis zum nächsten Level liegt noch Strecke vor dir.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Das kannst du kontrollieren. Zeig es im nächsten Rennen.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -5998,8 +5998,8 @@
           }
         ]
       },
-      "title": "Noch 401 bis 600 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "title": "Bis zum nächsten Level liegt noch Strecke vor dir.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -6023,8 +6023,8 @@
           }
         ]
       },
-      "title": "Noch 251 bis 400 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Ein bisschen sauberer darfst du schon abliefern.",
+      "title": "Dein nächstes Level rückt näher.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Ein bisschen sauberer darfst du schon abliefern.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -6048,8 +6048,8 @@
           }
         ]
       },
-      "title": "Noch 151 bis 250 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
+      "title": "Dein nächstes Level rückt näher.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Du musst nicht alles ändern; der nächste saubere Schritt reicht.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -6073,8 +6073,8 @@
           }
         ]
       },
-      "title": "Noch 101 bis 150 XP bis zum nächsten Level.",
-      "body": "Der Fortschritt bleibt ein Langstreckenwert und sollte keine riskanten Einzelentscheidungen erzwingen. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "title": "Dein nächstes Level rückt näher.",
+      "body": "Sammle XP durch gute Rennergebnisse. Riskante Einzelaktionen lohnen sich dafür nicht. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: XP als Ergebnis guter Rennen betrachten, nicht als Rennziel."
     },
     {
@@ -6098,8 +6098,8 @@
           }
         ]
       },
-      "title": "Noch 51 bis 100 XP bis zum nächsten Level.",
-      "body": "Der nächste Aufstieg ist nah genug, um mit einem sauberen Ergebnis erreicht zu werden. Die Daten sind eindeutig – arbeite genau dort weiter.",
+      "title": "Dein nächstes Level ist zum Greifen nah.",
+      "body": "Ein sauberes Ergebnis kann bereits für den nächsten Aufstieg reichen. Die Daten sind eindeutig – arbeite genau dort weiter.",
       "focus": "Dein nächster Fokus: Klassifikation vor Zusatzrisiko stellen."
     },
     {
@@ -6123,8 +6123,8 @@
           }
         ]
       },
-      "title": "Noch 26 bis 50 XP bis zum nächsten Level.",
-      "body": "Der nächste Aufstieg ist nah genug, um mit einem sauberen Ergebnis erreicht zu werden. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
+      "title": "Dein nächstes Level ist zum Greifen nah.",
+      "body": "Ein sauberes Ergebnis kann bereits für den nächsten Aufstieg reichen. Du hast die Basis auf deiner Seite – jetzt setz sie um.",
       "focus": "Dein nächster Fokus: Klassifikation vor Zusatzrisiko stellen."
     },
     {
@@ -6149,7 +6149,7 @@
         ]
       },
       "title": "Der Level-Aufstieg steht unmittelbar bevor.",
-      "body": "Der nächste Aufstieg ist nah genug, um mit einem sauberen Ergebnis erreicht zu werden. Diese Art von Kontrolle steht dir ziemlich gut.",
+      "body": "Ein sauberes Ergebnis kann bereits für den nächsten Aufstieg reichen. Diese Art von Kontrolle steht dir ziemlich gut.",
       "focus": "Dein nächster Fokus: Klassifikation vor Zusatzrisiko stellen."
     },
     {
@@ -6171,7 +6171,7 @@
         ]
       },
       "title": "Maximales Level erreicht.",
-      "body": "Level 100 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Level 100 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Erfahrung als Referenz für nachhaltige Racecraft nutzen."
     },
     {
@@ -6215,7 +6215,7 @@
         ]
       },
       "title": "Level 50 bildet deinen aktuellen Fortschritt ab.",
-      "body": "Level 50 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Level 50 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den nächsten Fortschritt über saubere Ergebnisse verdienen."
     },
     {
@@ -6237,7 +6237,7 @@
         ]
       },
       "title": "Level 30 bildet deinen aktuellen Fortschritt ab.",
-      "body": "Level 30 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Level 30 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den nächsten Fortschritt über saubere Ergebnisse verdienen."
     },
     {
@@ -6281,7 +6281,7 @@
         ]
       },
       "title": "Level 10 bildet deinen aktuellen Fortschritt ab.",
-      "body": "Level 10 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Level 10 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den nächsten Fortschritt über saubere Ergebnisse verdienen."
     },
     {
@@ -6303,7 +6303,7 @@
         ]
       },
       "title": "Level 5 bildet deinen aktuellen Fortschritt ab.",
-      "body": "Level 5 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Level 5 zeigt die Summe deiner bestätigten Career-Leistung. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den nächsten Fortschritt über saubere Ergebnisse verdienen."
     },
     {
@@ -6418,8 +6418,8 @@
           }
         ]
       },
-      "title": "Du holst im Schnitt rund 1 Punkte pro Start.",
-      "body": "Schon eine zusätzliche saubere Punkteankunft kann deinen Schnitt deutlich verändern. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "title": "Du holst im Schnitt rund einen Punkt pro Start.",
+      "body": "Schon eine zusätzliche saubere Punkteankunft kann deinen Schnitt deutlich verändern. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Klassifikationen und Punkte vor Einzeltempo stellen."
     },
     {
@@ -6469,7 +6469,7 @@
         ]
       },
       "title": "Du holst im Schnitt rund 3 Punkte pro Start.",
-      "body": "Schon eine zusätzliche saubere Punkteankunft kann deinen Schnitt deutlich verändern. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Schon eine zusätzliche saubere Punkteankunft kann deinen Schnitt deutlich verändern. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Klassifikationen und Punkte vor Einzeltempo stellen."
     },
     {
@@ -6569,7 +6569,7 @@
         ]
       },
       "title": "Du holst im Schnitt rund 7 Punkte pro Start.",
-      "body": "Schon eine zusätzliche saubere Punkteankunft kann deinen Schnitt deutlich verändern. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Schon eine zusätzliche saubere Punkteankunft kann deinen Schnitt deutlich verändern. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Klassifikationen und Punkte vor Einzeltempo stellen."
     },
     {
@@ -6619,7 +6619,7 @@
         ]
       },
       "title": "Du holst im Schnitt rund 9 Punkte pro Start.",
-      "body": "Deine Ergebnisse liefern regelmäßig Wert, aber schwache Rennen drücken den Schnitt noch sichtbar. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Ergebnisse liefern regelmäßig Wert, aber schwache Rennen drücken den Schnitt noch sichtbar. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Schwache Ergebnisse näher an deinen Normalbereich bringen."
     },
     {
@@ -6694,7 +6694,7 @@
         ]
       },
       "title": "Du holst im Schnitt rund 12 Punkte pro Start.",
-      "body": "Deine Ergebnisse liefern regelmäßig Wert, aber schwache Rennen drücken den Schnitt noch sichtbar. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Ergebnisse liefern regelmäßig Wert, aber schwache Rennen drücken den Schnitt noch sichtbar. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Schwache Ergebnisse näher an deinen Normalbereich bringen."
     },
     {
@@ -6794,7 +6794,7 @@
         ]
       },
       "title": "Du holst im Schnitt rund 16 Punkte pro Start.",
-      "body": "Deine Punkteausbeute liegt im Spitzenbereich. Schütze diese Effizienz vor unnötigem Risiko. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Deine Punkteausbeute liegt im Spitzenbereich. Schütze diese Effizienz vor unnötigem Risiko. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Effizienz auf unterschiedlichen Strecken bestätigen."
     },
     {
@@ -6957,7 +6957,7 @@
         ]
       },
       "title": "100 Starts sind jetzt bestätigt.",
-      "body": "Mit 100 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mit 100 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Erfahrung aktiv für Rennentscheidungen nutzen."
     },
     {
@@ -7023,7 +7023,7 @@
         ]
       },
       "title": "50 Starts sind jetzt bestätigt.",
-      "body": "Mit 50 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mit 50 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Erfahrung in reproduzierbare Abläufe übersetzen."
     },
     {
@@ -7067,8 +7067,8 @@
         ]
       },
       "title": "30 Starts sind jetzt bestätigt.",
-      "body": "Mit 30 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
-      "focus": "Dein nächster Fokus: Risiko und Ertrag bewusster abwägen."
+      "body": "Mit 30 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
+      "focus": "Dein nächster Fokus: Risiko und Ergebnis bewusster abwägen."
     },
     {
       "id": "vora.career.starts_25",
@@ -7221,7 +7221,7 @@
         ]
       },
       "title": "5 Starts sind jetzt bestätigt.",
-      "body": "Mit 5 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "body": "Mit 5 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Die ersten Muster in den Ergebnissen erkennen."
     },
     {
@@ -7286,8 +7286,8 @@
           }
         ]
       },
-      "title": "1 Starts sind jetzt bestätigt.",
-      "body": "Mit 1 Starts wird dein Profil belastbarer. Einzelne Ausreißer zählen weniger, wiederholbare Abläufe mehr. Bleib präzise, dann wird aus dem Signal ein Vorteil.",
+      "title": "Dein erster Start ist jetzt bestätigt.",
+      "body": "Mit deinem ersten Start beginnt eine belastbare Auswertung. Jeder weitere Zieleinlauf macht deine Entwicklung klarer. Bleib präzise, dann nutzt du diesen Vorteil im nächsten Rennen.",
       "focus": "Dein nächster Fokus: Den zweiten Start genauso sauber vorbereiten."
     },
     {

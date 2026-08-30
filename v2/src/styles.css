@@ -1191,6 +1191,7 @@ h2 {
 .vora-insight { min-height: 300px; display: grid; grid-template-columns: 180px minmax(0, 1fr); align-items: center; gap: clamp(1.5rem, 4vw, 3rem); overflow: hidden; margin: 2.5rem 0 0; padding: clamp(1.5rem, 5vw, 4rem); border: 1px solid rgba(166, 139, 231, 0.44); background: radial-gradient(circle at 12% 50%, rgba(118, 83, 199, 0.23), transparent 30%), linear-gradient(120deg, #071a30, #071f35); }
 .vora-avatar { width: 174px; height: 210px; display: flex; align-self: end; align-items: flex-end; justify-content: center; }
 .vora-avatar img { width: 100%; height: 100%; display: block; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 8px 8px color-mix(in srgb, var(--brand-background) 54%, transparent)); }
+.vora-insight-copy { min-width: 0; align-self: start; }
 .vora-insight-copy > p:first-child { margin: 0 0 0.65rem; color: var(--teal-bright); font-size: 0.72rem; font-weight: 800; }
 .vora-insight h2 { max-width: 850px; margin-bottom: 0.9rem; font-size: 2.5rem; }
 .vora-insight-body { max-width: 68ch; margin: 0; }
@@ -1337,6 +1338,7 @@ h2 {
 
 .footer {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: 1.2rem max(1.5rem, env(safe-area-inset-right)) max(1.2rem, env(safe-area-inset-bottom)) 1.5rem;
@@ -1344,6 +1346,11 @@ h2 {
   color: var(--muted);
   font-size: 0.74rem;
 }
+.footer-copyright { color: var(--text); font-weight: 700; white-space: nowrap; }
+.footer-legal { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.45rem 1rem; }
+.footer-legal a { color: var(--muted); text-decoration: none; text-underline-offset: 0.22em; }
+.footer-legal a:hover { color: var(--text); text-decoration: underline; }
+.footer-legal a:focus-visible { color: var(--text); outline: 2px solid var(--primary); outline-offset: 4px; }
 
 .bottom-navigation { display: none; }
 
@@ -2044,7 +2051,8 @@ body {
   .context-pill { min-height: 32px; padding-inline: 0.65rem; font-size: 0.66rem; }
   .driver-navigation,
   .privileged-navigation { grid-template-columns: 1fr; }
-  .footer { flex-direction: column; }
+  .footer { align-items: flex-start; flex-direction: column; }
+  .footer-legal { justify-content: flex-start; }
 }
 
 .app-shell--embedded-access,
