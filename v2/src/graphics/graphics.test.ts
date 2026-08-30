@@ -31,6 +31,25 @@ describe('Social Graphics model', () => {
     expect(model.footer).toContain('2');
   });
 
+  it('builds every race-bound graphic from the selected official result', () => {
+    const selectedWorkspace: GraphicsWorkspace = {
+      ...workspace,
+      latest_result: {
+        ...workspace.latest_result!,
+        id: 'result-v1',
+        version: 1,
+        race_id: 'race-canada',
+        race_name: 'Canadian Grand Prix',
+        circuit: 'Circuit Gilles Villeneuve',
+        round: 1,
+      },
+    };
+    const model = buildGraphicModel(selectedWorkspace, 'race_result', labels);
+    expect(model.resultVersionId).toBe('result-v1');
+    expect(model.title).toBe('Canadian Grand Prix');
+    expect(model.subtitle).toBe('Circuit Gilles Villeneuve');
+  });
+
   it('keeps standings global to the structured standings snapshot, without a result binding', () => {
     const model = buildGraphicModel(workspace, 'driver_standings', labels);
     expect(model.resultVersionId).toBeNull();

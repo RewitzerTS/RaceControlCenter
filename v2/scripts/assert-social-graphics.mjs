@@ -20,6 +20,7 @@ const requirements = [
   [migration.includes("where flag_key = 'graphics_enabled'"), 'server feature flag'],
   [page.includes('renderGraphicPng') && page.includes('recordGraphicRender') && !page.includes("t('graphics.copy')"), 'compact PNG render and manifest flow'],
   [page.includes('graphicPages.map') && page.includes('graphics-page-navigation'), 'multi-page preview and export flow'],
+  [page.includes('graphics-race-picker') && page.includes('selectedResultVersionId') && graphics.includes('loadGraphicsResultOptions') && graphics.includes('loadGraphicsResult') && graphics.includes("eq('status', 'active')"), 'official race selection for result-bound graphics'],
   [page.includes('graphicBranding') && page.includes('branding: graphicBranding'), 'league-specific graphic header binding'],
   [graphics.includes("['square', 'portrait', 'story', 'landscape']"), 'landscape format selection'],
   [graphics.includes('paginateGraphicModel') && !graphics.includes("slice(0, 8)"), 'complete balanced race-result pagination'],

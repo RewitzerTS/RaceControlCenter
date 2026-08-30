@@ -10,11 +10,15 @@ import {
   graphicFilename,
   GRAPHIC_FORMATS,
   GRAPHIC_TYPES,
+  loadGraphicsResult,
+  loadGraphicsResultOptions,
   loadGraphicsWorkspace,
   paginateGraphicModel,
   recordGraphicRender,
   type GraphicFormat,
   type GraphicLabels,
+  type GraphicsResult,
+  type GraphicsResultOption,
   type GraphicsWorkspace,
   type GraphicType,
 } from './graphics';
@@ -35,6 +39,8 @@ const FORMAT_KEYS: Record<GraphicFormat, MessageKey> = {
   story: 'graphics.format.story',
   landscape: 'graphics.format.landscape',
 };
+
+const RESULT_BOUND_TYPES: GraphicType[] = ['race_result', 'podium', 'winner'];
 
 function GraphicCanvasPreview({ branding, format, model, pageCount, pageLabel, pageNumber }: {
   branding: GraphicBranding;
@@ -69,22 +75,69 @@ export function GraphicsStudioPage() {
   const { role } = useRole();
   const { formatDate, t } = useI18n();
   const [workspace, setWorkspace] = useState<GraphicsWorkspace | null>(null);
+  const [resultOptions, setResultOptions] = useState<GraphicsResultOption[]>([]);
+  const [selectedResultVersionId, setSelectedResultVersionId] = useState<string | null>(null);
+  const [selectedResult, setSelectedResult] = useState<GraphicsResult | null>(null);
   const [type, setType] = useState<GraphicType>('race_result');
   const [format, setFormat] = useState<GraphicFormat>('square');
   const [previewPage, setPreviewPage] = useState(0);
   const [state, setState] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle');
   const [loadError, setLoadError] = useState(false);
+  const [resultLoading, setResultLoading] = useState(false);
+  const [resultError, setResultError] = useState(false);
   const allowed = role === 'league_admin' || role === 'platform_owner';
 
   useEffect(() => {
     if (!allowed) return;
     let active = true;
     setLoadError(false);
-    void loadGraphicsWorkspace(client)
-      .then((data) => { if (active) setWorkspace(data); })
+    void Promise.all([loadGraphicsWorkspace(client), loadGraphicsResultOptions(client)])
+      .then(([data, options]) => {
+        if (!active) return;
+        const latestOption = data.latest_result ? {
+          result_version_id: data.latest_result.id,
+          race_id: data.latest_result.race_id,
+          race_name: data.latest_result.race_name,
+          circuit: data.latest_result.circuit,
+          race_date: data.latest_result.race_date,
+          round: data.latest_result.round,
+        } : null;
+        const availableOptions = latestOption && !options.some((option) => option.result_version_id === latestOption.result_version_id)
+          ? [latestOption, ...options]
+          : options;
+        setWorkspace(data);
+        setResultOptions(availableOptions);
+        setSelectedResult(data.latest_result);
+        setSelectedResultVersionId(data.latest_result?.id ?? availableOptions[0]?.result_version_id ?? null);
+      })
       .catch(() => { if (active) setLoadError(true); });
     return () => { active = false; };
   }, [allowed, client]);
+
+  useEffect(() => {
+    if (!workspace || !selectedResultVersionId) return;
+    if (workspace.latest_result?.id === selectedResultVersionId) {
+      setSelectedResult(workspace.latest_result);
+      setResultLoading(false);
+      setResultError(false);
+      return;
+    }
+    const option = resultOptions.find((candidate) => candidate.result_version_id === selectedResultVersionId);
+    if (!option) {
+      setResultLoading(false);
+      setResultError(true);
+      return;
+    }
+
+    let active = true;
+    setResultLoading(true);
+    setResultError(false);
+    void loadGraphicsResult(client, option)
+      .then((result) => { if (active) setSelectedResult(result); })
+      .catch(() => { if (active) setResultError(true); })
+      .finally(() => { if (active) setResultLoading(false); });
+    return () => { active = false; };
+  }, [client, resultOptions, selectedResultVersionId, workspace]);
 
   const labels: GraphicLabels = useMemo(() => ({
     raceResult: t('graphics.type.raceResult'), podium: t('graphics.type.podium'), winner: t('graphics.type.winner'),
@@ -92,16 +145,18 @@ export function GraphicsStudioPage() {
     points: t('graphics.points'), wins: t('graphics.wins'), round: t('graphics.round'), resultVersion: t('graphics.resultVersion'),
     official: t('graphics.official'), noData: t('graphics.noData'),
   }), [t]);
-  const model = useMemo(() => workspace ? buildGraphicModel(workspace, type, labels) : null, [labels, type, workspace]);
+  const isResultBound = RESULT_BOUND_TYPES.includes(type);
+  const modelWorkspace = useMemo(() => workspace ? { ...workspace, latest_result: isResultBound ? selectedResult : workspace.latest_result } : null, [isResultBound, selectedResult, workspace]);
+  const model = useMemo(() => modelWorkspace ? buildGraphicModel(modelWorkspace, type, labels) : null, [labels, modelWorkspace, type]);
   const graphicPages = useMemo(() => model ? paginateGraphicModel(model, type === 'race_result' ? 11 : Math.max(1, model.rows.length)) : [], [model, type]);
   const graphicBranding = useMemo<GraphicBranding>(() => ({ name: branding.name, logoUrl: branding.logoUrl || undefined }), [branding.logoUrl, branding.name]);
   const activePageIndex = Math.min(previewPage, Math.max(0, graphicPages.length - 1));
   const activePage = graphicPages[activePageIndex];
 
-  useEffect(() => setPreviewPage(0), [format, type, workspace?.latest_result?.id]);
+  useEffect(() => setPreviewPage(0), [format, selectedResult?.id, type]);
 
   async function exportGraphic() {
-    if (!workspace || !model) return;
+    if (!modelWorkspace || !model || (isResultBound && resultLoading)) return;
     setState('exporting');
     try {
       const theme = readGraphicTheme();
@@ -119,10 +174,11 @@ export function GraphicsStudioPage() {
       await recordGraphicRender(client, model, format, digest, presentation);
       blobs.forEach((blob, index) => {
         const page = graphicPages[index];
-        if (page) downloadPng(blob, graphicFilename(workspace, type, format, page.pageNumber, page.pageCount));
+        if (page) downloadPng(blob, graphicFilename(modelWorkspace, type, format, page.pageNumber, page.pageCount));
       });
       const refreshed = await loadGraphicsWorkspace(client);
       setWorkspace(refreshed);
+      if (refreshed.latest_result?.id === selectedResultVersionId) setSelectedResult(refreshed.latest_result);
       setState('done');
     } catch {
       setState('error');
@@ -131,7 +187,7 @@ export function GraphicsStudioPage() {
 
   if (!allowed) return <AppState copy="Du benötigst die Rolle Ligaleitung, um Ligagrafiken zu erstellen." title={t('graphics.denied')} tone="denied" />;
   if (loadError) return <AppState action={<button className="text-action" onClick={() => window.location.reload()} type="button">Erneut versuchen</button>} copy="Rennergebnisse und Grafikvorlagen konnten nicht geladen werden." title={t('graphics.loadError')} tone="error" />;
-  if (!workspace || !model || !activePage) return <AppState copy="Ergebnisse und Grafikvorlagen werden für die Vorschau vorbereitet." title={t('pending')} tone="loading" />;
+  if (!workspace || !modelWorkspace || !model || !activePage) return <AppState copy="Ergebnisse und Grafikvorlagen werden für die Vorschau vorbereitet." title={t('pending')} tone="loading" />;
 
   return <main className="graphics-studio" id="main-content">
     <header className="graphics-header">
@@ -142,14 +198,22 @@ export function GraphicsStudioPage() {
     <div className="graphics-workbench">
       <section className="graphics-controls" aria-labelledby="graphics-config-title">
         <h2 id="graphics-config-title">{t('graphics.configure')}</h2>
+        {isResultBound && <label className="graphics-race-picker">
+          <span>{t('graphics.race')}</span>
+          <select aria-describedby="graphics-race-hint" disabled={resultLoading || resultOptions.length === 0} onChange={(event) => { setSelectedResultVersionId(event.target.value || null); setSelectedResult(null); setResultLoading(true); setResultError(false); setState('idle'); }} value={selectedResultVersionId ?? ''}>
+            {resultOptions.length ? resultOptions.map((option) => <option key={option.result_version_id} value={option.result_version_id}>{`${t('graphics.round')} ${option.round} · ${option.race_name}${option.race_date ? ` · ${formatDate(option.race_date)}` : ''}`}</option>) : <option value="">{t('graphics.noResult')}</option>}
+          </select>
+          <small id="graphics-race-hint">{resultLoading ? t('graphics.resultLoading') : t('graphics.raceHint')}</small>
+        </label>}
+        {isResultBound && resultError && <p className="graphics-result-error" role="alert">{t('graphics.resultLoadError')}</p>}
         <fieldset><legend>{t('graphics.template')}</legend><div className="graphics-choice-list">{GRAPHIC_TYPES.map((item) => <label key={item}><input type="radio" name="graphic-type" value={item} checked={type === item} onChange={() => { setType(item); setState('idle'); }} /><span>{t(TYPE_KEYS[item])}</span></label>)}</div></fieldset>
         <fieldset><legend>{t('graphics.format')}</legend><div className="graphics-format-list">{GRAPHIC_FORMATS.map((item) => <label key={item}><input type="radio" name="graphic-format" value={item} checked={format === item} onChange={() => { setFormat(item); setState('idle'); }} /><span>{t(FORMAT_KEYS[item])}</span></label>)}</div></fieldset>
-        <div className="graphics-provenance"><strong>{t('graphics.source')}</strong><span>{workspace.latest_result ? `${workspace.latest_result.race_name} · ${t('graphics.resultVersion')} ${workspace.latest_result.version} · ${t('graphics.driverCount', { count: workspace.latest_result.rows.length })}` : t('graphics.noResult')}</span><small>{t('graphics.deterministic')}</small></div>
-        <button className="primary-action" type="button" disabled={state === 'exporting' || (model.resultVersionId === null && ['race_result', 'podium', 'winner'].includes(type))} onClick={() => void exportGraphic()}>{state === 'exporting' ? t('graphics.exporting') : graphicPages.length > 1 ? t('graphics.exportMany', { count: graphicPages.length }) : t('graphics.export')}</button>
+        <div className="graphics-provenance"><strong>{t('graphics.source')}</strong><span>{modelWorkspace.latest_result ? `${modelWorkspace.latest_result.race_name} · ${t('graphics.resultVersion')} ${modelWorkspace.latest_result.version} · ${t('graphics.driverCount', { count: modelWorkspace.latest_result.rows.length })}` : t('graphics.noResult')}</span><small>{t('graphics.deterministic')}</small></div>
+        <button className="primary-action" type="button" disabled={state === 'exporting' || (isResultBound && resultLoading) || (model.resultVersionId === null && RESULT_BOUND_TYPES.includes(type))} onClick={() => void exportGraphic()}>{state === 'exporting' ? t('graphics.exporting') : graphicPages.length > 1 ? t('graphics.exportMany', { count: graphicPages.length }) : t('graphics.export')}</button>
         <p className={`graphics-feedback graphics-feedback--${state}`} role="status">{state === 'done' ? graphicPages.length > 1 ? t('graphics.exportedMany', { count: graphicPages.length }) : t('graphics.exported') : state === 'error' ? t('graphics.exportError') : ''}</p>
       </section>
 
-      <section className="graphics-preview-panel" aria-labelledby="graphics-preview-title">
+      <section className="graphics-preview-panel" aria-busy={isResultBound && resultLoading} aria-labelledby="graphics-preview-title">
         <div className="graphics-preview-heading"><h2 id="graphics-preview-title">{t('graphics.preview')}</h2><span>{t(FORMAT_KEYS[format])}</span></div>
         <GraphicCanvasPreview branding={graphicBranding} format={format} model={activePage.model} pageCount={activePage.pageCount} pageLabel={t('graphics.page', { current: activePage.pageNumber, total: activePage.pageCount })} pageNumber={activePage.pageNumber}/>
         {graphicPages.length > 1 && <nav aria-label={t('graphics.previewPages')} className="graphics-page-navigation"><button aria-label={t('graphics.previousPage')} disabled={activePageIndex === 0} onClick={() => setPreviewPage((current) => Math.max(0, current - 1))} type="button">←</button><span>{t('graphics.page', { current: activePage.pageNumber, total: activePage.pageCount })}</span><button aria-label={t('graphics.nextPage')} disabled={activePageIndex === graphicPages.length - 1} onClick={() => setPreviewPage((current) => Math.min(graphicPages.length - 1, current + 1))} type="button">→</button></nav>}

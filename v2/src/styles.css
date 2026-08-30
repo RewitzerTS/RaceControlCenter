@@ -1223,6 +1223,13 @@ h2 {
 .graphics-workbench { display: grid; grid-template-columns: minmax(280px, 0.62fr) minmax(420px, 1.38fr); border: 1px solid var(--line-strong); background: #04182b; }
 .graphics-controls { padding: clamp(1.25rem, 3vw, 2.25rem); border-right: 1px solid var(--line); }
 .graphics-controls h2, .graphics-preview-panel h2, .graphics-history h2 { margin: 0; font-size: 1.05rem; }
+.graphics-race-picker { display: grid; gap: 0.55rem; margin-top: 1.5rem; }
+.graphics-race-picker > span { color: var(--muted); font-size: 0.72rem; }
+.graphics-race-picker select { width: 100%; min-height: 46px; padding: 0.65rem 2.25rem 0.65rem 0.75rem; border: 1px solid var(--line-strong); color: var(--text); font: inherit; font-size: 0.82rem; }
+.graphics-race-picker select:focus-visible { outline: 3px solid var(--brand-primary); outline-offset: 3px; }
+.graphics-race-picker select:disabled { opacity: 0.62; cursor: wait; }
+.graphics-race-picker small { color: var(--muted); font-size: 0.7rem; line-height: 1.45; }
+.graphics-result-error { margin: 0.65rem 0 0; color: #ffd785; font-size: 0.74rem; line-height: 1.45; }
 .graphics-controls fieldset { margin: 1.5rem 0 0; padding: 0; border: 0; }
 .graphics-controls legend { margin-bottom: 0.65rem; color: var(--muted); font-size: 0.72rem; }
 .graphics-choice-list, .graphics-format-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }

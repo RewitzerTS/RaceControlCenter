@@ -7,6 +7,17 @@ export const GRAPHIC_FORMATS = ['square', 'portrait', 'story', 'landscape'] as c
 export type GraphicType = (typeof GRAPHIC_TYPES)[number];
 export type GraphicFormat = (typeof GRAPHIC_FORMATS)[number];
 export type ResultRow = { position: number | null; driver: string; team: string; points: number; status: string };
+export type GraphicsResult = {
+  id: string;
+  version: number;
+  race_id: string;
+  race_name: string;
+  circuit: string | null;
+  race_date: string | null;
+  round: number;
+  rows: ResultRow[];
+};
+export type GraphicsResultOption = Omit<GraphicsResult, 'id' | 'rows' | 'version'> & { result_version_id: string };
 export type StandingRow = { position: number; driver?: string; team?: string; points: number; wins: number };
 export type GraphicRender = {
   id: string;
@@ -19,16 +30,7 @@ export type GraphicRender = {
 };
 export type GraphicsWorkspace = {
   league: { id: string; name: string; slug: string };
-  latest_result: null | {
-    id: string;
-    version: number;
-    race_id: string;
-    race_name: string;
-    circuit: string | null;
-    race_date: string | null;
-    round: number;
-    rows: ResultRow[];
-  };
+  latest_result: GraphicsResult | null;
   driver_standings: StandingRow[];
   team_standings: StandingRow[];
   latest_achievement: null | { driver: string; code: string; value: number; unlocked_at: string };
@@ -77,6 +79,84 @@ export async function loadGraphicsWorkspace(client: LeagueSupabaseClient): Promi
   const response = await client.rpc('get_social_graphics_workspace');
   if (response.error) throw response.error;
   return object(response.data) as unknown as GraphicsWorkspace;
+}
+
+export async function loadGraphicsResultOptions(client: LeagueSupabaseClient): Promise<GraphicsResultOption[]> {
+  const seasonResponse = await client
+    .from('seasons')
+    .select('id')
+    .order('is_active', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (seasonResponse.error) throw seasonResponse.error;
+  if (!seasonResponse.data) return [];
+
+  const racesResponse = await client
+    .from('races')
+    .select('id,grand_prix_name,circuit_name,race_date,round_number,current_result_version_id')
+    .eq('season_id', seasonResponse.data.id)
+    .not('current_result_version_id', 'is', null)
+    .order('round_number', { ascending: false })
+    .limit(100);
+  if (racesResponse.error) throw racesResponse.error;
+
+  return (racesResponse.data ?? []).flatMap((race) => race.current_result_version_id ? [{
+    result_version_id: race.current_result_version_id,
+    race_id: race.id,
+    race_name: race.grand_prix_name,
+    circuit: race.circuit_name,
+    race_date: race.race_date,
+    round: race.round_number,
+  }] : []);
+}
+
+export async function loadGraphicsResult(client: LeagueSupabaseClient, option: GraphicsResultOption): Promise<GraphicsResult> {
+  const [versionResponse, rowsResponse] = await Promise.all([
+    client
+      .from('result_versions')
+      .select('id,version_number')
+      .eq('id', option.result_version_id)
+      .eq('status', 'active')
+      .single(),
+    client
+      .from('result_version_rows')
+      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,row_order,driver:drivers!result_version_rows_driver_id_fkey(display_name,league_team)')
+      .eq('result_version_id', option.result_version_id)
+      .order('row_order', { ascending: true }),
+  ]);
+  if (versionResponse.error) throw versionResponse.error;
+  if (rowsResponse.error) throw rowsResponse.error;
+
+  type ResultRecord = {
+    finish_position: number | null;
+    awarded_points: number;
+    classification_status: string;
+    points_team_name: string | null;
+    car_name_snapshot: string | null;
+    driver: { display_name: string; league_team: string | null } | Array<{ display_name: string; league_team: string | null }> | null;
+  };
+  const rows = (rowsResponse.data as unknown as ResultRecord[]).map((row) => {
+    const driver = Array.isArray(row.driver) ? row.driver[0] : row.driver;
+    return {
+      position: row.finish_position,
+      driver: driver?.display_name ?? 'Unknown driver',
+      team: row.points_team_name ?? row.car_name_snapshot ?? driver?.league_team ?? 'Independent',
+      points: row.awarded_points,
+      status: row.classification_status,
+    };
+  });
+
+  return {
+    id: versionResponse.data.id,
+    version: versionResponse.data.version_number,
+    race_id: option.race_id,
+    race_name: option.race_name,
+    circuit: option.circuit,
+    race_date: option.race_date,
+    round: option.round,
+    rows,
+  };
 }
 
 export async function recordGraphicRender(
