@@ -99,6 +99,7 @@ export function GraphicsStudioPage() {
           race_id: data.latest_result.race_id,
           race_name: data.latest_result.race_name,
           circuit: data.latest_result.circuit,
+          country_code: data.latest_result.country_code ?? null,
           race_date: data.latest_result.race_date,
           round: data.latest_result.round,
         } : null;
@@ -140,7 +141,7 @@ export function GraphicsStudioPage() {
     official: t('graphics.official'), noData: t('graphics.noData'),
   }), [t]);
   const isResultBound = RESULT_BOUND_TYPES.includes(type);
-  const modelWorkspace = useMemo(() => workspace ? { ...workspace, latest_result: isResultBound ? selectedResult : workspace.latest_result } : null, [isResultBound, selectedResult, workspace]);
+  const modelWorkspace = useMemo(() => workspace ? { ...workspace, latest_result: isResultBound ? selectedResult : selectedResult ?? workspace.latest_result } : null, [isResultBound, selectedResult, workspace]);
   const model = useMemo(() => modelWorkspace ? buildGraphicModel(modelWorkspace, type, labels) : null, [labels, modelWorkspace, type]);
   const graphicPages = useMemo(() => model ? paginateGraphicModel(model, type === 'race_result' ? 11 : Math.max(1, model.rows.length)) : [], [model, type]);
   const graphicBranding = useMemo<GraphicBranding>(() => ({ name: branding.name, logoUrl: branding.logoUrl || undefined }), [branding.logoUrl, branding.name]);

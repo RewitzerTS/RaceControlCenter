@@ -9,6 +9,9 @@ export const GRAPHIC_DIMENSIONS: Record<GraphicFormat, { width: number; height: 
   landscape: { width: 1920, height: 1080 },
 };
 
+const RACEVORA_FOOTER_LOGO_URL = '/assets/graphics/racevora-logo-white.png';
+const LOCAL_FLAG_DIRECTORY = '/v1-assets/images/flags';
+
 export type GraphicTheme = {
   background: string;
   surface: string;
@@ -160,7 +163,12 @@ function graphicEventMeta(model: GraphicModel) {
     leagueName: typeof league.name === 'string' ? league.name : 'RaceVora',
     raceDate: typeof result.race_date === 'string' ? result.race_date : typeof achievement.unlocked_at === 'string' ? achievement.unlocked_at : null,
     round: typeof result.round === 'number' ? result.round : null,
+    countryCode: typeof result.country_code === 'string' && /^[a-z]{2}$/i.test(result.country_code) ? result.country_code.toLowerCase() : null,
   };
+}
+
+function countryFlagUrl(countryCode: string | null): string | undefined {
+  return countryCode ? `${LOCAL_FLAG_DIRECTORY}/${countryCode}.svg` : undefined;
 }
 
 function formatGraphicDate(value: string | null): string {
@@ -216,6 +224,28 @@ function drawInstagramIcon(context: CanvasRenderingContext2D, x: number, y: numb
   context.restore();
 }
 
+function drawCountryFlag(context: CanvasRenderingContext2D, image: HTMLImageElement | null, countryCode: string | null, x: number, centerY: number, theme: GraphicTheme, scale: number) {
+  const width = 36 * scale;
+  const height = 25 * scale;
+  const y = centerY - height / 2;
+  context.save();
+  context.fillStyle = theme.surfaceAlt;
+  context.fillRect(x, y, width, height);
+  if (image) {
+    context.beginPath();
+    context.rect(x, y, width, height);
+    context.clip();
+    drawContainedImage(context, image, x, y, width, height);
+  } else if (countryCode) {
+    context.textAlign = 'center';
+    drawText(context, countryCode.toUpperCase(), x + width / 2, centerY, width - 4 * scale, 14 * scale, theme.text, 800, 10);
+  }
+  context.restore();
+  context.strokeStyle = theme.line;
+  context.lineWidth = Math.max(1, scale);
+  context.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1);
+}
+
 type PilotLayout = {
   width: number;
   height: number;
@@ -269,41 +299,7 @@ function leagueInitials(name: string): string {
   return words.slice(0, 3).map((word) => word.charAt(0)).join('').toUpperCase();
 }
 
-function drawRaceVoraMark(context: CanvasRenderingContext2D, x: number, y: number, theme: GraphicTheme, scale = 1) {
-  context.save();
-  context.translate(x, y);
-  context.scale(scale, scale);
-  context.fillStyle = theme.primary;
-  context.beginPath();
-  context.moveTo(0, 0);
-  context.lineTo(96, 0);
-  context.lineTo(79, 18);
-  context.lineTo(25, 18);
-  context.lineTo(39, 36);
-  context.lineTo(66, 36);
-  context.lineTo(43, 68);
-  context.closePath();
-  context.fill();
-  context.fillStyle = theme.secondary;
-  context.beginPath();
-  context.moveTo(14, 28);
-  context.lineTo(36, 28);
-  context.lineTo(62, 64);
-  context.lineTo(50, 82);
-  context.closePath();
-  context.fill();
-  context.fillStyle = theme.accent;
-  context.beginPath();
-  context.moveTo(96, 12);
-  context.lineTo(96, 40);
-  context.lineTo(66, 82);
-  context.lineTo(52, 82);
-  context.closePath();
-  context.fill();
-  context.restore();
-}
-
-function drawRaceVoraFooter(context: CanvasRenderingContext2D, theme: GraphicTheme, layout: PilotLayout) {
+function drawRaceVoraFooter(context: CanvasRenderingContext2D, theme: GraphicTheme, layout: PilotLayout, raceVoraLogo: HTMLImageElement | null) {
   const footerHeight = layout.height - layout.footerTop;
   const footerScale = Math.max(0.68, Math.min(1.12, footerHeight / 222));
   const brandTop = layout.footerTop + Math.max(20, footerHeight * 0.14);
@@ -312,7 +308,7 @@ function drawRaceVoraFooter(context: CanvasRenderingContext2D, theme: GraphicThe
   const leftX = layout.margin + 12;
   const rightX = Math.max(layout.width * 0.59, leftX + 500 * footerScale);
 
-  drawRaceVoraMark(context, leftX, brandTop, theme, footerScale);
+  if (raceVoraLogo) drawContainedImage(context, raceVoraLogo, leftX - 10 * footerScale, brandTop - 8 * footerScale, 112 * footerScale, 92 * footerScale);
   context.textAlign = 'left';
   drawText(context, 'FROM', leftX + 126 * footerScale, brandTop + 18 * footerScale, 360 * footerScale, 34 * footerScale, theme.text, 850, 18);
   drawText(context, 'RACE TO RESULT', leftX + 126 * footerScale, brandTop + 62 * footerScale, 410 * footerScale, 34 * footerScale, theme.primary, 850, 17);
@@ -421,7 +417,7 @@ const PILOT_TITLE_LINES: Record<GraphicModel['type'], [string, string]> = {
   achievement: ['CAREER', 'ACHIEVEMENT'],
 };
 
-function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel, theme: GraphicTheme, options: GraphicRenderOptions, layout: PilotLayout, logo: HTMLImageElement | null) {
+function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel, theme: GraphicTheme, options: GraphicRenderOptions, layout: PilotLayout, logo: HTMLImageElement | null, countryFlag: HTMLImageElement | null) {
   const meta = graphicEventMeta(model);
   const brandName = options.branding?.name?.trim() || meta.leagueName;
   const [firstLine, secondLine] = PILOT_TITLE_LINES[model.type];
@@ -441,9 +437,15 @@ function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel,
   drawText(context, model.type === 'achievement' ? model.eyebrow.toUpperCase() : `ROUND ${meta.round ?? '—'}`, layout.margin + 8, layout.eyebrowY, 360 * layout.scale, 23 * layout.scale, theme.primary, 800, 14);
   drawText(context, firstLine, layout.margin + 8, layout.titleFirstY, layout.width * 0.54, layout.titleSize, theme.text, 900, 34);
   drawText(context, secondLine, layout.margin + 8, layout.titleSecondY, layout.width * 0.58, layout.titleSize, theme.primary, 900, 34);
-  context.fillStyle = theme.primary;
-  context.fillRect(layout.margin + 8, layout.subtitleY - 6 * layout.scale, 12 * layout.scale, 12 * layout.scale);
-  drawText(context, `${model.title} · ${model.subtitle}`.toUpperCase(), layout.margin + 36 * layout.scale, layout.subtitleY, layout.width * 0.7, 21 * layout.scale, theme.text, 650, 13);
+  const eventMarkX = layout.margin + 8;
+  const eventTextX = layout.margin + 58 * layout.scale;
+  if (meta.countryCode) drawCountryFlag(context, countryFlag, meta.countryCode, eventMarkX, layout.subtitleY, theme, layout.scale);
+  else {
+    context.fillStyle = theme.primary;
+    context.fillRect(eventMarkX, layout.subtitleY - 6 * layout.scale, 12 * layout.scale, 12 * layout.scale);
+  }
+  const pageReservedWidth = (options.pageCount ?? 1) > 1 ? layout.width * 0.22 : 0;
+  drawText(context, `${model.title} · ${model.subtitle}`.toUpperCase(), eventTextX, layout.subtitleY, layout.width - eventTextX - layout.margin - pageReservedWidth, 21 * layout.scale, theme.text, 650, 13);
   if ((options.pageCount ?? 1) > 1 && options.pageLabel) {
     context.textAlign = 'right';
     drawText(context, options.pageLabel.toUpperCase(), layout.width - layout.margin - 8, layout.subtitleY, layout.width * 0.2, 18 * layout.scale, theme.primary, 800, 12);
@@ -557,18 +559,21 @@ function drawPilotFeature(context: CanvasRenderingContext2D, model: GraphicModel
 
 async function drawPilotGraphic(context: CanvasRenderingContext2D, model: GraphicModel, format: GraphicFormat, theme: GraphicTheme, options: GraphicRenderOptions) {
   const layout = pilotLayout(format);
-  const [pilotTemplate, leagueLogo] = await Promise.all([
+  const meta = graphicEventMeta(model);
+  const [pilotTemplate, leagueLogo, raceVoraLogo, countryFlag] = await Promise.all([
     model.type === 'race_result' && format === 'portrait' ? loadSvgImage(resolveRaceResultPortraitTemplate(theme)) : Promise.resolve(null),
     loadOptionalImage(options.branding?.logoUrl),
+    loadOptionalImage(RACEVORA_FOOTER_LOGO_URL),
+    loadOptionalImage(countryFlagUrl(meta.countryCode)),
   ]);
   if (pilotTemplate) context.drawImage(pilotTemplate, 0, 0, layout.width, layout.height);
   else drawPilotBackdrop(context, layout, theme);
 
   context.textBaseline = 'middle';
-  drawPilotHeader(context, model, theme, options, layout, leagueLogo);
+  drawPilotHeader(context, model, theme, options, layout, leagueLogo, countryFlag);
   if (model.rows.length) drawPilotRows(context, model, theme, layout);
   else drawPilotFeature(context, model, theme, layout);
-  drawRaceVoraFooter(context, theme, layout);
+  drawRaceVoraFooter(context, theme, layout, raceVoraLogo);
   context.textAlign = 'left';
   context.textBaseline = 'alphabetic';
 }

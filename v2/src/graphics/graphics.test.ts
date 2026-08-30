@@ -10,7 +10,7 @@ const labels: GraphicLabels = {
 const workspace: GraphicsWorkspace = {
   league: { id: 'league-1', name: 'RaceVora Demo', slug: 'demo' },
   latest_result: {
-    id: 'result-v2', version: 2, race_id: 'race-1', race_name: 'Belgian Grand Prix', circuit: 'Spa-Francorchamps', race_date: '2026-08-20', round: 7,
+    id: 'result-v2', version: 2, race_id: 'race-1', race_name: 'Belgian Grand Prix', circuit: 'Spa-Francorchamps', country_code: 'BE', race_date: '2026-08-20', round: 7,
     rows: [
       { position: 1, driver: 'Alex Apex', team: 'Vora Racing', points: 25, status: 'classified', raceTime: '42:13,500', raceTimeMs: 2533500 },
       { position: 2, driver: 'Sam Slipstream', team: 'Vector Motorsport', points: 18, status: 'classified' },
@@ -49,6 +49,7 @@ describe('Social Graphics model', () => {
     expect(model.title).toBe('Canadian Grand Prix');
     expect(model.subtitle).toBe('Circuit Gilles Villeneuve');
     expect(model.rows[0]?.detail).toBe('42:13,500');
+    expect(model.source.result).toMatchObject({ country_code: 'BE' });
   });
 
   it('keeps standings global to the structured standings snapshot, without a result binding', () => {
