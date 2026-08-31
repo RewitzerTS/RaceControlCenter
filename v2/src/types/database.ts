@@ -1912,6 +1912,9 @@ export type Database = {
           created_at: string
           description: string | null
           end_date: string | null
+          fastest_lap_bonus_enabled: boolean
+          fastest_lap_bonus_max_finish_position: number
+          fastest_lap_bonus_points: number
           game_key: string
           game_label: string
           id: string
@@ -1928,6 +1931,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          fastest_lap_bonus_enabled?: boolean
+          fastest_lap_bonus_max_finish_position?: number
+          fastest_lap_bonus_points?: number
           game_key?: string
           game_label?: string
           id?: string
@@ -1944,6 +1950,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          fastest_lap_bonus_enabled?: boolean
+          fastest_lap_bonus_max_finish_position?: number
+          fastest_lap_bonus_points?: number
           game_key?: string
           game_label?: string
           id?: string
@@ -2786,8 +2795,24 @@ export type Database = {
         }
         Returns: Json
       }
+      start_league_season_with_rules_and_calendar: {
+        Args: {
+          p_assignments: Json
+          p_calendar: Json
+          p_fastest_lap_bonus_enabled: boolean
+          p_game_key: string
+          p_name: string
+          p_slug: string
+          p_start_date: string
+        }
+        Returns: Json
+      }
       configure_league_season_calendar: {
         Args: { p_calendar: Json; p_season_id: string }
+        Returns: Json
+      }
+      configure_league_season_rules_and_calendar: {
+        Args: { p_calendar: Json; p_fastest_lap_bonus_enabled: boolean; p_season_id: string }
         Returns: Json
       }
       submit_steward_appeal: {

@@ -4,9 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SeasonSetupPage, shuffledTracks } from './SeasonSetupPage';
 
 const loadSeasonSetupWorkspace = vi.fn();
+const leagueClient = vi.hoisted(() => ({}));
 
 vi.mock('../league/LeagueProvider', () => ({
-  useLeague: () => ({ client: {} }),
+  useLeague: () => ({ client: leagueClient }),
 }));
 
 vi.mock('./operations', async (importOriginal) => ({
@@ -37,6 +38,9 @@ describe('SeasonSetupPage', () => {
         game_label: 'F1 25',
         start_date: '2026-03-01',
         end_date: null,
+        fastest_lap_bonus_enabled: true,
+        fastest_lap_bonus_points: 1,
+        fastest_lap_bonus_max_finish_position: 10,
         calendar_can_configure: true,
         calendar: [
           { track_key: 'bahrain', date: '2026-03-01', time: '20:00', weather: 'klar', has_sprint: false },
@@ -67,6 +71,27 @@ describe('SeasonSetupPage', () => {
     expect((screen.getByLabelText('Strecke Rennen 1') as HTMLSelectElement).value).toBe('belgium');
     expect((screen.getByLabelText('Strecke Rennen 2') as HTMLSelectElement).value).toBe('bahrain');
     random.mockRestore();
+  });
+
+  it('offers exactly the requested weather modes and explains the fastest-lap rule', async () => {
+    render(<MemoryRouter><SeasonSetupPage /></MemoryRouter>);
+
+    await screen.findByRole('heading', { name: 'Rennkalender planen' });
+    const weather = screen.getByLabelText('Wettervorgabe') as HTMLSelectElement;
+    expect([...weather.options].map((option) => option.textContent)).toEqual(['Wechselhaft', 'Trocken', 'Regen']);
+    expect(screen.getByRole('radio', { name: /Ja, \+1 Punkt/ })).toBeChecked();
+    expect(screen.getByText(/schnellsten Runde und einer Platzierung von P10 oder besser/)).toBeTruthy();
+  });
+
+  it('includes the selected fastest-lap rule in the final review', async () => {
+    render(<MemoryRouter><SeasonSetupPage /></MemoryRouter>);
+
+    await screen.findByRole('heading', { name: 'Rennkalender planen' });
+    fireEvent.click(screen.getByRole('radio', { name: /^Nein/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kalender prüfen' }));
+
+    expect(await screen.findByRole('heading', { name: 'Kalender prüfen und speichern' })).toBeTruthy();
+    expect(screen.getByText('Kein Extra-Punkt')).toBeTruthy();
   });
 });
 

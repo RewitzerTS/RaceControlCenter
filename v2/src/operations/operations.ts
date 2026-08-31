@@ -135,6 +135,9 @@ export type ActiveSeasonSummary = {
   game_label: string;
   start_date: string | null;
   end_date: string | null;
+  fastest_lap_bonus_enabled: boolean;
+  fastest_lap_bonus_points: number;
+  fastest_lap_bonus_max_finish_position: number;
   calendar_can_configure: boolean;
   calendar: SeasonCalendarEntry[];
 };
@@ -272,7 +275,25 @@ export async function loadRaceAdminWorkspace(client: LeagueSupabaseClient): Prom
 export async function loadSeasonSetupWorkspace(client: LeagueSupabaseClient): Promise<SeasonSetupWorkspace> {
   const response = await client.rpc('get_season_setup_workspace');
   if (response.error) throw response.error;
-  return object(response.data) as unknown as SeasonSetupWorkspace;
+  const workspace = object(response.data) as unknown as SeasonSetupWorkspace;
+  if (!workspace.active_season?.id) return workspace;
+
+  const rules = await client
+    .from('seasons')
+    .select('fastest_lap_bonus_enabled,fastest_lap_bonus_points,fastest_lap_bonus_max_finish_position')
+    .eq('id', workspace.active_season.id)
+    .single();
+  if (rules.error) throw rules.error;
+
+  return {
+    ...workspace,
+    active_season: {
+      ...workspace.active_season,
+      fastest_lap_bonus_enabled: Boolean(rules.data.fastest_lap_bonus_enabled),
+      fastest_lap_bonus_points: Number(rules.data.fastest_lap_bonus_points ?? 1),
+      fastest_lap_bonus_max_finish_position: Number(rules.data.fastest_lap_bonus_max_finish_position ?? 10),
+    },
+  };
 }
 
 export async function startLeagueSeason(client: LeagueSupabaseClient, input: {
@@ -280,14 +301,16 @@ export async function startLeagueSeason(client: LeagueSupabaseClient, input: {
   slug: string;
   gameKey: string;
   startDate: string;
+  fastestLapBonusEnabled: boolean;
   assignments: SeasonPlayerAssignment[];
   calendar: SeasonCalendarEntry[];
 }): Promise<StartedSeason> {
-  const response = await client.rpc('start_league_season_with_calendar', {
+  const response = await client.rpc('start_league_season_with_rules_and_calendar', {
     p_name: input.name,
     p_slug: input.slug,
     p_game_key: input.gameKey,
     p_start_date: input.startDate,
+    p_fastest_lap_bonus_enabled: input.fastestLapBonusEnabled,
     p_assignments: input.assignments as unknown as Json,
     p_calendar: input.calendar as unknown as Json,
   });
@@ -299,10 +322,12 @@ export async function configureLeagueSeasonCalendar(
   client: LeagueSupabaseClient,
   seasonId: string,
   calendar: SeasonCalendarEntry[],
+  fastestLapBonusEnabled: boolean,
 ) {
-  const response = await client.rpc('configure_league_season_calendar', {
+  const response = await client.rpc('configure_league_season_rules_and_calendar', {
     p_season_id: seasonId,
     p_calendar: calendar as unknown as Json,
+    p_fastest_lap_bonus_enabled: fastestLapBonusEnabled,
   });
   if (response.error) throw response.error;
   return object(response.data);

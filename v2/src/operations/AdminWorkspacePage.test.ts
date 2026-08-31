@@ -10,7 +10,7 @@ const snapshot: AdminSnapshot = {
 
 function setup(calendar: SeasonCalendarEntry[]): SeasonSetupWorkspace {
   return {
-    active_season: { calendar, calendar_can_configure: true, end_date: null, game_key: 'f1_25', game_label: 'F1 25', id: 'season-1', name: 'Season 1', slug: 'season-1', start_date: null },
+    active_season: { calendar, calendar_can_configure: true, end_date: null, fastest_lap_bonus_enabled: false, fastest_lap_bonus_max_finish_position: 10, fastest_lap_bonus_points: 1, game_key: 'f1_25', game_label: 'F1 25', id: 'season-1', name: 'Season 1', slug: 'season-1', start_date: null },
     games: [],
     league: snapshot.league,
   };
