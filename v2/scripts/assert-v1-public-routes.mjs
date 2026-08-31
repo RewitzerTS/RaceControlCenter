@@ -87,11 +87,24 @@ for (const [page, marker] of [
   ['fahrer-wm', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1'],
 ]) {
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
-  if (!source.includes(marker) || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-2')) {
+  if (
+    !source.includes(marker)
+    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-3')
+  ) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }
   if (!source.includes('/v1-assets/js/supabase-client.js?v=v2-auth-session-1')) {
     throw new Error(`${page}.html must cache-bust the integrated browser-error client fix.`);
+  }
+}
+
+for (const page of ['fahrer-wm', 'team-wm']) {
+  const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
+  if (
+    !source.includes('/v1-assets/js/services/rcc-result-data-compat.js?v=v2-final-points-1')
+    || !source.includes('/v1-assets/js/pages/standings.js?v=v2-final-points-1')
+  ) {
+    throw new Error(`${page}.html must invalidate cached championship output.`);
   }
 }
 

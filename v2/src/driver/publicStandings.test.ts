@@ -80,4 +80,24 @@ describe('public championship data', () => {
     expect(standings.driverStandings[0]).toEqual(expect.objectContaining({ points: 26, fastestLaps: 1 }));
     expect(standings.teamStandings[0]).toEqual(expect.objectContaining({ points: 26 }));
   });
+
+  it('keeps final legacy points unchanged when the compatibility layer is active', () => {
+    const context: BrowserContext = { window: {} };
+    runBrowserScript('assets/js/services/rcc-data.js', context);
+    runBrowserScript('assets/js/services/rcc-result-data-compat.js', context);
+    const drivers = [
+      { id: 'driver-1', display_name: 'Winner', league_team: 'Mercedes', car_name: 'Mercedes W17' },
+      { id: 'driver-2', display_name: 'Teammate', league_team: 'Mercedes', car_name: 'Mercedes W17' },
+    ];
+    const races = [{ id: 'race-1', season_id: 'season-1', round_number: 1 }];
+    const raceResults = [
+      { race_id: 'race-1', driver_id: 'driver-1', finish_position: 1, points: 26, fastest_lap_time_ms: 80_000 },
+      { race_id: 'race-1', driver_id: 'driver-2', finish_position: 4, points: 12, fastest_lap_time_ms: 81_000 },
+    ];
+    const resolver = { resolveDriverSnapshot: (driverId: string) => drivers.find((driver) => driver.id === driverId) };
+
+    const standings = context.window.RCCData!.buildStandings({ drivers, races, raceResults, resolver });
+    expect(standings.driverStandings[0]).toEqual(expect.objectContaining({ points: 26, fastestLaps: 1 }));
+    expect(standings.teamStandings[0]).toEqual(expect.objectContaining({ teamName: 'Mercedes', points: 38 }));
+  });
 });

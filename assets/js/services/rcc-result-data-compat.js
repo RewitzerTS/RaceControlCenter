@@ -36,20 +36,13 @@
     return winnerId;
   }
 
-  function getAwardedRacePoints(row, fastestLapDriverId = null) {
-    const finalPoints = numeric(row?.awarded_points, null);
-    if (Number.isFinite(finalPoints)) return finalPoints;
-
-    const base = numeric(row?.points, numeric(row?.base_points, 0)) || 0;
-    const position = numeric(row?.finish_position, null);
-    const bonus = fastestLapDriverId
-      && row?.driver_id === fastestLapDriverId
-      && Number.isFinite(position)
-      && position >= 1
-      && position <= 10
-      ? 1
-      : 0;
-    return base + bonus;
+  function getAwardedRacePoints(row) {
+    // Every published points field is already final. Never derive another
+    // fastest-lap bonus while reading championship data.
+    return numeric(
+      row?.awarded_points,
+      numeric(row?.points, numeric(row?.base_points, 0))
+    ) || 0;
   }
 
   function rebuildStandings(args = {}) {

@@ -1,5 +1,5 @@
 
-const STANDINGS_VIEW_CACHE_KEY = 'rcc.standings.view.v1';
+const STANDINGS_VIEW_CACHE_KEY = 'rcc.standings.view.v2';
 
 function readStandingsCache(pageKey) {
   try {
