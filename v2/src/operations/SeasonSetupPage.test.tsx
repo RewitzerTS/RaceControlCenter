@@ -1,7 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { SeasonSetupPage } from './SeasonSetupPage';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { SeasonSetupPage, shuffledTracks } from './SeasonSetupPage';
 
 const loadSeasonSetupWorkspace = vi.fn();
 
@@ -15,6 +15,8 @@ vi.mock('./operations', async (importOriginal) => ({
 }));
 
 describe('SeasonSetupPage', () => {
+  afterEach(() => cleanup());
+
   beforeEach(() => {
     loadSeasonSetupWorkspace.mockResolvedValue({
       league: { id: 'league-1', name: 'Testliga', slug: 'testliga', status: 'active' },
@@ -44,17 +46,35 @@ describe('SeasonSetupPage', () => {
     });
   });
 
-  it('edits one selected race at a time while retaining the full calendar', async () => {
+  it('shows and edits the complete calendar in one table', async () => {
     render(<MemoryRouter><SeasonSetupPage /></MemoryRouter>);
 
     expect(await screen.findByRole('heading', { name: 'Rennkalender planen' })).toBeTruthy();
-    expect(screen.getAllByLabelText('Datum')).toHaveLength(1);
+    expect(screen.getByRole('table')).toBeTruthy();
+    expect(screen.getAllByLabelText(/Datum Rennen/)).toHaveLength(2);
+    expect((screen.getByLabelText('Strecke Rennen 2') as HTMLSelectElement).value).toBe('belgium');
+    expect(screen.queryByLabelText('Rennen auswählen')).toBeNull();
+  });
 
-    const roundSelect = screen.getByLabelText('Rennen auswählen');
-    expect(roundSelect.querySelectorAll('option')).toHaveLength(2);
-    fireEvent.change(roundSelect, { target: { value: '1' } });
+  it('can regenerate the tracks in a random order', async () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    render(<MemoryRouter><SeasonSetupPage /></MemoryRouter>);
 
-    expect((screen.getByLabelText('Strecke') as HTMLSelectElement).value).toBe('belgium');
-    expect(screen.getByText('Rennen 2 von 2')).toBeTruthy();
+    await screen.findByRole('heading', { name: 'Rennkalender planen' });
+    fireEvent.click(screen.getByRole('radio', { name: /Zufällige Reihenfolge/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kalender zufällig mischen' }));
+
+    expect((screen.getByLabelText('Strecke Rennen 1') as HTMLSelectElement).value).toBe('belgium');
+    expect((screen.getByLabelText('Strecke Rennen 2') as HTMLSelectElement).value).toBe('bahrain');
+    random.mockRestore();
+  });
+});
+
+describe('shuffledTracks', () => {
+  it('uses Fisher-Yates without mutating the preset order', () => {
+    const tracks = ['a', 'b', 'c'];
+
+    expect(shuffledTracks(tracks, () => 0)).toEqual(['b', 'c', 'a']);
+    expect(tracks).toEqual(['a', 'b', 'c']);
   });
 });

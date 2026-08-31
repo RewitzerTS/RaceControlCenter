@@ -2549,7 +2549,8 @@ body {
   gap: 0.85rem;
 }
 .season-calendar-controls select,
-.season-round-editor select {
+.season-round-editor select,
+.season-calendar-table select {
   width: 100%;
   min-height: 54px;
   padding: 0 0.85rem;
@@ -2566,9 +2567,36 @@ body {
 .season-calendar-weekdays label.is-selected { border-color: var(--brand-primary); color: var(--brand-text); background: color-mix(in srgb, var(--brand-primary) 16%, var(--surface)); }
 .season-calendar-weekdays input { position: absolute; width: 1px; min-height: 1px; opacity: 0; }
 .season-calendar-weekdays label > span { font-size: 0.82rem; letter-spacing: 0; text-transform: none; }
+.season-calendar-mode { margin: 0; padding: 0; border: 0; }
+.season-calendar-mode legend { margin-bottom: 0.65rem; color: var(--brand-text); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+.season-calendar-mode-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.season-calendar-mode-options > label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.8rem; min-height: 76px; padding: 0.85rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); cursor: pointer; }
+.season-calendar-mode-options > label.is-selected { border-color: var(--brand-primary); background: color-mix(in srgb, var(--brand-primary) 12%, var(--surface)); }
+.season-calendar-mode-options input { width: 18px; min-height: 18px; accent-color: var(--brand-primary); }
+.season-calendar-mode-options label > span { display: grid; gap: 0.2rem; letter-spacing: 0; text-transform: none; }
+.season-calendar-mode-options small { color: var(--muted); font-size: 0.78rem; font-weight: 500; line-height: 1.4; }
 .season-calendar-generate { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--brand-primary) 35%, var(--line)); border-radius: 16px; background: color-mix(in srgb, var(--brand-primary) 8%, transparent); }
 .season-calendar-generate p { margin: 0.25rem 0 0; font-size: 0.84rem; }
 .season-calendar-generate button { flex: 0 0 auto; cursor: pointer; }
+.season-calendar-table-section { display: grid; gap: 1rem; padding-block: 1rem; border-block: 1px solid var(--line); }
+.season-calendar-table-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+.season-calendar-table-heading p { margin: 0.25rem 0 0; color: var(--muted); font-size: 0.82rem; }
+.season-calendar-table-heading > span { flex: 0 0 auto; padding: 0.45rem 0.65rem; border: 1px solid color-mix(in srgb, var(--brand-primary) 45%, var(--line)); border-radius: 999px; color: var(--brand-primary); font-size: 0.72rem; font-weight: 800; }
+.season-calendar-table-wrap { width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--brand-background) 58%, transparent); }
+.season-calendar-table { width: 100%; min-width: 900px; border-collapse: collapse; }
+.season-calendar-table th,
+.season-calendar-table td { padding: 0.7rem 0.55rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
+.season-calendar-table thead th { color: var(--muted); font-size: 0.68rem; font-weight: 850; letter-spacing: 0.07em; text-transform: uppercase; }
+.season-calendar-table tbody tr:last-child > * { border-bottom: 0; }
+.season-calendar-table tbody th { width: 64px; color: var(--brand-primary); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.season-calendar-table td:nth-child(2) { min-width: 220px; }
+.season-calendar-table input,
+.season-calendar-table select { min-height: 44px; border-radius: 10px; }
+.season-calendar-table-sprint { display: flex !important; align-items: center !important; gap: 0.45rem !important; min-height: 44px; cursor: pointer; }
+.season-calendar-table-sprint input { width: 18px !important; min-height: 18px !important; accent-color: var(--brand-primary); }
+.season-calendar-table-sprint span { letter-spacing: 0 !important; text-transform: none !important; }
+.season-calendar-table-wrap:focus-visible,
+.season-calendar-mode-options > label:focus-within { outline: 2px solid var(--brand-primary); outline-offset: 2px; }
 .season-calendar-round { display: grid; place-items: center; align-self: center; width: 38px; height: 38px; border-radius: 12px; color: var(--brand-on-primary); background: var(--brand-primary); font-weight: 900; }
 .season-round-editor { display: grid; gap: 1rem; padding-block: 1rem; border-block: 1px solid var(--line); }
 .season-round-editor-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 0.75fr); align-items: end; gap: 1rem; }
@@ -2628,6 +2656,8 @@ body {
   .season-setup-steps li[aria-current="step"] { display: flex; font-size: 0.76rem; }
   .season-setup-steps li span { font-size: 0.72rem; }
   .season-calendar-generate { align-items: stretch; flex-direction: column; }
+  .season-calendar-mode-options { grid-template-columns: 1fr; }
+  .season-calendar-table-heading { align-items: start; flex-direction: column; }
   .season-round-editor-heading { grid-template-columns: 1fr; }
   .season-calendar-entry { grid-template-columns: 42px minmax(0, 1fr); align-items: start; }
   .season-calendar-entry > label { grid-column: 1 / -1; }

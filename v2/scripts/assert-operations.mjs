@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, resultImportPage, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest] = await Promise.all([
+const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, resultImportPage, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest, seasonSetupPage, leagueBrandingPage, brandingPermissions, brandingPermissionTest] = await Promise.all([
   'supabase/migrations/20260820184740_v2_admin_owner_notifications.sql',
   'supabase/migrations/20260821202014_v2_notification_vora_processors.sql',
   'supabase/migrations/20260822112925_v2_v1_admin_members_drivers.sql',
@@ -20,6 +20,10 @@ const [migration, processors, adminParity, completionMigration, seasonAuditFix, 
   'src/styles.css', 'supabase/tests/phase-17-19-operations.sql',
   'supabase/tests/phase-32-season-completion-guard.sql',
   'supabase/tests/phase-35-race-penalties-compatibility.sql',
+  'src/operations/SeasonSetupPage.tsx',
+  'src/operations/LeagueBrandingPage.tsx',
+  'supabase/migrations/20260831000504_fix_league_branding_save_permissions.sql',
+  'supabase/tests/phase-36-league-branding-write-access.sql',
 ].map((path) => readFile(resolve(root, path), 'utf8')));
 
 const violations = [];
@@ -81,6 +85,11 @@ if (!styles.includes('.app-shell .result-import-form input[type="file"]')
 for (const contract of ['rollback;', 'league admin entered global Owner Control', 'notification leaked to another user', 'audit history was mutable']) if (!test.includes(contract)) violations.push('missing SQL regression: ' + contract);
 for (const contract of ['begin;', 'season completion accepted an upcoming race', 'blocked season completion still archived the season', 'rollback;']) if (!seasonCompletionTest.includes(contract)) violations.push('missing season completion regression: ' + contract);
 for (const contract of ['begin;', 'race_penalties compatibility table is missing', 'anonymous race_penalties privileges are unsafe', 'policies do not enforce tenant, role, driver and case scope', 'rollback;']) if (!racePenaltyTest.includes(contract)) violations.push('missing race penalties compatibility regression: ' + contract);
+for (const contract of ['shuffledTracks', "generationMode === 'random'", 'Streckenreihenfolge', 'season-calendar-table', 'calendar.map((entry, index)']) if (!seasonSetupPage.includes(contract)) violations.push('missing calendar wizard table/random contract: ' + contract);
+for (const contract of ['.season-calendar-mode-options', '.season-calendar-table-wrap', 'overflow-x: auto', 'min-width: 900px']) if (!styles.includes(contract)) violations.push('missing calendar table responsive contract: ' + contract);
+for (const contract of ['normalizeBrandingUrl', 'inputMode="url"', 'Mit oder ohne https://']) if (!leagueBrandingPage.includes(contract)) violations.push('missing branding URL normalization contract: ' + contract);
+for (const contract of ['private.can_manage_league_brand_asset', "private.has_league_capability(l.id, 'league_admin')", 'security definer', 'for update', 'using (', 'with check (']) if (!brandingPermissions.includes(contract)) violations.push('missing branding write permission contract: ' + contract);
+for (const contract of ['begin;', 'branding upload authorization crossed the requested tenant', 'driver received league branding upload access', 'guarded branding RPC did not update the requested league', 'rollback;']) if (!brandingPermissionTest.includes(contract)) violations.push('missing league branding permission regression: ' + contract);
 
 if (violations.length) {
   console.error('V2 operations contract failed:\n' + violations.map((item) => '- ' + item).join('\n'));
