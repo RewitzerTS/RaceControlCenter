@@ -81,6 +81,7 @@ begin
 
   if authenticated_definer_rpcs <> array[
     'add_existing_league_member_by_email',
+    'assign_season_driver_ai',
     'add_steward_evidence',
     'cast_steward_vote',
     'complete_driver_onboarding',

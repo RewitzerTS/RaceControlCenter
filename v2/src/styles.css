@@ -937,6 +937,26 @@ h2 {
 .admin-driver-metrics { width: min(720px, 100%); grid-template-columns: repeat(3, 1fr); }
 .admin-driver-form { margin-bottom: 1.5rem; }
 .admin-driver-form .admin-panel-heading { margin-bottom: 0; }
+.admin-ai-assignment {
+  display: grid;
+  gap: 1rem;
+  margin: 1.25rem 0;
+  padding: 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--brand-primary) 42%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--brand-primary) 7%, var(--brand-surface));
+}
+.admin-ai-assignment legend { padding: 0 0.35rem; color: var(--brand-text); font-weight: 850; }
+.admin-ai-assignment > p { margin: 0; color: var(--brand-muted); }
+.admin-ai-assignment-history { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.admin-ai-assignment-history small {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--brand-muted);
+  background: var(--brand-surface);
+}
+.admin-ai-assignment .secondary-action { justify-self: start; }
 .row-inactive { opacity: 0.58; }
 .admin-view-tabs { display: flex; gap: 0.35rem; margin-top: 1.7rem; padding-bottom: 0.7rem; border-bottom: 1px solid var(--line); }
 .admin-view-tabs a { min-height: 44px; display: grid; place-items: center; padding: 0.55rem 1rem; border: 1px solid transparent; border-radius: 999px; color: var(--muted); font-weight: 800; text-decoration: none; }

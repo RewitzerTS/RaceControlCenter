@@ -2697,6 +2697,10 @@ export type Database = {
       get_demo_full_e2e_snapshot: { Args: never; Returns: Json }
       get_league_admin_workspace: { Args: never; Returns: Json }
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
+      assign_season_driver_ai: {
+        Args: { p_ai_driver_id: string; p_effective_from_round: number; p_human_driver_id: string }
+        Returns: Json
+      }
       get_league_member_admin_workspace: { Args: never; Returns: Json }
       get_my_league_join_requests: { Args: never; Returns: Json }
       get_league_race_admin_workspace: { Args: never; Returns: Json }

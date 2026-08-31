@@ -15,6 +15,7 @@ const drivers: LeagueDriver[] = [{
   league_team: 'Haas',
   car_name: 'F1 25',
   is_active: true,
+  ai_driver_reference: null,
   identity_linked: false,
   result_count: 0,
 }];

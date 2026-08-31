@@ -61,13 +61,38 @@ export type LeagueDriver = {
   league_team: string | null;
   car_name: string | null;
   is_active: boolean;
+  ai_driver_reference: string | null;
   identity_linked: boolean;
   result_count: number;
+};
+export type SeasonAiDriver = {
+  id: string;
+  display_name: string;
+  ai_driver_reference: string;
+  league_team: string | null;
+  car_name: string | null;
+  is_active: boolean;
+  assigned_human_id: string | null;
+  assigned_human_name: string | null;
+};
+export type SeasonAiAssignment = {
+  id: string;
+  human_driver_id: string;
+  human_driver_name: string;
+  ai_driver_id: string;
+  ai_driver_name: string;
+  seat_code: string;
+  effective_from_round: number;
+  effective_to_round: number | null;
+  is_current: boolean;
 };
 export type DriverAdminWorkspace = {
   league: OwnerLeague;
   counts: { total: number; active: number; linked: number };
   drivers: LeagueDriver[];
+  active_season: null | { id: string; name: string; next_round: number; max_round: number };
+  ai_drivers: SeasonAiDriver[];
+  ai_assignments: SeasonAiAssignment[];
 };
 export type LeagueSeason = { id: string; name: string; slug: string; is_active: boolean; game_label: string; start_date: string | null; end_date: string | null };
 export type LeagueRace = {
@@ -327,6 +352,21 @@ export async function upsertLeagueDriver(client: LeagueSupabaseClient, input: Le
     p_is_active: input.isActive,
   });
   if (response.error) throw response.error;
+}
+
+export async function assignSeasonDriverAi(
+  client: LeagueSupabaseClient,
+  humanDriverId: string,
+  aiDriverId: string,
+  effectiveFromRound: number,
+) {
+  const response = await client.rpc('assign_season_driver_ai', {
+    p_human_driver_id: humanDriverId,
+    p_ai_driver_id: aiDriverId,
+    p_effective_from_round: effectiveFromRound,
+  });
+  if (response.error) throw response.error;
+  return object(response.data);
 }
 
 function optionalText(value: Json | undefined): string {

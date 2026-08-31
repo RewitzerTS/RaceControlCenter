@@ -17,6 +17,7 @@ const sourceFiles = fs.readdirSync(path.join(root, 'src'), { recursive: true, wi
 const expectedProject = 'znnkwjogtvzwfkwnmawp.supabase.co';
 const authenticatedDefinerRpcAllowlist = [
   'add_existing_league_member_by_email',
+  'assign_season_driver_ai',
   'add_steward_evidence',
   'cast_steward_vote',
   'complete_driver_onboarding',

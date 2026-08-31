@@ -3,7 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, resultImportPage, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest, seasonSetupPage, leagueBrandingPage, brandingPermissions, brandingPermissionTest] = await Promise.all([
+const [migration, processors, adminParity, completionMigration, seasonAuditFix, seasonCalendar, seasonCompletionGuard, racePenaltyCompatibility, shell, roleProvider, admin, members, drivers, completionPages, resultImportPage, owner, notifications, styles, test, seasonCompletionTest, racePenaltyTest, seasonSetupPage, leagueBrandingPage, brandingPermissions, brandingPermissionTest, driverAttribution, driverAttributionTest] = await Promise.all([
   'supabase/migrations/20260820184740_v2_admin_owner_notifications.sql',
   'supabase/migrations/20260821202014_v2_notification_vora_processors.sql',
   'supabase/migrations/20260822112925_v2_v1_admin_members_drivers.sql',
@@ -24,6 +24,8 @@ const [migration, processors, adminParity, completionMigration, seasonAuditFix, 
   'src/operations/LeagueBrandingPage.tsx',
   'supabase/migrations/20260831000504_fix_league_branding_save_permissions.sql',
   'supabase/tests/phase-36-league-branding-write-access.sql',
+  'supabase/migrations/20260831074524_driver_ai_points_attribution.sql',
+  'supabase/tests/phase-37-driver-ai-points-attribution.sql',
 ].map((path) => readFile(resolve(root, path), 'utf8')));
 
 const violations = [];
@@ -58,7 +60,7 @@ if (admin.includes("t('admin.preview')") || admin.includes('to="/racing"')) viol
 if (resultImportPage.includes("copy('import.reason')") || resultImportPage.includes('reason.trim()')) violations.push('result import still asks for a redundant manual change reason');
 for (const contract of ["copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv')", 'result-import-race-row']) if (!resultImportPage.includes(contract)) violations.push('missing automatic result-import audit reason contract: ' + contract);
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);
-for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', "copy('drivers.create')", "copy('shared.edit')"]) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
+for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', 'assignSeasonDriverAi', "copy('drivers.create')", "copy('shared.edit')", "copy('drivers.aiAssignment')"]) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
 for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
 for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
@@ -90,6 +92,8 @@ for (const contract of ['.season-calendar-mode-options', '.season-calendar-table
 for (const contract of ['normalizeBrandingUrl', 'inputMode="url"', 'Mit oder ohne https://']) if (!leagueBrandingPage.includes(contract)) violations.push('missing branding URL normalization contract: ' + contract);
 for (const contract of ['private.can_manage_league_brand_asset', "private.has_league_capability(l.id, 'league_admin')", 'security definer', 'for update', 'using (', 'with check (']) if (!brandingPermissions.includes(contract)) violations.push('missing branding write permission contract: ' + contract);
 for (const contract of ['begin;', 'branding upload authorization crossed the requested tenant', 'driver received league branding upload access', 'guarded branding RPC did not update the requested league', 'rollback;']) if (!brandingPermissionTest.includes(contract)) violations.push('missing league branding permission regression: ' + contract);
+for (const contract of ['private.season_driver_ai_assignments', 'private.resolve_season_driver_attribution', 'public.assign_season_driver_ai', 'points_owner_driver_id', 'effective_from_round', 'driver.ai_assignment_changed']) if (!driverAttribution.includes(contract)) violations.push('missing effective-dated driver AI attribution contract: ' + contract);
+for (const contract of ['begin;', 'AI result did not retain BOT identity with human points ownership', 'mid-season change rewrote the previous AI points owner', 'former AI driver still routed points after the assignment ended', 'rollback;']) if (!driverAttributionTest.includes(contract)) violations.push('missing driver AI attribution regression: ' + contract);
 
 if (violations.length) {
   console.error('V2 operations contract failed:\n' + violations.map((item) => '- ' + item).join('\n'));
