@@ -533,7 +533,7 @@ async function warmDashboardCache(options = {}) {
   }
 }
 
-function buildStandings({ drivers, races, raceResults, resolver } = {}) {
+function buildStandings({ drivers, races, raceResults, resolver, eligibleDriverIds, includeZeroPointDrivers = false } = {}) {
   const raceIds = new Set((races || []).map((race) => race.id));
   const scopedResults = (raceResults || []).filter((row) => raceIds.has(row.race_id));
   const resultsByRace = groupBy(scopedResults, (row) => row.race_id);
@@ -613,8 +613,18 @@ function buildStandings({ drivers, races, raceResults, resolver } = {}) {
     }
   }
 
+  const eligibleDrivers = Array.isArray(eligibleDriverIds) && eligibleDriverIds.length
+    ? new Set(eligibleDriverIds.map((driverId) => String(driverId)))
+    : null;
   const driverStandings = [...driversMap.values()]
-    .filter((entry) => entry.points > 0 || entry.wins > 0 || entry.podiums > 0 || entry.fastestLaps > 0)
+    .filter((entry) => {
+      if (eligibleDrivers && !eligibleDrivers.has(String(entry.driverId))) return false;
+      return includeZeroPointDrivers
+        || entry.points > 0
+        || entry.wins > 0
+        || entry.podiums > 0
+        || entry.fastestLaps > 0;
+    })
     .sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.wins !== a.wins) return b.wins - a.wins;

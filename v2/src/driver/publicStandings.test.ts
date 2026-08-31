@@ -81,6 +81,29 @@ describe('public championship data', () => {
     expect(standings.teamStandings[0]).toEqual(expect.objectContaining({ points: 26 }));
   });
 
+  it('keeps every assigned season driver in the public table, including zero-point drivers', () => {
+    const context: BrowserContext = { window: {} };
+    runBrowserScript('assets/js/services/rcc-data.js', context);
+    const drivers = [
+      { id: 'driver-1', display_name: 'Points Leader', league_team: 'Mercedes', car_name: 'Mercedes W17', is_active: true },
+      { id: 'driver-2', display_name: 'Zero Points', league_team: 'Ferrari', car_name: 'Ferrari SF-26', is_active: true },
+      { id: 'historic-driver', display_name: 'Historic Driver', league_team: 'Williams', car_name: 'Williams FW48', is_active: false },
+    ];
+    const races = [{ id: 'race-1', season_id: 'season-1', round_number: 1 }];
+    const raceResults = [{ race_id: 'race-1', driver_id: 'driver-1', finish_position: 1, awarded_points: 25 }];
+
+    const standings = context.window.RCCData!.buildStandings({
+      drivers,
+      races,
+      raceResults,
+      eligibleDriverIds: ['driver-1', 'driver-2'],
+      includeZeroPointDrivers: true,
+    });
+
+    expect(standings.driverStandings.map((entry) => entry.driverName)).toEqual(['Points Leader', 'Zero Points']);
+    expect(standings.driverStandings[1]).toEqual(expect.objectContaining({ points: 0 }));
+  });
+
   it('keeps final legacy points unchanged when the compatibility layer is active', () => {
     const context: BrowserContext = { window: {} };
     runBrowserScript('assets/js/services/rcc-data.js', context);

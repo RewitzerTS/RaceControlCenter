@@ -210,12 +210,20 @@ async function loadStandingsPage() {
       races,
       assignments
     });
+    const assignedDriverIds = [...new Set(
+      (assignments || []).map((assignment) => assignment.driver_id).filter(Boolean)
+    )];
+    const eligibleDriverIds = assignedDriverIds.length
+      ? assignedDriverIds
+      : (drivers || []).filter((driver) => driver.is_active !== false).map((driver) => driver.id);
 
     const currentStandings = window.RCCData.buildStandings({
       drivers,
       races: completedRaces,
       raceResults,
-      resolver
+      resolver,
+      eligibleDriverIds,
+      includeZeroPointDrivers: true
     });
 
     const previousRaces = completedRaces.slice(0, -1);
@@ -224,7 +232,9 @@ async function loadStandingsPage() {
       drivers,
       races: previousRaces,
       raceResults,
-      resolver
+      resolver,
+      eligibleDriverIds,
+      includeZeroPointDrivers: true
     });
 
     const hasPreviousRace = previousRaces.length > 0;
