@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
-import { ResultImportPage } from './ResultImportPage';
+import { ResultImportPage, resultScoringRulesForRace } from './ResultImportPage';
 
 const loadRaceAdminWorkspace = vi.fn();
 const loadDriverAdminWorkspace = vi.fn();
@@ -51,5 +51,21 @@ describe('ResultImportPage', () => {
     expect(screen.getByRole('heading', { name: 'CSV-Datei auswählen' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Ergebnisbilder auswählen' })).toBeNull();
     expect(screen.getByRole('textbox', { name: 'CSV-Daten prüfen' })).toBeTruthy();
+  });
+
+  it('uses the selected race season rule for automatic points in every league', () => {
+    expect(resultScoringRulesForRace({
+      league: { id: 'league-1', name: 'Testliga', slug: 'testliga', status: 'active' },
+      scoring_points: [10, 6, 4],
+      seasons: [{ id: 'season-1', name: 'Saison', slug: 'saison', is_active: true, game_label: 'F1 25', start_date: null, end_date: null, fastest_lap_bonus_enabled: true, fastest_lap_bonus_points: 1, fastest_lap_bonus_max_finish_position: 10 }],
+      races: [{ id: 'race-1', season_id: 'season-1', season_name: 'Saison', round_number: 1, grand_prix_name: 'Test GP', circuit_name: null, country_code: null, race_date: null, race_start_at: null, status: 'upcoming', has_sprint: false, result_count: 0, result_version: null, result_status: null, result_activated_at: null }],
+      driver_standings: [],
+      team_standings: [],
+    }, 'race-1')).toEqual({
+      points: [10, 6, 4],
+      fastestLapBonusEnabled: true,
+      fastestLapBonusPoints: 1,
+      fastestLapBonusMaxFinishPosition: 10,
+    });
   });
 });

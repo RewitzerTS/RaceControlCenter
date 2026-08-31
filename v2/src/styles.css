@@ -1021,6 +1021,8 @@ h2 {
 .result-review-table select:focus { border-color: var(--brand-primary); outline: 2px solid color-mix(in srgb, var(--brand-primary) 28%, transparent); outline-offset: 1px; }
 .result-review-table input::placeholder { color: color-mix(in srgb, var(--text) 72%, transparent); }
 .result-review-table td > small { display: block; margin-top: 0.3rem; color: var(--muted); font-size: 0.65rem; line-height: 1.25; }
+.result-fastest-lap-badge { display: inline-flex; width: max-content; align-items: center; min-height: 24px; margin-top: 0.35rem; padding: 0.2rem 0.48rem; border: 1px solid color-mix(in srgb, var(--brand-accent) 55%, var(--line)); border-radius: 999px; background: color-mix(in srgb, var(--brand-accent) 12%, transparent); color: var(--brand-accent); font-size: 0.62rem; font-weight: 850; line-height: 1.15; white-space: nowrap; }
+.result-fastest-lap-copy { color: var(--brand-accent) !important; font-weight: 800; }
 .result-match-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 54px; min-height: 30px; padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.72rem; font-weight: 800; }
 .result-match-badge--high { background: rgba(72, 204, 145, 0.15); color: #8ce9b9; }
 .result-match-badge--medium { background: rgba(240, 187, 85, 0.15); color: #f4ce80; }

@@ -5,6 +5,7 @@ import { I18nProvider } from '../i18n/I18nProvider';
 import type { AiResultAnalysis } from './imageResultImport';
 import type { LeagueDriver } from './operations';
 import { buildResultReviewRows, ResultImportReviewTable, resultReviewRowsToImported } from './ResultImportReviewTable';
+import { fastestLapWinnerKey, scoreResultReviewRows } from './resultScoring';
 
 const drivers: LeagueDriver[] = [{
   id: 'driver-1',
@@ -51,7 +52,29 @@ describe('result import review table', () => {
       raceTime: '27:24,905',
       confidence: 0.97,
       teamName: 'Haas',
+      points: '25',
     });
+  });
+
+  it('calculates points globally and awards the configured fastest-lap bonus only through P10', () => {
+    const rows = [
+      { key: 'winner', finishPosition: '1', fastestLap: '1:47,000', points: '' },
+      { key: 'fastest', finishPosition: '2', fastestLap: '1:46,645', points: '' },
+      { key: 'outside-top-ten', finishPosition: '11', fastestLap: '1:45,000', points: '' },
+    ];
+    const rules = {
+      points: [25, 18, 15, 12, 10, 8, 6, 4, 2, 1],
+      fastestLapBonusEnabled: true,
+      fastestLapBonusPoints: 1,
+      fastestLapBonusMaxFinishPosition: 10,
+    };
+
+    expect(fastestLapWinnerKey(rows)).toBe('outside-top-ten');
+    expect(scoreResultReviewRows(rows, rules).map((row) => row.points)).toEqual(['25', '18', '0']);
+
+    const eligibleRows = rows.map((row) => row.key === 'outside-top-ten' ? { ...row, fastestLap: '1:48,000' } : row);
+    expect(fastestLapWinnerKey(eligibleRows)).toBe('fastest');
+    expect(scoreResultReviewRows(eligibleRows, rules).map((row) => row.points)).toEqual(['25', '19', '0']);
   });
 
   it('turns edited table values into a complete result draft row', () => {
@@ -72,9 +95,10 @@ describe('result import review table', () => {
     const rows = buildResultReviewRows(analysis, drivers);
     render(createElement(I18nProvider, null, createElement(ResultImportReviewTable, { drivers, onChange: vi.fn(), rows })));
 
-    expect(screen.getByText('Punkte fehlen')).toBeTruthy();
+    expect(screen.getByText('25 Pkt.')).toBeTruthy();
     expect(screen.getAllByText('Erkannt: Esteban OCON')).toHaveLength(2);
     expect(screen.getByLabelText('Punkte Mobil Zeile 1')).toBeTruthy();
     expect(screen.getByLabelText('Fahrer Mobil Zeile 1')).toBeTruthy();
+    expect(screen.getAllByText('Schnellste Runde')).toHaveLength(4);
   });
 });

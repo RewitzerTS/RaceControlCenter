@@ -1,4 +1,5 @@
 import type { Json } from '../types/database';
+import { scoringPointsFromLeagueSettings } from './resultScoring';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
 
@@ -94,7 +95,13 @@ export type DriverAdminWorkspace = {
   ai_drivers: SeasonAiDriver[];
   ai_assignments: SeasonAiAssignment[];
 };
-export type LeagueSeason = { id: string; name: string; slug: string; is_active: boolean; game_label: string; start_date: string | null; end_date: string | null };
+export type LeagueSeason = {
+  id: string; name: string; slug: string; is_active: boolean; game_label: string;
+  start_date: string | null; end_date: string | null;
+  fastest_lap_bonus_enabled?: boolean;
+  fastest_lap_bonus_points?: number;
+  fastest_lap_bonus_max_finish_position?: number;
+};
 export type LeagueRace = {
   id: string; season_id: string; season_name: string; round_number: number;
   grand_prix_name: string; circuit_name: string | null; country_code: string | null;
@@ -104,7 +111,7 @@ export type LeagueRace = {
 };
 export type DriverStanding = { driver_id: string; display_name: string; gamertag: string | null; points: number; wins: number; podiums: number; starts: number };
 export type TeamStanding = { team_name: string; points: number; wins: number; podiums: number };
-export type RaceAdminWorkspace = { league: OwnerLeague; seasons: LeagueSeason[]; races: LeagueRace[]; driver_standings: DriverStanding[]; team_standings: TeamStanding[] };
+export type RaceAdminWorkspace = { league: OwnerLeague; seasons: LeagueSeason[]; races: LeagueRace[]; driver_standings: DriverStanding[]; team_standings: TeamStanding[]; scoring_points?: number[] };
 export type SeasonRosterSeat = {
   seat_code: string;
   ai_driver_name: string;
@@ -257,15 +264,36 @@ export async function loadRaceAdminWorkspace(client: LeagueSupabaseClient): Prom
   const response = await client.rpc('get_league_race_admin_workspace');
   if (response.error) throw response.error;
   const workspace = object(response.data) as unknown as RaceAdminWorkspace;
+  const leagueSettings = await client.from('leagues').select('settings').eq('id', workspace.league.id).single();
+  if (leagueSettings.error) throw leagueSettings.error;
+  const seasonIds = workspace.seasons.map((season) => season.id);
+  const seasonRules = seasonIds.length
+    ? await client.from('seasons').select('id,fastest_lap_bonus_enabled,fastest_lap_bonus_points,fastest_lap_bonus_max_finish_position').in('id', seasonIds)
+    : { data: [], error: null };
+  if (seasonRules.error) throw seasonRules.error;
+  const rulesBySeason = new Map((seasonRules.data ?? []).map((season) => [season.id, season]));
+  const enrichedWorkspace: RaceAdminWorkspace = {
+    ...workspace,
+    scoring_points: scoringPointsFromLeagueSettings(leagueSettings.data.settings),
+    seasons: workspace.seasons.map((season) => {
+      const rules = rulesBySeason.get(season.id);
+      return {
+        ...season,
+        fastest_lap_bonus_enabled: Boolean(rules?.fastest_lap_bonus_enabled),
+        fastest_lap_bonus_points: Number(rules?.fastest_lap_bonus_points ?? 1),
+        fastest_lap_bonus_max_finish_position: Number(rules?.fastest_lap_bonus_max_finish_position ?? 10),
+      };
+    }),
+  };
   const raceIds = workspace.races.map((race) => race.id);
-  if (raceIds.length === 0) return workspace;
+  if (raceIds.length === 0) return enrichedWorkspace;
   const raceVersions = await client.from('races').select('id,current_result_version_id').in('id', raceIds);
   if (raceVersions.error) throw raceVersions.error;
   const versionByRace = new Map((raceVersions.data ?? []).map((race) => [race.id, race.current_result_version_id]));
   const revisions = await loadResultRevisions(client, [...versionByRace.values()]);
   return {
-    ...workspace,
-    races: workspace.races.map((race) => {
+    ...enrichedWorkspace,
+    races: enrichedWorkspace.races.map((race) => {
       const currentId = versionByRace.get(race.id) ?? null;
       return { ...race, current_result_version_id: currentId, result_revision: currentId ? revisions.get(currentId) ?? null : null };
     }),

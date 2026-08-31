@@ -19,6 +19,7 @@ describe('SeasonSetupPage', () => {
   afterEach(() => cleanup());
 
   beforeEach(() => {
+    Object.defineProperty(window, 'scrollTo', { configurable: true, value: vi.fn() });
     loadSeasonSetupWorkspace.mockResolvedValue({
       league: { id: 'league-1', name: 'Testliga', slug: 'testliga', status: 'active' },
       games: [{
@@ -83,6 +84,17 @@ describe('SeasonSetupPage', () => {
     expect(screen.getByText(/schnellsten Runde und einer Platzierung von P10 oder besser/)).toBeTruthy();
   });
 
+  it('updates the calendar table immediately when the race count changes', async () => {
+    render(<MemoryRouter><SeasonSetupPage /></MemoryRouter>);
+
+    await screen.findByRole('heading', { name: 'Rennkalender planen' });
+    fireEvent.change(screen.getByLabelText(/Anzahl Rennen/), { target: { value: '1' } });
+    expect(screen.getAllByLabelText(/Strecke Rennen/)).toHaveLength(1);
+
+    fireEvent.change(screen.getByLabelText(/Anzahl Rennen/), { target: { value: '2' } });
+    expect(screen.getAllByLabelText(/Strecke Rennen/)).toHaveLength(2);
+  });
+
   it('includes the selected fastest-lap rule in the final review', async () => {
     render(<MemoryRouter><SeasonSetupPage /></MemoryRouter>);
 
@@ -92,6 +104,7 @@ describe('SeasonSetupPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Kalender prüfen und speichern' })).toBeTruthy();
     expect(screen.getByText('Kein Extra-Punkt')).toBeTruthy();
+    expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'auto' });
   });
 });
 

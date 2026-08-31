@@ -2,6 +2,7 @@ import type { AiResultAnalysis, AiResultRow } from './imageResultImport';
 import type { ImportedResultRow, LeagueDriver } from './operations';
 import { operationsCopyFor, useOperationsCopy, type OperationsCopy } from './operationsCopy';
 import { parseFastestLapToMs } from './resultCsv';
+import { DEFAULT_RESULT_SCORING_RULES, fastestLapWinnerKey, scoreResultReviewRows, type ResultScoringRules } from './resultScoring';
 
 type MatchSource = 'driverName' | 'gamertag' | 'manual' | 'similar' | 'unassigned';
 
@@ -47,8 +48,8 @@ function toField(value: number | string | null | undefined): string {
   return value == null ? '' : String(value);
 }
 
-export function buildResultReviewRows(analysis: AiResultAnalysis, drivers: LeagueDriver[]): ResultReviewRow[] {
-  return analysis.rows
+export function buildResultReviewRows(analysis: AiResultAnalysis, drivers: LeagueDriver[], scoringRules: ResultScoringRules = DEFAULT_RESULT_SCORING_RULES): ResultReviewRow[] {
+  const rows = analysis.rows
     .filter((row) => row.driver.trim())
     .sort((left, right) => Number(left.position ?? 999) - Number(right.position ?? 999))
     .map((row: AiResultRow, index) => {
@@ -64,11 +65,12 @@ export function buildResultReviewRows(analysis: AiResultAnalysis, drivers: Leagu
         pitStops: toField(row.pit_stops ?? 0),
         fastestLap: row.fastest_lap?.trim() ?? '',
         raceTime: row.race_time?.trim() ?? '',
-        points: '',
+        points: '0',
         teamName: match?.driver.league_team?.trim() || row.team?.trim() || '',
         carName: match?.driver.car_name?.trim() || '',
       };
     });
+  return scoreResultReviewRows(rows, scoringRules);
 }
 
 function requireInteger(value: string, label: string, minimum: number, copy: OperationsCopy): number {
@@ -117,14 +119,19 @@ function confidencePresentation(row: ResultReviewRow) {
   return { confidence, confidenceLevel: confidence >= 85 ? 'high' : confidence >= 65 ? 'medium' : 'low' };
 }
 
-export function ResultImportReviewTable({ rows, drivers, onChange }: {
+export function ResultImportReviewTable({ rows, drivers, onChange, scoringRules = DEFAULT_RESULT_SCORING_RULES }: {
   rows: ResultReviewRow[];
   drivers: LeagueDriver[];
   onChange: (rows: ResultReviewRow[]) => void;
+  scoringRules?: ResultScoringRules;
 }) {
   const copy = useOperationsCopy();
+  const fastestLapKey = fastestLapWinnerKey(rows);
   const update = (key: string, patch: Partial<ResultReviewRow>) => {
-    onChange(rows.map((row) => row.key === key ? { ...row, ...patch } : row));
+    const updatedRows = rows.map((row) => row.key === key ? { ...row, ...patch } : row);
+    onChange(Object.hasOwn(patch, 'finishPosition') || Object.hasOwn(patch, 'fastestLap')
+      ? scoreResultReviewRows(updatedRows, scoringRules)
+      : updatedRows);
   };
   const selectDriver = (row: ResultReviewRow, driverId: string) => {
     const driver = drivers.find((candidate) => candidate.id === driverId);
@@ -147,21 +154,22 @@ export function ResultImportReviewTable({ rows, drivers, onChange }: {
         {rows.map((row, index) => {
           const { confidence, confidenceLevel } = confidencePresentation(row);
           const selectedDriver = drivers.find((driver) => driver.id === row.driverId);
+          const isFastestLap = row.key === fastestLapKey;
           return <details className={row.driverId && row.points.trim() ? 'result-review-mobile-row' : 'result-review-mobile-row result-review-mobile-row--attention'} key={row.key}>
             <summary>
               <span className="result-review-mobile-position">{row.finishPosition ? `P${row.finishPosition}` : 'P—'}</span>
-              <span className="result-review-mobile-driver"><strong>{selectedDriver?.display_name ?? row.rawDriver}</strong><small>{row.driverId ? copy('review.detected', { driver: row.rawDriver }) : copy('review.assignmentMissing')}</small></span>
+              <span className="result-review-mobile-driver"><strong>{selectedDriver?.display_name ?? row.rawDriver}</strong><small>{row.driverId ? copy('review.detected', { driver: row.rawDriver }) : copy('review.assignmentMissing')}</small>{isFastestLap && <span className="result-fastest-lap-badge">{copy('review.fastestLapWinner')}</span>}</span>
               <span className={`result-match-badge result-match-badge--${confidenceLevel}`}>{confidence}%</span>
               <span className={row.points.trim() ? 'result-review-mobile-points' : 'result-review-mobile-points result-review-mobile-points--missing'}>{row.points.trim() ? copy('review.pointsShort', { points: row.points }) : copy('review.pointsMissing')}</span>
             </summary>
             <div className="result-review-mobile-fields">
               <label><span>{copy('review.finishPosition')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.finishPosition'), row: index + 1 })} inputMode="numeric" min="1" onChange={(event) => update(row.key, { finishPosition: event.target.value })} type="number" value={row.finishPosition}/></label>
-              <label><span>{copy('review.points')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.points'), row: index + 1 })} inputMode="decimal" min="0" onChange={(event) => update(row.key, { points: event.target.value })} placeholder={copy('review.check')} step="0.5" type="number" value={row.points}/></label>
+              <label><span>{copy('review.points')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.points'), row: index + 1 })} inputMode="decimal" min="0" onChange={(event) => update(row.key, { points: event.target.value })} step="0.5" type="number" value={row.points}/><small>{copy('review.pointsAutomatic')}</small></label>
               <label className="result-review-mobile-field--wide"><span>{copy('review.leagueDriver')}</span><select aria-label={copy('review.mobileRowLabel', { field: copy('review.driver'), row: index + 1 })} onChange={(event) => selectDriver(row, event.target.value)} value={row.driverId}><option value="">{copy('review.assignDriver')}</option>{drivers.map((driver) => <option key={driver.id} value={driver.id}>{driver.display_name}{driver.gamertag ? ` · ${driver.gamertag}` : ''}{driver.is_active ? '' : ` · ${copy('review.inactive')}`}</option>)}</select><small>{copy('review.confidence', { confidence, source: copy(`review.${row.matchSource}`) })}</small></label>
               <label className="result-review-mobile-field--wide"><span>{copy('review.team')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.team'), row: index + 1 })} onChange={(event) => update(row.key, { teamName: event.target.value })} value={row.teamName}/></label>
               <label><span>{copy('review.startPosition')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.startPosition'), row: index + 1 })} inputMode="numeric" min="1" onChange={(event) => update(row.key, { gridPosition: event.target.value })} type="number" value={row.gridPosition}/></label>
               <label><span>{copy('review.stops')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.stops'), row: index + 1 })} inputMode="numeric" min="0" onChange={(event) => update(row.key, { pitStops: event.target.value })} type="number" value={row.pitStops}/></label>
-              <label><span>{copy('review.fastestLapFull')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.fastestLapFull'), row: index + 1 })} onChange={(event) => update(row.key, { fastestLap: event.target.value })} placeholder="1:23,456" value={row.fastestLap}/></label>
+              <label><span>{copy('review.fastestLapFull')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.fastestLapFull'), row: index + 1 })} onChange={(event) => update(row.key, { fastestLap: event.target.value })} placeholder="1:23,456" value={row.fastestLap}/>{isFastestLap && <small className="result-fastest-lap-copy">{copy('review.fastestLapWinner')}</small>}</label>
               <label><span>{copy('review.timeStatus')}</span><input aria-label={copy('review.mobileRowLabel', { field: copy('review.raceTimeStatus'), row: index + 1 })} onChange={(event) => update(row.key, { raceTime: event.target.value })} placeholder="+0:05,123 / DNF" value={row.raceTime}/></label>
             </div>
           </details>;
@@ -172,6 +180,7 @@ export function ResultImportReviewTable({ rows, drivers, onChange }: {
           <thead><tr><th>{copy('review.position')}</th><th>{copy('review.driver')}</th><th>{copy('review.match')}</th><th>{copy('review.team')}</th><th>{copy('review.grid')}</th><th>{copy('review.stops')}</th><th>{copy('review.fastestLap')}</th><th>{copy('review.timeStatus')}</th><th>{copy('review.points')}</th></tr></thead>
           <tbody>{rows.map((row, index) => {
             const { confidence, confidenceLevel } = confidencePresentation(row);
+            const isFastestLap = row.key === fastestLapKey;
             return <tr className={row.driverId ? '' : 'result-review-row--unmatched'} key={row.key}>
               <td><input aria-label={copy('review.rowLabel', { field: copy('review.finishPosition'), row: index + 1 })} inputMode="numeric" min="1" onChange={(event) => update(row.key, { finishPosition: event.target.value })} type="number" value={row.finishPosition}/></td>
               <td><select aria-label={copy('review.rowLabel', { field: copy('review.driver'), row: index + 1 })} onChange={(event) => selectDriver(row, event.target.value)} value={row.driverId}><option value="">{copy('review.assignDriver')}</option>{drivers.map((driver) => <option key={driver.id} value={driver.id}>{driver.display_name}{driver.gamertag ? ` · ${driver.gamertag}` : ''}{driver.is_active ? '' : ` · ${copy('review.inactive')}`}</option>)}</select><small>{copy('review.detected', { driver: row.rawDriver })}</small></td>
@@ -179,9 +188,9 @@ export function ResultImportReviewTable({ rows, drivers, onChange }: {
               <td><input aria-label={copy('review.rowLabel', { field: copy('review.team'), row: index + 1 })} onChange={(event) => update(row.key, { teamName: event.target.value })} value={row.teamName}/></td>
               <td><input aria-label={copy('review.rowLabel', { field: copy('review.startPosition'), row: index + 1 })} inputMode="numeric" min="1" onChange={(event) => update(row.key, { gridPosition: event.target.value })} type="number" value={row.gridPosition}/></td>
               <td><input aria-label={copy('review.rowLabel', { field: copy('review.stops'), row: index + 1 })} inputMode="numeric" min="0" onChange={(event) => update(row.key, { pitStops: event.target.value })} type="number" value={row.pitStops}/></td>
-              <td><input aria-label={copy('review.rowLabel', { field: copy('review.fastestLapFull'), row: index + 1 })} onChange={(event) => update(row.key, { fastestLap: event.target.value })} placeholder="1:23,456" value={row.fastestLap}/></td>
+              <td><input aria-label={copy('review.rowLabel', { field: copy('review.fastestLapFull'), row: index + 1 })} onChange={(event) => update(row.key, { fastestLap: event.target.value })} placeholder="1:23,456" value={row.fastestLap}/>{isFastestLap && <span className="result-fastest-lap-badge">{copy('review.fastestLapWinner')}</span>}</td>
               <td><input aria-label={copy('review.rowLabel', { field: copy('review.raceTimeStatus'), row: index + 1 })} onChange={(event) => update(row.key, { raceTime: event.target.value })} placeholder="+0:05,123 / DNF" value={row.raceTime}/></td>
-              <td><input aria-label={copy('review.rowLabel', { field: copy('review.points'), row: index + 1 })} inputMode="decimal" min="0" onChange={(event) => update(row.key, { points: event.target.value })} placeholder={copy('review.check')} step="0.5" type="number" value={row.points}/></td>
+              <td><input aria-label={copy('review.rowLabel', { field: copy('review.points'), row: index + 1 })} inputMode="decimal" min="0" onChange={(event) => update(row.key, { points: event.target.value })} step="0.5" type="number" value={row.points}/><small>{copy('review.pointsAutomatic')}</small></td>
             </tr>;
           })}</tbody>
         </table>

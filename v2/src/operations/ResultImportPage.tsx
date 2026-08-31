@@ -24,6 +24,18 @@ import {
 import { parseResultCsv } from './resultCsv';
 import { activeSeasonRaces } from './LeagueRacesPage';
 import { useOperationsCopy } from './operationsCopy';
+import { DEFAULT_RESULT_POINTS, type ResultScoringRules } from './resultScoring';
+
+export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, raceId: string): ResultScoringRules {
+  const race = workspace?.races.find((item) => item.id === raceId);
+  const season = workspace?.seasons.find((item) => item.id === race?.season_id);
+  return {
+    points: [...(workspace?.scoring_points?.length ? workspace.scoring_points : DEFAULT_RESULT_POINTS)],
+    fastestLapBonusEnabled: Boolean(season?.fastest_lap_bonus_enabled),
+    fastestLapBonusPoints: Number(season?.fastest_lap_bonus_points ?? 1),
+    fastestLapBonusMaxFinishPosition: Number(season?.fastest_lap_bonus_max_finish_position ?? 10),
+  };
+}
 
 export function ResultImportPage() {
   const { client, leagueSlug } = useLeague();
@@ -82,7 +94,7 @@ export function ResultImportPage() {
         drivers?.drivers ?? [],
         `R${race.round_number} · ${race.grand_prix_name}`,
       );
-      setReviewRows(buildResultReviewRows(analysis, drivers?.drivers ?? []));
+      setReviewRows(buildResultReviewRows(analysis, drivers?.drivers ?? [], resultScoringRulesForRace(races, raceId)));
       setWarnings(analysis.warnings);
       setMessage(copy('import.analysisDone', { count: analysis.rows.length }));
       setMessageTone('success');
@@ -136,11 +148,12 @@ export function ResultImportPage() {
 
   const saveReady = reviewRows.length ? reviewRowsReady(reviewRows) : importMethod === 'csv' && csv.trim().split(/\r?\n/).length > 1;
   const availableRaces = races ? activeSeasonRaces(races) : [];
+  const scoringRules = resultScoringRulesForRace(races, raceId);
   return <main className="operations-page admin-management-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">{copy('shared.scope', { league: leagueSlug })}</p><h1>{copy('import.title')}</h1><p>{copy('import.copy')}</p></div><NavLink className="text-link" to="/admin">{copy('shared.back')}</NavLink></header>
     <section className="admin-form result-import-form">
       <div className="admin-form-columns result-import-race-row">
-        <label><span>{copy('import.selectRace')}</span><select required value={raceId} onChange={(event) => setRaceId(event.target.value)}><option value="">{copy('import.chooseRace')}</option>{availableRaces.map((race) => <option key={race.id} value={race.id}>R{race.round_number} · {race.grand_prix_name}</option>)}</select></label>
+        <label><span>{copy('import.selectRace')}</span><select required value={raceId} onChange={(event) => { setRaceId(event.target.value); setReviewRows([]); setWarnings([]); }}><option value="">{copy('import.chooseRace')}</option>{availableRaces.map((race) => <option key={race.id} value={race.id}>R{race.round_number} · {race.grand_prix_name}</option>)}</select></label>
       </div>
       <fieldset className="result-import-source"><legend>{copy('import.method')}</legend><div><label className={importMethod === 'images' ? 'is-selected' : ''}><input checked={importMethod === 'images'} name="result-import-method" onChange={() => { setImportMethod('images'); setReviewRows([]); }} type="radio"/><span><strong>{copy('import.images')}</strong><small>{copy('import.imagesHint')}</small></span></label><label className={importMethod === 'csv' ? 'is-selected' : ''}><input checked={importMethod === 'csv'} name="result-import-method" onChange={() => { setImportMethod('csv'); setReviewRows([]); }} type="radio"/><span><strong>{copy('import.csv')}</strong><small>{copy('import.csvHint')}</small></span></label></div></fieldset>
       {importMethod === 'images'
@@ -149,7 +162,7 @@ export function ResultImportPage() {
       {message && <p className={messageTone === 'success' ? 'inline-success' : 'inline-error'} role="status">{message}</p>}
       {warnings.length > 0 && <aside className="ai-import-warnings"><strong>{copy('import.aiWarnings')}</strong><ul>{warnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul></aside>}
       {reviewRows.length > 0
-        ? <ResultImportReviewTable drivers={drivers?.drivers ?? []} onChange={setReviewRows} rows={reviewRows}/>
+        ? <ResultImportReviewTable drivers={drivers?.drivers ?? []} onChange={setReviewRows} rows={reviewRows} scoringRules={scoringRules}/>
         : importMethod === 'csv'
           ? <label><span>{copy('import.checkCsv')}</span><textarea aria-describedby="result-review-hint" aria-label={copy('import.checkCsv')} rows={12} value={csv} onChange={(event) => setCsv(event.target.value)}/><small id="result-review-hint">{copy('import.checkCsvHint')}</small></label>
           : <div className="result-import-waiting"><strong>{copy('import.waitingTitle')}</strong><p>{copy('import.waitingCopy')}</p></div>}
