@@ -89,7 +89,7 @@ for (const [page, marker] of [
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
   if (
     !source.includes(marker)
-    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-3')
+    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-4')
   ) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }

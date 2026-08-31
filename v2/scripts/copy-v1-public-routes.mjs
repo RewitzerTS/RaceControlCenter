@@ -81,7 +81,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')
     .replaceAll('/v1-assets/js/data/tracks.js', '/v1-assets/js/data/tracks.js?v=v2-local-flags-1')
     .replaceAll('/v1-assets/js/pages/track-hub.js', '/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')
-    .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-3')
+    .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-4')
     .replaceAll('/v1-assets/js/services/rcc-result-data-compat.js', '/v1-assets/js/services/rcc-result-data-compat.js?v=v2-final-points-1')
     .replaceAll('/v1-assets/js/services/rcc-driver-context.js', '/v1-assets/js/services/rcc-driver-context.js?v=v2-season-grid-1')
     .replaceAll('/v1-assets/js/services/rcc-grid-roster.js', '/v1-assets/js/services/rcc-grid-roster.js?v=v2-season-grid-1')

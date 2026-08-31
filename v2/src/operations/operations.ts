@@ -2,6 +2,7 @@ import type { Json } from '../types/database';
 import { scoringPointsFromLeagueSettings } from './resultScoring';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
+import { invalidatePublishedResultCaches, type PublishedResultReceipt } from './resultPublication';
 
 export type MetricCounts = {
   races?: number;
@@ -388,9 +389,19 @@ export async function createLeagueResultDraft(client: LeagueSupabaseClient, race
   if (response.error) throw response.error;
 }
 
-export async function publishLeagueResultDraft(client: LeagueSupabaseClient, versionId: string) {
+export async function publishLeagueResultDraft(
+  client: LeagueSupabaseClient,
+  versionId: string,
+  leagueSlug: string,
+): Promise<PublishedResultReceipt> {
   const response = await client.rpc('publish_league_result_draft', { p_result_version_id: versionId });
   if (response.error) throw response.error;
+  const receipt = object(response.data) as unknown as PublishedResultReceipt;
+  if (receipt.id !== versionId || !receipt.race_id || receipt.status !== 'active') {
+    throw new Error('Die Ergebnisfreigabe wurde nicht vollständig bestätigt. Bitte lade den Entwurf neu.');
+  }
+  invalidatePublishedResultCaches(leagueSlug);
+  return receipt;
 }
 
 export async function upsertLeagueDriver(client: LeagueSupabaseClient, input: LeagueDriverInput) {
