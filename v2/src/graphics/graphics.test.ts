@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
-import { GRAPHIC_DIMENSIONS, mixGraphicColors, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
+import { GRAPHIC_DIMENSIONS, mixGraphicColors, resolvePilotRowTextSizes, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
 
 const labels: GraphicLabels = {
   raceResult: 'Race Result', podium: 'Podium', winner: 'Winner', driverStandings: 'Driver Standings', teamStandings: 'Team Standings', achievement: 'Achievement',
@@ -24,6 +24,17 @@ const workspace: GraphicsWorkspace = {
 };
 
 describe('Social Graphics model', () => {
+  it('renders race times at the same metric size as points in every format', () => {
+    [0.94, 1, 1.02, 1.16].forEach((scale) => {
+      const raceResult = resolvePilotRowTextSizes(48, scale, false, true);
+      const standings = resolvePilotRowTextSizes(48, scale, false, false);
+
+      expect(raceResult.detail).toBe(raceResult.value);
+      expect(raceResult.detail).toBeGreaterThan(raceResult.secondary);
+      expect(standings.detail).toBe(standings.secondary);
+    });
+  });
+
   it('binds result graphics to the exact official result version', () => {
     const model = buildGraphicModel(workspace, 'podium', labels);
     expect(model.resultVersionId).toBe('result-v2');

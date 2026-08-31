@@ -57,6 +57,18 @@ export function mixGraphicColors(base: string, overlay: string, overlayWeight: n
   return `#${first.map((value, index) => channel(value * (1 - weight) + second[index] * weight)).join('')}`;
 }
 
+export function resolvePilotRowTextSizes(rowHeight: number, scale: number, isPodium: boolean, isRaceResult: boolean) {
+  const primary = Math.min(isPodium ? 31 : 25, rowHeight * 0.42) * scale;
+  const secondary = Math.min(isPodium ? 22 : 19, rowHeight * 0.3) * scale;
+  const metric = 22 * scale;
+  return {
+    primary,
+    secondary,
+    detail: isRaceResult ? metric : secondary,
+    value: metric,
+  };
+}
+
 function themeColor(style: CSSStyleDeclaration, property: string, fallback: string): string {
   const value = style.getPropertyValue(property).trim();
   return HEX_COLOR.test(value) ? value.toUpperCase() : fallback;
@@ -519,19 +531,18 @@ function drawPilotRows(context: CanvasRenderingContext2D, model: GraphicModel, t
     context.fill();
     context.restore();
 
-    const primarySize = Math.min(isPodium ? 31 : 25, rowHeight * 0.42) * layout.scale;
-    const secondarySize = Math.min(isPodium ? 22 : 19, rowHeight * 0.3) * layout.scale;
+    const rowText = resolvePilotRowTextSizes(rowHeight, layout.scale, isPodium, isRaceResult);
     context.textAlign = 'center';
     drawText(context, row.rank.replace(/^0/, ''), layout.margin + rankWidth * 0.44, centerY, rankWidth * 0.62, Math.min(32 * layout.scale, rowHeight * 0.52), podium ? theme.onPrimary : theme.text, 900, 14);
     context.textAlign = 'left';
-    drawText(context, row.primary.toUpperCase(), driverLeft, centerY, Math.max(90, (isStandings ? detailLeft : teamLeft) - driverLeft - 20), primarySize, theme.text, 800, 13);
-    if (!isStandings) drawText(context, row.secondary.toUpperCase(), teamLeft + 28 * layout.scale, centerY, Math.max(80, (isRaceResult ? detailLeft : valueLeft) - teamLeft - 48), secondarySize, theme.text, 550, 11);
+    drawText(context, row.primary.toUpperCase(), driverLeft, centerY, Math.max(90, (isStandings ? detailLeft : teamLeft) - driverLeft - 20), rowText.primary, theme.text, 800, 13);
+    if (!isStandings) drawText(context, row.secondary.toUpperCase(), teamLeft + 28 * layout.scale, centerY, Math.max(80, (isRaceResult ? detailLeft : valueLeft) - teamLeft - 48), rowText.secondary, theme.text, 550, 11);
     if (isRaceResult || isStandings) {
       context.textAlign = 'right';
-      drawText(context, isRaceResult ? row.detail ?? '—' : row.secondary.toUpperCase(), detailRight, centerY, detailWidth - 34 * layout.scale, secondarySize, isRaceResult ? theme.text : theme.muted, 650, 11);
+      drawText(context, isRaceResult ? row.detail ?? '—' : row.secondary.toUpperCase(), detailRight, centerY, detailWidth - 34 * layout.scale, rowText.detail, isRaceResult ? theme.text : theme.muted, 650, 11);
     }
     context.textAlign = 'right';
-    drawText(context, row.value, valueRight, centerY, valueWidth - 30 * layout.scale, 22 * layout.scale, theme.primary, 850, 12);
+    drawText(context, row.value, valueRight, centerY, valueWidth - 30 * layout.scale, rowText.value, theme.primary, 850, 12);
   });
   context.textAlign = 'left';
 }
