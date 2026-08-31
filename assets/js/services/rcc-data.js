@@ -215,10 +215,10 @@ function getFastestLapDriverId(rows = []) {
   return winner;
 }
 
-function getAwardedRacePoints(row, fastestLapDriverId = null) {
-  const base = safeNumber(row?.points ?? row?.awarded_points, 0);
-  const bonus = fastestLapDriverId && row?.driver_id === fastestLapDriverId && isTopTen(row?.finish_position) ? 1 : 0;
-  return base + bonus;
+function getAwardedRacePoints(row) {
+  // Published result points are authoritative and already include every bonus.
+  // Fastest-lap times are used only for the statistic and tie-break metadata.
+  return safeNumber(row?.awarded_points ?? row?.points, 0);
 }
 
 function groupBy(items, keyFn) {
@@ -584,7 +584,7 @@ function buildStandings({ drivers, races, raceResults, resolver } = {}) {
     if (!driverEntry) continue;
     const position = safeNumber(row.finish_position, null);
     const hasFastestLap = fastestLapWinnerByRace.get(row.race_id) === sourceDriverId;
-    const points = getAwardedRacePoints(row, fastestLapWinnerByRace.get(row.race_id));
+    const points = getAwardedRacePoints(row);
 
     driverEntry.points += points;
     driverEntry.leagueTeam = row.points_team_name || snapshot.league_team || driverEntry.leagueTeam;

@@ -76,6 +76,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const [height, setHeight] = useState(760);
+  const [readySource, setReadySource] = useState('');
   const source = useMemo(() => legacyLeagueSource(page, search, leagueSlug), [leagueSlug, page, search]);
 
   useEffect(() => () => cleanupRef.current?.(), []);
@@ -138,6 +139,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
       window.removeEventListener('racevora:theme-changed', syncTheme);
     };
     frameRef.current = frame;
+    setReadySource(source);
   };
 
   return (
@@ -147,7 +149,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
         onLoad={prepareFrame}
         ref={frameRef}
         src={source}
-        style={{ height }}
+        style={{ height, visibility: readySource === source ? 'visible' : 'hidden' }}
         title={title}
       />
     </div>
