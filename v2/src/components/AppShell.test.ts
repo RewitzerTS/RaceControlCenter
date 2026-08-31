@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isMobileMoreRoute, LEGAL_FOOTER_LINKS, MOBILE_PRIMARY_NAV_ITEMS, shouldUseLeagueBrandLogo } from './AppShell';
+import { isMobileMoreRoute, LEGAL_FOOTER_LINKS, MOBILE_PRIMARY_NAV_ITEMS, shouldShowLeagueSwitcher, shouldUseLeagueBrandLogo } from './AppShell';
 
 describe('mobile app navigation', () => {
   it('keeps exactly the three direct destinations before More', () => {
@@ -35,5 +35,10 @@ describe('mobile app navigation', () => {
     expect(shouldUseLeagueBrandLogo(brokenLogo, brokenLogo)).toBe(false);
     expect(shouldUseLeagueBrandLogo(replacementLogo, brokenLogo)).toBe(true);
     expect(shouldUseLeagueBrandLogo('   ', null)).toBe(false);
+  });
+
+  it('keeps the league switcher available for every signed-in account', () => {
+    expect(shouldShowLeagueSwitcher('signed-in-user')).toBe(true);
+    expect(shouldShowLeagueSwitcher(null)).toBe(false);
   });
 });

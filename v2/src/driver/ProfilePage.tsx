@@ -3,13 +3,16 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
+import { LeagueSwitcher } from '../league/LeagueSwitcher';
 import { THEME_PRESETS } from '../league/leagueBranding';
+import { useRole } from '../roles/RoleProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 
 export function ProfilePage() {
   const { loading: authLoading, signOut, updateDisplayName, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
+  const { role } = useRole();
   const { plural, t } = useI18n();
   const [displayName, setDisplayName] = useState('');
   const [saving, setSaving] = useState(false);
@@ -111,6 +114,10 @@ export function ProfilePage() {
           <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
         </aside>
         <article className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{t('profile.createLeague')}</h2><p>{t('profile.createLeagueCopy')}</p></div><div className="profile-league-actions"><NavLink className="text-action" to="/onboarding">{t('onboarding.leagueStep')}</NavLink><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink></div></article>
+        <article className="profile-create-league profile-active-league">
+          <div><p className="section-label">RaceVora</p><h2>{t('leagueSwitcher.active')}</h2><p>{t('leagueSwitcher.change')}</p></div>
+          <LeagueSwitcher isPlatformOwner={role === 'platform_owner'} userId={user.id} />
+        </article>
         <article className="profile-join-requests">
           <header><p className="section-label">{t('joinRequests.kicker')}</p><h2>{t('joinRequests.title')}</h2><p>{t('joinRequests.intro')}</p></header>
           <LeagueJoinRequestStatusList />

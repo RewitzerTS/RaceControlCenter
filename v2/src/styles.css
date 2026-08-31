@@ -2830,6 +2830,17 @@ p { color: var(--muted); }
 .main-navigation .account-action { width: 46px; padding: 0; }
 .main-navigation .account-action span { display: none; }
 .navigation-league-switcher { min-width: 0; }
+
+.profile-active-league .league-switcher {
+  width: min(100%, 320px);
+  max-width: 320px;
+  flex-basis: auto;
+}
+
+.profile-active-league .league-switcher__trigger,
+.profile-active-league .league-switcher--static {
+  min-height: 58px;
+}
 .menu-sign-out { font: inherit; cursor: pointer; }
 .menu-sign-out:disabled { cursor: wait; opacity: 0.58; }
 .header-session-error {

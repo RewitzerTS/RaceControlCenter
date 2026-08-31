@@ -69,6 +69,10 @@ export function shouldUseLeagueBrandLogo(logoUrl: string, failedLogoUrl: string 
   return normalizedLogoUrl.length > 0 && normalizedLogoUrl !== failedLogoUrl;
 }
 
+export function shouldShowLeagueSwitcher(userId: string | null | undefined): boolean {
+  return Boolean(userId);
+}
+
 function BrandLogo({ logoUrl }: { logoUrl: string }) {
   const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
   const useLeagueLogo = shouldUseLeagueBrandLogo(logoUrl, failedLogoUrl);
@@ -287,7 +291,7 @@ function MobileMoreNavigation({
         {canOwner && <NavLink onClick={onNavigate} className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
       </div>
       <div className="mobile-more-tools">
-        {userId && hasLeagueAccess && <div className="mobile-more-league-switcher"><LeagueSwitcher isPlatformOwner={isPlatformOwner} onSwitch={onNavigate} userId={userId} /></div>}
+        {userId && shouldShowLeagueSwitcher(userId) && <div className="mobile-more-league-switcher"><LeagueSwitcher isPlatformOwner={isPlatformOwner} onSwitch={onNavigate} userId={userId} /></div>}
         <NavLink className={({ isActive }) => isActive ? 'nav-item nav-item--active' : 'nav-item'} onClick={onNavigate} to="/profile"><NavIcon name="profile" /><span>{t('nav.profile')}</span></NavLink>
         <LanguageControl />
         {userId
@@ -430,7 +434,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
             {canOwner && <NavLink onClick={closeNavigation} className={({ isActive }) => isActive ? 'nav-item nav-item--active operations-nav-item' : 'nav-item operations-nav-item'} to="/owner"><NavIcon name="owner" /><span>{t('nav.owner')}</span></NavLink>}
           </div>
           <div className="header-tools">
-            {user && hasLeagueAccess && <div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner={role === 'platform_owner'} onSwitch={closeNavigation} userId={user.id} /></div>}
+            {user && shouldShowLeagueSwitcher(user.id) && <div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner={role === 'platform_owner'} onSwitch={closeNavigation} userId={user.id} /></div>}
             {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : user && !role ? t('leagueSwitcher.none') : roleLabel(role, t)}</span>
             <NavLink
