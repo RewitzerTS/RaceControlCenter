@@ -14,7 +14,7 @@ const workspace: GraphicsWorkspace = {
     rows: [
       { position: 1, driver: 'Alex Apex', team: 'Vora Racing', points: 25, status: 'classified', raceTime: '42:13,500', raceTimeMs: 2533500 },
       { position: 2, driver: 'Sam Slipstream', team: 'Vector Motorsport', points: 18, status: 'classified', raceTimeMs: 2606494 },
-      { position: 3, driver: 'Jordan Grid', team: 'Vora Racing', points: 15, status: 'DNF' },
+      { position: 3, driver: 'Jordan Grid', team: 'Vora Racing', points: 15, status: 'classified', raceTime: 'DNF' },
     ],
   },
   driver_standings: [{ position: 1, driver: 'Alex Apex', points: 88, wins: 3 }],

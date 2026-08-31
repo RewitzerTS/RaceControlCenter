@@ -197,9 +197,22 @@ export function formatRaceGap(milliseconds: number) {
   return `+${String(totalMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(millisecondRemainder).padStart(3, '0')}`;
 }
 
+const RACE_STATUS_CODES = new Set(['DNF', 'DNS', 'DSQ', 'DNQ', 'RET']);
+
+function raceStatusLabel(value: string | null | undefined): string | null {
+  const normalized = value?.trim().toUpperCase();
+  return normalized && RACE_STATUS_CODES.has(normalized) ? normalized : null;
+}
+
 function raceResultTime(row: ResultRow, winnerTimeMs: number | null) {
   const status = row.status.trim().toUpperCase();
   const recordedTime = row.raceTime?.trim();
+  const recordedStatus = raceStatusLabel(recordedTime);
+
+  // The import review combines race time and classification in one field. Older
+  // result versions can therefore contain race_time = DNF while the canonical
+  // classification status still carries its historic default "classified".
+  if (recordedStatus) return recordedStatus;
 
   if (row.position === 1) {
     return recordedTime || (status === 'CLASSIFIED' ? '—' : status);
