@@ -65,6 +65,7 @@ function requireGate(condition, label) {
 requireGate(/sourcemap:\s*false/.test(vite), 'production source maps are disabled');
 requireGate(!headers.includes('*.supabase.co'), 'CSP has no wildcard Supabase destination');
 requireGate(headers.includes(`https://${expectedProject}`) && headers.includes(`wss://${expectedProject}`), 'CSP is pinned to V2 Staging Supabase');
+requireGate(headers.includes(`img-src 'self' data: https://${expectedProject}`), 'CSP permits public league-brand images from the pinned Supabase project');
 requireGate(headers.includes("script-src 'self' https://challenges.cloudflare.com") && headers.includes("frame-src 'self' https://challenges.cloudflare.com"), 'CSP permits only same-origin access views and the canonical Turnstile frame');
 requireGate(headers.includes("object-src 'none'"), 'CSP blocks plugin objects');
 requireGate(headers.includes("frame-ancestors 'self'"), 'CSP limits framing to the same RaceVora origin');

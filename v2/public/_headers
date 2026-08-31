@@ -7,7 +7,7 @@
   Permissions-Policy: camera=(), geolocation=(), microphone=()
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://znnkwjogtvzwfkwnmawp.supabase.co wss://znnkwjogtvzwfkwnmawp.supabase.co; img-src 'self' data:; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://znnkwjogtvzwfkwnmawp.supabase.co wss://znnkwjogtvzwfkwnmawp.supabase.co; img-src 'self' data: https://znnkwjogtvzwfkwnmawp.supabase.co; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

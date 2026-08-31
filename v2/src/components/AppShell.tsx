@@ -64,6 +64,28 @@ export const LEGAL_FOOTER_LINKS: ReadonlyArray<{ href: string; key: MessageKey }
   { href: '/widerruf.html', key: 'footer.withdrawal' },
 ];
 
+export function shouldUseLeagueBrandLogo(logoUrl: string, failedLogoUrl: string | null): boolean {
+  const normalizedLogoUrl = logoUrl.trim();
+  return normalizedLogoUrl.length > 0 && normalizedLogoUrl !== failedLogoUrl;
+}
+
+function BrandLogo({ logoUrl }: { logoUrl: string }) {
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
+  const useLeagueLogo = shouldUseLeagueBrandLogo(logoUrl, failedLogoUrl);
+  const source = useLeagueLogo ? logoUrl.trim() : raceVoraMark;
+
+  return (
+    <img
+      alt=""
+      className="brand-logo"
+      onError={() => {
+        if (useLeagueLogo) setFailedLogoUrl(source);
+      }}
+      src={source}
+    />
+  );
+}
+
 export function isMobileMoreRoute(pathname: string): boolean {
   return ['/vora', '/stewarding', '/admin', '/owner', '/notifications', '/profile', '/leagues']
     .some((path) => pathname === path || pathname.startsWith(`${path}/`));
@@ -371,7 +393,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       {!embeddedAccess && <header className="site-header">
         <div className="header-inner container">
         <NavLink className="brand" to="/home" onClick={closeNavigation}>
-          <img className="brand-logo" src={displayBranding.logoUrl || raceVoraMark} alt="" />
+          <BrandLogo logoUrl={displayBranding.logoUrl} />
           <span className="brand-text">
             <strong className="brand-title">{displayBranding.name || 'RaceVora'}</strong>
             <small className="brand-subtitle">{displayBranding.subtitle || 'Race Management Platform'}</small>
