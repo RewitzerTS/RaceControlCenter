@@ -4,6 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const migration = fs.readFileSync(path.join(root, 'supabase/migrations/20260820192437_v2_social_graphics.sql'), 'utf8');
 const landscapeMigration = fs.readFileSync(path.join(root, 'supabase/migrations/20260830093000_add_landscape_social_graphics.sql'), 'utf8');
+const resultAttributionMigration = fs.readFileSync(path.join(root, 'supabase/migrations/20260901031500_add_social_graphics_result_rpc.sql'), 'utf8');
 const page = fs.readFileSync(path.join(root, 'src/graphics/GraphicsStudioPage.tsx'), 'utf8');
 const graphics = fs.readFileSync(path.join(root, 'src/graphics/graphics.ts'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'src/graphics/renderPng.ts'), 'utf8');
@@ -22,7 +23,8 @@ const requirements = [
   [migration.includes("where flag_key = 'graphics_enabled'"), 'server feature flag'],
   [page.includes('renderGraphicPng') && page.includes('recordGraphicRender') && !page.includes("t('graphics.copy')"), 'compact PNG render and manifest flow'],
   [page.includes('graphicPages.map') && page.includes('graphics-page-navigation'), 'multi-page preview and export flow'],
-  [page.includes('graphics-race-picker') && page.includes('selectedResultVersionId') && graphics.includes('loadGraphicsResultOptions') && graphics.includes('loadGraphicsResult') && graphics.includes("eq('status', 'active')"), 'official race selection for result-bound graphics'],
+  [page.includes('graphics-race-picker') && page.includes('selectedResultVersionId') && graphics.includes('loadGraphicsResultOptions') && graphics.includes('loadGraphicsResult') && resultAttributionMigration.includes("result_version.status = 'active'"), 'official race selection for result-bound graphics'],
+  [graphics.includes("rpc('get_social_graphics_result'") && resultAttributionMigration.includes('private.resolve_season_driver_attribution') && resultAttributionMigration.includes("private.has_league_capability(target_league.id, 'league_admin')"), 'round-aware driver attribution for every league'],
   [page.includes('graphicBranding') && page.includes('branding: graphicBranding'), 'league-specific graphic header binding'],
   [graphics.includes("['square', 'portrait', 'story', 'landscape']"), 'landscape format selection'],
   [graphics.includes('paginateGraphicModel') && !graphics.includes("slice(0, 8)"), 'complete balanced race-result pagination'],

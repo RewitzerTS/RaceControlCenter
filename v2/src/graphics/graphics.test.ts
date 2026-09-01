@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicArchiveFilename, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
+import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicArchiveFilename, graphicFilename, loadGraphicsResult, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
 import { createGraphicZip } from './downloadGraphics';
 import { GRAPHIC_DIMENSIONS, leagueInitials, leagueWatermarkOpacity, mixGraphicColors, resolvePilotRowTextSizes, resolvePilotTableFrame, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
 
@@ -78,6 +78,21 @@ describe('Social Graphics model', () => {
     expect(model.rows[1]?.detail).toBe('+01:12.994');
     expect(model.rows[2]?.detail).toBe('DNF');
     expect(model.source.result).toMatchObject({ country_code: 'BE' });
+  });
+
+  it('loads selected results through the round-aware league RPC', async () => {
+    const calls: unknown[] = [];
+    const client = {
+      rpc: async (...args: unknown[]) => {
+        calls.push(args);
+        return { data: workspace.latest_result, error: null };
+      },
+    };
+    const result = await loadGraphicsResult(client as never, {
+      result_version_id: 'result-v2', race_id: 'race-1', race_name: 'Belgian Grand Prix', circuit: 'Spa-Francorchamps', country_code: 'BE', race_date: '2026-08-20', round: 7,
+    });
+    expect(calls).toEqual([['get_social_graphics_result', { p_result_version_id: 'result-v2' }]]);
+    expect(result.rows[0]).toMatchObject({ driverId: 'driver-1', driver: 'Alex Apex' });
   });
 
   it('formats official race gaps with minutes, seconds and milliseconds', () => {
