@@ -118,7 +118,7 @@ export function StewardWorkspacePage() {
       {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
       {notice && <p className="workspace-message" role="status">{notice}</p>}
 
-      <div className="case-layout">
+      <div className={selectedCase ? 'case-layout' : 'case-layout case-layout--queue-only'}>
         <section className="case-queue" aria-label={t('steward.queue')}>
           <div className="case-section-title"><span>{t('steward.queue')}</span><small>{t('steward.pagination')}</small></div>
           {loading ? <p aria-live="polite" role="status">{t('pending')}</p> : snapshot.cases.length === 0 ? <EmptyState action={permitted ? <button className="text-action" onClick={() => setShowCreate(true)} type="button">{t('steward.newCase')}</button> : undefined} copy={t('steward.empty')} title="Keine Steward-Fälle" /> : snapshot.cases.map((item) => (
@@ -130,8 +130,8 @@ export function StewardWorkspacePage() {
           ))}
         </section>
 
-        <section className="case-detail" aria-live="polite">
-          {!selectedCase ? <div className="case-empty"><span>16</span><h2>{t('steward.selectCase')}</h2></div> : <>
+        {selectedCase && <section className="case-detail" aria-live="polite">
+          <>
             <header className="case-detail-heading">
               <div><span>{selectedCase.case_number}</span><h2>{selectedCase.title}</h2></div><StatusPill value={selectedCase.status} />
             </header>
@@ -154,8 +154,8 @@ export function StewardWorkspacePage() {
               <VoteForm busy={busy} onSubmit={(input) => runAction(() => castStewardVote(client, { ...input, caseId: selectedCase.id }), t('steward.voteSaved'))} />
               <DecisionForm busy={busy} accusedDriverId={selectedCase.accused_driver_id} ruleCode={selectedCase.rule_code} ruleVersion={selectedCase.rule_version} onSubmit={(input) => runAction(() => finalizeStewardDecision(client, { ...input, caseId: selectedCase.id }), t('steward.decisionFinalized'))} />
             </div>}
-          </>}
-        </section>
+          </>
+        </section>}
       </div>
     </main>
   );

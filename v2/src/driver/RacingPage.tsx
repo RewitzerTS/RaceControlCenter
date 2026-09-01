@@ -95,10 +95,6 @@ function RacingSectionView() {
     const teams = params.get('view') === 'teams';
     page = teams ? 'team-wm' : 'fahrer-wm';
     title = t('racing.championship');
-    switches = [
-      { label: t('racing.driverStandings'), to: '/racing/standings?view=drivers' },
-      { label: t('racing.teamStandings'), to: '/racing/standings?view=teams' },
-    ];
   } else if (path.includes('/grid')) { page = 'grid'; title = t('racing.gridTitle'); }
   else if (path.includes('/tracks/profile')) { page = 'strecken-profil'; title = t('racing.trackProfile'); }
   else if (path.includes('/tracks')) { page = 'strecken'; title = t('racing.tracks'); }

@@ -4584,3 +4584,139 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .challenge-countdown { align-items: center; flex-direction: row; gap: 0.5rem; }
 }
 
+/* Global route polish: theme-aware progress, centered embedded content and compact mobile chrome. */
+.global-scroll-progress {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--brand-primary) 22%, transparent);
+  pointer-events: none;
+}
+.global-scroll-progress > span {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--brand-gradient);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--brand-accent) 62%, transparent);
+  transform-origin: left center;
+  transition: transform 90ms linear;
+}
+
+.app-shell .case-metrics {
+  color: var(--brand-text);
+  border-color: color-mix(in srgb, var(--brand-primary) 30%, var(--line));
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--brand-primary) 18%, transparent), transparent 54%),
+    color-mix(in srgb, var(--brand-surface) 92%, var(--brand-background));
+}
+.app-shell .case-metrics > div { border-color: color-mix(in srgb, var(--brand-primary) 22%, var(--line)); }
+.case-layout--queue-only { min-height: 0; grid-template-columns: 1fr; }
+.case-layout--queue-only .case-queue { border-right: 0; }
+
+.league-rule-controls { align-items: start; }
+.admin-rule-range { align-content: start; }
+.admin-rule-range > span { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.admin-rule-range output {
+  min-width: 46px;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  color: var(--brand-on-primary);
+  background: var(--brand-primary);
+  font-size: 0.78rem;
+  text-align: center;
+}
+.app-shell .admin-rule-range input[type="range"] {
+  width: 100%;
+  min-height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  accent-color: var(--brand-primary);
+}
+.admin-rule-range small { color: var(--muted); }
+.admin-rule-choice {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.admin-rule-choice legend {
+  margin-bottom: 0.55rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.admin-rule-choice > div { display: flex; flex-wrap: wrap; gap: 0.55rem; }
+.admin-rule-choice label { position: relative; cursor: pointer; }
+.admin-rule-choice input { position: absolute; opacity: 0; pointer-events: none; }
+.admin-rule-choice label > span {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--control-border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--control-background);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+.admin-rule-choice input:checked + span {
+  color: var(--brand-on-primary);
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+}
+.admin-rule-choice input:focus-visible + span { outline: 3px solid var(--brand-primary); outline-offset: 3px; }
+
+.profile-league-actions .text-action { justify-content: center; text-align: center; }
+.section-view-switcher--standalone { justify-content: center; }
+.mobile-more-tools .language-control--compact,
+.mobile-more-tools .language-control--compact > summary,
+.mobile-more-tools .language-control--compact > div { border-radius: 12px; }
+
+@media (max-width: 760px) {
+  .racing-page .section-navigation,
+  .racing-page .section-view-switcher--standalone,
+  .racing-page .integrated-league-view {
+    width: calc(100% - 20px);
+    margin-right: auto;
+    margin-left: auto;
+  }
+  .racing-page .integrated-league-view { border-radius: 14px; }
+}
+
+@media (max-width: 700px) {
+  .footer {
+    width: 100%;
+    margin-inline: 0;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+  .driver-home .storyline-strip { margin-top: 14px; }
+  .driver-home .hero-main .next-race-showcase { margin-top: 18px; }
+  .case-layout--queue-only .case-queue { max-height: none; border-bottom: 0; }
+  .league-rule-controls { grid-template-columns: 1fr; }
+  .admin-rule-choice > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-rule-choice label > span { width: 100%; }
+}
+
+@media (max-width: 520px) {
+  .header-inner { position: relative; }
+  .brand-logo { justify-self: start; }
+  .brand-text {
+    position: absolute;
+    left: 50%;
+    width: min(190px, calc(100% - 150px));
+    text-align: center;
+    transform: translateX(-50%);
+  }
+  .brand-title,
+  .brand-subtitle { text-align: center; }
+}
+

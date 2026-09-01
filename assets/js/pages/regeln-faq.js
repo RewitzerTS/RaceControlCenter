@@ -58,8 +58,8 @@ function renderFaqItems(items = []) {
   }
 
   list.innerHTML = normalizedItems
-    .map((item, index) => `
-      <details class="faq-item" ${index === 0 ? 'open' : ''}>
+    .map((item) => `
+      <details class="faq-item">
         <summary>${window.escapeHtml(item.question)}</summary>
         <p>${window.escapeHtml(item.answer)}</p>
       </details>
@@ -443,6 +443,8 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
       const logoSource = members
         .map((driver) => resolveDriverLogoSourceForView(driver))
         .find(Boolean) || teamName;
+      const freeSeats = sortedMembers.filter((driver) => driver.participant_type !== 'PLAYER').length;
+      const seatAvailability = freeSeats === 0 ? 'Voll' : `${freeSeats} ${freeSeats === 1 ? 'Sitz' : 'Sitze'}`;
       return `
         <article class="list-card driver-team-card">
           <header class="driver-team-card-head">
@@ -450,19 +452,18 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
               ${window.createTeamLogoBadge?.(logoSource, { size: 'large', label: teamName }) || ''}
               <div><h5 class="driver-team-name">${window.escapeHtml(teamName)}</h5><span class="driver-team-car">${window.escapeHtml(members[0]?.car_name || 'Fahrzeug noch offen')}</span></div>
             </div>
-            <span class="driver-team-count">${sortedMembers.length} ${sortedMembers.length === 1 ? 'Sitz' : 'Sitze'}</span>
+            <span class="driver-team-count">${seatAvailability}</span>
           </header>
           <div class="driver-team-members">
             ${sortedMembers.map((driver) => `
-              <button type="button" class="driver-team-member driver-team-member-flip is-${String(driver.participant_type || 'BOT').toLowerCase()}" data-driver-id="${window.escapeHtml(String(driver.id || ''))}" data-driver-name="${window.escapeHtml(driver.display_name || 'Unbekannt')}" aria-label="Fahrerkarte ${window.escapeHtml(driver.display_name || 'Unbekannt')} öffnen">
+              <div class="driver-team-member is-${String(driver.participant_type || 'BOT').toLowerCase()}">
                 <span class="driver-team-member-main">
-                  <span class="driver-seat-heading"><strong>${driver.number === null || driver.number === undefined ? '#—' : `#${window.escapeHtml(String(driver.number))}`}</strong><span class="driver-participant-chip">${driver.participant_type === 'PLAYER' ? 'Spieler' : 'KI'}</span></span>
                   <span class="driver-seat-name">${window.escapeHtml(driver.display_name || '—')}</span>
                   ${driver.participant_type === 'PLAYER'
                     ? `<span class="muted">Gamertag: ${window.escapeHtml(driver.gamertag || '—')}</span><span class="muted">KI-Sitz: ${window.escapeHtml(driver.ai_driver_name || '—')}</span>`
                     : '<span class="muted">Offizieller KI-Fahrer</span>'}
                 </span>
-              </button>
+              </div>
             `).join('')}
           </div>
         </article>`;
@@ -470,11 +471,6 @@ function renderVehiclePairs(drivers = [], driverFactsById = new Map()) {
 
   list.innerHTML = cards.join('');
 
-  list.querySelectorAll('.driver-team-member-flip').forEach((card) => {
-    card.addEventListener('click', () => {
-      openDriverCardModal(card.dataset.driverId || null);
-    });
-  });
 }
 
 function renderGridSeasonHeading(season, grid = []) {

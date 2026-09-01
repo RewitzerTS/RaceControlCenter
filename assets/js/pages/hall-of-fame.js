@@ -70,8 +70,8 @@ function buildConstructorTotals(records) {
 
 const HOF_IMAGE_META = Object.freeze({
   star: { src: 'assets/images/Stern.png', width: 2048, height: 1365 },
-  helmet: { src: 'assets/icons/fahrer_wm_helmet.png', width: 71, height: 70 },
-  trophy: { src: 'assets/icons/hall_of_fame_trophy.png', width: 79, height: 73 }
+  helmet: { src: 'assets/images/hof-driver-champion.svg', width: 512, height: 512 },
+  trophy: { src: 'assets/images/hof-constructor-champion.svg', width: 512, height: 512 }
 });
 
 function renderOptimizedImage({

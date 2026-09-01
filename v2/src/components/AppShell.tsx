@@ -327,6 +327,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutFailed, setSignOutFailed] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const { t } = useI18n();
   const { branding, leagueSlug } = useLeague();
   const { error: roleError, loading: roleLoading, role } = useRole();
@@ -387,6 +388,20 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         : content;
 
   useEffect(() => setNavigationOpen(false), [location.pathname, location.search]);
+
+  useEffect(() => {
+    const updateScrollProgress = () => {
+      const maximum = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(maximum > 0 ? Math.min(1, Math.max(0, window.scrollY / maximum)) : 1);
+    };
+    updateScrollProgress();
+    window.addEventListener('scroll', updateScrollProgress, { passive: true });
+    window.addEventListener('resize', updateScrollProgress);
+    return () => {
+      window.removeEventListener('scroll', updateScrollProgress);
+      window.removeEventListener('resize', updateScrollProgress);
+    };
+  }, [location.pathname, location.search]);
 
   if (!authLoading && onboardingRequired && location.pathname !== '/onboarding') {
     return <Navigate replace to="/onboarding" />;
@@ -454,6 +469,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
         </nav>
         {signOutFailed && <span className="header-session-error" role="alert">{t('profile.signOutError')}</span>}
         </div>
+        <div className="global-scroll-progress" aria-hidden="true"><span style={{ transform: `scaleX(${scrollProgress})` }} /></div>
       </header>}
 
       {!embeddedAccess && navigationOpen && <button aria-label={t('nav.close')} className="mobile-navigation-scrim" onClick={closeNavigation} type="button" />}

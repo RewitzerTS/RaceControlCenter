@@ -2523,9 +2523,9 @@ body[data-page="admin"] .button-danger:focus-visible {
   min-height: 28px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(124, 77, 255, 0.2);
-  border: 1px solid rgba(124, 77, 255, 0.35);
-  color: #d8c7ff;
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 48%, var(--line));
+  color: var(--accent-text, var(--accent));
   font-size: 0.8rem;
   font-weight: 700;
 }

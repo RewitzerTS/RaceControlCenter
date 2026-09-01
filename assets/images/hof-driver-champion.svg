@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Fahrer-Weltmeister</title>
+  <desc id="desc">Ein stilisierter Rennhelm in einem goldenen Siegerkranz.</desc>
+  <defs>
+    <linearGradient id="gold" x1="80" y1="70" x2="430" y2="445" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff0ad"/>
+      <stop offset="0.46" stop-color="#f1c764"/>
+      <stop offset="1" stop-color="#b77719"/>
+    </linearGradient>
+    <linearGradient id="visor" x1="175" y1="190" x2="370" y2="285" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#64e2ff"/>
+      <stop offset="1" stop-color="#2174a8"/>
+    </linearGradient>
+    <radialGradient id="field" cx="50%" cy="42%" r="58%">
+      <stop stop-color="#17364c"/>
+      <stop offset="1" stop-color="#07121e"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="256" cy="256" r="190" fill="url(#field)" stroke="url(#gold)" stroke-width="10"/>
+  <path d="M143 385c-49-42-73-98-71-169M128 361c-26-9-45-25-58-48M113 326c-25-5-44-18-59-37M102 287c-22-1-41-11-56-28M101 247c-20 2-39-4-55-19M109 207c-20 6-39 3-56-8M369 385c49-42 73-98 71-169M384 361c26-9 45-25 58-48M399 326c25-5 44-18 59-37M410 287c22-1 41-11 56-28M411 247c20 2 39-4 55-19M403 207c20 6 39 3 56-8" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-width="13"/>
+  <path d="M256 116c-78 0-126 51-126 132v39c0 68 50 115 122 115h30c53 0 94-31 110-79l-57-14c-11 24-31 36-60 36h-23c-35 0-60-15-70-43h147c42 0 69-27 69-64 0-69-62-122-142-122Z" fill="#e8eef4" stroke="#081522" stroke-linejoin="round" stroke-width="12"/>
+  <path d="M159 214c21-36 58-56 105-56 54 0 97 24 116 62l-42 47H157c-5-18-4-36 2-53Z" fill="url(#visor)" stroke="#081522" stroke-linejoin="round" stroke-width="11"/>
+  <path d="m194 183 38-62h48l-14 37M177 303h153" fill="none" stroke="#f1c764" stroke-linecap="round" stroke-width="10"/>
+  <path d="m256 45 10 22 24 3-18 17 5 24-21-12-21 12 5-24-18-17 24-3Z" fill="url(#gold)" filter="url(#glow)"/>
+</svg>

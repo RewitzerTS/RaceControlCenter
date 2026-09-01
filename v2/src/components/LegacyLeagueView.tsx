@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
 
 const LEGACY_DESTINATIONS: Record<string, string> = {
@@ -23,6 +24,9 @@ const LEGACY_DESTINATIONS: Record<string, string> = {
 function integratedDestination(anchor: HTMLAnchorElement): string | null {
   const target = new URL(anchor.href, window.location.origin);
   if (target.origin !== window.location.origin) return null;
+  if (target.pathname.startsWith('/racing/') || target.pathname.startsWith('/career/')) {
+    return `${target.pathname}${target.search}${target.hash}`;
+  }
   const page = target.pathname.split('/').pop()?.replace(/\.html$/, '') ?? '';
   const destination = LEGACY_DESTINATIONS[page];
   if (!destination) return null;
@@ -73,6 +77,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
   search?: string;
 }) {
   const { leagueSlug } = useLeague();
+  const navigate = useNavigate();
   const frameRef = useRef<HTMLIFrameElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const [height, setHeight] = useState(760);
@@ -109,13 +114,38 @@ export function LegacyLeagueView({ page, title, search = '' }: {
         --text-on-primary: var(--racevora-user-text-on-primary) !important;
       }
       html, body { min-height: 0 !important; background: transparent !important; }
-      body { padding-top: 0 !important; }
+      body { overflow: hidden !important; padding-top: 0 !important; }
       body > main { margin-top: 0 !important; padding-top: 0 !important; }
       .section { padding-top: 8px !important; }
       .dashboard-shell { padding-top: 0 !important; }
       .footer, .site-header { display: none !important; }
+      .integrated-standings-switcher { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+      .integrated-standings-switcher a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); font-weight: 800; text-decoration: none; }
+      .integrated-standings-switcher a.is-active { border-color: var(--primary); color: var(--text-on-primary); background: var(--primary); }
+      @media (max-width: 700px) {
+        .container { width: calc(100% - 20px) !important; margin-inline: auto !important; }
+        body > main.section { width: 100% !important; overflow-x: clip; }
+        .records-toolbar .page-title { font-size: clamp(1.55rem, 7.6vw, 2.05rem) !important; letter-spacing: -0.04em !important; white-space: nowrap; }
+        .integrated-standings-switcher { width: 100%; margin: 2px 0 0; }
+        .integrated-standings-switcher a { flex: 1 1 0; }
+      }
     `;
     document.head.append(style);
+
+    if (page === 'fahrer-wm' || page === 'team-wm') {
+      const tableHeader = document.querySelector('.table-card .table-header');
+      if (tableHeader) {
+        const switcher = document.createElement('nav');
+        switcher.className = 'integrated-standings-switcher';
+        switcher.setAttribute('aria-label', 'Meisterschaft wechseln');
+        switcher.innerHTML = `<a class="${page === 'fahrer-wm' ? 'is-active' : ''}" href="/racing/standings?view=drivers">Fahrer-WM</a><a class="${page === 'team-wm' ? 'is-active' : ''}" href="/racing/standings?view=teams">Team-WM</a>`;
+        tableHeader.append(switcher);
+      }
+    }
+
+    if (page === 'regeln-faq') {
+      document.querySelectorAll('details.faq-item[open]').forEach((item) => item.removeAttribute('open'));
+    }
 
     const syncTheme = () => applyPersonalThemeToFrame(document);
     syncTheme();
@@ -127,10 +157,10 @@ export function LegacyLeagueView({ page, title, search = '' }: {
       const destination = integratedDestination(anchor);
       if (!destination) return;
       clickEvent.preventDefault();
-      window.location.assign(destination);
+      navigate(destination);
     }, { capture: true });
 
-    const resize = () => setHeight(Math.max(620, Math.min(1800, document.documentElement.scrollHeight + 24)));
+    const resize = () => setHeight(Math.max(620, Math.ceil(document.body.getBoundingClientRect().height) + 4));
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(document.body);
@@ -148,6 +178,7 @@ export function LegacyLeagueView({ page, title, search = '' }: {
         key={source}
         onLoad={prepareFrame}
         ref={frameRef}
+        scrolling="no"
         src={source}
         style={{ height, visibility: readySource === source ? 'visible' : 'hidden' }}
         title={title}

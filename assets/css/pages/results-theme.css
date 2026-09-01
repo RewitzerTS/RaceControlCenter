@@ -48,7 +48,6 @@ body[data-page="ergebnisse"] .results-matrix-table tbody tr:hover {
 body[data-page="ergebnisse"] .results-matrix-table .sticky-driver,
 body[data-page="ergebnisse"] .results-matrix-table .sticky-total {
   background: color-mix(in srgb, var(--surface) 91%, var(--primary) 9%) !important;
-  backdrop-filter: blur(12px);
 }
 
 body[data-page="ergebnisse"] .results-matrix-table tbody tr:nth-child(even) .sticky-driver,
@@ -63,7 +62,9 @@ body[data-page="ergebnisse"] .results-matrix-table tbody tr:hover .sticky-total 
 
 body[data-page="ergebnisse"] .driver-label-text {
   color: var(--text);
-  font-weight: 760;
+  font-weight: 800;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 body[data-page="ergebnisse"] .results-points-value {

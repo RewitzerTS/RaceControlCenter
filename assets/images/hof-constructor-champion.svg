@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Konstrukteurs-Weltmeister</title>
+  <desc id="desc">Ein stilisierter Siegerpokal mit zwei Rennlinien für die Weltmeister-Konstrukteure.</desc>
+  <defs>
+    <linearGradient id="gold" x1="120" y1="75" x2="390" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff1b8"/>
+      <stop offset="0.5" stop-color="#efc35d"/>
+      <stop offset="1" stop-color="#a86412"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="125" y1="165" x2="392" y2="345" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#66e8ff"/>
+      <stop offset="1" stop-color="#168db5"/>
+    </linearGradient>
+    <radialGradient id="field" cx="50%" cy="42%" r="58%">
+      <stop stop-color="#17364c"/>
+      <stop offset="1" stop-color="#07121e"/>
+    </radialGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="256" cy="256" r="190" fill="url(#field)" stroke="url(#gold)" stroke-width="10"/>
+  <path d="M157 146h198v72c0 73-40 124-99 146-59-22-99-73-99-146Z" fill="url(#gold)" stroke="#081522" stroke-linejoin="round" stroke-width="12"/>
+  <path d="M157 174h-48v42c0 55 34 93 88 100M355 174h48v42c0 55-34 93-88 100" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+  <path d="M214 357v45h84v-45M178 430h156" fill="none" stroke="url(#gold)" stroke-linecap="round" stroke-width="20"/>
+  <path d="M183 201c42 24 83 34 146 14M181 242c49 23 98 29 149 13M194 282c42 17 80 20 122 8" fill="none" stroke="url(#cyan)" stroke-linecap="round" stroke-width="12"/>
+  <circle cx="202" cy="198" r="9" fill="#f7fbff"/>
+  <circle cx="329" cy="255" r="9" fill="#f7fbff"/>
+  <path d="m256 54 10 22 24 3-18 17 5 24-21-12-21 12 5-24-18-17 24-3Z" fill="url(#gold)" filter="url(#glow)"/>
+</svg>
