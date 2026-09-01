@@ -131,7 +131,7 @@ export function ResultImportPage() {
     setMessage('');
     setMessageTone('error');
     try {
-      await publishLeagueResultDraft(client, id);
+      await publishLeagueResultDraft(client, id, leagueSlug);
       await reload();
       setMessage(copy('import.published'));
       setMessageTone('success');
