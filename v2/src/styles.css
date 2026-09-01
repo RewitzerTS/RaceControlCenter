@@ -1261,6 +1261,7 @@ h2 {
 .graphics-choice-list span, .graphics-format-list span { min-height: 44px; display: inline-flex; align-items: center; padding: 0 0.8rem; border: 1px solid var(--line); color: var(--muted); cursor: pointer; }
 .graphics-choice-list input:checked + span, .graphics-format-list input:checked + span { border-color: var(--teal-bright); color: var(--text); background: rgba(44, 143, 166, 0.14); }
 .graphics-choice-list input:focus-visible + span, .graphics-format-list input:focus-visible + span { outline: 3px solid #69d5e6; outline-offset: 3px; }
+.graphics-control-hint { display: block; margin-top: 0.65rem; color: var(--muted); font-size: 0.7rem; line-height: 1.45; }
 .graphics-provenance { display: grid; gap: 0.35rem; margin: 1.5rem 0; padding: 1rem 0; border-block: 1px solid var(--line); }
 .graphics-provenance strong { font-size: 0.78rem; }
 .graphics-provenance span { color: var(--teal-bright); font-size: 0.82rem; }

@@ -3,10 +3,25 @@ import type { LeagueSupabaseClient } from '../lib/supabase';
 
 export const GRAPHIC_TYPES = ['race_result', 'podium', 'winner', 'driver_standings', 'team_standings', 'achievement'] as const;
 export const GRAPHIC_FORMATS = ['square', 'portrait', 'story', 'landscape'] as const;
+export const GRAPHIC_DRIVER_LABEL_MODES = ['driver_name', 'display_name', 'gamertag'] as const;
 
 export type GraphicType = (typeof GRAPHIC_TYPES)[number];
 export type GraphicFormat = (typeof GRAPHIC_FORMATS)[number];
-export type ResultRow = { position: number | null; driver: string; team: string; points: number; status: string; raceTime?: string | null; raceTimeMs?: number | null };
+export type GraphicDriverLabelMode = (typeof GRAPHIC_DRIVER_LABEL_MODES)[number];
+export type GraphicDriverLabels = { driverId: string; driverName?: string | null; displayName?: string | null; gamertag?: string | null };
+export type ResultRow = {
+  position: number | null;
+  driverId?: string;
+  driver: string;
+  driverName?: string | null;
+  displayName?: string | null;
+  gamertag?: string | null;
+  team: string;
+  points: number;
+  status: string;
+  raceTime?: string | null;
+  raceTimeMs?: number | null;
+};
 export type GraphicsResult = {
   id: string;
   version: number;
@@ -19,7 +34,7 @@ export type GraphicsResult = {
   rows: ResultRow[];
 };
 export type GraphicsResultOption = Omit<GraphicsResult, 'id' | 'rows' | 'version'> & { result_version_id: string };
-export type StandingRow = { position: number; driver?: string; team?: string; points: number; wins: number };
+export type StandingRow = { position: number; driverId?: string; driver?: string; team?: string; points: number; wins: number };
 export type GraphicRender = {
   id: string;
   graphic_type: GraphicType;
@@ -32,9 +47,10 @@ export type GraphicRender = {
 export type GraphicsWorkspace = {
   league: { id: string; name: string; slug: string };
   latest_result: GraphicsResult | null;
+  driver_labels?: GraphicDriverLabels[];
   driver_standings: StandingRow[];
   team_standings: StandingRow[];
-  latest_achievement: null | { driver: string; code: string; value: number; unlocked_at: string };
+  latest_achievement: null | { driverId?: string; driver: string; code: string; value: number; unlocked_at: string };
   recent_renders: GraphicRender[];
 };
 
@@ -78,9 +94,16 @@ function object(value: Json | null): Record<string, Json | undefined> {
 }
 
 export async function loadGraphicsWorkspace(client: LeagueSupabaseClient): Promise<GraphicsWorkspace> {
-  const response = await client.rpc('get_social_graphics_workspace');
+  const [response, labelsResponse] = await Promise.all([
+    client.rpc('get_social_graphics_workspace'),
+    client.rpc('get_social_graphics_driver_labels'),
+  ]);
   if (response.error) throw response.error;
-  return object(response.data) as unknown as GraphicsWorkspace;
+  if (labelsResponse.error) throw labelsResponse.error;
+  return {
+    ...(object(response.data) as unknown as GraphicsWorkspace),
+    driver_labels: (labelsResponse.data ?? []) as unknown as GraphicDriverLabels[],
+  };
 }
 
 export async function loadGraphicsResultOptions(client: LeagueSupabaseClient): Promise<GraphicsResultOption[]> {
@@ -124,7 +147,7 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
       .single(),
     client
       .from('result_version_rows')
-      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,race_time,race_time_ms,row_order,driver:drivers!result_version_rows_driver_id_fkey(display_name,league_team)')
+      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,race_time,race_time_ms,row_order,driver:drivers!result_version_rows_driver_id_fkey(id,display_name,gamertag,league_team)')
       .eq('result_version_id', option.result_version_id)
       .order('row_order', { ascending: true }),
   ]);
@@ -139,13 +162,17 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
     car_name_snapshot: string | null;
     race_time: string | null;
     race_time_ms: number | null;
-    driver: { display_name: string; league_team: string | null } | Array<{ display_name: string; league_team: string | null }> | null;
+    driver: { id: string; display_name: string; gamertag: string | null; league_team: string | null } | Array<{ id: string; display_name: string; gamertag: string | null; league_team: string | null }> | null;
   };
   const rows = (rowsResponse.data as unknown as ResultRecord[]).map((row) => {
     const driver = Array.isArray(row.driver) ? row.driver[0] : row.driver;
     return {
       position: row.finish_position,
+      driverId: driver?.id,
       driver: driver?.display_name ?? 'Unknown driver',
+      driverName: driver?.display_name,
+      displayName: driver?.display_name,
+      gamertag: driver?.gamertag,
       team: row.points_team_name ?? row.car_name_snapshot ?? driver?.league_team ?? 'Independent',
       points: row.awarded_points,
       status: row.classification_status,
@@ -234,7 +261,37 @@ function raceResultTime(row: ResultRow, winnerTimeMs: number | null) {
   return status === 'CLASSIFIED' ? '—' : status;
 }
 
-export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicType, labels: GraphicLabels): GraphicModel {
+function cleanDriverLabel(value: string | null | undefined) {
+  const cleaned = value?.trim();
+  return cleaned || null;
+}
+
+function graphicDriverLabel(
+  workspace: GraphicsWorkspace,
+  driver: { driverId?: string; driver?: string; driverName?: string | null; displayName?: string | null; gamertag?: string | null },
+  mode: GraphicDriverLabelMode,
+  fallback: string,
+) {
+  const existing = cleanDriverLabel(driver.driver) ?? cleanDriverLabel(fallback) ?? '—';
+  const savedLabels = workspace.driver_labels?.find((candidate) => (
+    (driver.driverId && candidate.driverId === driver.driverId)
+    || cleanDriverLabel(candidate.driverName)?.localeCompare(existing, undefined, { sensitivity: 'base' }) === 0
+  ));
+  const driverName = cleanDriverLabel(savedLabels?.driverName) ?? cleanDriverLabel(driver.driverName);
+  const displayName = cleanDriverLabel(savedLabels?.displayName) ?? cleanDriverLabel(driver.displayName);
+  const gamertag = cleanDriverLabel(savedLabels?.gamertag) ?? cleanDriverLabel(driver.gamertag);
+
+  if (mode === 'driver_name') return driverName ?? displayName ?? existing;
+  if (mode === 'gamertag') return gamertag ?? displayName ?? existing;
+  return displayName ?? existing;
+}
+
+export function buildGraphicModel(
+  workspace: GraphicsWorkspace,
+  type: GraphicType,
+  labels: GraphicLabels,
+  driverLabelMode: GraphicDriverLabelMode = 'driver_name',
+): GraphicModel {
   const result = workspace.latest_result;
   const footer = result ? `${labels.official} · ${labels.resultVersion} ${result.version}` : labels.official;
   const resultVersionId = ['race_result', 'podium', 'winner'].includes(type) ? result?.id ?? null : null;
@@ -246,7 +303,7 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
       : null;
     const rows = (result?.rows ?? []).map((row) => ({
       rank: row.position ? String(row.position).padStart(2, '0') : row.status.toUpperCase(),
-      primary: row.driver,
+      primary: graphicDriverLabel(workspace, row, driverLabelMode, labels.noData),
       secondary: row.team,
       detail: raceResultTime(row, winnerTimeMs),
       value: points(row.points, labels.points),
@@ -254,15 +311,15 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
     return { type, eyebrow: labels.raceResult, title: result?.race_name ?? labels.noData, subtitle: result?.circuit ?? `${labels.round} ${result?.round ?? '—'}`, rows, footer, resultVersionId, source: { type, league: workspace.league, result } as unknown as Record<string, Json> };
   }
   if (type === 'podium') {
-    const rows = (result?.rows ?? []).filter((row) => row.position && row.position <= 3).slice(0, 3).map((row) => ({ rank: `P${row.position}`, primary: row.driver, secondary: row.team, value: points(row.points, labels.points) }));
+    const rows = (result?.rows ?? []).filter((row) => row.position && row.position <= 3).slice(0, 3).map((row) => ({ rank: `P${row.position}`, primary: graphicDriverLabel(workspace, row, driverLabelMode, labels.noData), secondary: row.team, value: points(row.points, labels.points) }));
     return { type, eyebrow: labels.podium, title: result?.race_name ?? labels.noData, subtitle: result?.circuit ?? '', rows, footer, resultVersionId, source: { type, league: workspace.league, result: result ? { ...result, rows: result.rows.slice(0, 3) } : null } as unknown as Record<string, Json> };
   }
   if (type === 'winner') {
     const winner = (result?.rows ?? []).find((row) => row.position === 1);
-    return { type, eyebrow: labels.winner, title: winner?.driver ?? labels.noData, subtitle: result?.race_name ?? '', hero: winner?.team, rows: [], footer, resultVersionId, source: { type, league: workspace.league, result: result ? { ...result, rows: undefined, winner } : null } as unknown as Record<string, Json> };
+    return { type, eyebrow: labels.winner, title: winner ? graphicDriverLabel(workspace, winner, driverLabelMode, labels.noData) : labels.noData, subtitle: result?.race_name ?? '', hero: winner?.team, rows: [], footer, resultVersionId, source: { type, league: workspace.league, result: result ? { ...result, rows: undefined, winner } : null } as unknown as Record<string, Json> };
   }
   if (type === 'driver_standings') {
-    const rows = workspace.driver_standings.slice(0, 10).map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: row.driver ?? labels.noData, secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
+    const rows = workspace.driver_standings.slice(0, 10).map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: graphicDriverLabel(workspace, row, driverLabelMode, labels.noData), secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
     return { type, eyebrow: labels.driverStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, circuit: result.circuit, country_code: result.country_code, race_date: result.race_date, round: result.round } : null, rows: workspace.driver_standings } as unknown as Record<string, Json> };
   }
   if (type === 'team_standings') {
@@ -270,7 +327,7 @@ export function buildGraphicModel(workspace: GraphicsWorkspace, type: GraphicTyp
     return { type, eyebrow: labels.teamStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, circuit: result.circuit, country_code: result.country_code, race_date: result.race_date, round: result.round } : null, rows: workspace.team_standings } as unknown as Record<string, Json> };
   }
   const achievement = workspace.latest_achievement;
-  return { type, eyebrow: labels.achievement, title: achievement?.driver ?? labels.noData, subtitle: achievement?.code.replaceAll('_', ' ') ?? '', hero: achievement ? String(achievement.value) : undefined, rows: [], footer: labels.official, resultVersionId, source: { type, league: workspace.league, achievement } as unknown as Record<string, Json> };
+  return { type, eyebrow: labels.achievement, title: achievement ? graphicDriverLabel(workspace, achievement, driverLabelMode, labels.noData) : labels.noData, subtitle: achievement?.code.replaceAll('_', ' ') ?? '', hero: achievement ? String(achievement.value) : undefined, rows: [], footer: labels.official, resultVersionId, source: { type, league: workspace.league, achievement } as unknown as Record<string, Json> };
 }
 
 export function paginateGraphicModel(model: GraphicModel, maximumRows: number): GraphicPage[] {
@@ -299,7 +356,12 @@ function canonicalize(value: unknown): string {
 }
 
 export async function digestGraphicSource(model: GraphicModel, format: GraphicFormat, presentation?: unknown): Promise<string> {
-  const bytes = new TextEncoder().encode(canonicalize({ format, presentation, source: model.source }));
+  const bytes = new TextEncoder().encode(canonicalize({
+    format,
+    presentation,
+    rendered: { eyebrow: model.eyebrow, title: model.title, subtitle: model.subtitle, hero: model.hero, rows: model.rows, footer: model.footer },
+    source: model.source,
+  }));
   const hash = await crypto.subtle.digest('SHA-256', bytes);
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, '0')).join('');
 }

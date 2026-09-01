@@ -2716,6 +2716,7 @@ export type Database = {
       get_season_setup_workspace: { Args: never; Returns: Json }
       get_league_configuration_workspace: { Args: never; Returns: Json }
       get_owner_control_snapshot: { Args: never; Returns: Json }
+      get_social_graphics_driver_labels: { Args: never; Returns: Json }
       get_social_graphics_workspace: { Args: never; Returns: Json }
       get_vora_companion_snapshot: { Args: never; Returns: Json }
       is_platform_owner: { Args: never; Returns: boolean }

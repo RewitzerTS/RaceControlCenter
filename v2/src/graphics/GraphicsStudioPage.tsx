@@ -8,6 +8,7 @@ import {
   buildGraphicModel,
   digestGraphicSource,
   graphicFilename,
+  GRAPHIC_DRIVER_LABEL_MODES,
   GRAPHIC_FORMATS,
   GRAPHIC_TYPES,
   loadGraphicsResult,
@@ -16,6 +17,7 @@ import {
   paginateGraphicModel,
   recordGraphicRender,
   type GraphicFormat,
+  type GraphicDriverLabelMode,
   type GraphicLabels,
   type GraphicsResult,
   type GraphicsResultOption,
@@ -38,6 +40,12 @@ const FORMAT_KEYS: Record<GraphicFormat, MessageKey> = {
   portrait: 'graphics.format.portrait',
   story: 'graphics.format.story',
   landscape: 'graphics.format.landscape',
+};
+
+const DRIVER_LABEL_KEYS: Record<GraphicDriverLabelMode, MessageKey> = {
+  driver_name: 'graphics.driverLabel.driverName',
+  display_name: 'graphics.driverLabel.displayName',
+  gamertag: 'graphics.driverLabel.gamertag',
 };
 
 const RESULT_BOUND_TYPES: GraphicType[] = ['race_result', 'podium', 'winner'];
@@ -80,6 +88,7 @@ export function GraphicsStudioPage() {
   const [selectedResult, setSelectedResult] = useState<GraphicsResult | null>(null);
   const [type, setType] = useState<GraphicType>('race_result');
   const [format, setFormat] = useState<GraphicFormat>('square');
+  const [driverLabelMode, setDriverLabelMode] = useState<GraphicDriverLabelMode>('driver_name');
   const [previewPage, setPreviewPage] = useState(0);
   const [state, setState] = useState<'idle' | 'exporting' | 'done' | 'error'>('idle');
   const [loadError, setLoadError] = useState(false);
@@ -142,7 +151,7 @@ export function GraphicsStudioPage() {
   }), [t]);
   const isResultBound = RESULT_BOUND_TYPES.includes(type);
   const modelWorkspace = useMemo(() => workspace ? { ...workspace, latest_result: isResultBound ? selectedResult : selectedResult ?? workspace.latest_result } : null, [isResultBound, selectedResult, workspace]);
-  const model = useMemo(() => modelWorkspace ? buildGraphicModel(modelWorkspace, type, labels) : null, [labels, modelWorkspace, type]);
+  const model = useMemo(() => modelWorkspace ? buildGraphicModel(modelWorkspace, type, labels, driverLabelMode) : null, [driverLabelMode, labels, modelWorkspace, type]);
   const graphicPages = useMemo(() => model ? paginateGraphicModel(model, type === 'race_result' ? 11 : Math.max(1, model.rows.length)) : [], [model, type]);
   const graphicBranding = useMemo<GraphicBranding>(() => ({ name: branding.name, logoUrl: branding.logoUrl || undefined }), [branding.logoUrl, branding.name]);
   const activePageIndex = Math.min(previewPage, Math.max(0, graphicPages.length - 1));
@@ -155,7 +164,7 @@ export function GraphicsStudioPage() {
     setState('exporting');
     try {
       const theme = readGraphicTheme();
-      const presentation = { branding: graphicBranding, theme };
+      const presentation = { branding: graphicBranding, driverLabelMode, theme };
       const [blobs, digest] = await Promise.all([
         Promise.all(graphicPages.map((page) => renderGraphicPng(page.model, format, {
           pageCount: page.pageCount,
@@ -201,6 +210,7 @@ export function GraphicsStudioPage() {
         </label>}
         {isResultBound && resultError && <p className="graphics-result-error" role="alert">{t('graphics.resultLoadError')}</p>}
         <fieldset><legend>{t('graphics.template')}</legend><div className="graphics-choice-list">{GRAPHIC_TYPES.map((item) => <label key={item}><input type="radio" name="graphic-type" value={item} checked={type === item} onChange={() => { setType(item); setState('idle'); }} /><span>{t(TYPE_KEYS[item])}</span></label>)}</div></fieldset>
+        {type !== 'team_standings' && <fieldset><legend>{t('graphics.driverLabel')}</legend><div className="graphics-choice-list">{GRAPHIC_DRIVER_LABEL_MODES.map((item) => <label key={item}><input type="radio" name="graphic-driver-label" value={item} checked={driverLabelMode === item} onChange={() => { setDriverLabelMode(item); setState('idle'); }} /><span>{t(DRIVER_LABEL_KEYS[item])}</span></label>)}</div><small className="graphics-control-hint">{t('graphics.driverLabelHint')}</small></fieldset>}
         <fieldset><legend>{t('graphics.format')}</legend><div className="graphics-format-list">{GRAPHIC_FORMATS.map((item) => <label key={item}><input type="radio" name="graphic-format" value={item} checked={format === item} onChange={() => { setFormat(item); setState('idle'); }} /><span>{t(FORMAT_KEYS[item])}</span></label>)}</div></fieldset>
         <div className="graphics-provenance"><strong>{t('graphics.source')}</strong><span>{modelWorkspace.latest_result ? `${modelWorkspace.latest_result.race_name} · ${t('graphics.resultVersion')} ${modelWorkspace.latest_result.version} · ${t('graphics.driverCount', { count: modelWorkspace.latest_result.rows.length })}` : t('graphics.noResult')}</span><small>{t('graphics.deterministic')}</small></div>
         <button className="primary-action" type="button" disabled={state === 'exporting' || (isResultBound && resultLoading) || (model.resultVersionId === null && RESULT_BOUND_TYPES.includes(type))} onClick={() => void exportGraphic()}>{state === 'exporting' ? t('graphics.exporting') : graphicPages.length > 1 ? t('graphics.exportMany', { count: graphicPages.length }) : t('graphics.export')}</button>
