@@ -2,6 +2,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
 import { CUSTOM_THEME_ID, customThemeMetadata, type CustomThemeColors } from '../league/leagueBranding';
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { ACCOUNT_DELETION_FUNCTION } from './accountDeletion';
 
 interface AuthContextValue {
   session: Session | null;
@@ -13,6 +14,7 @@ interface AuthContextValue {
   signIn: (email: string, password: string, captchaToken: string | null) => Promise<void>;
   signUp: (email: string, password: string, captchaToken: string | null) => Promise<'signed-in' | 'confirmation-required'>;
   signOut: () => Promise<void>;
+  deleteAccount: (confirmationEmail: string) => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
   updateThemePreset: (themePreset: number) => Promise<void>;
   updateCustomTheme: (theme: CustomThemeColors) => Promise<void>;
@@ -104,6 +106,14 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
     signOut: async () => {
       const { error: signOutError } = await client.auth.signOut();
       if (signOutError) throw signOutError;
+    },
+    deleteAccount: async (confirmationEmail) => {
+      const { data, error: deletionError } = await client.functions.invoke<{ deleted?: boolean }>(ACCOUNT_DELETION_FUNCTION, {
+        body: { confirmation_email: confirmationEmail },
+      });
+      if (deletionError || data?.deleted !== true) throw deletionError ?? new Error('Account deletion was not confirmed.');
+      await client.auth.signOut({ scope: 'local' });
+      setSession(null);
     },
     updateDisplayName: async (displayName) => {
       const { data, error: updateError } = await client.auth.updateUser({

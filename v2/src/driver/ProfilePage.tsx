@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { isAccountDeletionConfirmed } from '../auth/accountDeletion';
 import { useAuth } from '../auth/AuthProvider';
 import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
@@ -31,11 +32,13 @@ const CUSTOM_THEME_FIELDS = [
 ] as const;
 
 export function ProfilePage() {
-  const { loading: authLoading, signOut, updateCustomTheme, updateDisplayName, updateThemePreset, user } = useAuth();
+  const { deleteAccount, loading: authLoading, updateCustomTheme, updateDisplayName, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { role } = useRole();
   const { plural, t } = useI18n();
+  const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
+  const [displayNameEditorOpen, setDisplayNameEditorOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<'error' | 'saved' | null>(null);
   const [themeFeedback, setThemeFeedback] = useState<'error' | 'saved' | null>(null);
@@ -43,11 +46,14 @@ export function ProfilePage() {
   const [customTheme, setCustomTheme] = useState<CustomThemeColors>(() => toCustomThemeColors(THEME_PRESETS[0]));
   const [hasStoredCustomTheme, setHasStoredCustomTheme] = useState(false);
   const [themeSaving, setThemeSaving] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState(false);
 
   useEffect(() => {
-    setDisplayName(typeof user?.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : '');
+    const storedDisplayName = typeof user?.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : '';
+    setDisplayName(storedDisplayName);
+    setDisplayNameEditorOpen(!storedDisplayName.trim());
     const storedTheme = resolvePersonalTheme(user?.user_metadata);
     const fallbackTheme = storedTheme.id === CUSTOM_THEME_ID ? THEME_PRESETS[0] : storedTheme;
     const storedCustomTheme = user?.user_metadata?.theme_custom;
@@ -76,6 +82,7 @@ export function ProfilePage() {
       await updateDisplayName(normalized);
       setDisplayName(normalized);
       setFeedback('saved');
+      setDisplayNameEditorOpen(false);
     } catch {
       setFeedback('error');
     } finally {
@@ -123,14 +130,16 @@ export function ProfilePage() {
     }
   }
 
-  async function handleSignOut() {
-    setSigningOut(true);
-    setSignOutError(false);
+  async function handleDeleteAccount() {
+    if (!isAccountDeletionConfirmed(deleteConfirmation, user?.email)) return;
+    setDeletingAccount(true);
+    setDeleteAccountError(false);
     try {
-      await signOut();
+      await deleteAccount(deleteConfirmation.trim());
+      navigate('/login?mode=signin', { replace: true });
     } catch {
-      setSignOutError(true);
-      setSigningOut(false);
+      setDeleteAccountError(true);
+      setDeletingAccount(false);
     }
   }
 
@@ -138,6 +147,8 @@ export function ProfilePage() {
     ? resolveTheme({ theme_id: CUSTOM_THEME_ID, ...customThemeMetadata(customTheme) })
     : THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
   const customThemeContrastSafe = customThemeHasAccessibleContrast(customTheme);
+  const savedDisplayName = typeof user.user_metadata?.display_name === 'string' ? user.user_metadata.display_name.trim() : '';
+  const accountDeletionConfirmed = isAccountDeletionConfirmed(deleteConfirmation, user.email);
 
   return (
     <main className="profile-page dashboard-shell" id="main-content">
@@ -153,14 +164,17 @@ export function ProfilePage() {
             <div><dt>{t('profile.linkedDrivers')}</dt><dd>{plural('linkedRecord', identity?.linkedDriverCount ?? 0)}</dd></div>
           </dl>
         </article>
-        <form className="hero-side profile-form" onSubmit={(event) => void saveProfile(event)}>
-          <div><p className="section-label">{t('profile.settings')}</p><h2>{t('profile.displayName')}</h2><p>{t('profile.displayNameCopy')}</p></div>
-          <label htmlFor="profile-display-name">{t('profile.displayName')}</label>
-          <input id="profile-display-name" maxLength={60} minLength={2} onChange={(event) => { setDisplayName(event.target.value); setFeedback(null); }} required value={displayName} />
-          {feedback === 'saved' && <p className="form-success" role="status">{t('profile.saved')}</p>}
-          {feedback === 'error' && <p className="form-error" role="alert">{t('profile.saveError')}</p>}
-          <button className="primary-action" disabled={saving} type="submit">{saving ? t('pending') : t('steward.save')}</button>
-        </form>
+        <details className="hero-side profile-display-name-card" onToggle={(event) => setDisplayNameEditorOpen(event.currentTarget.open)} open={displayNameEditorOpen}>
+          <summary className="profile-setting-summary"><span><small className="section-label">{t('profile.settings')}</small><strong>{savedDisplayName ? t('profile.displayNameEdit') : t('profile.displayName')}</strong></span>{savedDisplayName && <span className="profile-setting-current">{savedDisplayName}</span>}</summary>
+          <form className="profile-form profile-form--expanded" onSubmit={(event) => void saveProfile(event)}>
+            <p>{t('profile.displayNameCopy')}</p>
+            <label htmlFor="profile-display-name">{t('profile.displayName')}</label>
+            <input id="profile-display-name" maxLength={60} minLength={2} onChange={(event) => { setDisplayName(event.target.value); setFeedback(null); }} required value={displayName} />
+            {feedback === 'saved' && <p className="form-success" role="status">{t('profile.saved')}</p>}
+            {feedback === 'error' && <p className="form-error" role="alert">{t('profile.saveError')}</p>}
+            <button className="primary-action" disabled={saving} type="submit">{saving ? t('pending') : t('steward.save')}</button>
+          </form>
+        </details>
         <article className="profile-personalization">
           <div><p className="section-label">{t('profile.settings')}</p><h2>{t('profile.themeTitle')}</h2><p>{t('profile.themeCopy')}</p></div>
           <fieldset className="theme-picker profile-theme-picker">
@@ -191,16 +205,19 @@ export function ProfilePage() {
           <header><p className="section-label">{t('joinRequests.kicker')}</p><h2>{t('joinRequests.title')}</h2><p>{t('joinRequests.intro')}</p></header>
           <LeagueJoinRequestStatusList />
         </article>
-        <article className="profile-session">
-          <div><p className="section-label">{t('profile.account')}</p><h2>{t('shell.signOut')}</h2><p>{t('profile.signOutCopy')}</p></div>
-          <div className="profile-session-action">
-            <span>{user.email}</span>
-            <button className="text-action profile-sign-out" disabled={signingOut} onClick={() => void handleSignOut()} type="button">
-              <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 5H5v14h5M14 8l4 4-4 4M18 12H9" /></svg>
-              <span>{signingOut ? t('pending') : t('shell.signOut')}</span>
-            </button>
-          </div>
-          {signOutError && <p className="form-error profile-session-error" role="alert">{t('profile.signOutError')}</p>}
+        <article className="profile-session profile-delete-account">
+          <div><p className="section-label">{t('profile.account')}</p><h2>{t('profile.deleteAccount')}</h2><p>{t('profile.deleteAccountCopy')}</p><p className="profile-delete-preserved">{t('profile.deleteAccountPreserved')}</p></div>
+          <details className="profile-delete-confirmation">
+            <summary className="text-action danger-action">{t('profile.deleteAccountOpen')}</summary>
+            <div className="profile-delete-confirmation-body">
+              <p>{t('profile.deleteAccountWarning')}</p>
+              <label htmlFor="profile-delete-email">{t('profile.deleteAccountConfirmLabel')}</label>
+              <input autoComplete="email" id="profile-delete-email" inputMode="email" onChange={(event) => { setDeleteConfirmation(event.target.value); setDeleteAccountError(false); }} placeholder={user.email ?? ''} type="email" value={deleteConfirmation} />
+              <small>{t('profile.deleteAccountConfirmHint', { email: user.email ?? '' })}</small>
+              <button className="profile-delete-button" disabled={!accountDeletionConfirmed || deletingAccount} onClick={() => void handleDeleteAccount()} type="button">{deletingAccount ? t('pending') : t('profile.deleteAccountAction')}</button>
+            </div>
+          </details>
+          {deleteAccountError && <p className="form-error profile-session-error" role="alert">{t('profile.deleteAccountError')}</p>}
         </article>
       </section>
     </main>

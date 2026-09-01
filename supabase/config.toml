@@ -6,6 +6,12 @@
 [functions.finalize-consumer-registration]
 verify_jwt = false
 
+# Authenticated self-service deletion. The handler verifies the bearer user,
+# releases personal access, and performs the irreversible Auth deletion with
+# the server-only service role.
+[functions.delete-racevora-account]
+verify_jwt = true
+
 # Public Race Hub news uses the public anon JWT at the gateway. The function
 # itself accepts GET only and fetches a fixed server-side source allowlist.
 [functions.f1-news]
