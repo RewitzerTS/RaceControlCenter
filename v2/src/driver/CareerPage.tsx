@@ -13,7 +13,7 @@ export function CareerPage() {
   const location = useLocation();
   const { loading: authLoading, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
-  const { client, leagueSlug } = useLeague();
+  const { client } = useLeague();
   const { formatDate, formatNumber, t } = useI18n();
   const careerSection = location.pathname === '/career/profile'
     ? { page: 'fahrer-profil', title: t('career.driverProfile') }
@@ -75,7 +75,6 @@ export function CareerPage() {
         <NavLink to="/career/profile">{t('career.driverProfile')}</NavLink>
         <NavLink to="/career/compare">{t('career.compare')}</NavLink>
       </nav>
-      <section className="storyline-strip"><strong>{t('route.careerTitle')}</strong><span>{t('home.context', { league: leagueSlug })}</span><i aria-hidden="true">•</i><span>{t('career.crossLeague')}</span></section>
       <section className="career-layout">
         <article className="hero-main career-hero">
           <p className="hero-kicker">{t('home.progression')}</p>

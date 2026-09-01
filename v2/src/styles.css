@@ -1618,7 +1618,7 @@ h2 {
 
 @media (max-width: 760px) {
   .section-navigation {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     display: grid;
     margin-bottom: 14px;
     overflow: visible;
@@ -4708,7 +4708,8 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 
 @media (max-width: 520px) {
   .header-inner { position: relative; }
-  .brand-logo { justify-self: start; }
+  .brand { justify-content: flex-start; }
+  .brand-logo { flex: 0 0 64px; }
   .brand-text {
     position: absolute;
     left: 50%;

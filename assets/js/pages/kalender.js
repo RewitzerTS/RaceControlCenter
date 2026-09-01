@@ -180,7 +180,7 @@ async function loadCalendar() {
 
     const upcomingBtn = document.querySelector('.calendar-toggle[data-target="upcoming-section"]');
     const completedBtn = document.querySelector('.calendar-toggle[data-target="completed-section"]');
-    if (upcomingBtn) upcomingBtn.textContent = `Kommende Rennen (${upcoming.length})`;
+    if (upcomingBtn) upcomingBtn.textContent = `Nächste Rennen (${upcoming.length})`;
     if (completedBtn) completedBtn.textContent = `Gefahrene Rennen (${completed.length})`;
 
     if (upcomingContainer) upcomingContainer.innerHTML = upcoming.length ? upcoming.map(window.createRaceCard).join('') : '<div class="notice">Keine kommenden Rennen vorhanden.</div>';
