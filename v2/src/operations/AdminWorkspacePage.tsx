@@ -14,7 +14,7 @@ import {
 } from './operations';
 
 const ADMIN_AREAS: Array<{ title: MessageKey; items: Array<{ key: MessageKey; to: string }> }> = [
-  { title: 'admin.league', items: [{ key: 'admin.branding', to: '/admin/branding' }, { key: 'admin.users', to: '/admin/users' }, { key: 'admin.drivers', to: '/admin/drivers' }, { key: 'admin.teams', to: '/admin/teams' }, { key: 'admin.rules', to: '/admin/rules' }] },
+  { title: 'admin.league', items: [{ key: 'admin.branding', to: '/admin/branding' }, { key: 'admin.users', to: '/admin/users' }, { key: 'admin.drivers', to: '/admin/drivers' }, { key: 'admin.teams', to: '/admin/teams' }, { key: 'admin.rules', to: '/admin/rules' }, { key: 'profile.createLeague', to: '/leagues/new' }] },
   { title: 'admin.raceOps', items: [{ key: 'admin.seasonSetup', to: '/admin/season/setup' }, { key: 'admin.races', to: '/admin/races' }, { key: 'admin.results', to: '/admin/results' }, { key: 'admin.import', to: '/admin/results/import' }, { key: 'admin.standings', to: '/admin/standings' }, { key: 'admin.cases', to: '/stewarding' }] },
   { title: 'admin.content', items: [{ key: 'admin.graphics', to: '/admin/graphics' }, { key: 'admin.audit', to: '/admin/audit' }] },
 ];
@@ -104,7 +104,6 @@ export function AdminWorkspacePage() {
       <nav className="operations-menu" aria-labelledby="admin-navigation-title">
         <div className="operations-menu-heading">
           <h2 id="admin-navigation-title">{t('admin.navigation')}</h2>
-          <div className="operations-menu-actions"><NavLink className="primary-action operations-create-league" to="/leagues/new">{t('profile.createLeague')}</NavLink></div>
         </div>
         <div className="operations-menu-groups">
           {ADMIN_AREAS.map((area) => <details key={area.title} open={openAreas.has(area.title)}><summary onClick={(event) => { event.preventDefault(); setOpenAreas((current) => { const next = new Set(current); if (next.has(area.title)) next.delete(area.title); else next.add(area.title); return next; }); }}>{t(area.title)}</summary><div>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}</NavLink>)}</div></details>)}

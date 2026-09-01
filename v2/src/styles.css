@@ -3848,6 +3848,8 @@ img, svg, video, canvas { max-width: 100%; }
 @media (max-width: 700px) {
   input, select, textarea { max-width: 100%; font-size: 16px; }
   .app-shell:not(.app-shell--embedded-access) .shell-frame {
+    min-height: calc(100dvh - 92px);
+    grid-template-rows: minmax(0, 1fr) auto;
     padding-bottom: calc(68px + env(safe-area-inset-bottom));
   }
   .mobile-toggle { display: none; }
@@ -3985,6 +3987,13 @@ img, svg, video, canvas { max-width: 100%; }
     gap: 0.7rem;
     padding-inline: 0.85rem;
   }
+  .mobile-more-navigation .nav-item--active {
+    color: var(--brand-on-primary);
+    border-color: color-mix(in srgb, var(--brand-primary) 72%, var(--brand-text));
+    background-color: var(--brand-primary);
+    background-image: var(--brand-gradient);
+  }
+  .mobile-more-navigation .nav-item--active .nav-icon { color: currentColor; }
   .mobile-more-navigation .nav-item > span {
     position: static;
     width: auto;
@@ -4011,6 +4020,7 @@ img, svg, video, canvas { max-width: 100%; }
 }
 
 @media (max-width: 520px) {
+  .app-shell:not(.app-shell--embedded-access) .shell-frame { min-height: calc(100dvh - 82px); }
   .league-switcher {
     min-width: 0;
     max-width: none;
@@ -4156,24 +4166,6 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   border-bottom: 1px solid var(--line);
 }
 .operations-menu-heading h2 { margin: 0; font-size: 1.05rem; }
-.operations-menu-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.55rem; }
-.operations-menu .operations-create-league {
-  width: auto;
-  min-height: 44px;
-  justify-content: center;
-  padding: 0.65rem 1rem;
-  border: 0;
-  border-radius: 999px;
-  color: var(--brand-on-primary);
-  background: var(--brand-gradient);
-  box-shadow: 0 0 22px color-mix(in srgb, var(--brand-primary) 32%, transparent);
-  font-weight: 800;
-}
-.operations-menu .operations-create-league:hover,
-.operations-menu .operations-create-league:focus-visible {
-  background: var(--brand-gradient);
-  filter: brightness(1.07);
-}
 .operations-menu-groups { display: grid; gap: 0.45rem; padding: 0.7rem; }
 .operations-menu-groups details + details { margin-top: 0; }
 .operations-menu-groups details {
@@ -4235,9 +4227,6 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 @media (max-width: 700px) {
   .admin-next-action { align-items: stretch; flex-direction: column; }
   .admin-next-action .primary-action { width: 100%; }
-  .operations-menu-heading { align-items: stretch; flex-direction: column; }
-  .operations-menu-actions { display: grid; grid-template-columns: 1fr; }
-  .operations-menu .operations-create-league { width: 100%; }
   .operations-menu-groups details > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
