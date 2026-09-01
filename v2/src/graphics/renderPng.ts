@@ -63,6 +63,7 @@ export function resolvePilotRowTextSizes(rowHeight: number, scale: number, isPod
   const metric = 22 * scale;
   return {
     primary,
+    team: primary,
     secondary,
     detail: isRaceResult ? metric : secondary,
     value: metric,
@@ -266,6 +267,7 @@ function drawCountryFlag(context: CanvasRenderingContext2D, image: HTMLImageElem
 }
 
 type PilotLayout = {
+  format: GraphicFormat;
   width: number;
   height: number;
   margin: number;
@@ -283,10 +285,21 @@ type PilotLayout = {
 
 function pilotLayout(format: GraphicFormat): PilotLayout {
   const { width, height } = GRAPHIC_DIMENSIONS[format];
-  if (format === 'story') return { width, height, margin: 48, headerY: 70, eyebrowY: 142, titleFirstY: 230, titleSecondY: 330, subtitleY: 414, dataTop: 490, dataBottom: 1620, footerTop: 1660, titleSize: 102, scale: 1.16 };
-  if (format === 'landscape') return { width, height, margin: 64, headerY: 54, eyebrowY: 104, titleFirstY: 162, titleSecondY: 226, subtitleY: 278, dataTop: 324, dataBottom: 872, footerTop: 900, titleSize: 70, scale: 1.02 };
-  if (format === 'square') return { width, height, margin: 36, headerY: 54, eyebrowY: 104, titleFirstY: 166, titleSecondY: 230, subtitleY: 288, dataTop: 336, dataBottom: 888, footerTop: 910, titleSize: 70, scale: 0.94 };
-  return { width, height, margin: 36, headerY: 60, eyebrowY: 112, titleFirstY: 180, titleSecondY: 260, subtitleY: 331, dataTop: 386, dataBottom: 1106, footerTop: 1128, titleSize: 82, scale: 1 };
+  if (format === 'story') return { format, width, height, margin: 48, headerY: 70, eyebrowY: 142, titleFirstY: 230, titleSecondY: 330, subtitleY: 414, dataTop: 490, dataBottom: 1620, footerTop: 1660, titleSize: 102, scale: 1.16 };
+  if (format === 'landscape') return { format, width, height, margin: 64, headerY: 54, eyebrowY: 104, titleFirstY: 162, titleSecondY: 226, subtitleY: 278, dataTop: 324, dataBottom: 872, footerTop: 900, titleSize: 70, scale: 1.02 };
+  if (format === 'square') return { format, width, height, margin: 36, headerY: 54, eyebrowY: 104, titleFirstY: 166, titleSecondY: 230, subtitleY: 288, dataTop: 336, dataBottom: 888, footerTop: 910, titleSize: 70, scale: 0.94 };
+  return { format, width, height, margin: 36, headerY: 60, eyebrowY: 112, titleFirstY: 180, titleSecondY: 260, subtitleY: 331, dataTop: 386, dataBottom: 1106, footerTop: 1128, titleSize: 82, scale: 1 };
+}
+
+function pilotTableFrame(layout: PilotLayout) {
+  const availableWidth = layout.width - layout.margin * 2;
+  const width = Math.min(availableWidth, layout.height * 4 / 3);
+  const left = (layout.width - width) / 2;
+  return { left, right: left + width, width };
+}
+
+export function resolvePilotTableFrame(format: GraphicFormat) {
+  return pilotTableFrame(pilotLayout(format));
 }
 
 function drawLeagueName(context: CanvasRenderingContext2D, name: string, theme: GraphicTheme, layout: PilotLayout) {
@@ -357,7 +370,8 @@ function drawRaceVoraFooter(context: CanvasRenderingContext2D, theme: GraphicThe
 }
 
 function drawPilotBackdrop(context: CanvasRenderingContext2D, layout: PilotLayout, theme: GraphicTheme) {
-  const { width, height, margin, dataTop, dataBottom, footerTop } = layout;
+  const { width, height, dataTop, dataBottom, footerTop } = layout;
+  const tableFrame = pilotTableFrame(layout);
   const gradient = context.createLinearGradient(0, 0, width, height);
   gradient.addColorStop(0, theme.background);
   gradient.addColorStop(0.56, theme.surface);
@@ -390,15 +404,15 @@ function drawPilotBackdrop(context: CanvasRenderingContext2D, layout: PilotLayou
   context.fill();
   context.restore();
 
-  const panel = context.createLinearGradient(margin, dataTop, width - margin, dataBottom);
+  const panel = context.createLinearGradient(tableFrame.left, dataTop, tableFrame.right, dataBottom);
   panel.addColorStop(0, mixGraphicColors(theme.surface, theme.secondary, 0.12));
   panel.addColorStop(0.28, mixGraphicColors(theme.background, theme.surface, 0.42));
   panel.addColorStop(1, mixGraphicColors(theme.background, theme.surfaceAlt, 0.22));
   context.fillStyle = panel;
-  context.fillRect(margin, dataTop, width - margin * 2, dataBottom - dataTop);
+  context.fillRect(tableFrame.left, dataTop, tableFrame.width, dataBottom - dataTop);
   context.strokeStyle = mixGraphicColors(theme.line, theme.primary, 0.18);
   context.lineWidth = 1;
-  context.strokeRect(margin + 0.5, dataTop + 0.5, width - margin * 2 - 1, dataBottom - dataTop - 1);
+  context.strokeRect(tableFrame.left + 0.5, dataTop + 0.5, tableFrame.width - 1, dataBottom - dataTop - 1);
 
   const footer = context.createLinearGradient(0, footerTop, width, height);
   footer.addColorStop(0, mixGraphicColors(theme.surfaceAlt, theme.background, 0.46));
@@ -428,9 +442,10 @@ function drawPilotBackdrop(context: CanvasRenderingContext2D, layout: PilotLayou
   context.restore();
 
   context.fillStyle = theme.primary;
-  context.fillRect(margin, dataTop, Math.min(152 * layout.scale, (width - margin * 2) * 0.18), 5 * layout.scale);
+  const accentWidth = Math.min(152 * layout.scale, tableFrame.width * 0.18);
+  context.fillRect(tableFrame.left, dataTop, accentWidth, 5 * layout.scale);
   context.globalAlpha = 0.65;
-  context.fillRect(width - margin - Math.min(152 * layout.scale, (width - margin * 2) * 0.18), dataTop, Math.min(152 * layout.scale, (width - margin * 2) * 0.18), 5 * layout.scale);
+  context.fillRect(tableFrame.right - accentWidth, dataTop, accentWidth, 5 * layout.scale);
   context.globalAlpha = 1;
 }
 
@@ -483,31 +498,33 @@ function drawPilotRows(context: CanvasRenderingContext2D, model: GraphicModel, t
   const availableHeight = layout.dataBottom - rowTop;
   const maximumRowHeight = isPodium ? 178 * layout.scale : 104 * layout.scale;
   const rowHeight = Math.min(maximumRowHeight, availableHeight / Math.max(1, model.rows.length));
-  const contentWidth = layout.width - layout.margin * 2;
+  const tableFrame = pilotTableFrame(layout);
+  const contentWidth = tableFrame.width;
   const rankWidth = 98 * layout.scale;
   const valueWidth = 112 * layout.scale;
   const detailWidth = isRaceResult ? 158 * layout.scale : isStandings ? 180 * layout.scale : 0;
-  const driverWidth = isStandings ? contentWidth - rankWidth - detailWidth - valueWidth : contentWidth * 0.34;
-  const rankRight = layout.margin + rankWidth;
+  const middleWidth = contentWidth - rankWidth - detailWidth - valueWidth;
+  const driverWidth = isStandings ? middleWidth : middleWidth * (layout.format === 'landscape' ? 0.55 : 0.52);
+  const rankRight = tableFrame.left + rankWidth;
   const driverLeft = rankRight + 28 * layout.scale;
-  const teamLeft = layout.margin + rankWidth + driverWidth;
-  const valueLeft = layout.width - layout.margin - valueWidth;
+  const teamLeft = rankRight + driverWidth;
+  const valueLeft = tableFrame.right - valueWidth;
   const detailLeft = valueLeft - detailWidth;
   const detailRight = valueLeft - 22 * layout.scale;
-  const valueRight = layout.width - layout.margin - 18 * layout.scale;
+  const valueRight = tableFrame.right - 18 * layout.scale;
 
   context.save();
   context.globalAlpha = 0.34;
   context.fillStyle = theme.surfaceAlt;
-  context.fillRect(layout.margin, layout.dataTop, contentWidth, headerHeight);
+  context.fillRect(tableFrame.left, layout.dataTop, contentWidth, headerHeight);
   context.restore();
   context.fillStyle = theme.line;
-  context.fillRect(layout.margin, rowTop, contentWidth, 1);
+  context.fillRect(tableFrame.left, rowTop, contentWidth, 1);
   [rankRight, ...(isStandings ? [detailLeft, valueLeft] : [teamLeft, ...(isRaceResult ? [detailLeft] : []), valueLeft])].forEach((x) => context.fillRect(Math.round(x), rowTop, 1, layout.dataBottom - rowTop));
 
   const headerY = layout.dataTop + headerHeight / 2;
   context.textAlign = 'left';
-  drawText(context, 'POS', layout.margin + 24 * layout.scale, headerY, rankWidth - 36 * layout.scale, 17 * layout.scale, theme.muted, 650, 11);
+  drawText(context, 'POS', tableFrame.left + 24 * layout.scale, headerY, rankWidth - 36 * layout.scale, 17 * layout.scale, theme.muted, 650, 11);
   drawText(context, model.type === 'team_standings' ? 'TEAM' : 'DRIVER', driverLeft, headerY, Math.max(80, (isStandings ? detailLeft : teamLeft) - driverLeft - 16), 17 * layout.scale, theme.muted, 650, 11);
   if (!isStandings) drawText(context, 'TEAM', teamLeft + 28 * layout.scale, headerY, Math.max(80, (isRaceResult ? detailLeft : valueLeft) - teamLeft - 36), 17 * layout.scale, theme.muted, 650, 11);
   if (isRaceResult || isStandings) {
@@ -523,7 +540,7 @@ function drawPilotRows(context: CanvasRenderingContext2D, model: GraphicModel, t
       context.save();
       context.globalAlpha = 0.62;
       context.fillStyle = theme.line;
-      context.fillRect(layout.margin, Math.round(centerY - rowHeight / 2), contentWidth, 1);
+      context.fillRect(tableFrame.left, Math.round(centerY - rowHeight / 2), contentWidth, 1);
       context.restore();
     }
     const numericRank = Number.parseInt(row.rank.replace(/^P/i, ''), 10);
@@ -532,20 +549,20 @@ function drawPilotRows(context: CanvasRenderingContext2D, model: GraphicModel, t
     context.fillStyle = podium ? theme.primary : theme.secondary;
     context.globalAlpha = podium ? 0.92 : 0.24;
     context.beginPath();
-    context.moveTo(layout.margin, centerY - rowHeight / 2);
+    context.moveTo(tableFrame.left, centerY - rowHeight / 2);
     context.lineTo(rankRight, centerY - rowHeight / 2);
     context.lineTo(rankRight - 15 * layout.scale, centerY + rowHeight / 2);
-    context.lineTo(layout.margin, centerY + rowHeight / 2);
+    context.lineTo(tableFrame.left, centerY + rowHeight / 2);
     context.closePath();
     context.fill();
     context.restore();
 
     const rowText = resolvePilotRowTextSizes(rowHeight, layout.scale, isPodium, isRaceResult);
     context.textAlign = 'center';
-    drawText(context, row.rank.replace(/^0/, ''), layout.margin + rankWidth * 0.44, centerY, rankWidth * 0.62, Math.min(32 * layout.scale, rowHeight * 0.52), podium ? theme.onPrimary : theme.text, 900, 14);
+    drawText(context, row.rank.replace(/^0/, ''), tableFrame.left + rankWidth * 0.44, centerY, rankWidth * 0.62, Math.min(32 * layout.scale, rowHeight * 0.52), podium ? theme.onPrimary : theme.text, 900, 14);
     context.textAlign = 'left';
     drawText(context, row.primary.toUpperCase(), driverLeft, centerY, Math.max(90, (isStandings ? detailLeft : teamLeft) - driverLeft - 20), rowText.primary, theme.text, 800, 13);
-    if (!isStandings) drawText(context, row.secondary.toUpperCase(), teamLeft + 28 * layout.scale, centerY, Math.max(80, (isRaceResult ? detailLeft : valueLeft) - teamLeft - 48), rowText.secondary, theme.text, 550, 11);
+    if (!isStandings) drawText(context, row.secondary.toUpperCase(), teamLeft + 28 * layout.scale, centerY, Math.max(80, (isRaceResult ? detailLeft : valueLeft) - teamLeft - 48), rowText.team, theme.text, 550, 13);
     if (isRaceResult || isStandings) {
       context.textAlign = 'right';
       drawText(context, isRaceResult ? row.detail ?? '—' : row.secondary.toUpperCase(), detailRight, centerY, detailWidth - 34 * layout.scale, rowText.detail, isRaceResult ? theme.text : theme.muted, 650, 11);
@@ -613,13 +630,4 @@ export async function renderGraphicPng(model: GraphicModel, format: GraphicForma
   const canvas = document.createElement('canvas');
   await drawGraphic(canvas, model, format, options);
   return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG export failed.')), 'image/png'));
-}
-
-export function downloadPng(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
 }

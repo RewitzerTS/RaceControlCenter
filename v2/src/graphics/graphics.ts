@@ -8,7 +8,7 @@ export const GRAPHIC_DRIVER_LABEL_MODES = ['driver_name', 'display_name', 'gamer
 export type GraphicType = (typeof GRAPHIC_TYPES)[number];
 export type GraphicFormat = (typeof GRAPHIC_FORMATS)[number];
 export type GraphicDriverLabelMode = (typeof GRAPHIC_DRIVER_LABEL_MODES)[number];
-export type GraphicDriverLabels = { driverId: string; driverName?: string | null; displayName?: string | null; gamertag?: string | null };
+export type GraphicDriverLabels = { driverId: string; leagueDriverName?: string | null; driverName?: string | null; displayName?: string | null; gamertag?: string | null };
 export type ResultRow = {
   position: number | null;
   driverId?: string;
@@ -147,7 +147,7 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
       .single(),
     client
       .from('result_version_rows')
-      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,race_time,race_time_ms,row_order,driver:drivers!result_version_rows_driver_id_fkey(id,display_name,gamertag,league_team)')
+      .select('finish_position,awarded_points,classification_status,points_team_name,car_name_snapshot,race_time,race_time_ms,row_order,driver:drivers!result_version_rows_driver_id_fkey(id,display_name,gamertag,league_team),points_owner:drivers!result_version_rows_points_owner_driver_id_fkey(id,display_name,gamertag)')
       .eq('result_version_id', option.result_version_id)
       .order('row_order', { ascending: true }),
   ]);
@@ -163,16 +163,18 @@ export async function loadGraphicsResult(client: LeagueSupabaseClient, option: G
     race_time: string | null;
     race_time_ms: number | null;
     driver: { id: string; display_name: string; gamertag: string | null; league_team: string | null } | Array<{ id: string; display_name: string; gamertag: string | null; league_team: string | null }> | null;
+    points_owner: { id: string; display_name: string; gamertag: string | null } | Array<{ id: string; display_name: string; gamertag: string | null }> | null;
   };
   const rows = (rowsResponse.data as unknown as ResultRecord[]).map((row) => {
     const driver = Array.isArray(row.driver) ? row.driver[0] : row.driver;
+    const pointsOwner = Array.isArray(row.points_owner) ? row.points_owner[0] : row.points_owner;
+    const creditedDriver = pointsOwner ?? driver;
     return {
       position: row.finish_position,
-      driverId: driver?.id,
-      driver: driver?.display_name ?? 'Unknown driver',
-      driverName: driver?.display_name,
-      displayName: driver?.display_name,
-      gamertag: driver?.gamertag,
+      driverId: creditedDriver?.id,
+      driver: creditedDriver?.display_name ?? 'Unknown driver',
+      displayName: creditedDriver?.display_name,
+      gamertag: creditedDriver?.gamertag,
       team: row.points_team_name ?? row.car_name_snapshot ?? driver?.league_team ?? 'Independent',
       points: row.awarded_points,
       status: row.classification_status,
@@ -275,7 +277,10 @@ function graphicDriverLabel(
   const existing = cleanDriverLabel(driver.driver) ?? cleanDriverLabel(fallback) ?? '—';
   const savedLabels = workspace.driver_labels?.find((candidate) => (
     (driver.driverId && candidate.driverId === driver.driverId)
+    || cleanDriverLabel(candidate.leagueDriverName)?.localeCompare(existing, undefined, { sensitivity: 'base' }) === 0
     || cleanDriverLabel(candidate.driverName)?.localeCompare(existing, undefined, { sensitivity: 'base' }) === 0
+    || cleanDriverLabel(candidate.displayName)?.localeCompare(existing, undefined, { sensitivity: 'base' }) === 0
+    || cleanDriverLabel(candidate.gamertag)?.localeCompare(existing, undefined, { sensitivity: 'base' }) === 0
   ));
   const driverName = cleanDriverLabel(savedLabels?.driverName) ?? cleanDriverLabel(driver.driverName);
   const displayName = cleanDriverLabel(savedLabels?.displayName) ?? cleanDriverLabel(driver.displayName);
@@ -370,4 +375,9 @@ export function graphicFilename(workspace: GraphicsWorkspace, type: GraphicType,
   const version = workspace.latest_result?.version ? `-v${workspace.latest_result.version}` : '';
   const page = pageCount > 1 ? `-${String(pageNumber).padStart(2, '0')}` : '';
   return `racevora-${workspace.league.slug}-${type}-${format}${version}${page}.png`;
+}
+
+export function graphicArchiveFilename(workspace: GraphicsWorkspace, type: GraphicType, format: GraphicFormat) {
+  const resultVersion = workspace.latest_result ? `-v${workspace.latest_result.version}` : '';
+  return `racevora-${workspace.league.slug}-${type}-${format}${resultVersion}.zip`;
 }

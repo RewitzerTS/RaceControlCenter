@@ -7,6 +7,7 @@ const landscapeMigration = fs.readFileSync(path.join(root, 'supabase/migrations/
 const page = fs.readFileSync(path.join(root, 'src/graphics/GraphicsStudioPage.tsx'), 'utf8');
 const graphics = fs.readFileSync(path.join(root, 'src/graphics/graphics.ts'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'src/graphics/renderPng.ts'), 'utf8');
+const downloads = fs.readFileSync(path.join(root, 'src/graphics/downloadGraphics.ts'), 'utf8');
 const portraitTemplate = fs.readFileSync(path.join(root, 'src/graphics/templates/race-result-portrait.svg'), 'utf8');
 const footerLogo = path.join(root, 'public/assets/graphics/racevora-logo-white.png');
 
@@ -29,7 +30,8 @@ const requirements = [
   [renderer.includes('readGraphicTheme') && renderer.includes('resolveRaceResultPortraitTemplate'), 'personal-theme SVG renderer'],
   [renderer.includes('drawPilotGraphic') && !renderer.includes('drawDefaultGraphic') && renderer.includes("achievement: ['CAREER', 'ACHIEVEMENT']"), 'shared pilot design across all templates and formats'],
   [graphics.includes('raceTime') && graphics.includes('formatRaceGap') && renderer.includes("'TIME'") && portraitTemplate.includes('data-detail-column="race-time"'), 'winner time and calculated race gaps in result graphics'],
-  [renderer.includes('drawLeagueIdentity') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACE.VORA'), 'league header and fixed RaceVora footer'],
+  [renderer.includes('drawLeagueName') && renderer.includes('drawLeagueWatermark') && renderer.includes('drawRaceVoraFooter') && renderer.includes('RACE TO RESULT') && renderer.includes('@RACE.VORA'), 'league header and fixed RaceVora footer'],
+  [page.includes('downloadGraphicFiles') && downloads.includes('createGraphicZip') && downloads.includes("'application/zip'"), 'single-download multi-page ZIP export'],
   [fs.existsSync(footerLogo) && renderer.includes('racevora-logo-white.png') && !renderer.includes('drawRaceVoraMark'), 'official RaceVora footer logo asset'],
   [graphics.includes('country_code') && renderer.includes('drawCountryFlag') && renderer.includes('/v1-assets/images/flags'), 'official race country flag in graphic header'],
   [portraitTemplate.includes('data-rv-template="race-result-portrait"') && portraitTemplate.includes('id="slot-table"') && portraitTemplate.includes('data-max-rows="11"'), 'editable 4:5 race-result pilot template'],

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
-import { GRAPHIC_DIMENSIONS, leagueInitials, leagueWatermarkOpacity, mixGraphicColors, resolvePilotRowTextSizes, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
+import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicArchiveFilename, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
+import { createGraphicZip } from './downloadGraphics';
+import { GRAPHIC_DIMENSIONS, leagueInitials, leagueWatermarkOpacity, mixGraphicColors, resolvePilotRowTextSizes, resolvePilotTableFrame, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
 
 const labels: GraphicLabels = {
   raceResult: 'Race Result', podium: 'Podium', winner: 'Winner', driverStandings: 'Driver Standings', teamStandings: 'Team Standings', achievement: 'Achievement',
@@ -44,6 +45,7 @@ describe('Social Graphics model', () => {
 
       expect(raceResult.detail).toBe(raceResult.value);
       expect(raceResult.detail).toBeGreaterThan(raceResult.secondary);
+      expect(raceResult.team).toBe(raceResult.primary);
       expect(standings.detail).toBe(standings.secondary);
     });
   });
@@ -97,6 +99,17 @@ describe('Social Graphics model', () => {
     expect(buildGraphicModel(workspace, 'achievement', labels, 'driver_name').title).toBe('Alexander Apex');
   });
 
+  it('resolves every driver label mode without embedded driver ids', () => {
+    const withoutEmbeddedIds: GraphicsWorkspace = {
+      ...workspace,
+      driver_labels: workspace.driver_labels?.map((entry) => ({ ...entry, leagueDriverName: entry.displayName })),
+      driver_standings: [{ position: 1, driver: 'Alex Apex', points: 88, wins: 3 }],
+      latest_achievement: { driver: 'Alex Apex', code: 'wins_3', value: 3, unlocked_at: '2026-08-20T18:00:00Z' },
+    };
+    expect(buildGraphicModel(withoutEmbeddedIds, 'driver_standings', labels, 'gamertag').rows[0]?.primary).toBe('xApex');
+    expect(buildGraphicModel(withoutEmbeddedIds, 'achievement', labels, 'driver_name').title).toBe('Alexander Apex');
+  });
+
   it('falls back to the available display name when a driver label is missing', () => {
     expect(buildGraphicModel(workspace, 'race_result', labels, 'driver_name').rows[1]?.primary).toBe('Sam Slipstream');
     expect(buildGraphicModel(workspace, 'race_result', labels, 'gamertag').rows[2]?.primary).toBe('Jordan Grid');
@@ -114,6 +127,21 @@ describe('Social Graphics model', () => {
     expect(gamertagDigest).not.toBe(digest);
     expect(graphicFilename(workspace, 'winner', 'story')).toBe('racevora-demo-winner-story-v2.png');
     expect(graphicFilename(workspace, 'race_result', 'portrait', 2, 2)).toBe('racevora-demo-race_result-portrait-v2-02.png');
+    expect(graphicArchiveFilename(workspace, 'race_result', 'landscape')).toBe('racevora-demo-race_result-landscape-v2.zip');
+  });
+
+  it('packages every generated PNG into one repeatable ZIP download', async () => {
+    const archive = await createGraphicZip([
+      { filename: 'page-01.png', blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' }) },
+      { filename: 'page-02.png', blob: new Blob([new Uint8Array([4, 5, 6])], { type: 'image/png' }) },
+    ]);
+    const bytes = new Uint8Array(await archive.arrayBuffer());
+    const text = new TextDecoder().decode(bytes);
+    expect(archive.type).toBe('application/zip');
+    expect(new DataView(bytes.buffer).getUint32(0, true)).toBe(0x04034b50);
+    expect(text).toContain('page-01.png');
+    expect(text).toContain('page-02.png');
+    expect(new DataView(bytes.buffer).getUint32(bytes.length - 22, true)).toBe(0x06054b50);
   });
 
   it('balances complete race results across pages of at most eleven drivers', () => {
@@ -145,5 +173,12 @@ describe('Social Graphics model', () => {
 
   it('uses exact export dimensions for all four formats', () => {
     expect(GRAPHIC_DIMENSIONS).toEqual({ square: { width: 1080, height: 1080 }, portrait: { width: 1080, height: 1350 }, story: { width: 1080, height: 1920 }, landscape: { width: 1920, height: 1080 } });
+  });
+
+  it('centers a compact 4:3 table frame in landscape without shrinking other formats', () => {
+    expect(resolvePilotTableFrame('landscape')).toEqual({ left: 240, right: 1680, width: 1440 });
+    expect(resolvePilotTableFrame('square')).toEqual({ left: 36, right: 1044, width: 1008 });
+    expect(resolvePilotTableFrame('portrait')).toEqual({ left: 36, right: 1044, width: 1008 });
+    expect(resolvePilotTableFrame('story')).toEqual({ left: 48, right: 1032, width: 984 });
   });
 });

@@ -7,6 +7,7 @@ import { useRole } from '../roles/RoleProvider';
 import {
   buildGraphicModel,
   digestGraphicSource,
+  graphicArchiveFilename,
   graphicFilename,
   GRAPHIC_DRIVER_LABEL_MODES,
   GRAPHIC_FORMATS,
@@ -24,7 +25,8 @@ import {
   type GraphicsWorkspace,
   type GraphicType,
 } from './graphics';
-import { downloadPng, drawGraphic, readGraphicTheme, renderGraphicPng, type GraphicBranding } from './renderPng';
+import { downloadGraphicFiles } from './downloadGraphics';
+import { drawGraphic, readGraphicTheme, renderGraphicPng, type GraphicBranding } from './renderPng';
 
 const TYPE_KEYS: Record<GraphicType, MessageKey> = {
   race_result: 'graphics.type.raceResult',
@@ -176,10 +178,11 @@ export function GraphicsStudioPage() {
         digestGraphicSource(model, format, presentation),
       ]);
       await recordGraphicRender(client, model, format, digest, presentation);
-      blobs.forEach((blob, index) => {
+      const files = blobs.flatMap((blob, index) => {
         const page = graphicPages[index];
-        if (page) downloadPng(blob, graphicFilename(modelWorkspace, type, format, page.pageNumber, page.pageCount));
+        return page ? [{ blob, filename: graphicFilename(modelWorkspace, type, format, page.pageNumber, page.pageCount) }] : [];
       });
+      await downloadGraphicFiles(files, graphicArchiveFilename(modelWorkspace, type, format));
       const refreshed = await loadGraphicsWorkspace(client);
       setWorkspace(refreshed);
       setState('done');
