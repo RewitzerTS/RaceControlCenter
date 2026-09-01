@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding, THEME_PRESETS } from './leagueBranding';
+import { applyLeagueBranding, CUSTOM_THEME_ID, customThemeHasAccessibleContrast, fallbackLeagueBranding, resolvePersonalTheme, resolveTheme, shouldUseStandardRaceVoraBranding, THEME_PRESETS } from './leagueBranding';
 
 afterEach(() => {
   document.querySelector('meta[name="theme-color"]')?.remove();
@@ -19,6 +19,46 @@ describe('personal theme resolution', () => {
     expect(resolveTheme({ theme_id: '6' }).id).toBe(6);
     expect(resolveTheme({ theme_preset: 4 }).id).toBe(4);
     expect(resolveTheme({ theme_id: 'unknown' }).id).toBe(0);
+  });
+
+  it('resolves a custom personal palette from user metadata', () => {
+    expect(resolvePersonalTheme({
+      theme_preset: CUSTOM_THEME_ID,
+      theme_custom: {
+        primary_color: '#123456',
+        secondary_color: '#654321',
+        accent_color: '#ABCDEF',
+        accent_2_color: '#FEDCBA',
+        background_color: '#050607',
+        surface_color: '#111213',
+        text_color: '#F4F5F6',
+        text_on_primary_color: '#FFFFFF',
+      },
+    })).toMatchObject({
+      id: CUSTOM_THEME_ID,
+      primary: '#123456',
+      background: '#050607',
+      text: '#F4F5F6',
+    });
+  });
+
+  it('rejects invalid custom colors and falls back to safe theme values', () => {
+    expect(resolvePersonalTheme({
+      theme_preset: CUSTOM_THEME_ID,
+      theme_custom: { primary_color: 'not-a-color' },
+    })).toMatchObject({
+      id: CUSTOM_THEME_ID,
+      primary: '#35246A',
+    });
+  });
+
+  it('requires readable contrast for custom themes', () => {
+    expect(customThemeHasAccessibleContrast(THEME_PRESETS[2])).toBe(true);
+    expect(customThemeHasAccessibleContrast({
+      ...THEME_PRESETS[2],
+      text: '#121212',
+      background: '#111111',
+    })).toBe(false);
   });
 
   it('colors the browser safe area with the active theme surface', () => {

@@ -1181,6 +1181,12 @@ h2 {
   .responsive-table--records td[data-mobile-primary="true"] { grid-column: 1 / -1; }
   .responsive-table--records td[data-mobile-primary="true"] strong { overflow-wrap: anywhere; font-size: 0.92rem; }
   .responsive-table--records :is(button, select) { width: 100%; min-height: 44px; }
+  .responsive-table--records .table-action-button {
+    width: fit-content;
+    min-width: 0;
+    justify-self: start;
+    padding-inline: 1rem;
+  }
   .responsive-table--records .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
   .team-admin-list > article, .workflow-list > article { align-items: stretch; flex-direction: column; }
   .team-edit-fields, .faq-edit-row { grid-template-columns: 1fr; }
@@ -1791,10 +1797,10 @@ body {
 }
 
 .nav-item--active {
-  color: #fff;
-  border-color: rgba(120, 197, 213, 0.5);
-  background: linear-gradient(145deg, rgba(90, 50, 163, 0.7), rgba(44, 143, 166, 0.62));
-  box-shadow: 0 10px 24px rgba(22, 9, 52, 0.28);
+  color: var(--brand-text);
+  border-color: color-mix(in srgb, var(--brand-accent) 66%, transparent);
+  background: color-mix(in srgb, var(--brand-primary) 42%, var(--brand-surface));
+  box-shadow: none;
 }
 .steward-nav-item { margin: 0; border-top: 1px solid transparent; }
 .nav-icon { width: 21px; height: 21px; }
@@ -2348,6 +2354,49 @@ body {
 .profile-join-requests p,
 .profile-session p { color: var(--muted); }
 .profile-theme-picker { margin-top: 1.2rem; }
+.profile-custom-theme-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 1rem;
+  margin-top: 0.35rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+.profile-custom-theme-editor > p { max-width: 68ch; margin: 0; }
+.profile-custom-theme-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 1rem;
+}
+.profile-custom-theme-field {
+  min-height: 64px;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem !important;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+.profile-custom-theme-field > span { min-width: 0; display: grid; gap: 0.2rem; }
+.profile-custom-theme-field strong { font-size: 0.78rem; }
+.profile-custom-theme-field small {
+  color: var(--muted);
+  font-family: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+  font-size: 0.68rem;
+}
+.profile-custom-theme-field input[type="color"] {
+  width: 54px;
+  min-width: 54px;
+  height: 44px;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--brand-background);
+  cursor: pointer;
+}
+.profile-custom-theme-editor > .primary-action { justify-self: start; }
 .profile-theme-preview {
   min-height: 320px;
   display: grid;
@@ -2355,10 +2404,12 @@ body {
   align-content: center;
   gap: 0.75rem;
   border-color: color-mix(in srgb, var(--preview-primary) 65%, var(--line));
-  background: radial-gradient(circle at top, color-mix(in srgb, var(--preview-secondary) 52%, transparent), transparent 68%), var(--brand-surface);
+  color: var(--preview-text);
+  background: radial-gradient(circle at top, color-mix(in srgb, var(--preview-accent) 22%, transparent), transparent 68%), var(--preview-background);
   text-align: center;
 }
 .profile-theme-preview .preview-mark { border-color: var(--preview-primary); color: var(--preview-primary); }
+.profile-theme-preview small { color: color-mix(in srgb, var(--preview-text) 72%, var(--preview-secondary)); }
 .profile-preview-button {
   min-height: 42px;
   display: inline-grid;
@@ -2366,7 +2417,7 @@ body {
   padding: 0.55rem 1rem;
   border-radius: 999px;
   background: var(--preview-primary);
-  color: var(--brand-background);
+  color: var(--preview-on-primary);
   font-weight: 850;
 }
 .profile-create-league { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
@@ -4407,6 +4458,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 }
 
 @media (max-width: 620px) {
+  .profile-custom-theme-fields { grid-template-columns: 1fr; }
   .level-gauge-header { align-items: center; padding: 9px 10px; }
   .level-gauge-header p,
   .level-gauge-pill--balance,

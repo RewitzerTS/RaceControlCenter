@@ -1,5 +1,6 @@
 import type { Session, User } from '@supabase/supabase-js';
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useState } from 'react';
+import { CUSTOM_THEME_ID, customThemeMetadata, type CustomThemeColors } from '../league/leagueBranding';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 
 interface AuthContextValue {
@@ -14,6 +15,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
   updateThemePreset: (themePreset: number) => Promise<void>;
+  updateCustomTheme: (theme: CustomThemeColors) => Promise<void>;
   completeOnboarding: (profile: { displayName: string; gamertag: string; realName: string; nationalityCode: string }) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
 }
@@ -113,6 +115,16 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
     updateThemePreset: async (themePreset) => {
       const { data, error: updateError } = await client.auth.updateUser({
         data: { theme_preset: themePreset },
+      });
+      if (updateError) throw updateError;
+      setSession((current) => current && data.user ? { ...current, user: data.user } : current);
+    },
+    updateCustomTheme: async (theme) => {
+      const { data, error: updateError } = await client.auth.updateUser({
+        data: {
+          theme_preset: CUSTOM_THEME_ID,
+          theme_custom: customThemeMetadata(theme),
+        },
       });
       if (updateError) throw updateError;
       setSession((current) => current && data.user ? { ...current, user: data.user } : current);

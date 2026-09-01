@@ -14,6 +14,12 @@ export type ThemePreset = {
   textOnPrimary: string;
 };
 
+export type CustomThemeColors = Pick<ThemePreset,
+  'primary' | 'secondary' | 'accent' | 'accent2' | 'background' | 'surface' | 'text' | 'textOnPrimary'
+>;
+
+export const CUSTOM_THEME_ID = 12;
+
 export const THEME_PRESETS: readonly ThemePreset[] = [
   { id: 0, name: 'RaceVora', subtitle: 'RaceVora Violett & Teal', primary: '#35246A', secondary: '#5A32A3', accent: '#2C8FA6', accent2: '#2F6F8A', background: '#021B34', surface: '#0A1F37', text: '#FFFFFF', textOnPrimary: '#FFFFFF' },
   { id: 1, name: 'Turquoise Carbon', subtitle: 'V1 Türkis & Carbon', primary: '#27F4D2', secondary: '#0B0D10', accent: '#C5C7C9', accent2: '#FFFFFF', background: '#060809', surface: '#15181B', text: '#F4F7F8', textOnPrimary: '#08110F' },
@@ -66,9 +72,55 @@ function themePresetId(settings: Record<string, unknown>): number {
       : typeof value === 'string' && value.trim() !== ''
         ? Number(value)
         : Number.NaN;
-    if (Number.isInteger(candidate) && THEME_PRESETS.some((theme) => theme.id === candidate)) return candidate;
+    if (Number.isInteger(candidate) && (candidate === CUSTOM_THEME_ID || THEME_PRESETS.some((theme) => theme.id === candidate))) return candidate;
   }
   return DEFAULT_THEME.id;
+}
+
+export function customThemeMetadata(theme: CustomThemeColors): Record<string, string> {
+  return {
+    primary_color: theme.primary,
+    secondary_color: theme.secondary,
+    accent_color: theme.accent,
+    accent_2_color: theme.accent2,
+    background_color: theme.background,
+    surface_color: theme.surface,
+    text_color: theme.text,
+    text_on_primary_color: theme.textOnPrimary,
+  };
+}
+
+export function toCustomThemeColors(theme: ThemePreset): CustomThemeColors {
+  return {
+    primary: theme.primary,
+    secondary: theme.secondary,
+    accent: theme.accent,
+    accent2: theme.accent2,
+    background: theme.background,
+    surface: theme.surface,
+    text: theme.text,
+    textOnPrimary: theme.textOnPrimary,
+  };
+}
+
+function relativeLuminance(hex: string): number {
+  const channels = [hex.slice(1, 3), hex.slice(3, 5), hex.slice(5, 7)].map((channel) => {
+    const value = Number.parseInt(channel, 16) / 255;
+    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrastRatio(foreground: string, background: string): number {
+  const lighter = Math.max(relativeLuminance(foreground), relativeLuminance(background));
+  const darker = Math.min(relativeLuminance(foreground), relativeLuminance(background));
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+export function customThemeHasAccessibleContrast(theme: CustomThemeColors): boolean {
+  return contrastRatio(theme.text, theme.background) >= 4.5
+    && contrastRatio(theme.text, theme.surface) >= 4.5
+    && contrastRatio(theme.textOnPrimary, theme.primary) >= 4.5;
 }
 
 export function resolveTheme(settingsValue: unknown): ThemePreset {
@@ -77,6 +129,9 @@ export function resolveTheme(settingsValue: unknown): ThemePreset {
   const preset = THEME_PRESETS.find((item) => item.id === themeId) ?? DEFAULT_THEME;
   return {
     ...preset,
+    id: themeId,
+    name: themeId === CUSTOM_THEME_ID ? 'Custom' : preset.name,
+    subtitle: themeId === CUSTOM_THEME_ID ? 'Personal colors' : preset.subtitle,
     primary: color(settings, preset.primary, 'primary_color', 'brand_primary'),
     secondary: color(settings, preset.secondary, 'secondary_color', 'brand_secondary'),
     accent: color(settings, preset.accent, 'accent_color', 'brand_accent'),
@@ -86,6 +141,22 @@ export function resolveTheme(settingsValue: unknown): ThemePreset {
     text: color(settings, preset.text, 'text_color', 'brand_text'),
     textOnPrimary: color(settings, preset.textOnPrimary, 'text_on_primary_color', 'brand_text_on_primary'),
   };
+}
+
+export function resolveStoredCustomTheme(metadataValue: unknown, fallback: ThemePreset = DEFAULT_THEME): ThemePreset {
+  const metadata = record(metadataValue);
+  return resolveTheme({
+    theme_id: CUSTOM_THEME_ID,
+    ...customThemeMetadata(fallback),
+    ...record(metadata.theme_custom),
+  });
+}
+
+export function resolvePersonalTheme(metadataValue: unknown): ThemePreset {
+  const metadata = record(metadataValue);
+  const themeId = themePresetId({ theme_id: metadata.theme_preset ?? metadata.theme_id });
+  if (themeId === CUSTOM_THEME_ID) return resolveStoredCustomTheme(metadata);
+  return resolveTheme({ theme_id: themeId });
 }
 
 export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {

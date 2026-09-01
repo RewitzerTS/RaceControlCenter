@@ -4,13 +4,34 @@ import { useAuth } from '../auth/AuthProvider';
 import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { LeagueSwitcher } from '../league/LeagueSwitcher';
-import { THEME_PRESETS } from '../league/leagueBranding';
+import {
+  CUSTOM_THEME_ID,
+  customThemeHasAccessibleContrast,
+  customThemeMetadata,
+  resolvePersonalTheme,
+  resolveStoredCustomTheme,
+  resolveTheme,
+  THEME_PRESETS,
+  toCustomThemeColors,
+  type CustomThemeColors,
+} from '../league/leagueBranding';
 import { useRole } from '../roles/RoleProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 
+const CUSTOM_THEME_FIELDS = [
+  ['primary', 'profile.themePrimary'],
+  ['secondary', 'profile.themeSecondary'],
+  ['accent', 'profile.themeAccent'],
+  ['accent2', 'profile.themeAccent2'],
+  ['background', 'profile.themeBackground'],
+  ['surface', 'profile.themeSurface'],
+  ['text', 'profile.themeText'],
+  ['textOnPrimary', 'profile.themeOnPrimary'],
+] as const;
+
 export function ProfilePage() {
-  const { loading: authLoading, signOut, updateDisplayName, updateThemePreset, user } = useAuth();
+  const { loading: authLoading, signOut, updateCustomTheme, updateDisplayName, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { role } = useRole();
   const { plural, t } = useI18n();
@@ -19,13 +40,20 @@ export function ProfilePage() {
   const [feedback, setFeedback] = useState<'error' | 'saved' | null>(null);
   const [themeFeedback, setThemeFeedback] = useState<'error' | 'saved' | null>(null);
   const [themePreset, setThemePreset] = useState(0);
+  const [customTheme, setCustomTheme] = useState<CustomThemeColors>(() => toCustomThemeColors(THEME_PRESETS[0]));
+  const [hasStoredCustomTheme, setHasStoredCustomTheme] = useState(false);
+  const [themeSaving, setThemeSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState(false);
 
   useEffect(() => {
     setDisplayName(typeof user?.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : '');
-    const storedTheme = Number(user?.user_metadata?.theme_preset);
-    setThemePreset(THEME_PRESETS.some((theme) => theme.id === storedTheme) ? storedTheme : 0);
+    const storedTheme = resolvePersonalTheme(user?.user_metadata);
+    const fallbackTheme = storedTheme.id === CUSTOM_THEME_ID ? THEME_PRESETS[0] : storedTheme;
+    const storedCustomTheme = user?.user_metadata?.theme_custom;
+    setThemePreset(storedTheme.id);
+    setCustomTheme(toCustomThemeColors(resolveStoredCustomTheme(user?.user_metadata, fallbackTheme)));
+    setHasStoredCustomTheme(Boolean(storedCustomTheme && typeof storedCustomTheme === 'object' && !Array.isArray(storedCustomTheme)));
   }, [user]);
 
   if (authLoading || identityLoading) {
@@ -66,6 +94,35 @@ export function ProfilePage() {
     }
   }
 
+  function selectCustomTheme() {
+    if (!hasStoredCustomTheme && themePreset !== CUSTOM_THEME_ID) {
+      const currentPreset = THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
+      setCustomTheme(toCustomThemeColors(currentPreset));
+    }
+    setThemePreset(CUSTOM_THEME_ID);
+    setThemeFeedback(null);
+  }
+
+  function patchCustomTheme(key: keyof CustomThemeColors, value: string) {
+    setCustomTheme((current) => ({ ...current, [key]: value.toUpperCase() }));
+    setThemeFeedback(null);
+  }
+
+  async function saveCustomTheme() {
+    if (!customThemeHasAccessibleContrast(customTheme)) return;
+    setThemeSaving(true);
+    setThemeFeedback(null);
+    try {
+      await updateCustomTheme(customTheme);
+      setHasStoredCustomTheme(true);
+      setThemeFeedback('saved');
+    } catch {
+      setThemeFeedback('error');
+    } finally {
+      setThemeSaving(false);
+    }
+  }
+
   async function handleSignOut() {
     setSigningOut(true);
     setSignOutError(false);
@@ -77,7 +134,10 @@ export function ProfilePage() {
     }
   }
 
-  const selectedTheme = THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
+  const selectedTheme = themePreset === CUSTOM_THEME_ID
+    ? resolveTheme({ theme_id: CUSTOM_THEME_ID, ...customThemeMetadata(customTheme) })
+    : THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
+  const customThemeContrastSafe = customThemeHasAccessibleContrast(customTheme);
 
   return (
     <main className="profile-page dashboard-shell" id="main-content">
@@ -106,12 +166,21 @@ export function ProfilePage() {
           <fieldset className="theme-picker profile-theme-picker">
             <legend>{t('profile.themeTitle')}</legend>
             {THEME_PRESETS.map((theme) => <label key={theme.id} className={themePreset === theme.id ? 'theme-option theme-option--active' : 'theme-option'}><input type="radio" name="personal-theme" checked={themePreset === theme.id} onChange={() => void selectTheme(theme.id)} /><span className="theme-swatches" aria-hidden="true">{[theme.primary, theme.secondary, theme.accent, theme.accent2].map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{theme.name}</strong><small>{theme.subtitle}</small></span></label>)}
+            <label className={themePreset === CUSTOM_THEME_ID ? 'theme-option theme-option--active' : 'theme-option'}><input type="radio" name="personal-theme" checked={themePreset === CUSTOM_THEME_ID} onChange={selectCustomTheme} /><span className="theme-swatches" aria-hidden="true">{[customTheme.primary, customTheme.secondary, customTheme.accent, customTheme.accent2].map((color, index) => <i key={`${index}-${color}`} style={{ background: color }} />)}</span><span><strong>{t('profile.customTheme')}</strong><small>{t('profile.customThemeCopy')}</small></span></label>
+            {themePreset === CUSTOM_THEME_ID && <div className="profile-custom-theme-editor" role="group" aria-label={t('profile.customTheme')}>
+              <p>{t('profile.customThemeHint')}</p>
+              <div className="profile-custom-theme-fields">
+                {CUSTOM_THEME_FIELDS.map(([key, label]) => <label className="profile-custom-theme-field" key={key}><span><strong>{t(label)}</strong><small>{customTheme[key]}</small></span><input aria-label={t(label)} type="color" value={customTheme[key]} onChange={(event) => patchCustomTheme(key, event.target.value)} /></label>)}
+              </div>
+              {!customThemeContrastSafe && <p className="form-error" role="status">{t('profile.customThemeContrast')}</p>}
+              <button className="primary-action" disabled={themeSaving || !customThemeContrastSafe} onClick={() => void saveCustomTheme()} type="button">{themeSaving ? t('pending') : t('profile.customThemeSave')}</button>
+            </div>}
           </fieldset>
           {themeFeedback === 'saved' && <p className="form-success" role="status">{t('profile.themeSaved')}</p>}
           {themeFeedback === 'error' && <p className="form-error" role="alert">{t('profile.themeError')}</p>}
         </article>
-        <aside className="profile-theme-preview" style={{ '--preview-primary': selectedTheme.primary, '--preview-secondary': selectedTheme.surface, '--preview-accent': selectedTheme.accent } as CSSProperties}>
-          <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
+        <aside className="profile-theme-preview" style={{ '--preview-primary': selectedTheme.primary, '--preview-secondary': selectedTheme.surface, '--preview-accent': selectedTheme.accent, '--preview-background': selectedTheme.background, '--preview-text': selectedTheme.text, '--preview-on-primary': selectedTheme.textOnPrimary } as CSSProperties}>
+          <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{themePreset === CUSTOM_THEME_ID ? t('profile.customTheme') : selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
         </aside>
         <article className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{t('profile.createLeague')}</h2><p>{t('profile.createLeagueCopy')}</p></div><div className="profile-league-actions"><NavLink className="text-action" to="/onboarding">{t('onboarding.leagueStep')}</NavLink><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink></div></article>
         <article className="profile-create-league profile-active-league">

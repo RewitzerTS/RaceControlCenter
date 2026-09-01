@@ -7,7 +7,7 @@ import { DriverIdentityProvider } from './driver/DriverIdentityProvider';
 import { FeatureFlagProvider } from './features/FeatureFlagProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
-import { applyLeagueBranding, fallbackLeagueBranding, resolveTheme, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
+import { applyLeagueBranding, fallbackLeagueBranding, resolvePersonalTheme, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
 import { RoleProvider, useRole } from './roles/RoleProvider';
 
 export function resetRouteScroll(hash: string): void {
@@ -62,8 +62,7 @@ function AuthorizedExperience({ environment }: { environment: Parameters<typeof 
       applyLeagueBranding(fallbackLeagueBranding('racevora'));
       return;
     }
-    const themePreset = Number(user.user_metadata?.theme_preset ?? 0);
-    applyLeagueBranding({ ...branding, theme: resolveTheme({ theme_id: themePreset }) });
+    applyLeagueBranding({ ...branding, theme: resolvePersonalTheme(user.user_metadata) });
   }, [branding, useStandardBranding, user]);
 
   return <AppShell environment={environment} />;
