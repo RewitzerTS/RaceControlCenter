@@ -1,0 +1,4 @@
+# Generated local tool state
+supabase/.temp/
+v2/supabase/.temp/
+v2/wrangler.log

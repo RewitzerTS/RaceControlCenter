@@ -20,6 +20,7 @@ const DriverIdentityContext = createContext<DriverIdentityContextValue | null>(n
 
 async function resolveDriverIdentity(
   client: LeagueSupabaseClient,
+  leagueSlug: string,
   userId: User['id'],
 ): Promise<DriverIdentitySummary | null> {
   const identityResponse = await client
@@ -31,10 +32,29 @@ async function resolveDriverIdentity(
   if (identityResponse.error) throw identityResponse.error;
   if (!identityResponse.data) return null;
 
+  const leagueResponse = await client
+    .from('leagues')
+    .select('id')
+    .eq('slug', leagueSlug)
+    .maybeSingle();
+
+  if (leagueResponse.error) throw leagueResponse.error;
+
+  if (!leagueResponse.data) {
+    return {
+      driverId: null,
+      id: identityResponse.data.id,
+      profileNumber: identityResponse.data.profile_number,
+      status: identityResponse.data.status,
+      linkedDriverCount: 0,
+    };
+  }
+
   const linksResponse = await client
     .from('driver_identity_links')
-    .select('driver_id')
-    .eq('driver_identity_id', identityResponse.data.id);
+    .select('driver_id, driver:drivers!inner(league_id)')
+    .eq('driver_identity_id', identityResponse.data.id)
+    .eq('driver.league_id', leagueResponse.data.id);
 
   if (linksResponse.error) throw linksResponse.error;
 
@@ -48,15 +68,17 @@ async function resolveDriverIdentity(
   };
 }
 
-export function DriverIdentityProvider({ client, user, children }: PropsWithChildren<{
+export function DriverIdentityProvider({ client, leagueSlug, user, children }: PropsWithChildren<{
   client: LeagueSupabaseClient;
+  leagueSlug: string;
   user: User | null;
 }>) {
   const [identity, setIdentity] = useState<DriverIdentitySummary | null>(null);
   const [loading, setLoading] = useState(Boolean(user));
   const [error, setError] = useState<string | null>(null);
   const userId = user?.id ?? null;
-  const activeUserIdRef = useRef<string | null>(userId);
+  const identityScope = userId ? `${userId}:${leagueSlug}` : null;
+  const activeIdentityScopeRef = useRef<string | null>(identityScope);
 
   useEffect(() => {
     let active = true;
@@ -64,15 +86,15 @@ export function DriverIdentityProvider({ client, user, children }: PropsWithChil
 
     if (!userId) {
       setIdentity(null);
-      activeUserIdRef.current = null;
+      activeIdentityScopeRef.current = null;
       setLoading(false);
       return () => { active = false; };
     }
 
-    if (activeUserIdRef.current !== userId) setIdentity(null);
-    activeUserIdRef.current = userId;
+    if (activeIdentityScopeRef.current !== identityScope) setIdentity(null);
+    activeIdentityScopeRef.current = identityScope;
     setLoading(true);
-    void resolveDriverIdentity(client, userId)
+    void resolveDriverIdentity(client, leagueSlug, userId)
       .then((nextIdentity) => {
         if (active) setIdentity(nextIdentity);
       })
@@ -84,7 +106,7 @@ export function DriverIdentityProvider({ client, user, children }: PropsWithChil
       });
 
     return () => { active = false; };
-  }, [client, userId]);
+  }, [client, identityScope, leagueSlug, userId]);
 
   const value = useMemo(
     () => ({ identity, loading, error }),

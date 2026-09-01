@@ -36,10 +36,10 @@ export function DriverHomePage() {
   if (identity.linkedDriverCount === 0) {
     return (
       <AppState
-        title={t('profile.createLeague')}
-        copy={t('profile.createLeagueCopy')}
+        title={t('career.linkTitle')}
+        copy={t('career.linkCopy')}
         tone="empty"
-        action={<NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink>}
+        action={<NavLink className="primary-action" to="/profile">{t('route.profileTitle')}</NavLink>}
       />
     );
   }

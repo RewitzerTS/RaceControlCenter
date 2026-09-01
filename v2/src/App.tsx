@@ -36,7 +36,7 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
   }, []);
 
   return (
-    <DriverIdentityProvider client={client} user={user}>
+    <DriverIdentityProvider client={client} leagueSlug={leagueSlug} user={user}>
       <RoleProvider client={client} leagueSlug={leagueSlug} user={user}>
         <AuthorizedExperience environment={environment} />
       </RoleProvider>
