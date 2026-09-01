@@ -1975,7 +1975,7 @@ body {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(10, 31, 55, 0.66);
+  background: color-mix(in srgb, var(--brand-surface) 82%, var(--brand-background));
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
 }
 
@@ -3315,7 +3315,20 @@ p { color: var(--muted); }
   .brand-title { font-size: 1rem; }
   .brand-subtitle { font-size: 0.62rem; }
   .league-switcher { max-width: 154px; flex-basis: 154px; }
-  .league-switcher__options { right: 0; left: auto; }
+  .league-switcher__options {
+    position: fixed;
+    top: auto;
+    right: auto;
+    bottom: max(14px, env(safe-area-inset-bottom));
+    left: max(14px, env(safe-area-inset-left));
+    width: min(360px, calc(100vw - 28px));
+    max-height: min(420px, calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom)));
+    z-index: calc(var(--z-navigation) + 1);
+  }
+  .league-switcher__options .league-switcher__option strong {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
   .mobile-toggle {
     width: 46px;
     height: 46px;
@@ -3421,7 +3434,9 @@ p { color: var(--muted); }
   .v2-status-strip .status-copy span { overflow-wrap: anywhere; font-size: 0.78rem; line-height: 1.15; }
   .v2-status-strip .status-pill-card:nth-child(3),
   .v2-status-strip .status-pill-card:nth-child(4) { display: none; }
+  .driver-home .storyline-strip { margin-top: 10px; }
   .storyline-strip { min-height: 58px; margin-bottom: 12px; padding: 11px 12px; border-radius: 14px; }
+  .driver-home .hero-main h1 { margin-bottom: 16px; }
   .career-number-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-main,
   .hero-side,
@@ -3807,7 +3822,15 @@ img, svg, video, canvas { max-width: 100%; }
   }
   .mobile-more-league-switcher { grid-column: 1 / -1; }
   .mobile-more-league-switcher .league-switcher { width: 100%; max-width: none; }
-  .mobile-more-league-switcher .league-switcher__options { right: 0; left: 0; width: 100%; }
+  .mobile-more-league-switcher .league-switcher__options {
+    position: fixed;
+    top: auto;
+    right: max(8px, env(safe-area-inset-right));
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    left: max(8px, env(safe-area-inset-left));
+    width: auto;
+    max-height: calc(100dvh - 176px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
   .mobile-more-tools .menu-sign-out { justify-content: flex-start; gap: 0.7rem; }
   .navigation-league-switcher { display: none; }
   .mobile-more-navigation .nav-item {
@@ -4396,7 +4419,7 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   .level-gauge-stats strong { font-size: 0.92rem; }
   .level-gauge-stats small { max-width: 11ch; }
   .achievement-summary-badges { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-  .achievement-summary-badges .achievement-badge { width: 40px; height: 48px; }
+  .achievement-summary-badges .achievement-badge { width: 46px; height: 55px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
