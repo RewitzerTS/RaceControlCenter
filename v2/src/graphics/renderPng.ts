@@ -163,6 +163,13 @@ function drawContainedImage(context: CanvasRenderingContext2D, image: HTMLImageE
   context.drawImage(image, x + (width - renderedWidth) / 2, y + (height - renderedHeight) / 2, renderedWidth, renderedHeight);
 }
 
+function drawContainedImageRightAligned(context: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) {
+  const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const renderedWidth = image.naturalWidth * scale;
+  const renderedHeight = image.naturalHeight * scale;
+  context.drawImage(image, x + width - renderedWidth, y + (height - renderedHeight) / 2, renderedWidth, renderedHeight);
+}
+
 function sourceRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -282,33 +289,36 @@ function pilotLayout(format: GraphicFormat): PilotLayout {
   return { width, height, margin: 36, headerY: 60, eyebrowY: 112, titleFirstY: 180, titleSecondY: 260, subtitleY: 331, dataTop: 386, dataBottom: 1106, footerTop: 1128, titleSize: 82, scale: 1 };
 }
 
-function drawLeagueIdentity(context: CanvasRenderingContext2D, name: string, logo: HTMLImageElement | null, theme: GraphicTheme, layout: PilotLayout) {
-  const markSize = 52 * layout.scale;
-  const markX = layout.margin + 8;
-  const markY = layout.headerY - markSize / 2;
-  if (logo) {
-    drawContainedImage(context, logo, markX, markY, markSize * 1.12, markSize);
-  } else {
-    context.fillStyle = theme.primary;
-    context.beginPath();
-    context.moveTo(markX, markY + 6);
-    context.lineTo(markX + markSize, markY + 6);
-    context.lineTo(markX + markSize - 10 * layout.scale, markY + markSize - 2);
-    context.lineTo(markX - 10 * layout.scale, markY + markSize - 2);
-    context.closePath();
-    context.fill();
-    context.textAlign = 'center';
-    drawText(context, name.trim().charAt(0).toUpperCase() || 'R', markX + markSize / 2 - 5 * layout.scale, layout.headerY, markSize * 0.8, 24 * layout.scale, theme.onPrimary, 900, 16);
-  }
+function drawLeagueName(context: CanvasRenderingContext2D, name: string, theme: GraphicTheme, layout: PilotLayout) {
+  const nameX = layout.margin + 8;
+  const calendarX = layout.width - layout.margin - 172 * layout.scale;
+  const maxWidth = Math.max(160 * layout.scale, calendarX - nameX - 28 * layout.scale);
   context.textAlign = 'left';
-  drawText(context, name.toUpperCase(), markX + markSize + 20 * layout.scale, layout.headerY, Math.min(layout.width * 0.44, 680), 29 * layout.scale, theme.text, 750, 17);
+  drawText(context, name.toUpperCase(), nameX, layout.headerY, maxWidth, 29 * layout.scale, theme.text, 750, 17);
 }
 
-function leagueInitials(name: string): string {
+export function leagueInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (!words.length) return 'RV';
   if (words.length === 1) return words[0].slice(0, 3).toUpperCase();
   return words.slice(0, 3).map((word) => word.charAt(0)).join('').toUpperCase();
+}
+
+function drawLeagueWatermark(context: CanvasRenderingContext2D, name: string, logo: HTMLImageElement | null, theme: GraphicTheme, layout: PilotLayout) {
+  const width = layout.width * 0.42;
+  const height = layout.titleSize * 1.7;
+  const x = layout.width - layout.margin - width;
+  const y = (layout.titleFirstY + layout.titleSecondY - height) / 2;
+
+  context.save();
+  context.globalAlpha = 0.09;
+  if (logo) {
+    drawContainedImageRightAligned(context, logo, x, y, width, height);
+  } else {
+    context.textAlign = 'right';
+    drawText(context, leagueInitials(name), layout.width - layout.margin, (layout.titleFirstY + layout.titleSecondY) / 2, width, layout.titleSize * 2.05, theme.text, 900, 62);
+  }
+  context.restore();
 }
 
 function drawRaceVoraFooter(context: CanvasRenderingContext2D, theme: GraphicTheme, layout: PilotLayout, raceVoraLogo: HTMLImageElement | null) {
@@ -434,13 +444,8 @@ function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel,
   const brandName = options.branding?.name?.trim() || meta.leagueName;
   const [firstLine, secondLine] = PILOT_TITLE_LINES[model.type];
 
-  context.save();
-  context.globalAlpha = 0.09;
-  context.textAlign = 'right';
-  drawText(context, leagueInitials(brandName), layout.width - layout.margin, (layout.titleFirstY + layout.titleSecondY) / 2, layout.width * 0.42, layout.titleSize * 2.05, theme.text, 900, 62);
-  context.restore();
-
-  drawLeagueIdentity(context, brandName, logo, theme, layout);
+  drawLeagueWatermark(context, brandName, logo, theme, layout);
+  drawLeagueName(context, brandName, theme, layout);
   context.textAlign = 'right';
   const calendarX = layout.width - layout.margin - 172 * layout.scale;
   drawCalendarIcon(context, calendarX, layout.headerY - 14 * layout.scale, theme.primary);
