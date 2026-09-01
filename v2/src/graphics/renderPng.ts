@@ -304,6 +304,10 @@ export function leagueInitials(name: string): string {
   return words.slice(0, 3).map((word) => word.charAt(0)).join('').toUpperCase();
 }
 
+export function leagueWatermarkOpacity(hasLogo: boolean): number {
+  return hasLogo ? 1 : 0.09;
+}
+
 function drawLeagueWatermark(context: CanvasRenderingContext2D, name: string, logo: HTMLImageElement | null, theme: GraphicTheme, layout: PilotLayout) {
   const width = layout.width * 0.42;
   const height = layout.titleSize * 1.7;
@@ -311,7 +315,7 @@ function drawLeagueWatermark(context: CanvasRenderingContext2D, name: string, lo
   const y = (layout.titleFirstY + layout.titleSecondY - height) / 2;
 
   context.save();
-  context.globalAlpha = 0.09;
+  context.globalAlpha = leagueWatermarkOpacity(Boolean(logo));
   if (logo) {
     drawContainedImageRightAligned(context, logo, x, y, width, height);
   } else {

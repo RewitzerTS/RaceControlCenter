@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildGraphicModel, digestGraphicSource, formatRaceGap, graphicFilename, paginateGraphicModel, type GraphicLabels, type GraphicsWorkspace } from './graphics';
-import { GRAPHIC_DIMENSIONS, leagueInitials, mixGraphicColors, resolvePilotRowTextSizes, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
+import { GRAPHIC_DIMENSIONS, leagueInitials, leagueWatermarkOpacity, mixGraphicColors, resolvePilotRowTextSizes, resolveRaceResultPortraitTemplate, type GraphicTheme } from './renderPng';
 
 const labels: GraphicLabels = {
   raceResult: 'Race Result', podium: 'Podium', winner: 'Winner', driverStandings: 'Driver Standings', teamStandings: 'Team Standings', achievement: 'Achievement',
@@ -33,6 +33,8 @@ describe('Social Graphics model', () => {
     expect(leagueInitials('RummelRacer')).toBe('RUM');
     expect(leagueInitials('Race Union Munich')).toBe('RUM');
     expect(leagueInitials('')).toBe('RV');
+    expect(leagueWatermarkOpacity(true)).toBe(1);
+    expect(leagueWatermarkOpacity(false)).toBe(0.09);
   });
 
   it('renders race times at the same metric size as points in every format', () => {
