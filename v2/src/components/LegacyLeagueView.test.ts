@@ -1,7 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { createElement } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { legacyLeagueSource } from './LegacyLeagueView';
+import { embeddedAppDestination, legacyLeagueSource } from './LegacyLeagueView';
 
 vi.mock('../league/LeagueProvider', () => ({
   useLeague: () => ({ leagueSlug: 'rcc' }),
@@ -33,9 +34,26 @@ describe('legacyLeagueSource', () => {
   });
 });
 
+describe('embeddedAppDestination', () => {
+  it('promotes nested Racing routes to the parent app shell', () => {
+    expect(embeddedAppDestination('https://racevora.com/racing/drivers/profile?driver=driver-1', 'https://racevora.com'))
+      .toBe('/racing/drivers/profile?driver=driver-1');
+  });
+
+  it('leaves legacy iframe pages inside the current shell', () => {
+    expect(embeddedAppDestination('https://racevora.com/fahrer-profil.html?embed=1', 'https://racevora.com'))
+      .toBeNull();
+  });
+});
+
 describe('LegacyLeagueView', () => {
   it('keeps each embedded page hidden until the active theme has been applied', () => {
-    const { rerender } = render(createElement(LegacyLeagueView, { page: 'kalender', title: 'Kalender' }));
+    const view = (page: string, title: string) => createElement(
+      MemoryRouter,
+      null,
+      createElement(LegacyLeagueView, { page, title }),
+    );
+    const { rerender } = render(view('kalender', 'Kalender'));
     const calendarFrame = screen.getByTitle('Kalender') as HTMLIFrameElement;
     Object.defineProperty(calendarFrame, 'contentDocument', {
       configurable: true,
@@ -46,7 +64,7 @@ describe('LegacyLeagueView', () => {
     fireEvent.load(calendarFrame);
     expect(calendarFrame).toHaveStyle({ visibility: 'visible' });
 
-    rerender(createElement(LegacyLeagueView, { page: 'ergebnisse', title: 'Ergebnisse' }));
+    rerender(view('ergebnisse', 'Ergebnisse'));
     const resultsFrame = screen.getByTitle('Ergebnisse');
     expect(resultsFrame).toHaveStyle({ visibility: 'hidden' });
   });

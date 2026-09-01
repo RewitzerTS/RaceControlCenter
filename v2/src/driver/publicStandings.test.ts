@@ -81,6 +81,22 @@ describe('public championship data', () => {
     expect(standings.teamStandings[0]).toEqual(expect.objectContaining({ points: 26 }));
   });
 
+  it('repairs a missing fastest-lap bonus without changing an already final score', () => {
+    const context: BrowserContext = { window: {} };
+    runBrowserScript('assets/js/services/rcc-data.js', context);
+    const scoringRules = { enabled: true, points: 1, maxFinishPosition: 10 };
+    const missingBonus = {
+      driver_id: 'driver-1',
+      finish_position: 1,
+      awarded_points: 25,
+      base_points: 25,
+    };
+    const finalScore = { ...missingBonus, awarded_points: 26 };
+
+    expect(context.window.RCCData!.getAwardedRacePoints(missingBonus, 'driver-1', scoringRules)).toBe(26);
+    expect(context.window.RCCData!.getAwardedRacePoints(finalScore, 'driver-1', scoringRules)).toBe(26);
+  });
+
   it('keeps every assigned season driver in the public table, including zero-point drivers', () => {
     const context: BrowserContext = { window: {} };
     runBrowserScript('assets/js/services/rcc-data.js', context);

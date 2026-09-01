@@ -16,12 +16,6 @@
     return String(name || '?').trim().split(/\s+/).slice(0, 2).map((part) => part[0] || '').join('').toUpperCase() || '?';
   }
 
-  function countryFlag(code) {
-    const normalized = String(code || '').trim().toUpperCase();
-    if (!/^[A-Z]{2}$/.test(normalized)) return '';
-    return [...normalized].map((char) => String.fromCodePoint(127397 + char.charCodeAt(0))).join('');
-  }
-
   function scopedHref(file, params = {}) {
     const base = window.withLeagueContextHref?.(file) || file;
     const url = new URL(base, window.location.href);
@@ -92,9 +86,18 @@
       : 'Keine Fahrer- oder Profilnummer hinterlegt');
     byId('driver-profile-team').textContent = snapshot.league_team || snapshot.car_name || 'Aktuell ohne Teamzuordnung';
 
-    const flag = countryFlag(driver.nationality_code);
+    const countryCode = String(driver.nationality_code || '').trim().toUpperCase();
     const nationality = driver.nationality || driver.nationality_code || '';
-    byId('driver-profile-meta').textContent = [flag, nationality, driver.gamertag].filter(Boolean).join(' · ') || 'RaceVora Fahrer';
+    const flag = /^[A-Z]{2}$/.test(countryCode)
+      ? window.createFlagBadge?.(countryCode, `${nationality || countryCode} Flagge`) || ''
+      : '';
+    const metaParts = [nationality, driver.gamertag]
+      .filter(Boolean)
+      .map((value) => `<span>${esc(value)}</span>`)
+      .join('');
+    byId('driver-profile-meta').innerHTML = flag || metaParts
+      ? `${flag}${metaParts}`
+      : '<span>RaceVora Fahrer</span>';
 
     const tags = [];
     if (snapshot.car_name) tags.push(snapshot.car_name);

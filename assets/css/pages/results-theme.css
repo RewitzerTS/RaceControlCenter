@@ -16,6 +16,33 @@ body[data-page="ergebnisse"] .results-matrix-table {
   color: var(--text);
 }
 
+body[data-page="ergebnisse"] #results-matrix-wrap {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  isolation: isolate;
+}
+
+body[data-page="ergebnisse"] #results-matrix-wrap .sticky-driver {
+  position: sticky !important;
+  inset-inline-start: 0;
+  left: 0 !important;
+  z-index: 4;
+  background-clip: padding-box;
+}
+
+body[data-page="ergebnisse"] #results-matrix-wrap thead .sticky-driver {
+  z-index: 6;
+}
+
+body[data-page="ergebnisse"] #results-matrix-wrap .sticky-total {
+  position: static !important;
+  right: auto !important;
+  box-shadow: none;
+}
+
 body[data-page="ergebnisse"] .results-matrix-table th,
 body[data-page="ergebnisse"] .results-matrix-table td {
   border-color: var(--line) !important;
@@ -72,14 +99,18 @@ body[data-page="ergebnisse"] .results-points-value {
 }
 
 body[data-page="ergebnisse"] .results-points-value--fl-chip {
-  color: var(--results-fastest-lap-ink) !important;
-  background: var(--results-fastest-lap) !important;
+  color: var(--results-fastest-lap) !important;
+  background: color-mix(in srgb, var(--results-fastest-lap) 14%, transparent) !important;
   border-color: var(--results-fastest-lap-border) !important;
   box-shadow: 0 5px 14px color-mix(in srgb, var(--results-fastest-lap) 28%, transparent);
 }
 
 body[data-page="ergebnisse"] .results-points-value--bot {
   color: var(--text) !important;
+}
+
+body[data-page="ergebnisse"] .results-points-value--bot.results-points-value--fl-chip {
+  color: var(--results-fastest-lap) !important;
 }
 
 body[data-page="ergebnisse"] .results-total-cell strong {

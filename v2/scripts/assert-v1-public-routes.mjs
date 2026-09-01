@@ -24,13 +24,13 @@ await access(resolve(distRoot, 'v1-assets', 'js', 'results-preview.js'));
 await access(resolve(distRoot, 'v1-data', 'hall-of-fame-fallback.json'));
 
 const calendar = await readFile(resolve(distRoot, 'v1-assets', 'js', 'pages', 'kalender.js'), 'utf8');
-if (!calendar.includes('Kommende Rennen (${upcoming.length})')
+if (!calendar.includes('Nächste Rennen (${upcoming.length})')
     || !calendar.includes('Gefahrene Rennen (${completed.length})')
     || !calendar.includes('if (!upcoming.length && completed.length) completedBtn?.click()')) {
   throw new Error('Integrated calendar must expose race counts and open completed races when no upcoming race exists.');
 }
 const calendarPage = await readFile(resolve(distRoot, 'kalender.html'), 'utf8');
-if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-season-archive-1')) {
+if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-calendar-next-1')) {
   throw new Error('Integrated calendar must cache-bust its updated lifecycle navigation.');
 }
 if (!calendarPage.includes('/v1-assets/js/data/tracks.js?v=v2-local-flags-1')) {
@@ -89,7 +89,7 @@ for (const [page, marker] of [
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
   if (
     !source.includes(marker)
-    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-4')
+    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-5')
   ) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }
@@ -101,8 +101,8 @@ for (const [page, marker] of [
 for (const page of ['fahrer-wm', 'team-wm']) {
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
   if (
-    !source.includes('/v1-assets/js/services/rcc-result-data-compat.js?v=v2-final-points-1')
-    || !source.includes('/v1-assets/js/pages/standings.js?v=v2-final-points-1')
+    !source.includes('/v1-assets/js/services/rcc-result-data-compat.js?v=v2-fastest-lap-rule-1')
+    || !source.includes('/v1-assets/js/pages/standings.js?v=v2-fastest-lap-rule-1')
   ) {
     throw new Error(`${page}.html must invalidate cached championship output.`);
   }
@@ -185,7 +185,7 @@ const teamProfilePage = await readFile(resolve(distRoot, 'team-profil.html'), 'u
 const trackProfilePage = await readFile(resolve(distRoot, 'strecken-profil.html'), 'utf8');
 const headToHeadPage = await readFile(resolve(distRoot, 'head-to-head.html'), 'utf8');
 if (!driverProfilePage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')
-    || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-profile-number-2')
+    || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-country-flag-1')
     || !headToHeadPage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')) {
   throw new Error('Integrated Career pages do not cache-bust the profile number data fix.');
 }
@@ -201,17 +201,20 @@ for (const [name, source] of [
 const profileTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'profile-theme.css'), 'utf8');
 if (!profileTheme.includes('var(--primary)')
     || !profileTheme.includes('var(--secondary)')
-    || !profileTheme.includes('.driver-stat-card--accent')) {
+    || !profileTheme.includes('.driver-stat-card--accent')
+    || !profileTheme.includes('.driver-hero-meta .flag-badge')) {
   throw new Error('Integrated profile hero and accent cards do not follow personal theme tokens.');
 }
 
 const resultsPage = await readFile(resolve(distRoot, 'ergebnisse.html'), 'utf8');
-if (!resultsPage.includes('/v1-assets/css/pages/results-theme.css?v=v2-fastest-lap-violet-1')) {
+if (!resultsPage.includes('/v1-assets/css/pages/results-theme.css?v=v2-results-sticky-2')
+    || !resultsPage.includes('/v1-assets/js/pages/results.js?v=v2-fastest-lap-rule-1')) {
   throw new Error('Integrated results must cache-bust the semantic fastest-lap color fix.');
 }
 const resultsTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'results-theme.css'), 'utf8');
 if (!resultsTheme.includes('--results-fastest-lap: #d8a4ff')
-    || !resultsTheme.includes('background: var(--results-fastest-lap) !important')) {
+    || !resultsTheme.includes('position: sticky !important')
+    || !resultsTheme.includes('position: static !important')) {
   throw new Error('Fastest-lap point chips must retain their violet semantic color across themes.');
 }
 

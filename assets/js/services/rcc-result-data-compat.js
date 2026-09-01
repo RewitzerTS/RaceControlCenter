@@ -5,6 +5,9 @@
   const originalBuildStandings = typeof data.buildStandings === 'function'
     ? data.buildStandings.bind(data)
     : null;
+  const originalGetAwardedRacePoints = typeof data.getAwardedRacePoints === 'function'
+    ? data.getAwardedRacePoints.bind(data)
+    : null;
 
   function numeric(value, fallback = null) {
     if (value === null || value === undefined || value === '') return fallback;
@@ -36,29 +39,18 @@
     return winnerId;
   }
 
-  function getAwardedRacePoints(row) {
-    // Every published points field is already final. Never derive another
-    // fastest-lap bonus while reading championship data.
-    return numeric(
-      row?.awarded_points,
-      numeric(row?.points, numeric(row?.base_points, 0))
-    ) || 0;
+  function getAwardedRacePoints(row, fastestLapDriverId = null, scoringRules = null) {
+    if (originalGetAwardedRacePoints) {
+      return originalGetAwardedRacePoints(row, fastestLapDriverId, scoringRules || undefined);
+    }
+    return numeric(row?.awarded_points, numeric(row?.points, numeric(row?.base_points, 0))) || 0;
   }
 
   function rebuildStandings(args = {}) {
     if (!originalBuildStandings) return { driverStandings: [], teamStandings: [] };
 
     const raceResults = Array.isArray(args.raceResults) ? args.raceResults : [];
-    const clonedResults = raceResults.map((row) => ({
-      ...row,
-      // Legacy RCC rows store the authoritative final score in awarded_points.
-      // Keep the original standings implementation from adding another FL bonus.
-      points: getAwardedRacePoints(row),
-      fastest_lap: null,
-      fastest_lap_ms: null
-    }));
-
-    const built = originalBuildStandings({ ...args, raceResults: clonedResults });
+    const built = originalBuildStandings(args);
     const validRaceIds = new Set((args.races || []).map((race) => race.id));
     const byRace = new Map();
 

@@ -223,7 +223,8 @@ async function loadStandingsPage() {
       raceResults,
       resolver,
       eligibleDriverIds,
-      includeZeroPointDrivers: true
+      includeZeroPointDrivers: true,
+      scoringRules: window.RCCData.fastestLapScoringRules?.(currentSeason) || null
     });
 
     const previousRaces = completedRaces.slice(0, -1);
@@ -234,7 +235,8 @@ async function loadStandingsPage() {
       raceResults,
       resolver,
       eligibleDriverIds,
-      includeZeroPointDrivers: true
+      includeZeroPointDrivers: true,
+      scoringRules: window.RCCData.fastestLapScoringRules?.(currentSeason) || null
     });
 
     const hasPreviousRace = previousRaces.length > 0;

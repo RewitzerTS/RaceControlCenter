@@ -336,7 +336,7 @@ function getDriverDisplayLabel(driver) {
   return `${driver.display_name}${extras.length ? ` / ${extras.join(' / ')}` : ''}${medalMatch ? ` ${medalMatch[1]}` : ''}`;
 }
 
-function buildMatrixData(drivers, races, raceResults, resolver) {
+function buildMatrixData(drivers, races, raceResults, resolver, scoringRules = null) {
   const raceIdsWithResults = new Set((raceResults || []).map((row) => row.race_id).filter(Boolean));
   const completedRaces = races
     .filter((race) => race.status === 'completed' || raceIdsWithResults.has(race.id))
@@ -363,7 +363,7 @@ function buildMatrixData(drivers, races, raceResults, resolver) {
         };
       }
 
-      const points = ownedRows.reduce((sum, row) => sum + window.RCCData.getAwardedRacePoints(row, fastestDriverId), 0);
+      const points = ownedRows.reduce((sum, row) => sum + window.RCCData.getAwardedRacePoints(row, fastestDriverId, scoringRules), 0);
       const sourceRow = ownedRows[0];
       const sourceSnapshot = resolver?.resolveDriverSnapshot(sourceRow.driver_id, race.id) || driver;
 
@@ -515,7 +515,8 @@ async function loadResultsPage() {
     const raceResults = raceIds.length ? await window.RCCData.fetchRaceResults({ raceIds }) : [];
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
-    const matrixData = buildMatrixData(drivers, races, raceResults, resolver);
+    const scoringRules = window.RCCData.fastestLapScoringRules?.(currentSeason) || null;
+    const matrixData = buildMatrixData(drivers, races, raceResults, resolver, scoringRules);
     renderMatrix(wrap, labelEl, matrixData);
     renderTrendChart(matrixData);
     setupTrendFocus(matrixData);

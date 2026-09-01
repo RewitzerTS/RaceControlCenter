@@ -36,6 +36,17 @@ function integratedDestination(anchor: HTMLAnchorElement): string | null {
   return `${next.pathname}${next.search}${next.hash}`;
 }
 
+export function embeddedAppDestination(href: string, origin = window.location.origin): string | null {
+  try {
+    const target = new URL(href, origin);
+    if (target.origin !== origin) return null;
+    if (!/^\/(?:racing|career)(?:\/|$)/.test(target.pathname)) return null;
+    return `${target.pathname}${target.search}${target.hash}`;
+  } catch {
+    return null;
+  }
+}
+
 const LEGACY_THEME_VARIABLES: Record<string, string> = {
   '--brand-background': '--bg-main',
   '--brand-surface': '--surface',
@@ -88,6 +99,11 @@ export function LegacyLeagueView({ page, title, search = '' }: {
 
   const prepareFrame = (event: SyntheticEvent<HTMLIFrameElement>) => {
     const frame = event.currentTarget;
+    const nestedDestination = embeddedAppDestination(frame.contentWindow?.location.href || '');
+    if (nestedDestination) {
+      navigate(nestedDestination);
+      return;
+    }
     const document = frame.contentDocument;
     if (!document?.body) return;
 

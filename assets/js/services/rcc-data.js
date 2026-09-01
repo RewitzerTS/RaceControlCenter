@@ -3,7 +3,7 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
-const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v4';
+const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v5';
 const RCC_DATA_DEFAULT_LEAGUE_SLUG = 'rcc';
 const QUERY_CACHE_TTL = {
   season: 1000 * 60 * 5,
@@ -19,7 +19,7 @@ const QUERY_CACHE_TTL = {
 };
 
 const DATA_SELECT = {
-  seasons: 'id,slug,name,championship_code,description,start_date,end_date,is_active,archived_at,created_at,game_key,game_label,league_id',
+  seasons: 'id,slug,name,championship_code,description,start_date,end_date,is_active,archived_at,created_at,game_key,game_label,league_id,fastest_lap_bonus_enabled,fastest_lap_bonus_points,fastest_lap_bonus_max_finish_position',
   seasonHistory: 'id,season_id,driver_champion,constructor_champion,finalized_at,snapshot,created_at,season_name,driver_champion_team,constructor_champion_lineup',
   drivers: 'id,display_name,gamertag,real_name,nationality_code,number,is_active,ai_driver_reference,car_name,league_team,nationality,avatar_url,league_id',
   races: 'id,season_id,round_number,grand_prix_name,circuit_name,country_code,weekend_start_date,race_date,race_start_at,weather,track_image,status,race_order,race_time,has_sprint,current_result_version_id',
@@ -215,10 +215,33 @@ function getFastestLapDriverId(rows = []) {
   return winner;
 }
 
-function getAwardedRacePoints(row) {
-  // Published result points are authoritative and already include every bonus.
-  // Fastest-lap times are used only for the statistic and tie-break metadata.
-  return safeNumber(row?.awarded_points ?? row?.points, 0);
+let activeFastestLapScoringRules = null;
+
+function fastestLapScoringRules(season = null) {
+  if (!season) return null;
+  return {
+    enabled: season.fastest_lap_bonus_enabled === true,
+    points: Math.max(0, safeNumber(season.fastest_lap_bonus_points, 1)),
+    maxFinishPosition: Math.max(1, safeNumber(season.fastest_lap_bonus_max_finish_position, 10))
+  };
+}
+
+function getAwardedRacePoints(row, fastestLapDriverId = null, scoringRules = activeFastestLapScoringRules) {
+  const finalPoints = safeNumber(row?.awarded_points ?? row?.points, 0);
+  if (!scoringRules?.enabled || !fastestLapDriverId || String(row?.driver_id || '') !== String(fastestLapDriverId)) {
+    return finalPoints;
+  }
+
+  const finishPosition = safeNumber(row?.finish_position, null);
+  if (!Number.isFinite(finishPosition) || finishPosition < 1 || finishPosition > scoringRules.maxFinishPosition) {
+    return finalPoints;
+  }
+
+  const basePoints = safeNumber(row?.base_points ?? row?.points, finalPoints);
+  // New publications already persist the bonus in awarded_points. Only repair
+  // legacy rows where the published total still equals the unbonused base.
+  if (Math.abs(finalPoints - basePoints) > 0.001) return finalPoints;
+  return basePoints + scoringRules.points;
 }
 
 function groupBy(items, keyFn) {
@@ -235,7 +258,7 @@ async function fetchCurrentSeason(options = {}) {
   const client = window.supabaseClient;
   if (!client) return null;
   const leagueId = await getActiveLeagueId();
-  return fetchWithLocalCache({
+  const season = await fetchWithLocalCache({
     scope: 'currentSeason',
     ttlMs: QUERY_CACHE_TTL.season,
     forceRefresh: options.forceRefresh === true,
@@ -253,6 +276,8 @@ async function fetchCurrentSeason(options = {}) {
       return data || null;
     }
   });
+  activeFastestLapScoringRules = fastestLapScoringRules(season);
+  return season;
 }
 
 async function fetchSeasons(options = {}) {
@@ -533,7 +558,7 @@ async function warmDashboardCache(options = {}) {
   }
 }
 
-function buildStandings({ drivers, races, raceResults, resolver, eligibleDriverIds, includeZeroPointDrivers = false } = {}) {
+function buildStandings({ drivers, races, raceResults, resolver, eligibleDriverIds, includeZeroPointDrivers = false, scoringRules = activeFastestLapScoringRules } = {}) {
   const raceIds = new Set((races || []).map((race) => race.id));
   const scopedResults = (raceResults || []).filter((row) => raceIds.has(row.race_id));
   const resultsByRace = groupBy(scopedResults, (row) => row.race_id);
@@ -584,7 +609,7 @@ function buildStandings({ drivers, races, raceResults, resolver, eligibleDriverI
     if (!driverEntry) continue;
     const position = safeNumber(row.finish_position, null);
     const hasFastestLap = fastestLapWinnerByRace.get(row.race_id) === sourceDriverId;
-    const points = getAwardedRacePoints(row);
+    const points = getAwardedRacePoints(row, hasFastestLap ? sourceDriverId : null, scoringRules);
 
     driverEntry.points += points;
     driverEntry.leagueTeam = row.points_team_name || snapshot.league_team || driverEntry.leagueTeam;
@@ -660,6 +685,7 @@ window.RCCData = {
   isTopTen,
   getFastestLapMs,
   getFastestLapDriverId,
+  fastestLapScoringRules,
   getAwardedRacePoints,
   groupBy,
   getLeagueContext,
