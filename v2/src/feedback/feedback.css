@@ -54,6 +54,8 @@
 .feedback-submit { width: 100%; min-height: 44px; margin-top: 4px; }
 .feedback-submit:disabled { cursor: not-allowed; opacity: 0.55; }
 .feedback-result { padding-block: 12px; }
+.feedback-result button { min-height: 44px; padding: 8px 16px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--brand-background, #101318); color: var(--text); cursor: pointer; }
+.feedback-result button:hover, .feedback-result button:active { background: var(--surface-strong); }
 @media (max-width: 700px) {
   .feedback-trigger { right: max(12px, env(safe-area-inset-right)); bottom: calc(76px + env(safe-area-inset-bottom)); }
   .feedback-dialog { inset: auto 12px max(12px, env(safe-area-inset-bottom)); width: auto; max-height: calc(100dvh - 24px); padding: 16px; }
