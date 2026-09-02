@@ -11,3 +11,5 @@ Spam controls: same-origin JSON requests only, streamed 20KB request size limit,
 Test: `npm exec vitest -- run src/feedback/BetaFeedback.test.tsx worker/beta-feedback.test.js`. Local-only UI harness: `/qa/feedback-responsive.html` (Vite dev, mocked email, not a production entry point).
 
 Before release: verify recipient in Cloudflare, production build, Worker dry run, tests, mobile and desktop browser checks, then send one clearly labeled end-to-end test from the live form to the configured recipient and confirm it arrives.
+
+Both `wrangler.production.jsonc` and `wrangler.cutover.jsonc` target the same production Worker. Keep the email and rate-limit bindings identical: a deployment with omitted bindings removes them. The production build now checks parity before building. Verify readiness after the Git-triggered Cloudflare build finishes, not only immediately after a manual deployment.

@@ -5,6 +5,11 @@
   "compatibility_date": "2026-08-20",
   "workers_dev": true,
   "preview_urls": true,
+  "send_email": [{ "name": "FEEDBACK_EMAIL", "allowed_sender_addresses": ["beta-feedback@racevora.com"] }],
+  "ratelimits": [
+    { "name": "FEEDBACK_RATE_LIMIT", "namespace_id": "2026090201", "simple": { "limit": 3, "period": 60 } },
+    { "name": "FEEDBACK_GLOBAL_LIMIT", "namespace_id": "2026090202", "simple": { "limit": 30, "period": 60 } }
+  ],
   "routes": [
     {
       "pattern": "racevora.com/*",

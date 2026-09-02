@@ -2,8 +2,10 @@ import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkProductionBindings } from './production-bindings.mjs';
 
 const v2Root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+await checkProductionBindings(v2Root);
 const examplePath = resolve(v2Root, '.env.production.example');
 const productionEnvironment = { ...process.env };
 
