@@ -57,6 +57,7 @@ if (appEnvironment === 'production') {
   const indexPath = resolve(distRoot, 'index.html');
   const headersPath = resolve(distRoot, '_headers');
   const robotsPath = resolve(distRoot, 'robots.txt');
+  const sitemapPath = resolve(distRoot, 'sitemap.xml');
   const index = (await readFile(indexPath, 'utf8'))
     .replace('<meta name="robots" content="noindex, nofollow" />', '<meta name="robots" content="index, follow" />')
     .replace('RaceVora V2 staging foundation', 'RaceVora – Race Management Platform')
@@ -65,7 +66,8 @@ if (appEnvironment === 'production') {
     .replace(/^\s*X-Robots-Tag: noindex, nofollow\s*\r?\n/m, '');
   await writeFile(indexPath, index, 'utf8');
   await writeFile(headersPath, headers, 'utf8');
-  await writeFile(robotsPath, 'User-agent: *\nAllow: /\n', 'utf8');
+  await copyFile(resolve(repositoryRoot, 'sitemap.xml'), sitemapPath);
+  await writeFile(robotsPath, 'User-agent: *\nAllow: /\nSitemap: https://racevora.com/sitemap.xml\n', 'utf8');
 
   console.log('Preserved four V1 legal routes with the dedicated V2 production withdrawal endpoint.');
   process.exit(0);

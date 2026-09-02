@@ -281,8 +281,15 @@ for (const href of ['/login?mode=signin', '/login?mode=signup', '/race-hub?leagu
 for (const marker of ['data-auth-open="signin"', 'data-auth-open="signup"', 'id="racevora-auth-drawer"', 'data-auth-frame']) {
   if (!landing.includes(marker)) throw new Error(`V1 landing page is missing the embedded access marker ${marker}.`);
 }
-if ((landing.match(/Jetzt starten/g) || []).length < 3 || landing.includes('Liga starten') || landing.includes('Eigene Liga starten')) {
-  throw new Error('V1 landing page does not use the unified Jetzt starten call to action.');
+if ((landing.match(/Eigene Liga starten/g) || []).length < 2 || (landing.match(/Live-Demo ansehen/g) || []).length < 2) {
+  throw new Error('V1 landing page does not use the approved league and demo calls to action.');
+}
+if ((landing.match(/<h1(?:\s|>)/g) || []).length !== 1
+    || !landing.includes('<link rel="canonical" href="https://racevora.com/">')
+    || !landing.includes('type="application/ld+json"')
+    || !landing.includes('property="og:image"')
+    || !landing.includes('id="faq"')) {
+  throw new Error('V1 landing page is missing its SEO hierarchy, metadata, structured data, or visible FAQ.');
 }
 if (/[↗↓]/.test(landing) || landing.includes('final-signal')) {
   throw new Error('V1 landing page still contains decorative button arrows or signal dots.');

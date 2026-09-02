@@ -60,6 +60,7 @@ if (appEnvironment === 'production') {
   const index = await readFile(resolve(distRoot, 'index.html'), 'utf8');
   const headers = await readFile(resolve(distRoot, '_headers'), 'utf8');
   const robots = await readFile(resolve(distRoot, 'robots.txt'), 'utf8');
+  const sitemap = await readFile(resolve(distRoot, 'sitemap.xml'), 'utf8');
   if (!config.includes('https://znnkwjogtvzwfkwnmawp.supabase.co/functions/v1/submit-consumer-withdrawal')) {
     failures.push('production withdrawal config does not target the dedicated V2 endpoint');
   }
@@ -69,8 +70,13 @@ if (appEnvironment === 'production') {
   if (!index.includes('content="index, follow"') || index.includes('Staging') || index.includes('staging foundation')) {
     failures.push('production index still exposes Staging crawler or page metadata');
   }
-  if (/X-Robots-Tag:\s*noindex/i.test(headers) || !/^Allow:\s*\/$/m.test(robots)) {
+  if (/X-Robots-Tag:\s*noindex/i.test(headers)
+      || !/^Allow:\s*\/$/m.test(robots)
+      || !/^Sitemap:\s*https:\/\/racevora\.com\/sitemap\.xml$/m.test(robots)) {
     failures.push('production crawler policy is not enabled');
+  }
+  if (!sitemap.includes('<loc>https://racevora.com/</loc>') || sitemap.includes('/login') || sitemap.includes('/admin')) {
+    failures.push('production sitemap does not expose only the public canonical landing page');
   }
 }
 
