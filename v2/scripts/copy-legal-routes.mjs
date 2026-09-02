@@ -13,7 +13,7 @@ const preservedFiles = [
   'agb.html',
   'widerruf.html',
   'assets/css/pages/legal.css',
-  'assets/images/racevora-logo-color.png',
+  'assets/images/racevora-logo-color.svg',
 ];
 
 for (const relativePath of preservedFiles) {

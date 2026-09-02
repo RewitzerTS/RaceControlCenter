@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 265 1068 740" width="1068" height="740" role="img" aria-labelledby="title">
+  <title id="title">RaceVora</title>
+  <defs>
+    <linearGradient id="racevora" gradientUnits="userSpaceOnUse" x1="127" y1="293" x2="1070" y2="930">
+      <stop stop-color="#00d9ee"/>
+      <stop offset=".38" stop-color="#3683ff"/>
+      <stop offset=".7" stop-color="#762bff"/>
+      <stop offset="1" stop-color="#b900f5"/>
+    </linearGradient>
+  </defs>
+  <g fill="url(#racevora)">
+    <path d="M127 293H897L674 620H592L707 792L1018 293H1142L715 977L414 523H631L701 414H213Z"/>
+    <path d="M195 523H333L600 922H465Z"/>
+  </g>
+</svg>

@@ -11,7 +11,7 @@ const preservedFiles = [
   'datenschutz.html',
   'agb.html',
   'assets/css/pages/legal.css',
-  'assets/images/racevora-logo-color.png',
+  'assets/images/racevora-logo-color.svg',
 ];
 const failures = [];
 const protectedV1ProjectRefs = [

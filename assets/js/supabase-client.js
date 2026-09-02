@@ -63,7 +63,7 @@ const RCC_REQUEST_LEAGUE_SLUG = resolveSupabaseLeagueSlug();
 // the requested league has loaded; productive tenant data is never rewritten here.
 (() => {
   const PLATFORM_NAME = 'RaceVora';
-  const PLATFORM_MARK = 'assets/images/racevora-logo-color.png';
+  const PLATFORM_MARK = 'assets/images/racevora-logo-color.svg';
 
   function replaceStaticPlatformTitle() {
     const current = String(document.title || '');

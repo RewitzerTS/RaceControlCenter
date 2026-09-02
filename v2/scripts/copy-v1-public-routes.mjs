@@ -72,7 +72,7 @@ const sharedAuthStorageKey = `racevora-v2:${supabaseProjectRef}:auth`;
 function transformHtml(source, includeBase = false, page = '') {
   let output = source
     .replaceAll('assets/', '/v1-assets/')
-    .replace(/(favicon\.ico|icons\/(?:favicon-\d+x\d+|apple-touch-icon)\.png)(?=")/g, '$1?v=rv-20260903')
+    .replace(/(favicon\.ico|icons\/(?:favicon-\d+x\d+|apple-touch-icon)\.png)(?=")/g, '$1?v=rv-flat-20260903')
     .replaceAll('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2', '/v1-assets/vendor/supabase.js')
     .replaceAll('https://cdn.jsdelivr.net/npm/chart.js', '/v1-assets/vendor/chart.umd.min.js')
     .replaceAll('/v1-assets/js/services/rcc-f1-news-backend.js', '/v1-assets/js/services/rcc-f1-news-backend.js?v=v2-worker-1')
@@ -116,7 +116,7 @@ function transformLanding(source) {
     <div class="auth-drawer__panel">
       <header class="auth-drawer__header">
         <div class="auth-drawer__brand">
-          <img src="/v1-assets/images/racevora-logo-color.png" alt="" width="48" height="48">
+          <img src="/v1-assets/images/racevora-logo-color.svg" alt="" width="48" height="48">
           <div><span>RACEVORA ACCOUNT</span><strong id="racevora-auth-title" data-auth-title>Anmelden</strong></div>
         </div>
         <button class="auth-drawer__close" type="button" data-auth-close aria-label="Anmeldung schließen">×</button>

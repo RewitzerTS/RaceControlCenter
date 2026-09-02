@@ -30,7 +30,7 @@ requireGate(authLink.includes('autoComplete="new-password"') && authLink.include
 requireGate(shell.includes('<Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />') && shell.includes('<Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />'), 'environment-aware access route and compatibility alias are registered');
 requireGate(shell.includes("aria-label={`${t('language')}: ${languageName(language)}`}") && shell.includes('role="menuitemradio"'), 'topbar language control has an accessible label and selectable menu items');
 requireGate(home.includes('to="/login?mode=signin"') && shell.includes('to="/login?mode=signin"'), 'signed-out Home and topbar expose the production login');
-requireGate(shell.includes("assets/images/racevora-logo-color.png") && shell.includes('className="site-header"') && shell.includes('brand-title') && shell.includes('Race Management Platform'), 'V1 tenant branding and horizontal product header are retained');
+requireGate(shell.includes("assets/images/racevora-logo-color.svg") && shell.includes('className="site-header"') && shell.includes('brand-title') && shell.includes('Race Management Platform'), 'V1 tenant branding and horizontal product header are retained');
 requireGate(!shell.includes('className="app-rail"') && !shell.includes('className="brand-symbol"'), 'the divergent V2 rail and placeholder logo are absent');
 requireGate(
   !shell.includes('v2-status-strip')
