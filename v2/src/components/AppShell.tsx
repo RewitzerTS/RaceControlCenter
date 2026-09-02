@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
+import { BetaFeedback } from '../feedback/BetaFeedback';
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import raceVoraMark from '../../../assets/images/racevora-mark.svg';
 import { useAuth } from '../auth/AuthProvider';
@@ -560,6 +561,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           </nav>
         </footer>}
       </div>
+      {!embeddedAccess && <BetaFeedback obscured={navigationOpen} />}
     </div>
   );
 }

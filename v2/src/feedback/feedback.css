@@ -1,0 +1,60 @@
+.feedback-trigger {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: var(--z-sticky);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--brand-surface, #191d24);
+  cursor: pointer;
+}
+.feedback-trigger[hidden] { display: none; }
+.feedback-trigger svg { width: 22px; height: 22px; }
+.feedback-trigger:hover, .feedback-close:hover { background: var(--surface-strong); }
+.feedback-trigger:active, .feedback-close:active { background: var(--surface); }
+.feedback-trigger:focus-visible, .feedback-dialog :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.feedback-dialog {
+  position: fixed;
+  inset: auto max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) auto;
+  width: min(400px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 32px);
+  margin: 0;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  background: var(--brand-surface, #191d24);
+  color: var(--text);
+  font: inherit;
+}
+.feedback-dialog::backdrop { background: rgb(0 0 0 / 32%); }
+.feedback-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.feedback-heading h2 { font: inherit; font-size: 1.2rem; font-weight: 750; margin: 0; }
+.feedback-close { display: grid; place-items: center; flex: 0 0 44px; height: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-size: 1.65rem; }
+.feedback-dialog p { margin-bottom: 12px; font-size: 0.9rem; }
+.feedback-dialog form { display: flex; flex-direction: column; gap: 8px; }
+.feedback-dialog label { font-size: 0.875rem; font-weight: 650; color: var(--text); }
+.feedback-dialog :is(input, select, textarea) { width: 100%; min-width: 0; padding: 10px 12px; font: inherit; font-size: 1rem; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--brand-background, #101318); color: var(--text); }
+.feedback-dialog :is(input, select, textarea):disabled { opacity: 0.65; }
+.feedback-dialog textarea { resize: vertical; min-height: 104px; max-height: 260px; }
+.feedback-dialog textarea::placeholder { color: var(--muted); opacity: 1; }
+.feedback-dialog :is(input, select, textarea) + label { margin-top: 6px; }
+.feedback-dialog .feedback-privacy { margin: 6px 0 0; font-size: 0.75rem; line-height: 1.5; }
+.feedback-dialog .feedback-page { margin: 0 0 4px; font-size: 0.75rem; overflow-wrap: anywhere; }
+.feedback-dialog .feedback-error { color: #ffd2d9; }
+.feedback-dialog .feedback-honeypot { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.feedback-submit { width: 100%; min-height: 44px; margin-top: 4px; }
+.feedback-submit:disabled { cursor: not-allowed; opacity: 0.55; }
+.feedback-result { padding-block: 12px; }
+@media (max-width: 700px) {
+  .feedback-trigger { right: max(12px, env(safe-area-inset-right)); bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .feedback-dialog { inset: auto 12px max(12px, env(safe-area-inset-bottom)); width: auto; max-height: calc(100dvh - 24px); padding: 16px; }
+}

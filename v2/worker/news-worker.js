@@ -1,3 +1,5 @@
+import { betaFeedbackResponse } from './beta-feedback.js';
+
 const FEEDS = [
   ['Motorsport.com DE', 'https://de.motorsport.com/rss/f1/news/'],
   ['Motorsport-Total', 'https://www.motorsport-total.com/rss/rss_formel-1.xml'],
@@ -99,6 +101,7 @@ async function newsResponse(request, context) {
 export default {
   async fetch(request, environment, context) {
     const url = new URL(request.url);
+    if (url.pathname === '/api/beta-feedback') return betaFeedbackResponse(request, environment);
     if (url.hostname.toLowerCase() === 'www.racevora.com') {
       return Response.redirect('https://racevora.com/', 308);
     }

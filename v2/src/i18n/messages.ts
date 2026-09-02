@@ -1,10 +1,12 @@
 import { instagramMessages } from '../graphics/instagramMessages';
+import { feedbackMessages } from '../feedback/feedbackMessages';
 
 export const SUPPORTED_LANGUAGES = ['de', 'en', 'es', 'fr'] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 const de = {
   ...instagramMessages.de,
+  ...feedbackMessages.de,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Übersicht",
@@ -741,6 +743,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   de,
   en: {
     ...instagramMessages.en,
+    ...feedbackMessages.en,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Overview",
@@ -1473,6 +1476,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
 },
   es: {
     ...instagramMessages.es,
+    ...feedbackMessages.es,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Resumen",
@@ -2205,6 +2209,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
 },
   fr: {
     ...instagramMessages.fr,
+    ...feedbackMessages.fr,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Vue d’ensemble",
