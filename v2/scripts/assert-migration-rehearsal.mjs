@@ -38,6 +38,7 @@ const requiredTail = [
   'backfill_public_driver_numbers',
   'enforce_membership_scoped_league_access',
   'fix_league_branding_save_permissions',
+  'preserve_legacy_result_participation',
 ];
 const requiredRegressions = [
   'phase-26-migration-rehearsal.sql',
@@ -46,6 +47,7 @@ const requiredRegressions = [
   'phase-34-own-league-join-request-status.sql',
   'phase-35-race-penalties-compatibility.sql',
   'phase-36-league-branding-write-access.sql',
+  'phase-37-driver-ai-points-attribution.sql',
 ];
 const failures = [];
 

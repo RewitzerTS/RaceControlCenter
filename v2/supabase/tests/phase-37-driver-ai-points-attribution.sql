@@ -154,4 +154,72 @@ begin
 end;
 $$;
 
+-- Legacy human profiles also carry an AI name: it identifies their seat, not
+-- whether they or a substitute bot drove this particular race.
+insert into public.drivers (id, league_id, display_name, gamertag, ai_driver_reference)
+values
+  ('f3740000-0000-0000-0000-000000000004', 'f3710000-0000-0000-0000-000000000001', 'Legacy Player', 'LegacyTag', 'Nico Hulkenberg'),
+  ('f3740000-0000-0000-0000-000000000005', 'f3710000-0000-0000-0000-000000000001', 'Legacy Substitute', 'SubTag', 'Liam Lawson');
+
+insert into public.result_version_rows (
+  result_version_id, row_order, driver_id, finish_position, participation_status,
+  base_points, awarded_points, points
+) values
+  ('f3760000-0000-0000-0000-000000000001', 2, 'f3740000-0000-0000-0000-000000000004', 2, 'PLAYER', 18, 18, 18),
+  ('f3760000-0000-0000-0000-000000000001', 3, 'f3740000-0000-0000-0000-000000000005', 3, 'BOT', 15, 15, 15);
+
+insert into public.race_results (
+  race_id, result_version_id, driver_id, finish_position, participation_status,
+  base_points, awarded_points, points
+)
+select rv.race_id, rvr.result_version_id, rvr.driver_id, rvr.finish_position,
+  rvr.participation_status, rvr.base_points, rvr.awarded_points, rvr.points
+from public.result_version_rows rvr
+join public.result_versions rv on rv.id = rvr.result_version_id
+where rv.id = 'f3760000-0000-0000-0000-000000000001';
+
+-- Exercise UPDATE as well as INSERT; changing attribution must not turn a
+-- legacy player's published result into a BOT result again.
+update public.race_results
+set points_owner_driver_id = points_owner_driver_id
+where result_version_id = 'f3760000-0000-0000-0000-000000000001';
+update public.result_version_rows
+set points_owner_driver_id = points_owner_driver_id
+where result_version_id = 'f3760000-0000-0000-0000-000000000001';
+
+do $$
+begin
+  if private.result_participation_status('Nico Hulkenberg', 'PLAYER') <> 'PLAYER'
+     or private.result_participation_status('Nico Hulkenberg', 'BOT') <> 'BOT'
+     or private.result_participation_status(null, 'BOT') <> 'BOT'
+     or private.result_participation_status('', null) <> 'PLAYER'
+     or private.result_participation_status('f1_25:mercedes-one', 'PLAYER') <> 'BOT'
+     or private.result_participation_status('f1_26:mercedes-one', null) <> 'BOT' then
+    raise exception 'legacy participation or canonical AI classification regressed';
+  end if;
+
+  if exists (
+    select 1 from (
+      select driver_id, participation_status, awarded_points
+      from public.result_version_rows
+      where result_version_id = 'f3760000-0000-0000-0000-000000000001'
+      union all
+      select driver_id, participation_status, awarded_points
+      from public.race_results
+      where result_version_id = 'f3760000-0000-0000-0000-000000000001'
+    ) facts
+    where (driver_id = 'f3740000-0000-0000-0000-000000000004' and (participation_status <> 'PLAYER' or awarded_points <> 18))
+       or (driver_id = 'f3740000-0000-0000-0000-000000000005' and (participation_status <> 'BOT' or awarded_points <> 15))
+       or (driver_id = 'f3740000-0000-0000-0000-000000000002' and (participation_status <> 'BOT' or awarded_points <> 25))
+  ) then
+    raise exception 'legacy PLAYER/BOT status or points changed during attribution';
+  end if;
+
+  if has_function_privilege('anon', 'private.result_participation_status(text,text)', 'EXECUTE')
+     or has_function_privilege('authenticated', 'private.result_participation_status(text,text)', 'EXECUTE') then
+    raise exception 'internal participation helper was exposed to browser roles';
+  end if;
+end;
+$$;
+
 rollback;

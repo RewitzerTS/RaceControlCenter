@@ -3,7 +3,7 @@ function safeNumber(value, fallback = 0) {
   return Number.isFinite(num) ? num : fallback;
 }
 
-const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v5';
+const RCC_QUERY_CACHE_PREFIX = 'rcc_query_cache_v6';
 const RCC_DATA_DEFAULT_LEAGUE_SLUG = 'rcc';
 const QUERY_CACHE_TTL = {
   season: 1000 * 60 * 5,
