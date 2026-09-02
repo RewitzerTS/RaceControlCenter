@@ -26,6 +26,16 @@ type AdminNextAction = {
   to: string;
 };
 
+export async function copyLeagueIdToClipboard(clipboard: Pick<Clipboard, 'writeText'> | undefined, leagueId: string): Promise<boolean> {
+  if (!clipboard) return false;
+  try {
+    await clipboard.writeText(leagueId);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function localDateKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -57,7 +67,13 @@ export function AdminWorkspacePage() {
   const [raceWorkspace, setRaceWorkspace] = useState<RaceAdminWorkspace | null>(null);
   const [error, setError] = useState(false);
   const [openAreas, setOpenAreas] = useState<Set<MessageKey>>(() => new Set());
+  const [leagueIdCopyState, setLeagueIdCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
   const allowed = role === 'league_admin' || role === 'platform_owner';
+
+  async function copyLeagueId(leagueId: string) {
+    const copied = await copyLeagueIdToClipboard(navigator.clipboard, leagueId);
+    setLeagueIdCopyState(copied ? 'copied' : 'failed');
+  }
 
   const loadWorkspace = useCallback(async () => {
     setError(false);
@@ -104,6 +120,13 @@ export function AdminWorkspacePage() {
       <nav className="operations-menu" aria-labelledby="admin-navigation-title">
         <div className="operations-menu-heading">
           <h2 id="admin-navigation-title">{t('admin.navigation')}</h2>
+          <div className="operations-league-access">
+            <span>{t('admin.leagueId')}</span>
+            <code title={snapshot.league.id}>{snapshot.league.id}</code>
+            <button aria-live="polite" className="operations-league-id-copy" onClick={() => void copyLeagueId(snapshot.league.id)} type="button">{leagueIdCopyState === 'copied' ? t('admin.leagueIdCopied') : t('admin.copyLeagueId')}</button>
+            <NavLink className="operations-join-requests-link" to="/admin/users">{t('admin.manageJoinRequests')}</NavLink>
+            {leagueIdCopyState === 'failed' && <span className="visually-hidden" role="status">{t('admin.leagueIdCopyFailed')}</span>}
+          </div>
         </div>
         <div className="operations-menu-groups">
           {ADMIN_AREAS.map((area) => <details key={area.title} open={openAreas.has(area.title)}><summary onClick={(event) => { event.preventDefault(); setOpenAreas((current) => { const next = new Set(current); if (next.has(area.title)) next.delete(area.title); else next.add(area.title); return next; }); }}>{t(area.title)}</summary><div>{area.items.map((item) => <NavLink key={item.key} to={item.to}>{t(item.key)}</NavLink>)}</div></details>)}

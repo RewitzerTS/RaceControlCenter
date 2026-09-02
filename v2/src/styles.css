@@ -1986,9 +1986,10 @@ body {
 }
 
 .footer {
-  width: min(var(--v1-max), calc(100% - 28px));
-  margin: 0 auto;
-  padding-inline: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: max(1.5rem, calc((100% - var(--v1-max)) / 2 + 1.5rem));
 }
 
 @media (max-width: 1180px) {
@@ -4166,6 +4167,50 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
   border-bottom: 1px solid var(--line);
 }
 .operations-menu-heading h2 { margin: 0; font-size: 1.05rem; }
+.operations-league-access {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.operations-league-access > span:first-child { flex: 0 0 auto; font-weight: 800; }
+.operations-league-access code {
+  min-width: 12ch;
+  max-width: 38ch;
+  overflow: hidden;
+  color: var(--text);
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  user-select: all;
+  white-space: nowrap;
+}
+.operations-league-id-copy,
+.operations-join-requests-link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--brand-background) 72%, transparent);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.operations-league-id-copy:hover,
+.operations-league-id-copy:focus-visible,
+.operations-join-requests-link:hover,
+.operations-join-requests-link:focus-visible {
+  border-color: color-mix(in srgb, var(--brand-accent) 58%, var(--line));
+  color: var(--brand-accent);
+}
 .operations-menu-groups { display: grid; gap: 0.45rem; padding: 0.7rem; }
 .operations-menu-groups details + details { margin-top: 0; }
 .operations-menu-groups details {
@@ -4681,6 +4726,9 @@ html[data-user-theme] body .f1-loader-lights span.is-green {
 .mobile-more-tools .language-control--compact > div { border-radius: 12px; }
 
 @media (max-width: 760px) {
+  .operations-menu-heading { align-items: flex-start; flex-direction: column; }
+  .operations-league-access { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .operations-league-access code { max-width: min(100%, 38ch); }
   .racing-page .section-navigation,
   .racing-page .section-view-switcher--standalone,
   .racing-page .integrated-league-view {

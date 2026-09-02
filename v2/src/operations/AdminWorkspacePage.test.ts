@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { AdminSnapshot, LeagueRace, RaceAdminWorkspace, SeasonCalendarEntry, SeasonSetupWorkspace } from './operations';
-import { selectAdminNextAction } from './AdminWorkspacePage';
+import { copyLeagueIdToClipboard, selectAdminNextAction } from './AdminWorkspacePage';
 
 const snapshot: AdminSnapshot = {
   counts: { failed_jobs: 0, open_steward_cases: 0, pending_jobs: 0, races: 0 },
@@ -45,5 +45,17 @@ describe('admin next action', () => {
   it('offers season completion after every race has an official result', () => {
     const action = selectAdminNextAction(snapshot, setup([{ date: '2026-08-29', has_sprint: false, time: '20:00', track_key: 'spa', weather: 'klar' }]), races([race({ result_status: 'active' })]), new Date(2026, 7, 30));
     expect(action.titleKey).toBe('admin.nextCompleteTitle');
+  });
+});
+
+describe('league ID access', () => {
+  it('copies the complete league ID for join requests', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    await expect(copyLeagueIdToClipboard({ writeText }, snapshot.league.id)).resolves.toBe(true);
+    expect(writeText).toHaveBeenCalledWith('league-1');
+  });
+
+  it('keeps the league ID selectable when clipboard access is unavailable', async () => {
+    await expect(copyLeagueIdToClipboard(undefined, snapshot.league.id)).resolves.toBe(false);
   });
 });
