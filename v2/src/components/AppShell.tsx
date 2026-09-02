@@ -36,6 +36,7 @@ const LeagueAuditPage = lazy(() => import('../operations/V1CompletionPages').the
 const LeagueCreatePage = lazy(() => import('../operations/LeagueCreatePage').then((module) => ({ default: module.LeagueCreatePage })));
 const SeasonSetupPage = lazy(() => import('../operations/SeasonSetupPage').then((module) => ({ default: module.SeasonSetupPage })));
 const OwnerControlPage = lazy(() => import('../operations/OwnerControlPage').then((module) => ({ default: module.OwnerControlPage })));
+const InstagramStudioPage = lazy(() => import('../graphics/InstagramStudioPage').then((module) => ({ default: module.InstagramStudioPage })));
 const NotificationCenterPage = lazy(() => import('../operations/NotificationCenterPage').then((module) => ({ default: module.NotificationCenterPage })));
 const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ default: module.VoraPage })));
 const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').then((module) => ({ default: module.GraphicsStudioPage })));
@@ -528,6 +529,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/admin/audit" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueAuditPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/graphics" element={accessLoading ? routeLoading : canCreateGraphics ? <Suspense fallback={routeLoading}><GraphicsStudioPage /></Suspense> : <Navigate replace to="/admin" />} />
           <Route path="/owner" element={accessLoading ? routeLoading : canOwner ? <Suspense fallback={routeLoading}><OwnerControlPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/owner/instagram" element={accessLoading ? routeLoading : canOwner ? <Suspense fallback={routeLoading}><InstagramStudioPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/leagues/new" element={authLoading ? routeLoading : user ? <Suspense fallback={routeLoading}><LeagueCreatePage /></Suspense> : <Navigate replace to="/login?mode=signin" />} />
           <Route path="/owner/leagues/new" element={<Navigate replace to="/leagues/new" />} />
           <Route path="/owner/demo" element={accessLoading ? routeLoading : canOwner ? <Suspense fallback={routeLoading}><DemoE2EPage /></Suspense> : <Navigate replace to="/" />} />

@@ -1,7 +1,10 @@
+import { instagramMessages } from '../graphics/instagramMessages';
+
 export const SUPPORTED_LANGUAGES = ['de', 'en', 'es', 'fr'] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
 
 const de = {
+  ...instagramMessages.de,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Übersicht",
@@ -737,6 +740,7 @@ export type MessageKey = keyof typeof de;
 export const messages: Record<Language, Record<MessageKey, string>> = {
   de,
   en: {
+    ...instagramMessages.en,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Overview",
@@ -1468,6 +1472,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "languageName.fr": "French",
 },
   es: {
+    ...instagramMessages.es,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Resumen",
@@ -2199,6 +2204,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
   "languageName.fr": "Francés",
 },
   fr: {
+    ...instagramMessages.fr,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Vue d’ensemble",

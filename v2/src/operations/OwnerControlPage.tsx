@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import { loadOwnerSnapshot, setPlatformFlag, type OwnerSnapshot } from './operations';
+import '../graphics/instagram.css';
 
 export function OwnerControlPage() {
   const { client, setLeagueSlug } = useLeague();
@@ -36,6 +37,7 @@ export function OwnerControlPage() {
     <div className="owner-mode" role="status">{t('owner.control')}</div>
     <header className="operations-header"><div><p className="section-label">{t('owner.eyebrow')}</p><h1>{t('owner.title')}</h1><p>{t('owner.copy')}</p></div></header>
     <section className="operations-metrics" aria-label={t('overview')}>{metrics.map(([key, value]) => <div key={key}><strong>{formatNumber(value)}</strong><span>{t(key)}</span></div>)}</section>
+    <section className="owner-instagram-entry"><div><h2>{t('instagram.title')}</h2><p>{t('instagram.copy')}</p></div><Link className="primary-action" to="/owner/instagram">{t('instagram.open')}</Link></section>
     <div className="owner-grid">
       <section className="owner-leagues"><h2>{t('owner.leagues')}</h2><div className="responsive-table responsive-table--records" role="region" tabIndex={0}><table><thead><tr><th>{t('owner.league')}</th><th>{t('owner.status')}</th><th>{t('owner.action')}</th></tr></thead><tbody>{snapshot.leagues.map((league) => <tr key={league.id}><td data-label={t('owner.league')} data-mobile-primary="true"><strong>{league.name}</strong><small>{league.slug}</small></td><td data-label={t('owner.status')}>{league.status}</td><td data-label={t('owner.action')}><button type="button" onClick={() => { setLeagueSlug(league.slug); navigate(league.slug === 'demo' ? '/owner/demo' : '/admin'); }}>{league.slug === 'demo' ? t('owner.openDemo') : t('owner.open')}</button></td></tr>)}</tbody></table></div></section>
       <section className="owner-flags"><h2>{t('owner.featureFlags')}</h2>{snapshot.flags.map((flag) => <label key={flag.key}><span><strong>{flag.key}</strong><small>{t('owner.flagCopy')}</small></span><input type="checkbox" checked={flag.enabled} onChange={(event) => void toggleFlag(flag.key, event.target.checked)} /></label>)}</section>
