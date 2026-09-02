@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { BetaFeedback } from '../feedback/BetaFeedback';
 import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import raceVoraMark from '../../../assets/images/racevora-mark.svg';
+import raceVoraMark from '../../../assets/images/racevora-logo-color.png';
 import { useAuth } from '../auth/AuthProvider';
 import { BetaAccessPage } from '../auth/BetaAccessPage';
 import { AuthLinkPage } from '../auth/AuthLinkPage';
