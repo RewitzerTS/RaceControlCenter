@@ -1,0 +1,19 @@
+.roster-panel { padding: 1.25rem; min-width: 0; }
+.roster-panel .admin-panel-heading { padding: 0; }
+.roster-panel p { max-width: 72ch; }
+.roster-mode { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+.roster-panel .admin-form { border: 0; padding: 0; background: none; }
+.roster-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; padding: 0; border: 0; min-width: 0; }
+.roster-fields label { display: grid; gap: .4rem; min-width: 0; }
+.roster-fields select, .roster-fields input { width: 100%; min-width: 0; min-height: 44px; }
+.roster-fields input { border-radius: 12px; }
+.roster-summary { padding: .8rem 1rem; border-inline-start: 3px solid var(--accent, #b08aff); overflow-wrap: anywhere; }
+.roster-history { margin-top: 1.25rem; border-top: 1px solid #ffffff20; padding-top: 1rem; }
+.roster-history summary { cursor: pointer; padding-block: .5rem; min-height: 44px; }
+.roster-history ul { padding-inline-start: 1.25rem; }
+.roster-history li { padding-block: .35rem; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .roster-fields { grid-template-columns: minmax(0, 1fr); }
+  .roster-panel { padding: 1rem; }
+  .roster-mode > button { flex: 1 1 10rem; }
+}

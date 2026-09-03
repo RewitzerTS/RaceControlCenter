@@ -25,6 +25,8 @@ import { parseResultCsv } from './resultCsv';
 import { activeSeasonRaces } from './LeagueRacesPage';
 import { useOperationsCopy } from './operationsCopy';
 import { DEFAULT_RESULT_POINTS, type ResultScoringRules } from './resultScoring';
+import { useI18n } from '../i18n/I18nProvider';
+import { rosterError } from './rosterCopy';
 
 export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, raceId: string): ResultScoringRules {
   const race = workspace?.races.find((item) => item.id === raceId);
@@ -38,6 +40,7 @@ export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, 
 }
 
 export function ResultImportPage() {
+  const { language } = useI18n();
   const { client, leagueSlug } = useLeague();
   const { role } = useRole();
   const copy = useOperationsCopy();
@@ -120,7 +123,9 @@ export function ResultImportPage() {
       setMessage(copy('import.draftSaved'));
       setMessageTone('success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : copy('import.draftError'));
+      setMessage(error instanceof Error && error.message.includes('ROSTER_')
+        ? rosterError(error, language)
+        : error instanceof Error ? error.message : copy('import.draftError'));
     } finally {
       setBusy('');
     }
