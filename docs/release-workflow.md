@@ -19,3 +19,5 @@ Production Git builds remain disconnected. The production deployment command rej
 ## Database changes
 
 Apply and test every migration in Staging first. Apply the same reviewed migration to Production only as part of an explicitly approved live release. Do not copy Production records, Auth users, secrets, Storage objects, or mail settings into Staging.
+
+Synthetic fixture enrichments under `v2/supabase/staging/` are applied only to RaceVora Staging. They are not migrations and must never be run against Production.
