@@ -59,6 +59,7 @@ async function readExampleEnvironment() {
 const exampleEnvironment = await readExampleEnvironment();
 const supabaseUrl = String(process.env.VITE_SUPABASE_URL || exampleEnvironment.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
 const publishableKey = String(process.env.VITE_SUPABASE_PUBLISHABLE_KEY || exampleEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+const defaultLeagueSlug = String(process.env.VITE_DEFAULT_LEAGUE_SLUG || exampleEnvironment.VITE_DEFAULT_LEAGUE_SLUG || '').trim();
 const buildTarget = { VITE_APP_ENV: appEnvironment, VITE_SUPABASE_URL: supabaseUrl };
 assertBuildTarget(buildTarget);
 const headersPath = resolve(distRoot, '_headers');
@@ -136,7 +137,7 @@ function transformLanding(source) {
   return source
     .replace(/<button class="text-link" type="button" data-login-open><span data-login-button-label>Login<\/span><\/button>/, '<a class="text-link" href="/login?mode=signin" data-auth-open="signin">Login</a>')
     .replaceAll('href="register.html"', 'href="/login?mode=signup" data-auth-open="signup"')
-    .replaceAll('href="race-hub.html?league=racevora-demo"', 'href="/race-hub?league=rcc&demo=1"')
+    .replaceAll('href="race-hub.html?league=racevora-demo"', `href="/race-hub?league=${defaultLeagueSlug}&demo=1"`)
     .replaceAll('href="impressum.html"', 'href="/impressum"')
     .replaceAll('href="datenschutz.html"', 'href="/datenschutz"')
     .replaceAll('href="agb.html"', 'href="/agb"')
