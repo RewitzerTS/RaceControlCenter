@@ -20,6 +20,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { LeagueSwitcher } from '../league/LeagueSwitcher';
 import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from '../league/leagueBranding';
 import { useRole } from '../roles/RoleProvider';
+import { TutorialCenter } from '../tutorials/TutorialCenter';
 import { AppState } from './AppState';
 
 const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
@@ -330,6 +331,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const [signingOut, setSigningOut] = useState(false);
   const [signOutFailed, setSignOutFailed] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [tutorialVisible, setTutorialVisible] = useState(false);
   const { t } = useI18n();
   const { branding, leagueSlug } = useLeague();
   const { error: roleError, loading: roleLoading, role } = useRole();
@@ -354,6 +356,12 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const accessLoading = authLoading || roleLoading;
   const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
   const onboardingRequired = user?.user_metadata?.onboarding_complete === false;
+  const onboardingJustCompleted = Boolean(
+    location.state
+    && typeof location.state === 'object'
+    && 'onboardingComplete' in location.state
+    && location.state.onboardingComplete === true
+  );
   const closeNavigation = () => setNavigationOpen(false);
   const handleSignOut = async () => {
     if (signingOut) return;
@@ -561,7 +569,16 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           </nav>
         </footer>}
       </div>
-      {!embeddedAccess && <BetaFeedback obscured={navigationOpen} />}
+      {!embeddedAccess && user && !roleLoading && (
+        <TutorialCenter
+          autoOpen={onboardingJustCompleted}
+          obscured={navigationOpen}
+          onVisibilityChange={setTutorialVisible}
+          role={role}
+          userId={user.id}
+        />
+      )}
+      {!embeddedAccess && <BetaFeedback obscured={navigationOpen || tutorialVisible} />}
     </div>
   );
 }

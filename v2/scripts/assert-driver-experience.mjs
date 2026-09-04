@@ -26,12 +26,12 @@ if (!shell.includes("to=\"/profile\"") || !shell.includes('topbar-profile-link')
 if (shell.includes('nav-item--public') || shell.includes("t('nav.league')")) {
   violations.push('retired standalone public league navigation is still visible');
 }
-if (!shell.includes('<Route path="/home" element={<DriverHomePage />} />')) {
+if (!shell.includes('<Route path="/home" element={leagueRoute(<DriverHomePage />)} />')) {
   violations.push('all permitted roles do not start in the Driver Experience');
 }
 for (const route of [
-  '<Route path="/racing/*" element={<RacingPage />} />',
-  '<Route path="/career" element={<Suspense',
+  '<Route path="/racing/*" element={leagueRoute(<RacingPage />)} />',
+  '<Route path="/career" element={leagueRoute(<Suspense',
   '<Route path="/profile" element={<Suspense',
 ]) {
   if (!shell.includes(route)) violations.push(`missing functional Driver route: ${route}`);
