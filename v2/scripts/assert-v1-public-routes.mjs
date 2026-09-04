@@ -1,7 +1,10 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { assertBuildTarget } from './environment-targets.mjs';
 
 const distRoot = resolve(process.cwd(), 'dist');
+const builtTarget = JSON.parse(await readFile(resolve(distRoot, 'build-target.json'), 'utf8'));
+const expectedProjectRef = assertBuildTarget(builtTarget);
 const requiredPages = ['race-hub', 'kalender', 'ergebnisse', 'fahrer-wm', 'team-wm', 'grid', 'regeln-faq', 'strecken', 'strecken-profil', 'rennen-detail', 'hall-of-fame'];
 const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
 
@@ -120,10 +123,10 @@ const client = await readFile(resolve(distRoot, 'v1-assets', 'js', 'supabase-cli
 if (client.includes(legacyProjectRef) || client.includes('7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8')) {
   throw new Error('V1 production backend credentials leaked into the V2 public bundle.');
 }
-if (!client.includes('sb_publishable_') || !client.includes('znnkwjogtvzwfkwnmawp.supabase.co')) {
+if (!client.includes('sb_publishable_') || !client.includes(`${expectedProjectRef}.supabase.co`)) {
   throw new Error('V2 public routes are not connected to the dedicated V2 backend.');
 }
-if (!client.includes("storageKey: \"racevora-v2:znnkwjogtvzwfkwnmawp:auth\"") || client.includes("storageKey: 'rcc_admin_session'")) {
+if (!client.includes(`storageKey: "racevora-v2:${expectedProjectRef}:auth"`) || client.includes("storageKey: 'rcc_admin_session'")) {
   throw new Error('Integrated public routes do not reuse the V2 browser session.');
 }
 if (!client.includes('RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS = true')) {

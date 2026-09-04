@@ -1,6 +1,7 @@
 import { copyFile, cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertBuildTarget, targetHeaders } from './environment-targets.mjs';
 
 const v2Root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = resolve(v2Root, '..');
@@ -58,6 +59,11 @@ async function readExampleEnvironment() {
 const exampleEnvironment = await readExampleEnvironment();
 const supabaseUrl = String(process.env.VITE_SUPABASE_URL || exampleEnvironment.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
 const publishableKey = String(process.env.VITE_SUPABASE_PUBLISHABLE_KEY || exampleEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+const buildTarget = { VITE_APP_ENV: appEnvironment, VITE_SUPABASE_URL: supabaseUrl };
+assertBuildTarget(buildTarget);
+const headersPath = resolve(distRoot, '_headers');
+await writeFile(headersPath, targetHeaders(await readFile(headersPath, 'utf8'), buildTarget), 'utf8');
+await writeFile(resolve(distRoot, 'build-target.json'), `${JSON.stringify(buildTarget)}\n`, 'utf8');
 
 if (!/^https:\/\/[a-z0-9]+\.supabase\.co$/i.test(supabaseUrl) || !publishableKey.startsWith('sb_publishable_')) {
   throw new Error('V1 public-route build requires the dedicated V2 Supabase URL and publishable key.');
