@@ -16,11 +16,25 @@ from pathlib import Path, PurePosixPath
 import shutil
 import subprocess
 import sys
-from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.parse import quote, urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 PROJECT_REF = "kjccstcbqygxuqkvdaqw"
 SUPABASE_URL = f"https://{PROJECT_REF}.supabase.co"
+SUPABASE_HOST = urlparse(SUPABASE_URL).hostname
+
+
+class SameOriginRedirectHandler(HTTPRedirectHandler):
+    """Allow Storage redirects only when they remain on the pinned Supabase host."""
+
+    def redirect_request(self, request, file_pointer, code, message, headers, new_url):
+        parsed = urlparse(new_url)
+        if parsed.scheme != "https" or parsed.hostname != SUPABASE_HOST:
+            raise RuntimeError(f"Refusing cross-origin Storage redirect to {parsed.hostname or 'unknown host'}")
+        return super().redirect_request(request, file_pointer, code, message, headers, new_url)
+
+
+SAFE_URL_OPENER = build_opener(SameOriginRedirectHandler())
 
 
 def query_json(db_url: str, sql: str):
@@ -69,7 +83,7 @@ def download_object(bucket: str, object_name: str, content_type: str | None, tar
 
     digest = hashlib.sha256()
     size = 0
-    with urlopen(request, timeout=60) as response, target.open("wb") as handle:
+    with SAFE_URL_OPENER.open(request, timeout=60) as response, target.open("wb") as handle:
         if getattr(response, "status", 200) != 200:
             raise RuntimeError(f"Unexpected HTTP status for {bucket}/{object_name}: {response.status}")
         while True:

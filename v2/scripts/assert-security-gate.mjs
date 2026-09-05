@@ -3,6 +3,8 @@ import path from 'node:path';
 
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const repositoryRoot = path.resolve(root, '..');
+const readRepository = (file) => fs.readFileSync(path.join(repositoryRoot, file), 'utf8');
 
 const headers = read('public/_headers');
 const vite = read('vite.config.ts');
@@ -13,6 +15,16 @@ const sourceFiles = fs.readdirSync(path.join(root, 'src'), { recursive: true, wi
   .filter((entry) => entry.isFile() && /\.(?:ts|tsx)$/.test(entry.name))
   .map((entry) => read(path.join('src', entry.parentPath.slice(path.join(root, 'src').length + 1), entry.name)))
   .join('\n');
+const workflowDirectory = path.join(repositoryRoot, '.github', 'workflows');
+const workflowFiles = fs.readdirSync(workflowDirectory)
+  .filter((file) => /\.ya?ml$/.test(file));
+const workflows = workflowFiles.map((file) => fs.readFileSync(path.join(workflowDirectory, file), 'utf8'));
+const workflowSource = workflows.join('\n');
+const legacyBrowserSource = fs.readdirSync(path.join(repositoryRoot, 'assets', 'js'), { recursive: true, withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name.endsWith('.js'))
+  .map((entry) => fs.readFileSync(path.join(entry.parentPath, entry.name), 'utf8'))
+  .join('\n');
+const legacySupabaseClient = readRepository('assets/js/supabase-client.js');
 
 const expectedProject = 'znnkwjogtvzwfkwnmawp.supabase.co';
 const authenticatedDefinerRpcAllowlist = [
@@ -57,6 +69,11 @@ const authenticatedDefinerRpcAllowlist = [
   'upsert_league_driver',
 ];
 const forbiddenSinks = ['dangerouslySetInnerHTML', '.innerHTML', 'document.write(', 'eval(', 'new Function('];
+const forbiddenLegacyCodeSinks = ['document.write(', 'document.writeln(', 'eval(', 'new Function('];
+const externalActionRefs = [...workflowSource.matchAll(/uses:\s+[^./\s][^/\s]*\/[^@\s]+@([^\s#]+)/g)]
+  .map((match) => match[1]);
+const checkoutCount = [...workflowSource.matchAll(/uses:\s+actions\/checkout@[0-9a-f]{40}/g)].length;
+const checkoutCredentialGuardCount = [...workflowSource.matchAll(/persist-credentials:\s*false/g)].length;
 const failures = [];
 
 function requireGate(condition, label) {
@@ -75,6 +92,12 @@ requireGate(headers.includes('Strict-Transport-Security: max-age=31536000; inclu
 requireGate(headers.includes('Cross-Origin-Opener-Policy: same-origin'), 'COOP is present');
 requireGate(headers.includes('Cross-Origin-Resource-Policy: same-origin'), 'CORP is present');
 requireGate(forbiddenSinks.every((sink) => !sourceFiles.includes(sink)), 'browser source has no forbidden dynamic HTML/code sink');
+requireGate(forbiddenLegacyCodeSinks.every((sink) => !legacyBrowserSource.includes(sink)), 'integrated legacy browser source has no document-write or dynamic-code sink');
+requireGate(!/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/.test(legacySupabaseClient), 'legacy source contains no embedded JWT-shaped API key');
+requireGate(externalActionRefs.length > 0 && externalActionRefs.every((ref) => /^[0-9a-f]{40}$/.test(ref)), 'GitHub Actions dependencies are pinned to full commit SHAs');
+requireGate(checkoutCount > 0 && checkoutCredentialGuardCount === checkoutCount, 'every repository checkout disables persisted Git credentials');
+requireGate(workflows.every((workflow) => /^permissions:\r?\n  contents: read$/m.test(workflow)), 'every workflow defaults the GitHub token to read-only repository access');
+requireGate(!workflowSource.includes('awscli.amazonaws.com'), 'backup workflows do not execute an unverified remote AWS CLI archive');
 requireGate(migration.includes('alter table private.steward_case_counters enable row level security;'), 'private Steward counter has RLS defense in depth');
 requireGate(migration.includes('revoke all on table private.steward_case_counters from public, anon, authenticated;'), 'private Steward counter denies browser roles');
 requireGate(privateHardening.includes('alter table private.ai_analysis_usage enable row level security;'), 'private AI quota ledger has RLS defense in depth');

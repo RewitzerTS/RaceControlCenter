@@ -1,7 +1,11 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { assertBuildTarget } from './environment-targets.mjs';
 
 const distRoot = resolve(process.cwd(), 'dist');
+const builtTarget = JSON.parse(await readFile(resolve(distRoot, 'build-target.json'), 'utf8'));
+const expectedProjectRef = assertBuildTarget(builtTarget);
+const expectedDemoLeagueSlug = builtTarget.VITE_APP_ENV === 'production' ? 'rcc' : 'demo';
 const requiredPages = ['race-hub', 'kalender', 'ergebnisse', 'fahrer-wm', 'team-wm', 'grid', 'regeln-faq', 'strecken', 'strecken-profil', 'rennen-detail', 'hall-of-fame'];
 const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
 
@@ -89,7 +93,7 @@ for (const [page, marker] of [
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
   if (
     !source.includes(marker)
-    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-5')
+    || !source.includes('/v1-assets/js/services/rcc-data.js?v=v2-racing-data-6')
   ) {
     throw new Error(`${page}.html must cache-bust the integrated Racing fixes.`);
   }
@@ -120,10 +124,10 @@ const client = await readFile(resolve(distRoot, 'v1-assets', 'js', 'supabase-cli
 if (client.includes(legacyProjectRef) || client.includes('7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8')) {
   throw new Error('V1 production backend credentials leaked into the V2 public bundle.');
 }
-if (!client.includes('sb_publishable_') || !client.includes('znnkwjogtvzwfkwnmawp.supabase.co')) {
+if (!client.includes('sb_publishable_') || !client.includes(`${expectedProjectRef}.supabase.co`)) {
   throw new Error('V2 public routes are not connected to the dedicated V2 backend.');
 }
-if (!client.includes("storageKey: \"racevora-v2:znnkwjogtvzwfkwnmawp:auth\"") || client.includes("storageKey: 'rcc_admin_session'")) {
+if (!client.includes(`storageKey: "racevora-v2:${expectedProjectRef}:auth"`) || client.includes("storageKey: 'rcc_admin_session'")) {
   throw new Error('Integrated public routes do not reuse the V2 browser session.');
 }
 if (!client.includes('RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS = true')) {
@@ -275,7 +279,7 @@ for (const page of requiredPages) {
 }
 
 const landing = await readFile(resolve(distRoot, 'landing.html'), 'utf8');
-for (const href of ['/login?mode=signin', '/login?mode=signup', '/race-hub?league=rcc&demo=1']) {
+for (const href of ['/login?mode=signin', '/login?mode=signup', `/race-hub?league=${expectedDemoLeagueSlug}&demo=1`]) {
   if (!landing.includes(`href="${href}"`)) throw new Error(`V1 landing page is missing the V2 entry target ${href}.`);
 }
 for (const marker of ['data-auth-open="signin"', 'data-auth-open="signup"', 'id="racevora-auth-drawer"', 'data-auth-frame']) {
@@ -307,6 +311,10 @@ if (!productionWorker.includes("url.pathname === '/'") || !productionWorker.incl
 const productionConfig = await readFile(resolve(process.cwd(), 'wrangler.production.jsonc'), 'utf8');
 if (!productionConfig.includes('"run_worker_first": ["/", "/api/*"]')) {
   throw new Error('Production Worker is not configured to handle the public root before the SPA fallback.');
+}
+const stagingConfig = await readFile(resolve(process.cwd(), 'wrangler.jsonc'), 'utf8');
+if (!stagingConfig.includes('"run_worker_first": ["/", "/api/*"]')) {
+  throw new Error('Staging Worker is not configured to serve the landing page at the public root.');
 }
 
 const brandingSource = await readFile(resolve(process.cwd(), 'src', 'league', 'leagueBranding.ts'), 'utf8');

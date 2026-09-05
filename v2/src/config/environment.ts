@@ -1,5 +1,7 @@
-export const PRODUCTION_PROJECT_REFS = ['kjccstcbqygxuqkvdaqw'] as const;
-export const V2_PROJECT_REFS = ['znnkwjogtvzwfkwnmawp'] as const;
+export const RETIRED_PROJECT_REFS = ['kjccstcbqygxuqkvdaqw'] as const;
+export const PRODUCTION_PROJECT_REFS = ['znnkwjogtvzwfkwnmawp'] as const;
+export const V2_PROJECT_REFS = PRODUCTION_PROJECT_REFS;
+export const STAGING_PROJECT_REFS = ['nfvwarlowjqphytqqtxz'] as const;
 
 export type AppEnvironment = 'local' | 'staging' | 'production';
 
@@ -105,8 +107,16 @@ export function parseEnvironment(source: EnvironmentSource): RuntimeEnvironment 
   }
 
   const projectRef = parsedUrl.hostname.split('.')[0];
-  if (!projectRef || PRODUCTION_PROJECT_REFS.includes(projectRef as (typeof PRODUCTION_PROJECT_REFS)[number])) {
-    throw new Error('Blocked: V2 cannot connect to the Production Supabase project.');
+  if (!projectRef || RETIRED_PROJECT_REFS.includes(projectRef as (typeof RETIRED_PROJECT_REFS)[number])) {
+    throw new Error('Blocked: cannot connect to a retired Supabase project.');
+  }
+  if (appEnvironment !== 'production'
+      && PRODUCTION_PROJECT_REFS.includes(projectRef as (typeof PRODUCTION_PROJECT_REFS)[number])) {
+    throw new Error('Blocked: non-production environments cannot connect to the Production Supabase project.');
+  }
+  if (appEnvironment === 'staging'
+      && !STAGING_PROJECT_REFS.includes(projectRef as (typeof STAGING_PROJECT_REFS)[number])) {
+    throw new Error('Blocked: Staging must use the dedicated staging Supabase project.');
   }
   if (appEnvironment === 'production'
       && !V2_PROJECT_REFS.includes(projectRef as (typeof V2_PROJECT_REFS)[number])) {

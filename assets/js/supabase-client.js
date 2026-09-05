@@ -1,5 +1,6 @@
 const SUPABASE_URL = 'https://kjccstcbqygxuqkvdaqw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtqY2NzdGNicXlneHVxa3ZkYXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjU4NzYsImV4cCI6MjA5MDY0MTg3Nn0.7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8';
+// Replaced with the target environment's publishable key during the V2 build.
+const SUPABASE_ANON_KEY = '__RACEVORA_BUILD_PUBLISHABLE_KEY__';
 const RCC_DEFAULT_LEAGUE_SLUG = 'rcc';
 const RCC_LEAGUE_SESSION_KEY = 'rcc.activeLeagueSlug.v1';
 const RCC_TENANT_CACHE_KEY = 'rcc.lastTenantSlug.v1';

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkProductionBindings } from './production-bindings.mjs';
+import { assertBuildTarget } from './environment-targets.mjs';
 
 const v2Root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 await checkProductionBindings(v2Root);
@@ -21,6 +22,7 @@ if (productionEnvironment.VITE_APP_ENV !== 'production') {
   throw new Error('The production environment template must set VITE_APP_ENV=production.');
 }
 
+assertBuildTarget(productionEnvironment);
 const result = spawnSync('npm run build', {
   cwd: v2Root,
   env: productionEnvironment,

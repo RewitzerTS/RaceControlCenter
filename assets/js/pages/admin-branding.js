@@ -25,6 +25,12 @@
 
   function value(id) { return String(document.getElementById(id)?.value || '').trim(); }
 
+  function storageLeagueSlug(value) {
+    const slug = String(value || '').trim().toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) throw new Error('Ungültiger Liga-Speicherpfad.');
+    return slug;
+  }
+
   function feedback(message, error = false) {
     const el = document.getElementById('league-branding-feedback');
     if (!el) return;
@@ -204,7 +210,7 @@
     const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
     if (!allowed.includes(file.type)) throw new Error(`Dateityp ${file.type || 'unbekannt'} ist nicht erlaubt. Bitte PNG, JPG, WebP oder SVG verwenden.`);
     const extMap = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/svg+xml': 'svg' };
-    const path = `${context.league.slug}/logo-${Date.now()}.${extMap[file.type] || 'png'}`;
+    const path = `${storageLeagueSlug(context.league.slug)}/logo-${Date.now()}.${extMap[file.type]}`;
     feedback('Logo wird hochgeladen …');
     const { error } = await window.supabaseClient.storage.from(LOGO_BUCKET).upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false });
     if (error) throw new Error(`Storage-Upload fehlgeschlagen: ${error.message}`);

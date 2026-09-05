@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { PRODUCTION_PROJECT_REFS, V2_PROJECT_REFS, parseEnvironment } from './environment';
+import { PRODUCTION_PROJECT_REFS, RETIRED_PROJECT_REFS, STAGING_PROJECT_REFS, V2_PROJECT_REFS, parseEnvironment } from './environment';
 
 const validSource = {
   VITE_APP_ENV: 'staging',
-  VITE_SUPABASE_URL: 'https://stagingprojectref.supabase.co',
+  VITE_SUPABASE_URL: `https://${STAGING_PROJECT_REFS[0]}.supabase.co`,
   VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_staging_test_key',
   VITE_DEFAULT_LEAGUE_SLUG: 'demo-league',
   VITE_FEATURE_STEWARD_WORKSPACE: 'true',
@@ -14,7 +14,7 @@ describe('parseEnvironment', () => {
   it('accepts an isolated staging project', () => {
     expect(parseEnvironment(validSource)).toMatchObject({
       appEnvironment: 'staging',
-      supabaseProjectRef: 'stagingprojectref',
+      supabaseProjectRef: STAGING_PROJECT_REFS[0],
       defaultLeagueSlug: 'demo-league',
       features: { stewardWorkspace: true, leagueAdmin: false, ownerControl: true, notificationsV2: true },
     });
@@ -44,6 +44,18 @@ describe('parseEnvironment', () => {
       VITE_APP_ENV: 'production',
       VITE_SUPABASE_URL: 'https://anotherprojectref.supabase.co',
     })).toThrow(/dedicated V2 Supabase project/i);
+  });
+
+  it('rejects production in local mode and unknown staging projects', () => {
+    expect(() => parseEnvironment({ ...validSource, VITE_APP_ENV: 'local',
+      VITE_SUPABASE_URL: `https://${PRODUCTION_PROJECT_REFS[0]}.supabase.co`,
+    })).toThrow(/cannot connect to the Production/i);
+    expect(() => parseEnvironment({ ...validSource,
+      VITE_SUPABASE_URL: 'https://unknownproject.supabase.co',
+    })).toThrow(/dedicated staging/i);
+    expect(() => parseEnvironment({ ...validSource,
+      VITE_SUPABASE_URL: `https://${RETIRED_PROJECT_REFS[0]}.supabase.co`,
+    })).toThrow(/retired/i);
   });
 
   it('rejects placeholders and missing values', () => {

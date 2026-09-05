@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertBuildTarget } from './environment-targets.mjs';
 
 const v2Root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const examplePath = resolve(v2Root, '.env.staging.example');
@@ -19,6 +20,7 @@ if (stagingEnvironment.VITE_APP_ENV !== 'staging') {
   throw new Error('The staging environment template must set VITE_APP_ENV=staging.');
 }
 
+assertBuildTarget(stagingEnvironment);
 const result = spawnSync('npm run build', {
   cwd: v2Root,
   env: stagingEnvironment,

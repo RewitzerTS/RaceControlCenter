@@ -42,7 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Validate backup helpers and safety gates
         shell: bash
         run: |
@@ -52,10 +54,15 @@ jobs:
           python3 -m py_compile scripts/backup-public-storage.py
           node --check scripts/restore-public-storage.mjs
           grep -Fq "RACEVORA_BACKUPS_ENABLED == 'true'" "$workflow"
-          grep -Fq 'supabase/setup-cli@v3' "$workflow"
+          grep -Fq 'supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0' "$workflow"
           grep -Fq 'racevora-backups' "$workflow"
           grep -Fq '.eu.r2.cloudflarestorage.com' "$workflow"
-          grep -Fq 'awscli.amazonaws.com' "$workflow"
+          grep -Fq 'postgresql-client gnupg awscli ca-certificates' "$workflow"
+          unsafe_aws_cli_host='awscli.amazonaws'".com"
+          if grep -Fq "$unsafe_aws_cli_host" "$workflow"; then
+            echo 'AWS CLI must come from the signed runner package repository, not an unverified archive.' >&2
+            exit 1
+          fi
           grep -Fq 'auth-data.dump' scripts/backup-supabase.sh
           grep -Fq 'backup-format-version.txt' scripts/backup-supabase.sh
           grep -Fq 'postgres:17' scripts/backup-supabase.sh
@@ -89,7 +96,9 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: auto
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Validate required secrets
         shell: bash
@@ -111,7 +120,7 @@ jobs:
           fi
 
       - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v3
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
         with:
           version: 2.111.0
 
@@ -120,28 +129,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client gnupg curl unzip ca-certificates
-
-          if ! command -v aws >/dev/null 2>&1; then
-            case "$(uname -m)" in
-              x86_64) aws_arch='x86_64' ;;
-              aarch64|arm64) aws_arch='aarch64' ;;
-              *)
-                echo "Unsupported runner architecture for AWS CLI: $(uname -m)" >&2
-                exit 1
-                ;;
-            esac
-
-            aws_zip="${RUNNER_TEMP}/awscliv2.zip"
-            aws_dir="${RUNNER_TEMP}/awscli-installer"
-            mkdir -p "$aws_dir"
-            curl --fail --silent --show-error --location --retry 3 \
-              "https://awscli.amazonaws.com/awscli-exe-linux-${aws_arch}.zip" \
-              --output "$aws_zip"
-            unzip -q "$aws_zip" -d "$aws_dir"
-            sudo "$aws_dir/aws/install" --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli
-          fi
-
+          sudo apt-get install -y --no-install-recommends postgresql-client gnupg awscli ca-certificates
           aws --version
 
       - name: Create database backup
