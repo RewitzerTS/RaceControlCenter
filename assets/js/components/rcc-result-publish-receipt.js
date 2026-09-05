@@ -102,7 +102,7 @@
     root.hidden = false;
     root.innerHTML = `
       <div class="rcc-result-publish-receipt__head">
-        <div class="rcc-result-publish-receipt__check" aria-hidden="true">✓</div>
+        <div class="rcc-result-publish-receipt__check" aria-hidden="true"><svg class="rcc-icon--check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg></div>
         <div>
           <span class="eyebrow">Veröffentlichung abgeschlossen</span>
           <h4>${escape(context.raceLabel)} ist öffentlich</h4>

@@ -1,0 +1,165 @@
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/assets/fonts/barlow-condensed-600-latin-ext.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Barlow Condensed";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/assets/fonts/barlow-condensed-700-latin-ext.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "RaceVora UI";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/instagram/InterVariable.woff2") format("woff2");
+}
+
+:root {
+  --ink: #f3f6fa;
+  --muted: #9cabbc;
+  --line: rgba(183, 208, 230, 0.14);
+  --line-strong: rgba(183, 208, 230, 0.24);
+  --cyan: #29c7ed;
+  --blue: #3d7ff2;
+  --violet: #863fff;
+  --brand-gradient: linear-gradient(105deg, var(--cyan), var(--blue) 50%, var(--violet));
+}
+
+body {
+  color: var(--ink);
+  background: #030912;
+  font-family: "RaceVora UI", "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+.final-section h2 {
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  font-synthesis: none;
+}
+
+.site-header,
+.site-header.is-scrolled {
+  border-color: var(--line);
+  background: #050c15;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+  backdrop-filter: none;
+}
+
+.chapter-label,
+.section-lead,
+.chapter-meta {
+  color: var(--muted);
+  font-family: "RaceVora UI", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 680;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.chapter-label::after { display: none; }
+.chapter-label span { color: inherit; }
+
+.chapter-label {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.gradient-text,
+.gradient-text--workflow {
+  color: var(--ink);
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+}
+
+.button,
+.rvx-btn {
+  border-radius: 7px;
+  background: var(--brand-gradient);
+  box-shadow: 0 12px 28px rgba(35, 87, 174, 0.28);
+}
+
+.button-ghost,
+.rvx-btn--secondary {
+  border-color: var(--line-strong);
+  background: #08131f;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.24);
+}
+
+.command-shell,
+.standings-panel,
+.operations-panel,
+.workflow-track,
+.architecture-map,
+.faq-list details {
+  border-color: var(--line);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0d1a2a, #08131f);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.03), 0 20px 48px rgba(0, 0, 0, 0.34);
+}
+
+.command-nav,
+.command-topbar,
+.race-context,
+.standing-row,
+.operation-list li {
+  border-color: var(--line);
+  background: #07111c;
+}
+
+.control-section,
+.workflow-section,
+.architecture-section,
+.faq-section,
+.final-section {
+  background: #030912;
+}
+
+.control-section::before,
+.workflow-section::before,
+.architecture-section::before,
+.faq-section::before,
+.final-section::before { opacity: 0.22; }
+
+.login-modal__backdrop,
+.auth-drawer::backdrop {
+  background: rgba(1, 5, 11, 0.86);
+  backdrop-filter: none;
+}
+
+.login-modal__dialog,
+.auth-drawer,
+.auth-drawer__panel {
+  border-color: var(--line-strong);
+  background: #08131f;
+  box-shadow: 0 30px 72px rgba(0, 0, 0, 0.46);
+}
+
+@media (max-width: 700px) {
+  .site-header { background: #050c15; }
+  .story-chapters h1,
+  .story-chapters h2 { font-size: clamp(3rem, 15vw, 4.5rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after { transition-duration: 0.01ms !important; }
+}

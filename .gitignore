@@ -2,3 +2,7 @@
 supabase/.temp/
 v2/supabase/.temp/
 v2/wrangler.log
+
+# Local Impeccable exploration and review artifacts; keep only the durable design sidecar.
+.impeccable/*
+!.impeccable/design.json

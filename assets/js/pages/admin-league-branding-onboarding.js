@@ -5,6 +5,7 @@
   const LAUNCHER_ID = 'admin-onboarding-resume-launcher';
   const LOGO_BUCKET = 'league-brand-assets';
   const THEME_STYLESHEET = 'assets/css/components/rcc-branding-themes.css';
+  const CHECK_ICON = '<svg class="rcc-icon--check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg>';
   let initialized = false;
   let panel = null;
   let selectedThemeId = '0';
@@ -72,7 +73,7 @@
           <input type="radio" name="onboarding-brand-theme" value="${escapeHtml(theme.id)}" ${theme.id === selectedId ? 'checked' : ''}>
           <span class="rcc-theme-option__top">
             <span><strong>${escapeHtml(theme.id)}. ${escapeHtml(theme.name)}</strong><small>${escapeHtml(theme.subtitle)}</small></span>
-            <span class="rcc-theme-option__check" aria-hidden="true">✓</span>
+            <span class="rcc-theme-option__check" aria-hidden="true">${CHECK_ICON}</span>
           </span>
           <span class="rcc-theme-swatches">${swatches}</span>
         </label>`;

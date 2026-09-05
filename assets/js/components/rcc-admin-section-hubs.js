@@ -1,6 +1,8 @@
 (() => {
   if (window.RCCAdminSectionHubs) return;
 
+  const CHECK_ICON = '<svg class="rcc-icon--check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg>';
+
   const SECTION_CONFIG = {
     'admin-section-calendar': {
       eyebrow: 'Saison & Kalender',
@@ -52,7 +54,7 @@
     },
     {
       match: /steward|entscheidungen|fälle/i,
-      icon: '✓',
+      icon: CHECK_ICON,
       description: 'Bestehende Steward-Fälle und Entscheidungen prüfen, bearbeiten oder entfernen.'
     },
     {

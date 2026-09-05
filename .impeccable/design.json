@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-05T19:14:14.818Z",
+  "title": "Design System: RaceVora Control Deck",
+  "extensions": {
+    "colorMeta": {
+      "page-ground": {
+        "role": "neutral",
+        "displayName": "Night Circuit",
+        "tonalRamp": ["oklch(15% 0.023 255.1)", "oklch(25% 0.023 255.1)", "oklch(35% 0.023 255.1)", "oklch(45% 0.023 255.1)", "oklch(55% 0.023 255.1)", "oklch(65% 0.023 255.1)", "oklch(78% 0.023 255.1)", "oklch(92% 0.023 255.1)"]
+      },
+      "page-ground-deep": {
+        "role": "neutral",
+        "displayName": "Deep Circuit Void",
+        "tonalRamp": ["oklch(15% 0.019 242.9)", "oklch(25% 0.019 242.9)", "oklch(35% 0.019 242.9)", "oklch(45% 0.019 242.9)", "oklch(55% 0.019 242.9)", "oklch(65% 0.019 242.9)", "oklch(78% 0.019 242.9)", "oklch(92% 0.019 242.9)"]
+      },
+      "rail-ground": {
+        "role": "neutral",
+        "displayName": "Rail Navy",
+        "tonalRamp": ["oklch(15% 0.026 252.0)", "oklch(25% 0.026 252.0)", "oklch(35% 0.026 252.0)", "oklch(45% 0.026 252.0)", "oklch(55% 0.026 252.0)", "oklch(65% 0.026 252.0)", "oklch(78% 0.026 252.0)", "oklch(92% 0.026 252.0)"]
+      },
+      "work-plane": {
+        "role": "neutral",
+        "displayName": "Work Navy",
+        "tonalRamp": ["oklch(15% 0.031 255.4)", "oklch(25% 0.031 255.4)", "oklch(35% 0.031 255.4)", "oklch(45% 0.031 255.4)", "oklch(55% 0.031 255.4)", "oklch(65% 0.031 255.4)", "oklch(78% 0.031 255.4)", "oklch(92% 0.031 255.4)"]
+      },
+      "inset-plane": {
+        "role": "neutral",
+        "displayName": "Instrument Well",
+        "tonalRamp": ["oklch(15% 0.028 251.1)", "oklch(25% 0.028 251.1)", "oklch(35% 0.028 251.1)", "oklch(45% 0.028 251.1)", "oklch(55% 0.028 251.1)", "oklch(65% 0.028 251.1)", "oklch(78% 0.028 251.1)", "oklch(92% 0.028 251.1)"]
+      },
+      "raised-plane": {
+        "role": "neutral",
+        "displayName": "Raised Navy",
+        "tonalRamp": ["oklch(15% 0.034 254.6)", "oklch(25% 0.034 254.6)", "oklch(35% 0.034 254.6)", "oklch(45% 0.034 254.6)", "oklch(55% 0.034 254.6)", "oklch(65% 0.034 254.6)", "oklch(78% 0.034 254.6)", "oklch(92% 0.034 254.6)"]
+      },
+      "active-plane": {
+        "role": "neutral",
+        "displayName": "Active Navy",
+        "tonalRamp": ["oklch(15% 0.045 257.0)", "oklch(25% 0.045 257.0)", "oklch(35% 0.045 257.0)", "oklch(45% 0.045 257.0)", "oklch(55% 0.045 257.0)", "oklch(65% 0.045 257.0)", "oklch(78% 0.045 257.0)", "oklch(92% 0.045 257.0)"]
+      },
+      "line-subtle": {
+        "role": "neutral",
+        "displayName": "Subtle Edge Light",
+        "tonalRamp": ["oklch(15% 0.040 243.6 / 0.13)", "oklch(25% 0.040 243.6 / 0.13)", "oklch(35% 0.040 243.6 / 0.13)", "oklch(45% 0.040 243.6 / 0.13)", "oklch(55% 0.040 243.6 / 0.13)", "oklch(65% 0.040 243.6 / 0.13)", "oklch(78% 0.040 243.6 / 0.13)", "oklch(92% 0.040 243.6 / 0.13)"]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Strong Edge Light",
+        "tonalRamp": ["oklch(15% 0.040 243.6 / 0.23)", "oklch(25% 0.040 243.6 / 0.23)", "oklch(35% 0.040 243.6 / 0.23)", "oklch(45% 0.040 243.6 / 0.23)", "oklch(55% 0.040 243.6 / 0.23)", "oklch(65% 0.040 243.6 / 0.23)", "oklch(78% 0.040 243.6 / 0.23)", "oklch(92% 0.040 243.6 / 0.23)"]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Signal White",
+        "tonalRamp": ["oklch(15% 0.006 255.5)", "oklch(25% 0.006 255.5)", "oklch(35% 0.006 255.5)", "oklch(45% 0.006 255.5)", "oklch(55% 0.006 255.5)", "oklch(65% 0.006 255.5)", "oklch(78% 0.006 255.5)", "oklch(92% 0.006 255.5)"]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Telemetry Gray",
+        "tonalRamp": ["oklch(15% 0.032 254.4)", "oklch(25% 0.032 254.4)", "oklch(35% 0.032 254.4)", "oklch(45% 0.032 254.4)", "oklch(55% 0.032 254.4)", "oklch(65% 0.032 254.4)", "oklch(78% 0.032 254.4)", "oklch(92% 0.032 254.4)"]
+      },
+      "action-cyan": {
+        "role": "primary",
+        "displayName": "Apex Cyan",
+        "tonalRamp": ["oklch(15% 0.133 219.1)", "oklch(25% 0.133 219.1)", "oklch(35% 0.133 219.1)", "oklch(45% 0.133 219.1)", "oklch(55% 0.133 219.1)", "oklch(65% 0.133 219.1)", "oklch(78% 0.133 219.1)", "oklch(92% 0.133 219.1)"]
+      },
+      "action-blue": {
+        "role": "primary",
+        "displayName": "Race Blue",
+        "tonalRamp": ["oklch(15% 0.194 260.5)", "oklch(25% 0.194 260.5)", "oklch(35% 0.194 260.5)", "oklch(45% 0.194 260.5)", "oklch(55% 0.194 260.5)", "oklch(65% 0.194 260.5)", "oklch(78% 0.194 260.5)", "oklch(92% 0.194 260.5)"]
+      },
+      "action-violet": {
+        "role": "primary",
+        "displayName": "Control Violet",
+        "tonalRamp": ["oklch(15% 0.263 292.6)", "oklch(25% 0.263 292.6)", "oklch(35% 0.263 292.6)", "oklch(45% 0.263 292.6)", "oklch(55% 0.263 292.6)", "oklch(65% 0.263 292.6)", "oklch(78% 0.263 292.6)", "oklch(92% 0.263 292.6)"]
+      },
+      "success": {
+        "role": "secondary",
+        "displayName": "Clear Green",
+        "tonalRamp": ["oklch(15% 0.165 155.5)", "oklch(25% 0.165 155.5)", "oklch(35% 0.165 155.5)", "oklch(45% 0.165 155.5)", "oklch(55% 0.165 155.5)", "oklch(65% 0.165 155.5)", "oklch(78% 0.165 155.5)", "oklch(92% 0.165 155.5)"]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Caution Gold",
+        "tonalRamp": ["oklch(15% 0.143 86.4)", "oklch(25% 0.143 86.4)", "oklch(35% 0.143 86.4)", "oklch(45% 0.143 86.4)", "oklch(55% 0.143 86.4)", "oklch(65% 0.143 86.4)", "oklch(78% 0.143 86.4)", "oklch(92% 0.143 86.4)"]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Incident Red",
+        "tonalRamp": ["oklch(15% 0.160 15.6)", "oklch(25% 0.160 15.6)", "oklch(35% 0.160 15.6)", "oklch(45% 0.160 15.6)", "oklch(55% 0.160 15.6)", "oklch(65% 0.160 15.6)", "oklch(78% 0.160 15.6)", "oklch(92% 0.160 15.6)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Compact page titles with technical confidence." },
+      "headline": { "displayName": "Headline", "purpose": "Major operational panel and section headings." },
+      "title": { "displayName": "Title", "purpose": "Compact workflow, card, and group titles." },
+      "body": { "displayName": "Body", "purpose": "Dense multilingual interface copy and data labels." },
+      "label": { "displayName": "Label", "purpose": "Short field labels, metadata, and compact navigation text." }
+    },
+    "shadows": [
+      { "name": "low-structural-lift", "value": "0 8px 24px rgba(0, 0, 0, 0.22)", "purpose": "Compact cards, selected navigation, and discrete controls." },
+      { "name": "work-plane-lift", "value": "0 18px 46px rgba(0, 0, 0, 0.3)", "purpose": "Standard operational panels." },
+      { "name": "active-plane-lift", "value": "0 28px 74px rgba(0, 0, 0, 0.42)", "purpose": "Dialogs, previews, and genuinely dominant workspaces." },
+      { "name": "restrained-edge-light", "value": "inset 0 1px rgba(255, 255, 255, 0.028)", "purpose": "Matte top edge on raised surfaces." },
+      { "name": "inset-control-depth", "value": "inset 0 2px 8px rgba(0, 0, 0, 0.24)", "purpose": "Fields and recessed work wells." }
+    ],
+    "motion": [
+      { "name": "selection-movement", "value": "180ms var(--ease-out)", "purpose": "One-axis movement for navigation and primary actions." },
+      { "name": "field-state", "value": "160ms ease-out", "purpose": "Border, background, and focus response for form controls." },
+      { "name": "row-response", "value": "150ms ease-out", "purpose": "Quiet hover feedback for tables and notification rows." },
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "Effectively instant state changes when reduced motion is requested." }
+    ],
+    "breakpoints": [
+      { "name": "rail-compact", "value": "1180px" },
+      { "name": "workspace-stack", "value": "980px" },
+      { "name": "mobile-shell", "value": "900px" },
+      { "name": "mobile-content", "value": "700px" },
+      { "name": "mobile-narrow", "value": "480px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single highest-priority action in an operational action cluster.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Configure race weekend</button>",
+      "css": ".ds-btn-primary { min-height: 48px; display: inline-flex; align-items: center; justify-content: center; padding: 0 20px; border: 1px solid rgba(123, 111, 255, 0.4); border-radius: 7px; color: #fff; background: linear-gradient(105deg, var(--deck-cyan, #28c8ee), var(--deck-blue, #377df5) 48%, var(--deck-violet, #843dff)); box-shadow: 0 10px 28px rgba(26, 85, 169, 0.25); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-weight: 780; cursor: pointer; transition: transform 180ms ease-out, box-shadow 180ms ease-out, filter 180ms ease-out; } .ds-btn-primary:hover { filter: saturate(1.08) brightness(1.08); box-shadow: 0 14px 34px rgba(39, 91, 184, 0.34); transform: translateY(-2px); } .ds-btn-primary:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; } .ds-btn-primary:active { transform: translateY(0); } .ds-btn-primary:disabled { opacity: 0.46; box-shadow: none; filter: saturate(0.55); cursor: not-allowed; transform: none; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A contained secondary action that stays subordinate to the gradient primary action.",
+      "html": "<button class=\"ds-btn-secondary\" type=\"button\">View season overview</button>",
+      "css": ".ds-btn-secondary { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 15px; border: 1px solid var(--deck-line-strong, rgba(181, 206, 227, 0.23)); border-radius: 7px; color: #d4deea; background: var(--deck-surface-inset, #07111c); box-shadow: inset 0 1px rgba(255, 255, 255, 0.025); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; cursor: pointer; transition: color 180ms ease-out, border-color 180ms ease-out, background-color 180ms ease-out, transform 180ms ease-out; } .ds-btn-secondary:hover { color: #fff; border-color: rgba(40, 200, 238, 0.38); background: var(--deck-surface-high, #122136); transform: translateY(-1px); } .ds-btn-secondary:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; } .ds-btn-secondary:active { transform: translateY(0); }"
+    },
+    {
+      "name": "Inset Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "A dense operational field recessed into the work plane.",
+      "html": "<label class=\"ds-field\"><span>League name</span><input type=\"text\" value=\"Pro Series Europe\"></label>",
+      "css": ".ds-field { display: grid; gap: 8px; color: var(--deck-muted, #9baabd); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-size: 0.7rem; font-weight: 760; letter-spacing: 0.055em; text-transform: uppercase; } .ds-field input { min-height: 48px; padding: 10px 12px; border: 1px solid var(--deck-line-strong, rgba(181, 206, 227, 0.23)); border-radius: 7px; color: var(--deck-text, #f3f6fa); background: var(--deck-surface-inset, #07111c); box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.24); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-size: 1rem; font-weight: 400; text-transform: none; transition: border-color 160ms ease-out, background-color 160ms ease-out, box-shadow 160ms ease-out; } .ds-field input:hover { border-color: rgba(40, 200, 238, 0.32); } .ds-field input:focus { border-color: color-mix(in srgb, var(--deck-cyan, #28c8ee) 70%, white); background: #091725; box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.24), 0 0 0 3px rgba(40, 200, 238, 0.1); outline: 0; } .ds-field input:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; }"
+    },
+    {
+      "name": "Active Rail Item",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "The desktop rail's strong current-route treatment with an authored line icon.",
+      "html": "<a class=\"ds-rail-item ds-rail-item--active\" href=\"#\" aria-current=\"page\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 3 5 6v5c0 4.5 2.7 8 7 10 4.3-2 7-5.5 7-10V6Z\"></path><path d=\"m9 12 2 2 4-5\"></path></svg><span>Stewarding</span></a>",
+      "css": ".ds-rail-item { position: relative; min-height: 48px; display: flex; align-items: center; gap: 12px; padding: 0 14px; border: 1px solid transparent; border-radius: 7px; color: #aeb9c8; background: transparent; font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-size: 0.86rem; text-decoration: none; transition: color 180ms ease-out, background-color 180ms ease-out, border-color 180ms ease-out, transform 180ms ease-out; } .ds-rail-item::before { position: absolute; inset: 9px auto 9px -14px; width: 2px; content: \"\"; border-radius: 0 2px 2px 0; background: transparent; } .ds-rail-item svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; } .ds-rail-item:hover { color: #fff; border-color: var(--deck-line, rgba(181, 206, 227, 0.13)); background: rgba(255, 255, 255, 0.035); transform: translateX(2px); } .ds-rail-item:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; } .ds-rail-item--active { color: #fff; border-color: rgba(81, 143, 239, 0.3); background: linear-gradient(90deg, rgba(29, 83, 157, 0.48), rgba(20, 54, 99, 0.72)); box-shadow: inset 0 1px rgba(255, 255, 255, 0.035), 0 8px 24px rgba(0, 0, 0, 0.22); } .ds-rail-item--active::before { background: var(--deck-cyan, #28c8ee); }"
+    },
+    {
+      "name": "Mobile Bottom Navigation",
+      "kind": "nav",
+      "refersTo": "mobile-bottom-navigation",
+      "description": "The safe-area-aware four-route mobile cockpit with a dedicated more action.",
+      "html": "<nav class=\"ds-mobile-nav\" aria-label=\"Primary\"><a class=\"ds-mobile-item ds-mobile-item--active\" href=\"#\" aria-current=\"page\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4Z\"></path></svg><span>Home</span></a><a class=\"ds-mobile-item\" href=\"#\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M5 21V4\"></path><path d=\"M5 5h11l-2 4 2 4H5\"></path></svg><span>Racing</span></a><a class=\"ds-mobile-item\" href=\"#\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M4 20V9M10 20V4M16 20v-7M3 20h18\"></path></svg><span>Career</span></a><button class=\"ds-mobile-item\" type=\"button\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><circle cx=\"5\" cy=\"12\" r=\"1\"></circle><circle cx=\"12\" cy=\"12\" r=\"1\"></circle><circle cx=\"19\" cy=\"12\" r=\"1\"></circle></svg><span>More</span></button></nav>",
+      "css": ".ds-mobile-nav { min-height: calc(64px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px; padding: 6px max(8px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); border-top: 1px solid var(--deck-line, rgba(181, 206, 227, 0.13)); background: var(--deck-rail-bg, #050d17); box-shadow: 0 -16px 34px rgba(0, 0, 0, 0.24); } .ds-mobile-item { min-width: 0; min-height: 52px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 3px; padding: 4px 2px; border: 0; border-radius: 10px; color: var(--deck-muted, #9baabd); background: transparent; font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-size: 0.66rem; font-weight: 750; text-decoration: none; } .ds-mobile-item svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; } .ds-mobile-item:hover { color: #fff; background: rgba(45, 104, 184, 0.16); } .ds-mobile-item:focus-visible { outline: 2px solid var(--deck-cyan, #28c8ee); outline-offset: 2px; } .ds-mobile-item:active { background: rgba(45, 104, 184, 0.34); } .ds-mobile-item--active { color: #fff; background: rgba(45, 104, 184, 0.24); }"
+    },
+    {
+      "name": "Raised Work Panel",
+      "kind": "card",
+      "refersTo": "panel-raised",
+      "description": "A standard matte operational container on the raised work layer.",
+      "html": "<section class=\"ds-panel\"><h2>Season setup</h2><p>Configure sessions, scoring, and the next race weekend.</p><a href=\"#\">Review configuration</a></section>",
+      "css": ".ds-panel { max-width: 520px; padding: clamp(20px, 3vw, 30px); border: 1px solid var(--deck-line, rgba(181, 206, 227, 0.13)); border-radius: 12px; color: var(--deck-text, #f3f6fa); background: linear-gradient(145deg, var(--deck-surface-raised, #0e1a29), var(--deck-surface, #0a1421)); box-shadow: inset 0 1px rgba(255, 255, 255, 0.028), 0 18px 46px rgba(0, 0, 0, 0.3); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; } .ds-panel h2 { margin: 0; color: var(--deck-text, #f3f6fa); font-family: \"Barlow Condensed\", \"Arial Narrow\", sans-serif; font-size: clamp(1.55rem, 2.1vw, 2rem); font-weight: 650; line-height: 1.05; letter-spacing: -0.012em; } .ds-panel p { max-width: 72ch; margin: 12px 0 20px; color: var(--deck-muted, #9baabd); line-height: 1.62; } .ds-panel a { min-height: 44px; display: inline-flex; align-items: center; color: #a8dcff; text-underline-offset: 4px; } .ds-panel a:hover { color: #fff; } .ds-panel a:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; }"
+    },
+    {
+      "name": "Text-Supported Status Chip",
+      "kind": "chip",
+      "refersTo": "status-chip",
+      "description": "A compact healthy-state signal that never depends on color alone.",
+      "html": "<span class=\"ds-status\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"m6 12 4 4 8-9\"></path></svg><span>Systems normal</span></span>",
+      "css": ".ds-status { min-height: 32px; display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px; border: 1px solid rgba(50, 199, 123, 0.34); border-radius: 999px; color: #baf2d3; background: rgba(50, 199, 123, 0.08); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-size: 0.7rem; font-weight: 760; } .ds-status svg { width: 16px; height: 16px; fill: none; stroke: var(--deck-success, #32c77b); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; } .ds-status:hover { border-color: rgba(50, 199, 123, 0.5); } .ds-status:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; }"
+    },
+    {
+      "name": "Inset Data Ledger",
+      "kind": "custom",
+      "refersTo": "data-table",
+      "description": "A compact tabular work well for scan-heavy league records.",
+      "html": "<div class=\"ds-table-wrap\" role=\"region\" tabindex=\"0\" aria-label=\"League records\"><table class=\"ds-table\"><thead><tr><th>League</th><th>Status</th><th>Next action</th></tr></thead><tbody><tr><td>Pro Series Europe</td><td>Active</td><td><button type=\"button\">Open</button></td></tr><tr><td>Rookie Cup</td><td>Setup</td><td><button type=\"button\">Review</button></td></tr></tbody></table></div>",
+      "css": ".ds-table-wrap { overflow: auto; border: 1px solid var(--deck-line, rgba(181, 206, 227, 0.13)); border-radius: 9px; background: var(--deck-surface-inset, #07111c); box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.2); } .ds-table { width: 100%; border-collapse: separate; border-spacing: 0; color: var(--deck-text, #f3f6fa); font-family: \"RaceVora UI\", Inter, \"Segoe UI\", sans-serif; font-variant-numeric: tabular-nums; } .ds-table th { padding: 10px 12px; color: #8fa2b8; background: #091522; font-size: 0.64rem; font-weight: 780; letter-spacing: 0.07em; text-align: left; text-transform: uppercase; } .ds-table td { padding: 11px 12px; border-top: 1px solid var(--deck-line, rgba(181, 206, 227, 0.13)); color: #dbe3ec; } .ds-table tbody tr { background: transparent; transition: background-color 150ms ease-out; } .ds-table tbody tr:hover { background: rgba(40, 200, 238, 0.035); } .ds-table button { min-height: 40px; padding: 0 14px; border: 1px solid var(--deck-line-strong, rgba(181, 206, 227, 0.23)); border-radius: 7px; color: #dce9f7; background: var(--deck-surface-high, #122136); font: inherit; } .ds-table button:hover { color: #fff; border-color: rgba(40, 200, 238, 0.38); } .ds-table button:focus-visible, .ds-table-wrap:focus-visible { outline: 3px solid color-mix(in srgb, var(--deck-cyan, #28c8ee) 78%, white); outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "RaceVora Control Deck",
+    "overview": "RaceVora Control Deck is a calm, exacting motorsport operations environment: deep blue-black structure, disciplined information density, crisp authored linework, and just enough cyan-to-violet energy to mark state and consequence. It should feel like dependable race control software shaped by people who understand leagues, careers, stewarding, and live operations—not a themed entertainment dashboard.\n\nDepth is physical but restrained. Matte navy planes separate navigation, work, controls, and active content through tone, edge light, and directed shadow. Runtime content, role boundaries, league identity, official marks, flags, and team art remain authoritative; the approved reference image establishes the visual world, not literal names, values, track art, actions, or a universal page composition.",
+    "keyCharacteristics": [
+      "Dense, professional motorsport operations character",
+      "Four semantic depth layers with matte, non-glass surfaces",
+      "Persistent desktop rail and slim, visible league context bar",
+      "Safe-area-aware mobile bottom navigation and purposeful single-column reflow",
+      "Barlow Condensed hierarchy paired with Inter under the RaceVora UI name",
+      "Restrained cyan-to-violet emphasis reserved for active state and the primary action",
+      "Compact authored SVG line icons and text-supported status signals"
+    ],
+    "rules": [
+      { "name": "The Accent Economy Rule", "body": "Reserve the cyan-to-violet spectrum for active state, focus, progress, and the single primary action cluster; its scarcity creates authority.", "section": "colors" },
+      { "name": "The Status Requires Language Rule", "body": "Success, warning, and danger colors never carry meaning alone; pair them with a label, icon, mark, or explicit copy.", "section": "colors" },
+      { "name": "The Plain Heading Rule", "body": "Use Barlow Condensed for real hierarchy; never add decorative pre-headlines, gradient text, slogan fragments, or ornamental all-caps above a clear title.", "section": "typography" },
+      { "name": "The Four-Layer Rule", "body": "Every surface must resolve to page ground, work plane, inset content, or raised active work; a new navy shade needs a semantic layer, not decorative novelty.", "section": "elevation" },
+      { "name": "The Structural Shadow Rule", "body": "Shadows communicate containment and active hierarchy; they never become neon glow, glass haze, fake perspective, or inflated 3D.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do preserve runtime content, routes, role boundaries, league context, and existing official identity assets.",
+      "Do make the next meaningful action obvious while keeping the accent spectrum visually scarce.",
+      "Do assign every region to one of the four semantic depth layers and use directed shadows consistently.",
+      "Do keep operational layouts dense, aligned, and scan-friendly with tabular figures and stable labels.",
+      "Do pair every status color with explicit language or an authored SVG mark.",
+      "Do recompose for mobile with safe-area-aware bottom navigation, labeled records, and 44–48px targets."
+    ],
+    "donts": [
+      "Don't produce AI-slop dashboard patterns, generic metric-card grids, or ornamental bento layouts.",
+      "Don't use glass, blur-backed translucency, neon glow, fake 3D, perspective tricks, or inflated controls.",
+      "Don't use gradient text or decorative pre-headlines.",
+      "Don't use Unicode glyphs as interface icons; use compact authored SVG line icons.",
+      "Don't promote the owner-control screenshot's proportions, invented data, or wide-plus-narrow arrangement into a global invariant.",
+      "Don't let cyan, violet, success, warning, or danger color become decoration without operational meaning."
+    ]
+  }
+}

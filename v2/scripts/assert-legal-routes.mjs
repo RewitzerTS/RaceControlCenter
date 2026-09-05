@@ -11,8 +11,10 @@ const preservedFiles = [
   'datenschutz.html',
   'agb.html',
   'assets/css/pages/legal.css',
+  'assets/css/pages/legal-control-deck.css',
   'assets/images/racevora-logo-color.svg',
 ];
+const legalThemeLink = '  <link rel="stylesheet" href="/assets/css/pages/legal-control-deck.css?v=control-deck-1">\n';
 const failures = [];
 const protectedV1ProjectRefs = [
   ['kjccstcbqygx', 'uqkvdaqw'].join(''),
@@ -24,7 +26,15 @@ for (const relativePath of preservedFiles) {
     readFile(resolve(repositoryRoot, relativePath)),
     readFile(resolve(distRoot, relativePath)),
   ]);
-  if (!source.equals(built)) failures.push(`${relativePath} differs from the pinned V1 source`);
+  if (relativePath.endsWith('.html')) {
+    const builtHtml = built.toString('utf8');
+    if (!builtHtml.includes(legalThemeLink.trim())) failures.push(`${relativePath} is missing the Control Deck legal theme`);
+    if (source.toString('utf8') !== builtHtml.replace(legalThemeLink, '')) {
+      failures.push(`${relativePath} differs from the pinned V1 source beyond the approved visual theme link`);
+    }
+  } else if (!source.equals(built)) {
+    failures.push(`${relativePath} differs from the pinned V1 source`);
+  }
 }
 
 const withdrawal = await readFile(resolve(distRoot, 'widerruf.html'), 'utf8');

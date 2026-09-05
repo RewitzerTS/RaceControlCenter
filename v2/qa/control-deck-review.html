@@ -1,0 +1,83 @@
+<!doctype html>
+<!-- Local-only visual regression fixture. It is not included in the deployed bundle. -->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RaceVora Control Deck · Visual QA</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="stylesheet" href="/src/control-deck.css" />
+  </head>
+  <body>
+    <div id="root">
+      <div class="app-shell">
+        <header class="site-header">
+          <div class="header-inner container">
+            <a class="brand" href="#">
+              <img class="brand-logo" alt="" src="/assets/graphics/racevora-logo-white.png" />
+              <span class="brand-text"><strong class="brand-title">RaceVora</strong><small class="brand-subtitle">Race Management Platform</small></span>
+            </a>
+            <button class="mobile-toggle" type="button"><span class="mobile-toggle__icon"><span></span><span></span><span></span></span></button>
+            <nav class="main-navigation main-nav" id="main-navigation">
+              <div class="driver-navigation">
+                <a class="nav-item" href="#">⌂ <span>Dashboard</span></a>
+                <a class="nav-item" href="#">⚑ <span>Racing</span></a>
+                <a class="nav-item" href="#">▥ <span>Career</span></a>
+                <a class="nav-item" href="#">✦ <span>Vora</span></a>
+              </div>
+              <div class="privileged-navigation">
+                <a class="nav-item" href="#">◇ <span>Stewarding</span></a>
+                <a class="nav-item" href="#">▣ <span>Ligaleitung</span></a>
+                <a class="nav-item nav-item--active" href="#">⬡ <span>Owner Control</span></a>
+              </div>
+              <div class="header-tools">
+                <div class="navigation-league-switcher"><button class="league-switcher__trigger" type="button"><span class="league-switcher__copy"><small>Aktive Liga</small><strong>Pro Series Europe</strong></span></button></div>
+                <a class="topbar-icon-link" href="#">♢ <span>Benachrichtigungen</span></a>
+                <span class="role-chip">Platform Owner</span>
+                <a class="nav-item" href="#">○ <span>Profil</span></a>
+              </div>
+            </nav>
+          </div>
+          <div class="global-scroll-progress"><span style="transform:scaleX(.58)"></span></div>
+        </header>
+
+        <div class="shell-frame">
+          <main class="operations-page" id="main-content">
+            <div class="owner-mode">OWNER CONTROL · SYSTEMKONTEXT</div>
+            <header class="operations-header"><div><p class="section-label">PLATTFORM-STEUERUNG</p><h1>Owner Control</h1><p>Überblick über Ligen, Fahrer und laufende Prozesse.</p></div></header>
+
+            <section class="operations-metrics" aria-label="Übersicht">
+              <div><strong>24</strong><span>Ligen</span></div>
+              <div><strong>96</strong><span>Fahrer</span></div>
+              <div><strong>7</strong><span>Laufende Prozesse</span></div>
+              <div><strong>0</strong><span>Fehler</span></div>
+            </section>
+
+            <section class="owner-instagram-entry">
+              <div><p class="section-label">NÄCHSTER SCHRITT</p><h2>RaceVora-Grafik vorbereiten</h2><p>Feed- und Story-Grafiken im aktuellen Markenauftritt erstellen.</p></div>
+              <a class="primary-action" href="#">Grafikstudio öffnen</a>
+            </section>
+
+            <div class="owner-grid">
+              <section class="owner-leagues">
+                <h2>Aktive Ligen</h2>
+                <div class="responsive-table responsive-table--records"><table><thead><tr><th>Liga</th><th>Status</th><th>Aktion</th></tr></thead><tbody>
+                  <tr><td data-label="Liga" data-mobile-primary="true"><strong>Pro Series Europe</strong><small>pro-series-europe</small></td><td data-label="Status">Aktiv</td><td data-label="Aktion"><button type="button">Öffnen</button></td></tr>
+                  <tr><td data-label="Liga" data-mobile-primary="true"><strong>Race Control Center</strong><small>rcc</small></td><td data-label="Status">Aktiv</td><td data-label="Aktion"><button type="button">Öffnen</button></td></tr>
+                  <tr><td data-label="Liga" data-mobile-primary="true"><strong>Rummelracer</strong><small>rummelracer</small></td><td data-label="Status">Aktiv</td><td data-label="Aktion"><button type="button">Öffnen</button></td></tr>
+                </tbody></table></div>
+              </section>
+              <section class="owner-flags">
+                <h2>Systemstatus</h2>
+                <label><span><strong>Ergebnisdienst</strong><small>Alle Systeme normal</small></span><input checked type="checkbox" /></label>
+                <label><span><strong>Grafikstudio</strong><small>Bereit</small></span><input checked type="checkbox" /></label>
+                <label><span><strong>Benachrichtigungen</strong><small>Aktiv</small></span><input checked type="checkbox" /></label>
+              </section>
+            </div>
+          </main>
+          <footer class="footer"><span>© 2026 RaceVora</span><nav class="footer-legal"><a href="#">Impressum</a><a href="#">Datenschutz</a><a href="#">AGB</a></nav></footer>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

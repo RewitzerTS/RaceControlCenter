@@ -108,6 +108,9 @@ function transformHtml(source, includeBase = false, page = '') {
     .replace(/\s*<link rel="preconnect" href="https:\/\/cdn\.jsdelivr\.net" crossorigin>\s*/g, '\n')
     .replace(/href="admin\.html([^"#]*)"/g, 'href="/admin$1"')
     .replace(/href="stewards\.html([^"#]*)"/g, 'href="/stewarding$1"');
+  if (!output.includes('/v1-assets/css/control-deck.css')) {
+    output = output.replace('</head>', '  <link rel="stylesheet" href="/v1-assets/css/control-deck.css?v=control-deck-5">\n</head>');
+  }
   if (includeBase && !output.includes('<base ')) output = output.replace(/<head([^>]*)>/i, '<head$1>\n  <base href="/">');
   if (page && integratedRoutes[page]) {
     output = output
@@ -135,6 +138,7 @@ function transformLanding(source) {
   </dialog>`;
 
   return source
+    .replace('</head>', '  <link rel="stylesheet" href="/v1-landing/control-deck.css?v=control-deck-1">\n</head>')
     .replace(/<button class="text-link" type="button" data-login-open><span data-login-button-label>Login<\/span><\/button>/, '<a class="text-link" href="/login?mode=signin" data-auth-open="signin">Login</a>')
     .replaceAll('href="register.html"', 'href="/login?mode=signup" data-auth-open="signup"')
     .replaceAll('href="race-hub.html?league=racevora-demo"', `href="/race-hub?league=${defaultLeagueSlug}&demo=1"`)

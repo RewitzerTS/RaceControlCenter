@@ -356,7 +356,7 @@
           <button type="button" class="button-primary" data-rcc-results-action="manual">Manuell eingeben</button>
         </article>
         <article class="rcc-results-workflow__card rcc-results-workflow__card--secondary">
-          <div class="rcc-results-workflow__icon" aria-hidden="true">✓</div>
+          <div class="rcc-results-workflow__icon" aria-hidden="true"><svg class="rcc-icon--check" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m5 12 4 4L19 6"/></svg></div>
           <div>
             <h4>Entwürfe & Freigabe</h4>
             <p>Zwischengespeicherte Rennergebnisse aus allen Erfassungswegen prüfen und nach den Steward-Entscheidungen final veröffentlichen.</p>

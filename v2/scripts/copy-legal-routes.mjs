@@ -13,6 +13,7 @@ const preservedFiles = [
   'agb.html',
   'widerruf.html',
   'assets/css/pages/legal.css',
+  'assets/css/pages/legal-control-deck.css',
   'assets/images/racevora-logo-color.svg',
 ];
 
@@ -20,6 +21,16 @@ for (const relativePath of preservedFiles) {
   const destination = resolve(distRoot, relativePath);
   await mkdir(dirname(destination), { recursive: true });
   await copyFile(resolve(repositoryRoot, relativePath), destination);
+}
+
+for (const legalPage of ['impressum.html', 'datenschutz.html', 'agb.html', 'widerruf.html']) {
+  const legalPath = resolve(distRoot, legalPage);
+  const source = await readFile(legalPath, 'utf8');
+  await writeFile(
+    legalPath,
+    source.replace('</head>', '  <link rel="stylesheet" href="/assets/css/pages/legal-control-deck.css?v=control-deck-1">\n</head>'),
+    'utf8',
+  );
 }
 
 const withdrawalPath = resolve(distRoot, 'widerruf.html');
