@@ -21,7 +21,7 @@ requireGate(page.includes('name="email"') && page.includes('name="password"'), '
 requireGate(page.includes('id="beta-email"') && page.includes('id="beta-password"'), 'form fields have programmatic labels');
 requireGate(page.includes('autoComplete="email"') && page.includes("'new-password'") && page.includes("'current-password'"), 'browser-safe autocomplete modes are explicit');
 requireGate(page.includes('minLength={8}') && page.includes('required'), 'minimum browser validation is present');
-requireGate(page.includes("role={feedback === 'error' || feedback === 'captcha' ? 'alert' : 'status'}"), 'success and error feedback is announced accessibly');
+requireGate(page.includes("role={feedback.tone === 'error' ? 'alert' : 'status'}"), 'success and error feedback is announced accessibly');
 requireGate(page.includes('<TurnstileWidget') && auth.includes('captchaToken') && environment.includes('VITE_AUTH_CAPTCHA_ENABLED'), 'target-configured CAPTCHA is wired into every public Auth operation');
 requireGate(turnstile.includes('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit') && turnstile.includes("'expired-callback'") && turnstile.includes("'error-callback'"), 'Turnstile loads from the canonical origin and invalidates expired or failed tokens');
 requireGate(turnstile.includes('role="group"') && turnstile.includes('aria-label="Cloudflare Turnstile"'), 'Turnstile container uses a valid labelled accessibility role');

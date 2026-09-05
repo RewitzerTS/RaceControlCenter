@@ -60,7 +60,7 @@ if (admin.includes("t('admin.preview')") || admin.includes('to="/racing"')) viol
 if (resultImportPage.includes("copy('import.reason')") || resultImportPage.includes('reason.trim()')) violations.push('result import still asks for a redundant manual change reason');
 for (const contract of ["copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv')", 'result-import-race-row']) if (!resultImportPage.includes(contract)) violations.push('missing automatic result-import audit reason contract: ' + contract);
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);
-for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', 'assignSeasonDriverAi', "copy('drivers.create')", "copy('shared.edit')", "copy('drivers.aiAssignment')"]) if (!drivers.includes(contract)) violations.push('missing driver management workflow: ' + contract);
+for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', 'RosterWorkflowPanel', 'rosterCopies', "copy('drivers.create')", "copy('shared.edit')", 'readOnly={Boolean(editing.id && workspace?.active_season)}']) if (!drivers.includes(contract)) violations.push('missing driver and effective-dated roster workflow: ' + contract);
 for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
 for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
@@ -69,11 +69,11 @@ if (!styles.includes('.app-shell .operations-metrics {')
     || !styles.includes('color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background))')) {
   violations.push('Owner and admin overview metrics do not follow the active personal theme');
 }
-const createLeagueButton = styles.match(/\.operations-menu \.operations-create-league \{([\s\S]*?)\}/)?.[1] ?? '';
-if (!createLeagueButton.includes('color: var(--brand-on-primary)')
-    || !createLeagueButton.includes('background: var(--brand-gradient)')
-    || /#2c8fa6|#5a32a3/i.test(createLeagueButton)) {
-  violations.push('The create-league action does not follow the active personal theme');
+if (!admin.includes("{ key: 'profile.createLeague', to: '/leagues/new' }")
+    || !styles.includes('.operations-menu-groups a[aria-current="page"]')
+    || !styles.includes('background: color-mix(in srgb, var(--brand-accent) 16%, transparent)')
+    || !styles.includes('color: var(--brand-accent)')) {
+  violations.push('The create-league navigation action does not follow the active personal theme');
 }
 if (!styles.includes('.app-shell :is(.admin-form, .admin-inline-form, .onboarding-form, .steward-form, .beta-access-form)')
     || !styles.includes('outline: 3px solid var(--brand-primary)')) {
