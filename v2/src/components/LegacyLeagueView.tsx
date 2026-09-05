@@ -154,7 +154,16 @@ export function LegacyLeagueView({ page, title, search = '' }: {
         const switcher = document.createElement('nav');
         switcher.className = 'integrated-standings-switcher';
         switcher.setAttribute('aria-label', 'Meisterschaft wechseln');
-        switcher.innerHTML = `<a class="${page === 'fahrer-wm' ? 'is-active' : ''}" href="/racing/standings?view=drivers">Fahrer-WM</a><a class="${page === 'team-wm' ? 'is-active' : ''}" href="/racing/standings?view=teams">Team-WM</a>`;
+        [
+          { label: 'Fahrer-WM', href: '/racing/standings?view=drivers', active: page === 'fahrer-wm' },
+          { label: 'Team-WM', href: '/racing/standings?view=teams', active: page === 'team-wm' },
+        ].forEach(({ label, href, active }) => {
+          const anchor = document.createElement('a');
+          anchor.href = href;
+          anchor.textContent = label;
+          if (active) anchor.classList.add('is-active');
+          switcher.append(anchor);
+        });
         tableHeader.append(switcher);
       }
     }

@@ -476,8 +476,17 @@ export async function loadLeagueBranding(client: LeagueSupabaseClient, leagueSlu
 }
 
 export async function uploadLeagueLogo(client: LeagueSupabaseClient, leagueSlug: string, file: File): Promise<string> {
-  const extension = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
-  const path = `${leagueSlug}/logo-${Date.now()}.${extension}`;
+  const normalizedLeagueSlug = leagueSlug.trim().toLowerCase();
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalizedLeagueSlug)) throw new Error('Invalid league storage path.');
+  const extensionByMime: Record<string, string> = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/webp': 'webp',
+    'image/svg+xml': 'svg',
+  };
+  const extension = extensionByMime[file.type];
+  if (!extension) throw new Error('Unsupported league logo type.');
+  const path = `${normalizedLeagueSlug}/logo-${Date.now()}.${extension}`;
   const upload = await client.storage.from('league-brand-assets').upload(path, file, {
     cacheControl: '31536000',
     contentType: file.type,
