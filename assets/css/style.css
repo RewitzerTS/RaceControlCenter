@@ -1352,6 +1352,18 @@ textarea { min-height: 120px; resize: vertical; }
   }
 }
 
+/* Keep the race classification readable before offering secondary statistics. */
+.standings-detail-toggle { display: none; }
+@media (max-width: 760px) {
+  .standings-detail-toggle { display: inline-flex; margin: 0 12px 12px; min-height: 44px; white-space: normal; }
+  body[data-page="fahrer-wm"] .table-wrap .standings-table:not(.standings-table--expanded) { min-width: 0; width: 100%; table-layout: fixed; }
+  body[data-page="fahrer-wm"] .standings-table:not(.standings-table--expanded) :is(th, td):is(:nth-child(2), :nth-child(4), :nth-child(5), :nth-child(6), :nth-child(7), :nth-child(8)) { display: none; }
+  body[data-page="fahrer-wm"] .standings-table:not(.standings-table--expanded) :is(th, td):first-child { width: 42px; }
+  body[data-page="fahrer-wm"] .standings-table:not(.standings-table--expanded) :is(th, td):last-child:not([colspan]) { width: 65px; text-align: right; }
+  body[data-page="fahrer-wm"] .standings-table:not(.standings-table--expanded) td { font-size: 1rem; }
+  body[data-page="fahrer-wm"] .standings-table .driver-profile-link { display: flex; align-items: center; min-height: 44px; }
+}
+
 /* Modular layout helpers */
 .page-title-compact {
   font-size: clamp(1.75rem, 7.8vw, 2.8rem);
@@ -4186,3 +4198,10 @@ html[data-user-theme] body .f1-loader-lights span.is-green,
 .track-map-button {
   cursor: zoom-in;
 }
+
+.race-card { position: relative; }
+.race-detail-link { color: var(--text); text-decoration: none; }
+.race-detail-link::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.race-detail-link:focus-visible::after { outline: 2px solid var(--accent); outline-offset: 3px; }
+.race-card .track-map-button { position: relative; z-index: 1; }
+.race-card .race-name { color: var(--text); }

@@ -389,7 +389,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     title={t('home.noLeagueTitle')}
     tone="empty"
   />;
-  const leagueAccessError = <AppState copy={t('home.leagueAccessErrorCopy')} title={t('home.leagueAccessErrorTitle')} tone="error" />;
+  const leagueAccessError = <AppState action={<><button className="text-action" type="button" onClick={() => window.location.reload()}>{t('home.retry')}</button><NavLink className="text-action" to="/profile">{t('nav.profile')}</NavLink></>} copy={t('home.leagueAccessErrorCopy')} title={t('home.leagueAccessErrorTitle')} tone="error" />;
   const leagueRoute = (content: ReactNode) => accessLoading
     ? routeLoading
     : user && roleError

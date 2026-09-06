@@ -15,6 +15,19 @@ function renderCenter(props: Partial<React.ComponentProps<typeof TutorialCenter>
 }
 
 describe('TutorialCenter', () => {
+  it('does not advance or pretend to highlight a missing target', async () => {
+    renderCenter();
+    fireEvent.click(screen.getByRole('button', { name: 'Open tutorials' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start tour' }));
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+    expect(screen.getByText(/This section is not available yet/)).toBeInTheDocument();
+    const target = document.createElement('section');
+    target.className = 'dashboard-hero';
+    document.body.append(target);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled());
+    target.remove();
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled());
+  });
   beforeEach(() => localStorage.clear());
   afterEach(cleanup);
 

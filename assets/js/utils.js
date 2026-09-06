@@ -311,12 +311,12 @@ function createRaceCard(race) {
   const href = `rennen-detail.html?round=${encodeURIComponent(race.round_number)}${race.season_id ? `&season=${encodeURIComponent(race.season_id)}` : ''}`;
 
   return `
-    <a class="race-card-link" href="${href}" data-race-round="${escapeHtml(String(race.round_number || ''))}" data-race-season="${escapeHtml(String(race.season_id || ''))}">
+    <div class="race-card-link" data-race-round="${escapeHtml(String(race.round_number || ''))}" data-race-season="${escapeHtml(String(race.season_id || ''))}">
       <article class="race-card">
         <div class="race-top">
           <div>
             <div class="race-round">${flagBadge}<span>Runde ${escapeHtml(race.round_number)}</span></div>
-            <h3 class="race-name">${escapeHtml(race.grand_prix_name || 'Grand Prix')}</h3>
+            <h3 class="race-name"><a class="race-detail-link" href="${href}">${escapeHtml(race.grand_prix_name || 'Grand Prix')}</a></h3>
           </div>
           <span class="status-pill ${race.status === 'completed' ? 'done' : 'upcoming'}">
             ${formatStatusLabel(race.status)}
@@ -339,7 +339,7 @@ function createRaceCard(race) {
           </div>
         </div>
       </article>
-    </a>
+    </div>
   `;
 }
 

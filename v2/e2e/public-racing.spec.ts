@@ -73,6 +73,65 @@ test('anonymous results render without requesting the private season roster', as
   expect(privateRequests).toEqual([]);
 });
 
+test('mobile standings expose position, driver and points before optional statistics', async ({ page }, testInfo) => {
+  await page.goto('/racing/standings?league=rcc&demo=1');
+  const frame = page.frameLocator('main iframe');
+  const table = frame.locator('.standings-table');
+  await expect(frame.locator('#drivers-standings-body tr').first().locator('td')).toHaveCount(9);
+  if (testInfo.project.name === 'mobile') {
+    const row = frame.locator('#drivers-standings-body tr').first();
+    await expect(row.locator('td').nth(2)).toBeVisible();
+    await expect(row.locator('td').nth(8)).toBeVisible();
+    await expect(row.locator('td').nth(3)).toBeHidden();
+    const size = await table.evaluate((element) => ({ width: element.getBoundingClientRect().width, available: element.parentElement!.clientWidth }));
+    expect(size.width).toBeLessThanOrEqual(size.available + 1);
+    const toggle = frame.locator('.standings-detail-toggle');
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(row.locator('td').nth(3)).toBeVisible();
+    await toggle.click();
+    await expect(row.locator('td').nth(3)).toBeHidden();
+  }
+});
+
+test('track map and race detail are independent actions', async ({ page }) => {
+  await page.goto('/racing/calendar?league=rcc&demo=1');
+  const frame = page.frameLocator('main iframe');
+  const card = frame.locator('.race-card').first();
+  await expect(card.locator('.race-detail-link')).toBeVisible();
+  await expect(card.locator('a button')).toHaveCount(0);
+  const map = card.locator('[data-trackmap-open]');
+  await expect(map).toBeVisible();
+  await map.click();
+  await expect(page.locator('.integrated-track-map')).toBeVisible();
+  await expect(page).toHaveURL(/racing\/calendar/);
+  await page.locator('.integrated-track-map button').click();
+  await card.locator('.race-detail-link').click();
+  await expect(page).toHaveURL(/racing\/races\/detail/);
+});
+
+test('landing loads a bounded frame window and no hidden desktop video', async ({ page }, testInfo) => {
+  const frames = new Set<string>();
+  const videos = new Set<string>();
+  page.on('request', (request) => {
+    if (/\/frames\/frame-\d+\.webp/.test(request.url())) frames.add(request.url());
+    if (/racevora-master-mobile\.mp4/.test(request.url())) videos.add(request.url());
+  });
+  await page.goto('/');
+  await expect(page.locator('.cinematic-story')).toBeVisible();
+  await page.waitForTimeout(2000); // Observe delayed preloading, not just DOM readiness.
+  if (testInfo.project.name === 'desktop') {
+    expect(frames.size).toBeLessThanOrEqual(9);
+    expect(videos.size).toBe(0);
+    await page.locator('.cinematic-story').evaluate((element) => window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY + (element.clientHeight - window.innerHeight) / 2, behavior: 'instant' }));
+    await expect.poll(() => frames.size).toBeGreaterThan(5);
+    expect(frames.size).toBeLessThan(30);
+  } else {
+    expect(frames.size).toBe(0);
+    expect(videos.size).toBe(1);
+  }
+});
+
 test('failed results finish loading and can be retried', async ({ page, context }) => {
   let fail = true;
   await context.route('**/rest/v1/race_results?**', async (route) => fail

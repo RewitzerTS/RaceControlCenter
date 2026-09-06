@@ -23,6 +23,7 @@
   let activeChapter = 0;
   let lastFrame = -1;
   let started = false;
+  let requestedFrame = 0;
   let raf = 0;
 
   function closeAuthDrawer() {
@@ -107,6 +108,7 @@
         draw(0);
         story?.classList.add('is-ready');
       }
+      if (index === requestedFrame) requestUpdate();
     };
     images.set(index, image);
   }
@@ -115,12 +117,7 @@
     if (started || mobile.matches || reduceMotion.matches) return;
     started = true;
     loadFrame(0);
-    let index = 1;
-    const batch = () => {
-      for (let count = 0; count < 6 && index < FRAME_COUNT; count += 1, index += 1) loadFrame(index);
-      if (index < FRAME_COUNT) window.setTimeout(batch, 80);
-    };
-    batch();
+    for (let index = 1; index <= 4; index += 1) loadFrame(index);
   }
 
   function update() {
@@ -131,6 +128,14 @@
     const distance = Math.max(1, story.offsetHeight - window.innerHeight);
     const progress = Math.min(1, Math.max(0, -rect.top / distance));
     const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
+    requestedFrame = frame;
+    if (started && !mobile.matches) {
+      loadFrame(frame);
+      for (let offset = 1; offset <= 4; offset += 1) {
+        loadFrame(Math.min(FRAME_COUNT - 1, frame + offset));
+        loadFrame(Math.max(0, frame - offset));
+      }
+    }
     story.style.setProperty('--story-progress', String(progress));
     setChapter(Math.min(2, Math.floor(progress * 3)));
     if (frame !== lastFrame && !draw(frame)) {
@@ -155,6 +160,11 @@
   window.addEventListener('resize', () => { lastFrame = -1; requestUpdate(); }, { passive: true });
   reduceMotion.addEventListener?.('change', () => window.location.reload());
   mobile.addEventListener?.('change', () => window.location.reload());
-  beginLoading();
+  // A CSS-hidden video still downloads. Attach its source only on eligible screens.
+  const mobileVideo = document.querySelector('.mobile-master');
+  if (mobileVideo && mobile.matches && !reduceMotion.matches) {
+    mobileVideo.src = new URL('racevora-master-mobile.mp4', `${ASSET_ROOT}/`).href;
+    mobileVideo.play()?.catch(() => { /* The poster remains visible if autoplay is unavailable. */ });
+  }
   update();
 })();

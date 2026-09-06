@@ -18,7 +18,7 @@ export const instagramMessages = {
     'instagram.shareError': 'Teilen ist momentan nicht möglich. Du kannst die PNG stattdessen herunterladen.',
     'instagram.shared': 'Grafik an das Teilen-Menü übergeben. Veröffentlichung bitte in der Ziel-App abschließen.',
     'instagram.downloaded': 'PNG-Download gestartet.', 'instagram.limit': 'Bis zu 12 Textblöcke pro Format.',
-    'instagram.draftHint': 'Feed und Story behalten während der Bearbeitung jeweils ihre eigenen Textblöcke. Beim Verlassen werden Entwürfe nicht gespeichert.',
+    'instagram.draftHint': 'Feed und Story behalten eigene Entwürfe in diesem Tab, auch bei Seitenwechseln (bis zu 24 Stunden). Vor dem Schließen des Tabs bitte die PNG herunterladen.',
   },
   en: {
     'instagram.title': 'Instagram graphics', 'instagram.copy': 'Your templates. Your words. Ready for the RaceVora channel.',
@@ -39,7 +39,7 @@ export const instagramMessages = {
     'instagram.shareError': 'Sharing is currently unavailable. You can download the PNG instead.',
     'instagram.shared': 'Graphic handed to the share menu. Complete publishing in the destination app.',
     'instagram.downloaded': 'PNG download started.', 'instagram.limit': 'Up to 12 text blocks per format.',
-    'instagram.draftHint': 'Feed and Story keep separate text blocks while editing. Drafts are not saved when you leave.',
+    'instagram.draftHint': 'Feed and Story keep separate drafts in this tab across page changes (up to 24 hours). Download your PNG before closing the tab.',
   },
   es: {
     'instagram.title': 'Gráficos de Instagram', 'instagram.copy': 'Tus plantillas. Tus palabras. Listo para el canal de RaceVora.',
@@ -60,7 +60,7 @@ export const instagramMessages = {
     'instagram.shareError': 'No se puede compartir ahora. Puedes descargar el PNG.',
     'instagram.shared': 'Gráfico enviado al menú para compartir. Completa la publicación en la aplicación de destino.',
     'instagram.downloaded': 'Descarga de PNG iniciada.', 'instagram.limit': 'Hasta 12 bloques por formato.',
-    'instagram.draftHint': 'Feed y Story conservan sus propios bloques durante la edición. Los borradores no se guardan al salir.',
+    'instagram.draftHint': 'Feed y Story conservan borradores separados en esta pestaña al cambiar de página (hasta 24 horas). Descarga el PNG antes de cerrar la pestaña.',
   },
   fr: {
     'instagram.title': 'Visuels Instagram', 'instagram.copy': 'Vos modèles. Vos mots. Prêts pour le canal RaceVora.',
@@ -81,6 +81,6 @@ export const instagramMessages = {
     'instagram.shareError': 'Le partage est indisponible. Vous pouvez télécharger le PNG.',
     'instagram.shared': 'Visuel transmis au menu de partage. Terminez la publication dans l’application choisie.',
     'instagram.downloaded': 'Téléchargement PNG démarré.', 'instagram.limit': 'Jusqu’à 12 blocs par format.',
-    'instagram.draftHint': 'Feed et Story conservent leurs propres blocs pendant la création. Les brouillons ne sont pas enregistrés lorsque vous quittez.',
+    'instagram.draftHint': 'Feed et Story conservent des brouillons distincts dans cet onglet, même en changeant de page (jusqu’à 24 heures). Téléchargez le PNG avant de fermer l’onglet.',
   },
 };

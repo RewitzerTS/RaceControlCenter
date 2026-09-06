@@ -4,6 +4,8 @@ import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
+import { useAuth } from '../auth/AuthProvider';
+import { LeagueSwitcher } from '../league/LeagueSwitcher';
 import {
   loadAdminSnapshot,
   loadRaceAdminWorkspace,
@@ -54,11 +56,12 @@ export function selectAdminNextAction(snapshot: AdminSnapshot, setup: SeasonSetu
   const today = localDateKey(now);
   const hasRaceToProcess = activeRaces.some((race) => race.race_date && race.race_date <= today && race.result_status !== 'active' && !['cancelled', 'canceled'].includes(race.status));
   if (hasRaceToProcess) return { actionKey: 'admin.quickImport', copyKey: 'admin.nextImportCopy', titleKey: 'admin.nextImportTitle', to: '/admin/results/import' };
-  if (activeRaces.length > 0 && activeRaces.every((race) => race.result_status === 'active' || ['cancelled', 'canceled'].includes(race.status))) return { actionKey: 'admin.races', copyKey: 'admin.nextCompleteCopy', titleKey: 'admin.nextCompleteTitle', to: '/admin/races' };
+  if (activeRaces.length > 0 && activeRaces.every((race) => race.result_status === 'active' || ['cancelled', 'canceled'].includes(race.status))) return { actionKey: 'admin.nextCompleteTitle', copyKey: 'admin.nextCompleteCopy', titleKey: 'admin.nextCompleteTitle', to: '/admin/races' };
   return { actionKey: 'admin.races', copyKey: 'admin.nextCalendarCopy', titleKey: 'admin.nextCalendarTitle', to: '/admin/races' };
 }
 
 export function AdminWorkspacePage() {
+  const { user } = useAuth();
   const { client } = useLeague();
   const { role } = useRole();
   const { formatDate, formatNumber, t } = useI18n();
@@ -90,6 +93,8 @@ export function AdminWorkspacePage() {
 
   useEffect(() => {
     if (!allowed) return;
+    setError(false);
+    setSnapshot(null);
     let active = true;
     void Promise.all([
       loadAdminSnapshot(client),
@@ -105,7 +110,7 @@ export function AdminWorkspacePage() {
   }, [allowed, client]);
 
   if (!allowed) return <AppState copy={t('admin.deniedCopy')} title={t('admin.deniedTitle')} tone="denied" />;
-  if (error) return <AppState action={<button className="text-action" onClick={() => void loadWorkspace().catch(() => setError(true))} type="button">{t('home.retry')}</button>} copy={t('home.errorCopy')} title={t('admin.error')} tone="error" />;
+  if (error) return <AppState action={<><button className="text-action" onClick={() => void loadWorkspace().catch(() => setError(true))} type="button">{t('home.retry')}</button>{user && <LeagueSwitcher userId={user.id} isPlatformOwner={role === 'platform_owner'} />}<NavLink className="text-action" to="/profile">{t('nav.profile')}</NavLink></>} copy={t('admin.contextError')} title={t('admin.error')} tone="error" />;
   if (!snapshot) return <AppState copy={t('home.loadingCopy')} title={t('pending')} tone="loading" />;
 
   const nextAction = selectAdminNextAction(snapshot, seasonSetup, raceWorkspace);

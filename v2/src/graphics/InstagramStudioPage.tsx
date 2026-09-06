@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
+import { useDraftRecovery } from '../components/useDraftRecovery';
+import { DraftRecoveryNotice } from '../components/DraftRecoveryNotice';
 import { AppState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
 import { useRole } from '../roles/RoleProvider';
 import { downloadGraphicFiles } from './downloadGraphics';
 import { canShareInstagram, clamp, INSTAGRAM_FORMATS, instagramPng, loadInstagramAssets, MAX_INSTAGRAM_BLOCKS,
-  newInstagramBlock, paintInstagram, shareInstagram, updateInstagramBlock,
+  isInstagramDraft, newInstagramBlock, paintInstagram, shareInstagram, updateInstagramBlock,
   type InstagramBlock, type InstagramBlockLayout, type InstagramDocument, type InstagramFormat, type InstagramTextStyle } from './instagram';
 import './instagram.css';
 
@@ -17,13 +20,15 @@ export function InstagramStudioPage() {
 }
 
 export function InstagramEditor() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const { user } = useAuth();
   const [format, setFormat] = useState<InstagramFormat>('feed');
   const [documents, setDocuments] = useState<Record<InstagramFormat, InstagramDocument>>(() => ({
     feed: { format: 'feed', blocks: [newInstagramBlock('h1', 0)] },
     story: { format: 'story', blocks: [newInstagramBlock('h1', 0)] },
   }));
   const doc = documents[format];
+  const draft = useDraftRecovery({ scope: user ? `instagram:${user.id}` : null, value: documents, restore: setDocuments, validate: isInstagramDraft });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = doc.blocks.find((block) => block.id === selectedId) ?? doc.blocks[0];
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -87,6 +92,8 @@ export function InstagramEditor() {
   function addBlock(style: InstagramTextStyle) {
     if (doc.blocks.length >= MAX_INSTAGRAM_BLOCKS) return;
     const block = newInstagramBlock(style, doc.blocks.length);
+    const bottom = Math.max(0, ...layouts.filter((layout) => doc.blocks.find((item) => item.id === layout.id)?.text.trim()).map((layout) => layout.y + layout.height));
+    if (bottom) block.y = clamp((bottom + 24) / dimensions.height * 100, 0, 85);
     replaceDocument({ ...doc, blocks: [...doc.blocks, block] });
     setSelectedId(block.id);
     requestAnimationFrame(() => textRef.current?.focus());
@@ -138,6 +145,7 @@ export function InstagramEditor() {
   ];
 
   return <main id="main-content" className="instagram-studio">
+    <DraftRecoveryNotice draft={draft} language={language} />
     <header className="instagram-header">
       <div><Link className="text-action" to="/owner">← {t('instagram.back')}</Link><h1>{t('instagram.title')}</h1><p>{t('instagram.copy')}</p></div>
       <fieldset className="instagram-format"><legend>{t('instagram.format')}</legend>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
+import { useI18n } from '../i18n/I18nProvider';
 
 const LEGACY_DESTINATIONS: Record<string, string> = {
   'race-hub': '/racing',
@@ -88,7 +89,11 @@ export function LegacyLeagueView({ page, title, search = '' }: {
   search?: string;
 }) {
   const { leagueSlug } = useLeague();
+  const { t } = useI18n();
   const navigate = useNavigate();
+  const mapDialog = useRef<HTMLDialogElement>(null);
+  const mapTrigger = useRef<HTMLElement | null>(null);
+  const [trackMap, setTrackMap] = useState<{ src: string; title: string } | null>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const cleanupRef = useRef<(() => void) | null>(null);
   const [height, setHeight] = useState(760);
@@ -96,6 +101,9 @@ export function LegacyLeagueView({ page, title, search = '' }: {
   const source = useMemo(() => legacyLeagueSource(page, search, leagueSlug), [leagueSlug, page, search]);
 
   useEffect(() => () => cleanupRef.current?.(), []);
+  useEffect(() => {
+    if (trackMap) mapDialog.current?.showModal();
+  }, [trackMap]);
 
   const prepareFrame = (event: SyntheticEvent<HTMLIFrameElement>) => {
     const frame = event.currentTarget;
@@ -177,6 +185,14 @@ export function LegacyLeagueView({ page, title, search = '' }: {
     window.addEventListener('racevora:theme-changed', syncTheme);
 
     document.addEventListener('click', (clickEvent) => {
+      const map = (clickEvent.target as Element | null)?.closest<HTMLElement>('[data-trackmap-open]');
+      if (map?.dataset.trackmapOpen) {
+        clickEvent.preventDefault();
+        clickEvent.stopImmediatePropagation();
+        mapTrigger.current = map;
+        setTrackMap({ src: new URL(map.dataset.trackmapOpen, frame.contentWindow!.location.href).href, title: map.dataset.trackmapTitle || 'Track Map' });
+        return;
+      }
       const anchor = (clickEvent.target as Element | null)?.closest('a') as HTMLAnchorElement | null;
       if (!anchor) return;
       const destination = integratedDestination(anchor);
@@ -199,6 +215,10 @@ export function LegacyLeagueView({ page, title, search = '' }: {
 
   return (
     <div className="integrated-league-view">
+      <dialog className="integrated-track-map" ref={mapDialog} aria-labelledby="integrated-map-title" onClose={() => { setTrackMap(null); mapTrigger.current?.focus({ preventScroll: true }); }} onClick={(event) => { if (event.target === event.currentTarget) mapDialog.current?.close(); }}>
+        <header><h2 id="integrated-map-title">{trackMap?.title}</h2><button type="button" onClick={() => mapDialog.current?.close()}>{t('racing.closeMap')}</button></header>
+        {trackMap && <img src={trackMap.src} alt={trackMap.title} />}
+      </dialog>
       <iframe
         key={source}
         onLoad={prepareFrame}

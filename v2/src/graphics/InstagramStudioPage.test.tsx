@@ -8,6 +8,7 @@ import { downloadGraphicFiles } from './downloadGraphics';
 
 const roleState = vi.hoisted(() => ({ role: 'platform_owner' }));
 vi.mock('../roles/RoleProvider', () => ({ useRole: () => roleState }));
+vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ user: { id: 'instagram-test-owner' } }) }));
 vi.mock('./downloadGraphics', () => ({ downloadGraphicFiles: vi.fn().mockResolvedValue(undefined) }));
 vi.mock('./instagram', async (importOriginal) => ({
   ...await importOriginal<typeof import('./instagram')>(),
@@ -27,6 +28,7 @@ const share = () => screen.getByRole('button', { name: 'Teilen' });
 async function ready() { await waitFor(() => expect(download()).toBeEnabled()); }
 
 beforeEach(() => {
+  sessionStorage.clear();
   localStorage.setItem('racevora.locale', 'de');
   roleState.role = 'platform_owner';
   vi.mocked(canShareInstagram).mockReturnValue(true);
@@ -37,6 +39,18 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 
 describe('Instagram editor interactions', () => {
+  it('restores both format drafts after leaving and reopening the editor', async () => {
+    const view = show();
+    fireEvent.change(textBox(), { target: { value: 'FEED RECOVERY' } });
+    fireEvent.click(screen.getByRole('radio', { name: 'Story · 9:16' }));
+    fireEvent.change(textBox(), { target: { value: 'STORY RECOVERY' } });
+    view.unmount();
+    show();
+    expect(textBox()).toHaveValue('FEED RECOVERY');
+    fireEvent.click(screen.getByRole('radio', { name: 'Story · 9:16' }));
+    expect(textBox()).toHaveValue('STORY RECOVERY');
+    await ready();
+  });
   it('denies non-owners without loading images or rendering the editor', () => {
     roleState.role = 'league_admin'; show(true);
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();

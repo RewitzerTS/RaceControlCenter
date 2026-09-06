@@ -1,6 +1,25 @@
 
 const STANDINGS_VIEW_CACHE_KEY = 'rcc.standings.view.v2';
 
+document.addEventListener('DOMContentLoaded', () => {
+  const table = document.querySelector('body[data-page="fahrer-wm"] .standings-table');
+  if (!table) return;
+  table.id = 'driver-standings-table';
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'btn standings-detail-toggle';
+  toggle.textContent = 'Weitere Statistiken anzeigen';
+  toggle.setAttribute('aria-controls', table.id);
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.addEventListener('click', () => {
+    const expanded = table.classList.toggle('standings-table--expanded');
+    toggle.setAttribute('aria-expanded', String(expanded));
+    toggle.textContent = expanded ? 'Nur Position, Fahrer und Punkte anzeigen' : 'Weitere Statistiken anzeigen';
+    table.parentElement.scrollLeft = 0;
+  });
+  table.closest('.table-card')?.querySelector('.table-header')?.after(toggle);
+});
+
 function readStandingsCache(pageKey) {
   try {
     const leagueSlug = window.RCCData?.getRequestedLeagueSlug?.() || 'rcc';

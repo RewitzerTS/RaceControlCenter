@@ -164,9 +164,22 @@ export function readablePrimaryText(background: string, preferred: string): stri
   return contrastRatio('#FFFFFF', background) >= contrastRatio('#000000', background) ? '#FFFFFF' : '#000000';
 }
 
+// Keep each gradient stop readable, including user-selected accent colors.
+export function readableActionStop(color: string, foreground: string): string {
+  if (contrastRatio(foreground, color) >= 5) return color;
+  const target = contrastRatio(foreground, '#000000') > contrastRatio(foreground, '#FFFFFF') ? 0 : 255;
+  const channels = [1, 3, 5].map((start) => parseInt(color.slice(start, start + 2), 16));
+  for (let step = 1; step <= 100; step += 1) {
+    const mixed = '#' + channels.map((channel) => Math.round(channel + (target - channel) * step / 100).toString(16).padStart(2, '0')).join('');
+    if (contrastRatio(foreground, mixed) >= 5) return mixed;
+  }
+  return target ? '#FFFFFF' : '#000000';
+}
+
 export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {
   const root = document.documentElement;
   const { theme } = branding;
+  const actionText = readablePrimaryText(theme.primary, theme.textOnPrimary);
   const variables: Record<string, string> = {
     '--brand-primary': theme.primary,
     '--brand-secondary': theme.secondary,
@@ -175,7 +188,8 @@ export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {
     '--brand-background': theme.background,
     '--brand-surface': theme.surface,
     '--brand-text': theme.text,
-    '--brand-on-primary': readablePrimaryText(theme.primary, theme.textOnPrimary),
+    '--brand-on-primary': actionText,
+    '--brand-action-gradient': `linear-gradient(90deg, ${readableActionStop(theme.accent, actionText)}, ${readableActionStop(theme.primary, actionText)})`,
   };
   for (const [name, value] of Object.entries(variables)) root.style.setProperty(name, value);
   root.style.backgroundColor = theme.surface;

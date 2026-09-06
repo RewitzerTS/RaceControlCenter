@@ -228,6 +228,9 @@ function fastestLapScoringRules(season = null) {
 
 function getAwardedRacePoints(row, fastestLapDriverId = null, scoringRules = activeFastestLapScoringRules) {
   const finalPoints = safeNumber(row?.awarded_points ?? row?.points, 0);
+  // Versioned publications are authoritative, including imported bonuses and
+  // steward deductions. The compatibility repair below is legacy-only.
+  if (row?.result_version_id) return finalPoints;
   if (!scoringRules?.enabled || !fastestLapDriverId || String(row?.driver_id || '') !== String(fastestLapDriverId)) {
     return finalPoints;
   }

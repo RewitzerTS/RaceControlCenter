@@ -16,6 +16,20 @@ export const INSTAGRAM_FORMATS = {
   story: { width: 1080, height: 1920, background: '/assets/instagram/story-v1.png' },
 } as const;
 export const MAX_INSTAGRAM_BLOCKS = 12;
+
+export function isInstagramDraft(value: unknown): value is Record<InstagramFormat, InstagramDocument> {
+  if (!value || typeof value !== 'object') return false;
+  return (['feed', 'story'] as const).every((format) => {
+    const doc = (value as Record<string, unknown>)[format] as InstagramDocument | undefined;
+    return doc?.format === format && Array.isArray(doc.blocks) && doc.blocks.length <= MAX_INSTAGRAM_BLOCKS
+      && new Set(doc.blocks.map((block) => block?.id)).size === doc.blocks.length
+      && doc.blocks.every((block) => block && typeof block.id === 'string' && typeof block.text === 'string'
+        && block.text.length <= 500 && ['h1', 'h2'].includes(block.style) && ['left', 'center', 'right'].includes(block.align)
+        && [block.x, block.y, block.width, block.size].every(Number.isFinite)
+        && block.width >= 15 && block.width <= 100 && block.x >= 0 && block.x + block.width <= 100
+        && block.y >= 0 && block.y <= 95 && block.size >= 24 && block.size <= 160);
+  });
+}
 export const INSTAGRAM_FONT = '"RaceVora Instagram"';
 // The RaceVora landing-page spectrum, independent of the selected league theme.
 export const INSTAGRAM_GRADIENT = ['#86eaf0', '#8d72ff', '#cf73e6'] as const;

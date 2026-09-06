@@ -69,7 +69,7 @@ function RacingNavigation() {
         <NavLink className={item.mobilePrimary ? 'section-navigation-link--primary' : 'section-navigation-link--secondary'} key={item.to} to={item.to}>{item.to === '/racing/standings' ? <><span className="racing-nav-label--full">{t(item.key)}</span><span className="racing-nav-label--compact">{t('racing.championshipShort')}</span></> : t(item.key)}</NavLink>
       ))}
       <details className={`section-navigation-more${secondaryActive ? ' active' : ''}`}>
-        <summary>{t('nav.more')}</summary>
+        <summary>{t('racing.navigation')}</summary>
         <div>
           {RACING_SECTIONS.filter((item) => !item.mobilePrimary).map((item) => (
             <NavLink key={item.to} to={item.to}>{t(item.key)}</NavLink>
@@ -81,6 +81,7 @@ function RacingNavigation() {
 }
 
 function RacingSectionView() {
+  const { leagueSlug } = useLeague();
   const location = useLocation();
   const { t } = useI18n();
   const params = new URLSearchParams(location.search);
@@ -116,6 +117,7 @@ function RacingSectionView() {
   return (
     <main className="racing-page dashboard-shell integrated-section-page" id="main-content">
       <RacingNavigation />
+      {leagueSlug === 'demo' && <p className="racing-demo-notice">{t('racing.demoNotice')} <NavLink to="/leagues/new">{t('profile.createLeague')}</NavLink></p>}
       {switches.length > 0 && <nav aria-label={title} className="section-view-switcher section-view-switcher--standalone">{switches.map((item) => <NavLink className={`${location.pathname}${location.search}` === item.to ? 'active' : ''} key={item.to} to={item.to}>{item.label}</NavLink>)}</nav>}
       <LegacyLeagueView page={page} search={location.search} title={title} />
     </main>

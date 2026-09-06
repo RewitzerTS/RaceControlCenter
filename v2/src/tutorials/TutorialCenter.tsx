@@ -85,7 +85,7 @@ export function TutorialCenter({
     const update = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const target = document.querySelector<HTMLElement>(activeStep.selector) ?? document.querySelector<HTMLElement>('#main-content');
+        const target = document.querySelector<HTMLElement>(activeStep.selector);
         if (!target) { setHighlight(null); return; }
         const rect = target.getBoundingClientRect();
         const inset = 8;
@@ -151,7 +151,7 @@ export function TutorialCenter({
   }
 
   function nextStep() {
-    if (!activeTrack) return;
+    if (!activeTrack || !activeStep || !document.querySelector(activeStep.selector)) return;
     if (stepIndex < activeTrack.steps.length - 1) {
       setStepIndex((value) => value + 1);
       return;
@@ -217,12 +217,12 @@ export function TutorialCenter({
           <div className="tutorial-coach-progress"><span>{t(activeTrack.titleKey)}</span><strong>{t('tutorial.progress', { step: stepIndex + 1, count: activeTrack.steps.length })}</strong></div>
           <div aria-hidden="true" className="tutorial-progress-track"><span style={{ transform: `scaleX(${(stepIndex + 1) / activeTrack.steps.length})` }} /></div>
           <h2>{t(activeStep.titleKey)}</h2>
-          <p>{t(activeStep.copyKey)}</p>
+          <p>{highlight ? t(activeStep.copyKey) : t('tutorial.targetUnavailable')}</p>
           <div className="tutorial-actions">
             <button className="tutorial-quiet" onClick={endTour} type="button">{t('tutorial.skip')}</button>
             <div>
               {stepIndex > 0 && <button className="tutorial-back" onClick={() => setStepIndex((value) => value - 1)} type="button">{t('tutorial.back')}</button>}
-              <button className="tutorial-primary" onClick={nextStep} type="button">{stepIndex === activeTrack.steps.length - 1 ? t('tutorial.finish') : t('tutorial.next')}<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg></button>
+              <button className="tutorial-primary" disabled={!highlight} onClick={nextStep} type="button">{stepIndex === activeTrack.steps.length - 1 ? t('tutorial.finish') : t('tutorial.next')}<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg></button>
             </div>
           </div>
         </>}

@@ -1,0 +1,6 @@
+/* Keep the established spectrum, with readable white action labels. */
+.button:not(.button-ghost), .rvx-btn:not(.rvx-btn--secondary) {
+  background-image: linear-gradient(90deg, #006e78, #254bc2, #6423c7);
+}
+.button:not(.button-ghost):hover, .rvx-btn:not(.rvx-btn--secondary):hover { filter: brightness(1.02); }
+.site-header .text-link, .site-footer a { display: inline-flex; align-items: center; min-height: 44px; }

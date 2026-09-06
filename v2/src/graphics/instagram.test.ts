@@ -1,10 +1,18 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { canShareInstagram, INSTAGRAM_FORMATS, INSTAGRAM_GRADIENT, layoutInstagramBlock, newInstagramBlock, paintInstagram, shareInstagram, updateInstagramBlock, wrapInstagramText } from './instagram';
 import { instagramMessages } from './instagramMessages';
+import { isInstagramDraft } from './instagram';
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('Owner Instagram graphics', () => {
+  it('only recovers bounded, valid documents for both formats', () => {
+    const draft = { feed: { format: 'feed', blocks: [newInstagramBlock('h1', 0)] }, story: { format: 'story', blocks: [] } };
+    expect(isInstagramDraft(draft)).toBe(true);
+    expect(isInstagramDraft({ ...draft, story: null })).toBe(false);
+    expect(isInstagramDraft({ ...draft, feed: { ...draft.feed, blocks: [{ ...draft.feed.blocks[0], x: NaN }] } })).toBe(false);
+    expect(isInstagramDraft({ ...draft, feed: { ...draft.feed, blocks: [draft.feed.blocks[0], draft.feed.blocks[0]] } })).toBe(false);
+  });
   it('uses the supplied dedicated background for each export format', () => {
     expect(INSTAGRAM_FORMATS.feed).toEqual({ width: 1080, height: 1350, background: '/assets/instagram/feed-v1.png' });
     expect(INSTAGRAM_FORMATS.story).toEqual({ width: 1080, height: 1920, background: '/assets/instagram/story-v1.png' });

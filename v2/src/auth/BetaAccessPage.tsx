@@ -113,6 +113,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         </div>
         <h1 id="beta-access-title">{t(titleKey)}</h1>
         <p className="hero-subcopy">{t(production ? 'beta.productionCopy' : 'beta.copy')}</p>
+        {mode === 'sign-up' && <p>{t('beta.entryPath')}</p>}
         {!production && <div className="beta-safety-note">
           <strong>{t(production ? 'productionProtectedCopy' : 'protectedCopy')}</strong>
           <span>{production ? t('productionDetails') : t('isolationDetails', { projectRef: 'staging' })}</span>
@@ -120,10 +121,10 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}</NavLink>
       </section>}
 
-      <form className="beta-access-form hero-side" onSubmit={(event) => void submit(event)}>
+      <form className="beta-access-form hero-side" aria-describedby={feedback ? 'beta-feedback' : undefined} onSubmit={(event) => void submit(event)}>
         <div className="beta-form-heading">
           <p className="hero-kicker">{t(production ? 'beta.productionAction' : 'beta.action')}</p>
-          <h2>{t(titleKey)}</h2>
+          {embedded ? <h1>{t(titleKey)}</h1> : <h2>{t(submitKey)}</h2>}
         </div>
         <label htmlFor="beta-email">{t('beta.email')}</label>
         <input autoComplete="email" id="beta-email" inputMode="email" name="email" required type="email" />
@@ -134,12 +135,13 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
             <input
               autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
               id="beta-password"
+              aria-describedby={mode === 'sign-up' ? 'beta-password-hint' : undefined}
               minLength={8}
               name="password"
               required
               type="password"
             />
-            <small>{t('beta.passwordHint')}</small>
+            {mode === 'sign-up' && <small id="beta-password-hint">{t('beta.passwordHint')}</small>}
           </>
         )}
 
@@ -152,7 +154,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         />
 
         {feedback && (
-          <p className={feedback.tone === 'error' ? 'beta-feedback beta-feedback--error' : 'beta-feedback'} role={feedback.tone === 'error' ? 'alert' : 'status'}>
+          <p id="beta-feedback" className={feedback.tone === 'error' ? 'beta-feedback beta-feedback--error' : 'beta-feedback'} role={feedback.tone === 'error' ? 'alert' : 'status'}>
             {t(feedback.key)}
           </p>
         )}

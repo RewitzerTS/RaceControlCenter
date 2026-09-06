@@ -95,6 +95,9 @@ describe('public championship data', () => {
 
     expect(context.window.RCCData!.getAwardedRacePoints(missingBonus, 'driver-1', scoringRules)).toBe(26);
     expect(context.window.RCCData!.getAwardedRacePoints(finalScore, 'driver-1', scoringRules)).toBe(26);
+    const published = { ...missingBonus, result_version_id: 'version-1', base_points: 26, awarded_points: 26 };
+    expect(context.window.RCCData!.getAwardedRacePoints(published, 'driver-1', scoringRules)).toBe(26);
+    expect(context.window.RCCData!.getAwardedRacePoints({ ...published, awarded_points: 25 }, 'driver-1', scoringRules)).toBe(25);
   });
 
   it('keeps every assigned season driver in the public table, including zero-point drivers', () => {

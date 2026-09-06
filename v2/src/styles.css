@@ -3400,7 +3400,7 @@ p { color: var(--muted); }
 .primary-action:hover,
 .action-button:hover,
 .beta-submit:hover,
-.btn-primary-glow:hover { filter: brightness(1.07); box-shadow: 0 0 30px color-mix(in srgb, var(--brand-primary) 48%, transparent); transform: translateY(-1px); }
+.btn-primary-glow:hover { filter: brightness(1.02); box-shadow: 0 0 30px color-mix(in srgb, var(--brand-primary) 48%, transparent); transform: translateY(-1px); }
 .driver-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; }
 .text-link,
 .text-action,

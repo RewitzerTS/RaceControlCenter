@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { applyLeagueBranding, CUSTOM_THEME_ID, customThemeHasAccessibleContrast, fallbackLeagueBranding, readablePrimaryText, resolvePersonalTheme, resolveTheme, shouldUseStandardRaceVoraBranding, THEME_PRESETS } from './leagueBranding';
+import { readableActionStop } from './leagueBranding';
 
 afterEach(() => {
   document.querySelector('meta[name="theme-color"]')?.remove();
@@ -7,6 +8,19 @@ afterEach(() => {
 });
 
 describe('personal theme resolution', () => {
+  it('keeps action text readable at both ends of every preset gradient', () => {
+    function luminance(hex: string) {
+      const rgb = [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255).map((value) => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+      return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+    }
+    for (const theme of THEME_PRESETS) {
+      const text = readablePrimaryText(theme.primary, theme.textOnPrimary);
+      for (const color of [theme.accent, theme.primary]) {
+        const levels = [luminance(text), luminance(readableActionStop(color, text))].sort((a, b) => b - a);
+        expect((levels[0] + .05) / (levels[1] + .05)).toBeGreaterThanOrEqual(5);
+      }
+    }
+  });
   it('repairs unreadable primary text while preserving accessible custom choices', () => {
     expect(readablePrimaryText('#35246A', '#021B34')).toBe('#FFFFFF');
     expect(readablePrimaryText('#FF8000', '#FFFFFF')).toBe('#000000');

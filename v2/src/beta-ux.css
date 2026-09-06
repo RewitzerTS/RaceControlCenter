@@ -1,0 +1,17 @@
+.primary-action, .action-button, .beta-submit, .btn-primary-glow {
+  background-image: var(--brand-action-gradient, var(--brand-gradient));
+}
+.racing-demo-notice { max-width: 75ch; margin: 12px auto; padding-inline: 14px; color: var(--muted); font-size: .875rem; }
+.racing-demo-notice a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text); text-underline-offset: .2em; }
+.footer a { display: inline-flex; align-items: center; min-height: 44px; }
+.tutorial-primary:disabled { opacity: .55; cursor: not-allowed; }
+.integrated-track-map { width: min(900px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 20px; border: 1px solid var(--line); border-radius: 14px; color: var(--text); background: var(--brand-surface); }
+.integrated-track-map::backdrop { background: rgba(0, 0, 0, .75); }
+.integrated-track-map header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.integrated-track-map h2 { font-size: 1.1rem; margin: 0; }
+.integrated-track-map button { min-height: 44px; padding: 8px 14px; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.integrated-track-map img { display: block; width: 100%; max-height: calc(100dvh - 150px); object-fit: contain; margin-top: 16px; }
+@media (min-width: 1101px) {
+  .main-navigation .privileged-navigation .nav-item { width: auto; min-width: 64px; height: auto; min-height: 54px; padding: 6px 8px; flex-direction: column; gap: 4px; }
+  .main-navigation .privileged-navigation .nav-item > span { position: static; width: auto; padding: 0; border: 0; background: none; box-shadow: none; opacity: 1; transform: none; color: inherit; font-size: .7rem; }
+}
