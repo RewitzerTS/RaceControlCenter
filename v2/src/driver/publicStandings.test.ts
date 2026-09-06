@@ -26,6 +26,18 @@ function runBrowserScript(relativePath: string, context: BrowserContext) {
 }
 
 describe('public championship data', () => {
+  it('limits the result matrix to season seats while preserving historical points owners', () => {
+    const context = { window: {}, document: { addEventListener() {} } };
+    runBrowserScript('assets/js/services/rcc-data.js', context);
+    runBrowserScript('assets/js/pages/results.js', context);
+    const drivers = ['seat', 'historical', 'unused-game-driver'].map((id) => ({ id, display_name: id }));
+    const races = [{ id: 'race', status: 'completed', round_number: 1 }];
+    const results = [{ race_id: 'race', driver_id: 'substitute', points_owner_driver_id: 'historical', awarded_points: 18 }];
+    const matrix = context.buildMatrixData(drivers, races, results, null, null, [{ driver_id: 'seat' }]);
+    expect(Array.from(matrix.rows, (row) => row.driver.id)).toEqual(['historical', 'seat']);
+    expect(matrix.rows[0].total).toBe(18);
+    expect(context.buildMatrixData(drivers, races, results, null).rows).toHaveLength(3);
+  });
   it('resolves current season team and car assignments', () => {
     const context: BrowserContext = { window: {} };
     runBrowserScript('assets/js/services/rcc-driver-context.js', context);

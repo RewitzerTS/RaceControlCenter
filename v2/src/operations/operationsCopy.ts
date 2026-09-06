@@ -99,7 +99,7 @@ const de = {
   'import.csvColumns': 'Fahrer, Position, Grid, Punkte, Team sowie optional Stopps und Zeiten',
   'import.csvReadError': 'CSV-Datei konnte nicht gelesen werden.',
   'import.checkCsv': 'CSV-Daten prüfen',
-  'import.checkCsvHint': 'Passe die importierten Werte bei Bedarf direkt hier an.',
+  'import.checkCsvHint': 'Die Spalte points enthält die zu veröffentlichenden Gesamtpunkte einschließlich eines möglichen Fastest-Lap-Bonus. Prüfe diese Werte vor dem Speichern.',
   'import.waitingTitle': 'Noch keine Ergebnisse erkannt',
   'import.waitingCopy': 'Wähle oben die Ergebnisbilder aus und starte die Auswertung. Danach erscheint hier die bearbeitbare Tabelle.',
   'import.saveDraft': 'Entwurf speichern',
@@ -203,6 +203,9 @@ fr['import.analysisDone'] = 'Analyse IA terminée : {count} lignes détectées. 
 fr['review.copy'] = 'Les points sont calculés selon la position finale et la règle de la saison. Toutes les valeurs restent vérifiables et modifiables avant l’enregistrement.';
 
 const dictionaries: Record<Language, Record<OperationsCopyKey, string>> = { de, en, es, fr };
+en['import.checkCsvHint'] = 'The points column contains the total points to publish, including any fastest-lap bonus. Check these values before saving.';
+es['import.checkCsvHint'] = 'La columna points contiene los puntos totales que se publicarán, incluido el posible bonus de vuelta rápida. Revísalos antes de guardar.';
+fr['import.checkCsvHint'] = 'La colonne points contient le total à publier, bonus éventuel du meilleur tour inclus. Vérifiez ces valeurs avant l’enregistrement.';
 
 function interpolate(template: string, values: Values = {}): string {
   return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, key: string) => (

@@ -19,10 +19,10 @@ Basis: UI/UX-Audit vom 6. September. Ziel: bestehendes Design verbessern, keine 
 
 - [x] Automatisierte Komponenten-, Vertrags- und Browserprüfungen ergänzen und ausführen (236 Tests, 16 Desktop-/Mobil-Browsertests; erneuter vollständiger Release-Lauf folgt).
 - [ ] Desktop/Mobil: Landingpage, Kalender, Ergebnisse, Meisterschaft, Profil und Fehlersituationen prüfen.
-- [ ] Staging-E2E: Registrierung → Profil → Liga (mit echten Konten, soweit zugänglich).
+- [x] Staging-E2E: Konto durch Nutzer erstellt und angemeldet → Profil durch QA ausgefüllt → private Liga angefragt. E-Mail-Zustellung wurde vom Agenten nicht selbst beobachtet.
 - [ ] Staging-E2E: Beitrittsanfrage → Annahme (mit getrennten Rollen, soweit zugänglich).
-- [ ] Staging-E2E: Ergebnisentwurf → Veröffentlichung → Wertung.
-- [ ] Staging-E2E: Protest → Entscheidung → Ergebnisrevision.
+- [x] Staging-E2E: Ergebnisentwurf → Veröffentlichung → Wertung; dabei doppelte Bonusanzeige gefunden und behoben.
+- [x] Staging-E2E: Testfall → Stimme → Entscheidung → offizielle Ergebnisrevision V2 (durch Ligaleitung; Fahrer-Protest/Einspruch nicht separat getestet).
 - [ ] Änderungen committen, Staging-Branch pushen, Staging sicher deployen und Version kontrollieren.
 
 Nicht ausführbare Prüfungen werden ausdrücklich offen dokumentiert, nicht als bestanden gewertet. Keine Änderungen an echten Production-Daten. Production-Deployment erst nach Freigabe.
@@ -40,9 +40,13 @@ Mit ausdrücklicher Freigabe wurde die private Liga `QA Beta UX 2026-09-06` ange
 
 Noch offen / nicht als bestanden gewertet:
 
-- Registrierung mit Bestätigungsmail und Beitrittsanfrage mit getrenntem Fahrer-/Leitungs-Konto: aktuell nur die bestehende Owner-Sitzung verfügbar.
-- P2: Steward-Fehler und einige Auswahlwerte erscheinen noch auf Englisch.
-- P2: Ergebnistabelle zählt 22 Fahrer, obwohl der Saisonwizard 20 Sitze bestätigt. Auch die beiden ersetzten Spiel-Fahrer erscheinen mit 0 Punkten. Saisonfilter gesondert prüfen.
-- P2: CSV-Hinweis soll klarstellen, ob Punkte bereits den Bonus enthalten; nicht ohne Prüfung der gesamten Importkette ändern.
+- Der Nutzer hat ein zweites Konto erstellt und angemeldet. Profil QA Fahrer Eins / QA_EINS gespeichert; Anfrage an die private QA-Liga am 06.09.2026 um 23:12 sichtbar mit „Prüfung läuft“. Annahme benötigt Wechsel zurück in die Owner-Sitzung; angefragt.
+- P2: Einige Steward-Auswahlwerte erscheinen noch auf Englisch. Die konkret aufgetretene Meldung zur fehlenden Stimme wurde in DE/EN/ES/FR ergänzt.
+- Saisonfilter für die Ergebnismatrix ergänzt: aktuelle Sitzzuordnungen plus historische Punkteinhaber bleiben erhalten; ungenutzte Spiel-Fahrer werden nicht mitgezählt. Regressionstest erfolgreich, Kontrolle nach ergänzendem Deployment steht aus.
+- CSV-Importcode geprüft: points wird als veröffentlichter Punktwert übernommen. Hinweis in DE/EN/ES/FR ergänzt, dass ein Bonus bereits enthalten sein muss.
+
+## Veröffentlichungsnachweis
+
+Erstes Staging-Deployment erfolgreich: Quellcommit `968bc45eaf27ae323eeba8352f99fde1f63631fc`, Worker-Version `732ddb07-a9b6-4d90-98c5-0c0d08fe01d8`. Vollständiger Release-Check erfolgreich (236 Unit-/Komponententests, Vertragsprüfungen und Browser-Suite). Production unverändert auf `fd00914b3ca5273e9bc1d9a80a877cd8a571927c`. Die anschließend ergänzten E2E-Korrekturen durchlaufen vor Veröffentlichung dieselbe vollständige Prüfung.
 
 Die ursprünglichen neun UI/UX-Punkte sind umgesetzt. Neue E2E-Befunde sind oben ausdrücklich separat erfasst; eine vollständige Beta-Freigabe wird daraus nicht abgeleitet.

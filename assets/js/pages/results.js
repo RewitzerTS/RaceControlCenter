@@ -336,7 +336,7 @@ function getDriverDisplayLabel(driver) {
   return `${driver.display_name}${extras.length ? ` / ${extras.join(' / ')}` : ''}${medalMatch ? ` ${medalMatch[1]}` : ''}`;
 }
 
-function buildMatrixData(drivers, races, raceResults, resolver, scoringRules = null) {
+function buildMatrixData(drivers, races, raceResults, resolver, scoringRules = null, assignments = []) {
   const raceIdsWithResults = new Set((raceResults || []).map((row) => row.race_id).filter(Boolean));
   const completedRaces = races
     .filter((race) => race.status === 'completed' || raceIdsWithResults.has(race.id))
@@ -347,7 +347,13 @@ function buildMatrixData(drivers, races, raceResults, resolver, scoringRules = n
   const fastestByRace = new Map();
   completedRaces.forEach((race) => fastestByRace.set(race.id, window.RCCData.getFastestLapDriverId(resultsByRace.get(race.id) || [])));
 
-  const rows = drivers.map((driver) => {
+  // Keep current season seats and historical points owners, not unused game
+  // drivers left behind when a human takes their seat in the setup wizard.
+  const seasonDriverIds = new Set(assignments.map((assignment) => assignment.driver_id).filter(Boolean));
+  const hasSeasonRoster = seasonDriverIds.size > 0;
+  scopedResults.forEach((row) => seasonDriverIds.add(row.points_owner_driver_id || row.driver_id));
+  const visibleDrivers = hasSeasonRoster ? drivers.filter((driver) => seasonDriverIds.has(driver.id)) : drivers;
+  const rows = visibleDrivers.map((driver) => {
     const raceCells = completedRaces.map((race) => {
       const sourceRows = resultsByRace.get(race.id) || [];
       const ownedRows = sourceRows.filter((entry) => (entry.points_owner_driver_id || entry.driver_id) === driver.id);
@@ -521,7 +527,7 @@ async function loadResultsPage() {
 
     const resolver = window.RCCDriverContext.createAssignmentResolver({ drivers, races, assignments });
     const scoringRules = window.RCCData.fastestLapScoringRules?.(currentSeason) || null;
-    const matrixData = buildMatrixData(drivers, races, raceResults, resolver, scoringRules);
+    const matrixData = buildMatrixData(drivers, races, raceResults, resolver, scoringRules, assignments);
     renderMatrix(wrap, labelEl, matrixData);
     document.querySelectorAll('.results-chart-panel').forEach((panel) => { panel.hidden = !matrixData.completedRaces.length; });
     renderTrendChart(matrixData);

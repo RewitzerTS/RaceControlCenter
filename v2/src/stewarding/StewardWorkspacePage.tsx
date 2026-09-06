@@ -91,7 +91,11 @@ export function StewardWorkspacePage() {
       setNotice(message);
       return true;
     }
-    catch (cause) { setError(cause instanceof Error ? cause.message : t('steward.actionError')); return false; }
+    catch (cause) {
+      const message = cause instanceof Error ? cause.message : '';
+      setError(message === 'At least one steward vote is required.' ? t('steward.voteRequired') : message || t('steward.actionError'));
+      return false;
+    }
     finally { setBusy(false); }
   }
 
