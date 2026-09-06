@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
 import { ResultImportPage, resultScoringRulesForRace } from './ResultImportPage';
 
+vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ user: { id: 'result-tester' } }) }));
 const loadRaceAdminWorkspace = vi.fn();
 const loadDriverAdminWorkspace = vi.fn();
 const loadConfigurationWorkspace = vi.fn();
@@ -25,6 +26,7 @@ vi.mock('./operations', async (importOriginal) => ({
 
 describe('ResultImportPage', () => {
   beforeEach(() => {
+    sessionStorage.clear();
     globalThis.localStorage.setItem('racevora.locale', 'de');
     const league = { id: 'league-1', name: 'Testliga', slug: 'testliga', status: 'active' };
     loadRaceAdminWorkspace.mockResolvedValue({

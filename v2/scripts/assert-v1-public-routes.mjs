@@ -9,6 +9,13 @@ const expectedDemoLeagueSlug = builtTarget.VITE_APP_ENV === 'production' ? 'rcc'
 const requiredPages = ['race-hub', 'kalender', 'ergebnisse', 'fahrer-wm', 'team-wm', 'grid', 'regeln-faq', 'strecken', 'strecken-profil', 'rennen-detail', 'hall-of-fame'];
 const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
 
+const securityContact = await readFile(resolve(distRoot, '.well-known', 'security.txt'), 'utf8');
+if (!securityContact.includes('Contact: mailto:support@racevora.com')
+    || !securityContact.includes('Canonical: https://racevora.com/.well-known/security.txt')
+    || /<html/i.test(securityContact)) {
+  throw new Error('Public security contact must be included as text in the deployed assets.');
+}
+
 for (const page of requiredPages) {
   await access(resolve(distRoot, `${page}.html`));
   await access(resolve(distRoot, page, 'index.html'));
@@ -164,7 +171,7 @@ if (!driverContext.includes('global.RCC_DISABLE_LEGACY_DRIVER_SEASON_ASSIGNMENTS
 }
 const gridPage = await readFile(resolve(distRoot, 'grid.html'), 'utf8');
 const gridRoster = await readFile(resolve(distRoot, 'v1-assets', 'js', 'services', 'rcc-grid-roster.js'), 'utf8');
-if (!gridPage.includes('/v1-assets/js/services/rcc-driver-context.js?v=v2-season-grid-1')
+if (!gridPage.includes('/v1-assets/js/services/rcc-driver-context.js?v=public-snapshots-20260906')
     || !gridPage.includes('/v1-assets/js/services/rcc-grid-roster.js?v=v2-season-grid-1')
     || !gridRoster.includes('buildSeasonGrid')
     || !gridRoster.includes('participant_type')) {
@@ -212,7 +219,7 @@ if (!profileTheme.includes('var(--primary)')
 
 const resultsPage = await readFile(resolve(distRoot, 'ergebnisse.html'), 'utf8');
 if (!resultsPage.includes('/v1-assets/css/pages/results-theme.css?v=v2-results-sticky-2')
-    || !resultsPage.includes('/v1-assets/js/pages/results.js?v=v2-fastest-lap-rule-1')) {
+    || !resultsPage.includes('/v1-assets/js/pages/results.js?v=public-recovery-20260906')) {
   throw new Error('Integrated results must cache-bust the semantic fastest-lap color fix.');
 }
 const resultsTheme = await readFile(resolve(distRoot, 'v1-assets', 'css', 'pages', 'results-theme.css'), 'utf8');

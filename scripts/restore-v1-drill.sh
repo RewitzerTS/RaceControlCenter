@@ -4,9 +4,14 @@ set -euo pipefail
 umask 077
 
 readonly expected_target_ref='lugedxtmfitxrkacmjpb'
-readonly production_ref='kjccstcbqygxuqkvdaqw'
-readonly staging_ref='znnkwjogtvzwfkwnmawp'
+readonly production_ref='znnkwjogtvzwfkwnmawp'
+readonly staging_ref='nfvwarlowjqphytqqtxz'
 readonly session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'
+
+# This pinned historical drill project has been deleted. A new dedicated target
+# requires a reviewed configuration change; neither live nor staging is a substitute.
+echo '::error::Restore drill unavailable: the pinned target was retired. Provision and review a separate restore target first.' >&2
+exit 1
 
 for required_name in TARGET_DB_URL TARGET_SUPABASE_SECRET_KEY R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY BACKUP_ENCRYPTION_PASSPHRASE; do
   if [ -z "${!required_name:-}" ]; then

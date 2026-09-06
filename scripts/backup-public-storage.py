@@ -3,7 +3,7 @@
 
 The database connection is used only to inventory buckets and object names. Object
 bytes are fetched through each bucket's public Storage URL. If a private bucket
-exists, this script fails closed instead of silently producing an incomplete
+contains objects, this script fails closed instead of silently producing an incomplete
 backup.
 """
 
@@ -18,8 +18,9 @@ import subprocess
 import sys
 from urllib.parse import quote, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from backup_source import PRODUCTION_REF, validate_source_db_url
 
-PROJECT_REF = "kjccstcbqygxuqkvdaqw"
+PROJECT_REF = PRODUCTION_REF
 SUPABASE_URL = f"https://{PROJECT_REF}.supabase.co"
 SUPABASE_HOST = urlparse(SUPABASE_URL).hostname
 
@@ -113,6 +114,8 @@ def main() -> int:
         print("RACEVORA_STORAGE_BACKUP_DIR is required.", file=sys.stderr)
         return 2
 
+    validate_source_db_url(db_url)
+
     output_dir = Path(output_arg)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -134,14 +137,6 @@ def main() -> int:
     )
 
     private_buckets = [str(bucket["name"]) for bucket in buckets if not bucket.get("public")]
-    if private_buckets:
-        print(
-            "Private Supabase Storage bucket(s) detected; refusing an incomplete public-URL backup: "
-            + ", ".join(private_buckets),
-            file=sys.stderr,
-        )
-        return 3
-
     objects = query_json(
         db_url,
         """
@@ -156,6 +151,12 @@ def main() -> int:
         from storage.objects;
         """,
     )
+
+    # Empty private buckets have no bytes to retrieve. Preserve their private
+    # bucket definition, but reject any private object rather than omit it.
+    if any(str(item["bucket"]) in private_buckets for item in objects):
+        print("Private Storage objects require an authenticated backup path; refusing an incomplete backup.", file=sys.stderr)
+        return 3
 
     (output_dir / "buckets.json").write_text(
         json.dumps(buckets, ensure_ascii=False, indent=2) + "\n",
@@ -180,4 +181,9 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except subprocess.CalledProcessError:
+        # CalledProcessError includes command arguments, including the DB URI.
+        print("Storage inventory query failed. Check the database connection privately.", file=sys.stderr)
+        raise SystemExit(1) from None

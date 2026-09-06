@@ -89,7 +89,7 @@ export function DriverHomePage() {
         }),
         kicker: t('home.hero.resultKicker'),
         title: t('home.hero.resultTitle'),
-        to: '/racing',
+        to: `/racing/results?league=${encodeURIComponent(leagueSlug)}`,
       }
     : heroKind === 'next-race'
       ? {

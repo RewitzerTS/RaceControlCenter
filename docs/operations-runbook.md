@@ -2,6 +2,8 @@
 
 Stand: 17.08.2026
 
+Aktualisierung 06.09.2026: Die nachfolgenden Projekt-/Restore-Nachweise vom August sind historisch. Production ist jetzt `znnkwjogtvzwfkwnmawp`, Staging `nfvwarlowjqphytqqtxz`. Der alte Restore-Drill wurde gelöscht und die zugehörigen Restore-Helfer sind gesperrt. Für den aktuellen Sicherungsweg und seine Grenzen gilt [Off-site-Backup-Betrieb](offsite-backup-activation.md). Ein grüner Definitionscheck ist kein aktueller Sicherungs- oder Wiederherstellungsnachweis.
+
 Dieses Runbook beschreibt den operativen Mindeststandard fuer die kontrollierte RaceVora-Beta. Es ersetzt keine externe Datenschutz-, Rechts- oder Infrastrukturberatung.
 
 ## 1. Verantwortung und Incident-Kanal

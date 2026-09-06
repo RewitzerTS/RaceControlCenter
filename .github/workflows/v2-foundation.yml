@@ -5,14 +5,22 @@ on:
     paths:
       - 'v2/**'
       - 'PRODUCT.md'
+      - 'assets/**'
+      - 'scripts/**'
+      - '*.html'
       - 'docs/v2/**'
       - '.github/workflows/v2-foundation.yml'
   push:
     branches:
       - v2-development
+      - staging
+      - main
     paths:
       - 'v2/**'
       - 'PRODUCT.md'
+      - 'assets/**'
+      - 'scripts/**'
+      - '*.html'
       - 'docs/v2/**'
       - '.github/workflows/v2-foundation.yml'
 
@@ -26,7 +34,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: v2
@@ -40,5 +48,5 @@ jobs:
           cache: npm
           cache-dependency-path: v2/package-lock.json
       - run: npm ci
-      - run: npm run verify
+      - run: npx playwright install --with-deps chromium
       - run: npm run deploy -- --dry-run --outdir /tmp/racevora-v2-worker-dry-run

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyLeagueBranding, CUSTOM_THEME_ID, customThemeHasAccessibleContrast, fallbackLeagueBranding, resolvePersonalTheme, resolveTheme, shouldUseStandardRaceVoraBranding, THEME_PRESETS } from './leagueBranding';
+import { applyLeagueBranding, CUSTOM_THEME_ID, customThemeHasAccessibleContrast, fallbackLeagueBranding, readablePrimaryText, resolvePersonalTheme, resolveTheme, shouldUseStandardRaceVoraBranding, THEME_PRESETS } from './leagueBranding';
 
 afterEach(() => {
   document.querySelector('meta[name="theme-color"]')?.remove();
@@ -7,6 +7,11 @@ afterEach(() => {
 });
 
 describe('personal theme resolution', () => {
+  it('repairs unreadable primary text while preserving accessible custom choices', () => {
+    expect(readablePrimaryText('#35246A', '#021B34')).toBe('#FFFFFF');
+    expect(readablePrimaryText('#FF8000', '#FFFFFF')).toBe('#000000');
+    expect(readablePrimaryText('#FFFFFF', '#121212')).toBe('#121212');
+  });
   it('accepts the numeric theme_id stored in Supabase user metadata', () => {
     expect(resolveTheme({ theme_id: 2 })).toMatchObject({
       id: 2,

@@ -236,6 +236,7 @@ function MobilePrimaryNavigation({
         </NavLink>
       ))}
       <button
+        id="mobile-more-toggle"
         aria-controls="mobile-more-navigation"
         aria-expanded={navigationOpen}
         className={moreActive || navigationOpen ? 'mobile-primary-item mobile-primary-item--active' : 'mobile-primary-item'}
@@ -400,6 +401,17 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   useEffect(() => setNavigationOpen(false), [location.pathname, location.search]);
 
   useEffect(() => {
+    if (!navigationOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setNavigationOpen(false);
+      document.getElementById('mobile-more-toggle')?.focus();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [navigationOpen]);
+
+  useEffect(() => {
     const updateScrollProgress = () => {
       const maximum = document.documentElement.scrollHeight - window.innerHeight;
       setScrollProgress(maximum > 0 ? Math.min(1, Math.max(0, window.scrollY / maximum)) : 1);
@@ -421,7 +433,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
     <div className={embeddedAccess ? 'app-shell app-shell--embedded-access' : 'app-shell'}>
       {!embeddedAccess && <header className="site-header">
         <div className="header-inner container">
-        <NavLink className="brand" to="/home" onClick={closeNavigation}>
+        <NavLink aria-label={`RaceVora · ${t('nav.home')}`} className="brand" to="/home" onClick={closeNavigation}>
           <BrandLogo logoUrl={displayBranding.logoUrl} />
           <span className="brand-text">
             <strong className="brand-title">{displayBranding.name || 'RaceVora'}</strong>

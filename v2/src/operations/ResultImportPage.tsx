@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../auth/AuthProvider';
+import { useDraftRecovery } from '../components/useDraftRecovery';
+import { DraftRecoveryNotice } from '../components/DraftRecoveryNotice';
 import { AppState, EmptyState } from '../components/AppState';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
@@ -41,6 +44,7 @@ export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, 
 
 export function ResultImportPage() {
   const { language } = useI18n();
+  const { user } = useAuth();
   const { client, leagueSlug } = useLeague();
   const { role } = useRole();
   const copy = useOperationsCopy();
@@ -75,6 +79,26 @@ export function ResultImportPage() {
   useEffect(() => {
     if (allowed) void reload().catch((error) => setWorkspaceError(error instanceof Error ? error.message : copy('import.workspaceLoadError')));
   }, [allowed, copy, reload]);
+
+  const draftValue = { raceId, csv, reviewRows, importMethod, warnings };
+  const activeSeasonId = races?.seasons.find((season) => season.is_active)?.id;
+  const draft = useDraftRecovery({
+    scope: allowed && races && user && activeSeasonId ? `result:${user.id}:${leagueSlug}:${activeSeasonId}` : null,
+    value: draftValue,
+    validate: (value): value is typeof draftValue => {
+      if (!value || typeof value !== 'object') return false;
+      const item = value as typeof draftValue;
+      return typeof item.raceId === 'string' && races?.races.some((race) => race.id === item.raceId && race.season_id === activeSeasonId) === true
+        && typeof item.csv === 'string' && item.csv.length < 1000000
+        && ['images', 'csv'].includes(item.importMethod)
+        && Array.isArray(item.reviewRows) && item.reviewRows.length <= 200
+        && item.reviewRows.every((row) => row && typeof row === 'object'
+          && ['key', 'driverId', 'rawDriver', 'matchSource', 'finishPosition', 'gridPosition', 'pitStops', 'fastestLap', 'raceTime', 'points', 'teamName', 'carName'].every((key) => typeof row[key as keyof ResultReviewRow] === 'string')
+          && typeof row.confidence === 'number')
+        && Array.isArray(item.warnings) && item.warnings.every((warning) => typeof warning === 'string');
+    },
+    restore: (item) => { setRaceId(item.raceId); setCsv(item.csv); setReviewRows(item.reviewRows); setImportMethod(item.importMethod); setWarnings(item.warnings); },
+  });
 
   async function analyze() {
     setBusy('analyze');
@@ -119,6 +143,7 @@ export function ResultImportPage() {
         : parseResultCsv(csv);
       const changeReason = copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv');
       await createLeagueResultDraft(client, raceId, rows, changeReason);
+      draft.markSaved();
       await reload();
       setMessage(copy('import.draftSaved'));
       setMessageTone('success');
@@ -156,6 +181,7 @@ export function ResultImportPage() {
   const scoringRules = resultScoringRulesForRace(races, raceId);
   return <main className="operations-page admin-management-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">{copy('shared.scope', { league: leagueSlug })}</p><h1>{copy('import.title')}</h1><p>{copy('import.copy')}</p></div><NavLink className="text-link" to="/admin">{copy('shared.back')}</NavLink></header>
+    <DraftRecoveryNotice draft={draft} language={language} images />
     <section className="admin-form result-import-form">
       <div className="admin-form-columns result-import-race-row">
         <label><span>{copy('import.selectRace')}</span><select required value={raceId} onChange={(event) => { setRaceId(event.target.value); setReviewRows([]); setWarnings([]); }}><option value="">{copy('import.chooseRace')}</option>{availableRaces.map((race) => <option key={race.id} value={race.id}>R{race.round_number} · {race.grand_prix_name}</option>)}</select></label>

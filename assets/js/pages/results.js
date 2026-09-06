@@ -499,6 +499,11 @@ async function loadResultsPage() {
     detail: { page: document.body?.dataset.page || '' }
   }));
 
+  if (!wrap || !labelEl || wrap.getAttribute('aria-busy') === 'true') return;
+  wrap.setAttribute('aria-busy', 'true');
+  labelEl.textContent = 'Ergebnisse werden geladen …';
+  document.querySelectorAll('.results-chart-panel').forEach((panel) => { panel.hidden = true; });
+
   try {
     const currentSeason = await window.RCCData.fetchCurrentSeason();
     if (!currentSeason?.id) {
@@ -518,6 +523,7 @@ async function loadResultsPage() {
     const scoringRules = window.RCCData.fastestLapScoringRules?.(currentSeason) || null;
     const matrixData = buildMatrixData(drivers, races, raceResults, resolver, scoringRules);
     renderMatrix(wrap, labelEl, matrixData);
+    document.querySelectorAll('.results-chart-panel').forEach((panel) => { panel.hidden = !matrixData.completedRaces.length; });
     renderTrendChart(matrixData);
     setupTrendFocus(matrixData);
 
@@ -528,8 +534,11 @@ async function loadResultsPage() {
     });
   } catch (error) {
     console.error(error);
-    wrap.innerHTML = '<div class="notice">Fehler beim Laden der Saisonergebnisse.</div>';
+    labelEl.textContent = 'Ergebnisse nicht verfügbar';
+    wrap.innerHTML = '<div class="notice" role="alert"><p>Die Saisonergebnisse konnten nicht geladen werden. Bitte prüfe deine Verbindung und versuche es erneut.</p><button class="btn" type="button" data-results-retry>Erneut versuchen</button></div>';
+    wrap.querySelector('[data-results-retry]')?.addEventListener('click', () => void loadResultsPage(), { once: true });
   } finally {
+    wrap.setAttribute('aria-busy', 'false');
     notifyReady();
   }
 }

@@ -77,10 +77,10 @@ jobs:
           requireMatch(aiFn, /auth\.getUser\(\)/i, 'AI authenticated user check');
           requireMatch(aiFn, /x-rcc-league-slug/i, 'AI requested tenant context');
           requireMatch(aiFn, /rpc\("is_platform_owner"\)/i, 'AI platform owner check');
-          requireMatch(aiFn, /\["owner",\s*"admin"\]\.includes\(role\)/i, 'AI league admin role check');
+          requireMatch(aiFn, /\["owner",\s*"admin",\s*"league_admin"\]\.includes\(role\)/i, 'AI league admin role check');
 
           const authIndex = aiFn.indexOf('auth.getUser()');
-          const roleIndex = aiFn.indexOf('["owner", "admin"].includes(role)');
+          const roleIndex = aiFn.search(/\["owner",\s*"admin",\s*"league_admin"\]\.includes\(role\)/);
           const apiKeyIndex = aiFn.indexOf('Deno.env.get("OPENAI_API_KEY")');
           const openAiIndex = aiFn.indexOf('fetch("https://api.openai.com/v1/responses"');
           if ([authIndex, roleIndex, apiKeyIndex, openAiIndex].some((value) => value < 0)) {

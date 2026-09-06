@@ -32,7 +32,7 @@ concurrency:
 jobs:
   static-readiness:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: v2
@@ -46,6 +46,7 @@ jobs:
           cache: npm
           cache-dependency-path: v2/package-lock.json
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - name: Validate immutable recovery and release pins
         env:
           PHASE29_RELEASE_COMMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.release_commit || '' }}
@@ -53,8 +54,6 @@ jobs:
           PHASE29_READINESS_ONLY: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.confirm_readiness_only) || '' }}
           PHASE29_MANUAL_CHECK: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
         run: npm run phase-29-30-gate
-      - name: Verify V2 without production changes
-        run: npm run verify
       - name: Build Cloudflare Worker without deploying
         run: npm run deploy -- --dry-run --outdir /tmp/racevora-v2-cutover-readiness
 

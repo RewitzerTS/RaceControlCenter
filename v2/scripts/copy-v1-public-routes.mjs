@@ -1,4 +1,5 @@
 import { copyFile, cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
 import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertBuildTarget, targetHeaders } from './environment-targets.mjs';
@@ -60,7 +61,9 @@ const exampleEnvironment = await readExampleEnvironment();
 const supabaseUrl = String(process.env.VITE_SUPABASE_URL || exampleEnvironment.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
 const publishableKey = String(process.env.VITE_SUPABASE_PUBLISHABLE_KEY || exampleEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
 const defaultLeagueSlug = String(process.env.VITE_DEFAULT_LEAGUE_SLUG || exampleEnvironment.VITE_DEFAULT_LEAGUE_SLUG || '').trim();
-const buildTarget = { VITE_APP_ENV: appEnvironment, VITE_SUPABASE_URL: supabaseUrl };
+const buildTarget = { VITE_APP_ENV: appEnvironment, VITE_SUPABASE_URL: supabaseUrl,
+  commit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: repositoryRoot, encoding: 'utf8' }).trim(),
+};
 assertBuildTarget(buildTarget);
 const headersPath = resolve(distRoot, '_headers');
 await writeFile(headersPath, targetHeaders(await readFile(headersPath, 'utf8'), buildTarget), 'utf8');
@@ -91,7 +94,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/pages/track-hub.js', '/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')
     .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-6')
     .replaceAll('/v1-assets/js/services/rcc-result-data-compat.js', '/v1-assets/js/services/rcc-result-data-compat.js?v=v2-fastest-lap-rule-1')
-    .replaceAll('/v1-assets/js/services/rcc-driver-context.js', '/v1-assets/js/services/rcc-driver-context.js?v=v2-season-grid-1')
+    .replaceAll('/v1-assets/js/services/rcc-driver-context.js', '/v1-assets/js/services/rcc-driver-context.js?v=public-snapshots-20260906')
     .replaceAll('/v1-assets/js/services/rcc-grid-roster.js', '/v1-assets/js/services/rcc-grid-roster.js?v=v2-season-grid-1')
     .replaceAll('/v1-assets/js/supabase-client.js', '/v1-assets/js/supabase-client.js?v=v2-auth-session-1')
     .replaceAll('/v1-assets/js/pages/race-detail.js', '/v1-assets/js/pages/race-detail.js?v=v2-season-archive-1')
@@ -100,7 +103,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/pages/hall-of-fame.js', '/v1-assets/js/pages/hall-of-fame.js?v=v2-browser-errors-2')
     .replaceAll('/v1-assets/js/pages/results-status-markers.js', '/v1-assets/js/pages/results-status-markers.js?v=v2-racing-fix-1')
     .replaceAll('/v1-assets/js/pages/standings.js', '/v1-assets/js/pages/standings.js?v=v2-fastest-lap-rule-1')
-    .replaceAll('/v1-assets/js/pages/results.js', '/v1-assets/js/pages/results.js?v=v2-fastest-lap-rule-1')
+    .replaceAll('/v1-assets/js/pages/results.js', '/v1-assets/js/pages/results.js?v=public-recovery-20260906')
     .replaceAll('/v1-assets/js/components/racevora-team-logo-resilience.js', '/v1-assets/js/components/racevora-team-logo-resilience.js?v=v2-racing-fix-1')
     .replaceAll('/v1-assets/css/pages/results-theme.css', '/v1-assets/css/pages/results-theme.css?v=v2-results-sticky-2')
     .replaceAll('/v1-assets/css/pages/results-status-markers.css', '/v1-assets/css/pages/results-status-markers.css?v=v2-racing-fix-1')
@@ -282,6 +285,9 @@ manifest.icons = (manifest.icons || []).map((icon) => ({
 }));
 await writeFile(resolve(distRoot, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 await copyFile(resolve(repositoryRoot, 'favicon.ico'), resolve(distRoot, 'favicon.ico'));
+// Preserve the public disclosure contact instead of falling through to the SPA.
+await mkdir(resolve(distRoot, '.well-known'), { recursive: true });
+await copyFile(resolve(repositoryRoot, '.well-known', 'security.txt'), resolve(distRoot, '.well-known', 'security.txt'));
 
 for (const page of publicPages) {
   const source = await readFile(resolve(repositoryRoot, `${page}.html`), 'utf8');

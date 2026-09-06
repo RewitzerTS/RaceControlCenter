@@ -13,7 +13,8 @@ if (allowedArgs.length && !(allowedArgs.length === 2 && allowedArgs[0] === '--ou
   throw new Error('Target overrides are not accepted by the safe deployment command.');
 }
 
-if (mode === 'production' && !dryRun) {
+function requireLiveApproval() {
+  if (mode !== 'production' || dryRun) return;
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim();
   const dirty = execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim();
   if (dirty || process.env.RACEVORA_APPROVED_LIVE_COMMIT !== commit) {
@@ -21,7 +22,12 @@ if (mode === 'production' && !dryRun) {
   }
   if (process.env.CI || process.env.WORKERS_CI) throw new Error('Automatic production deployment is disabled.');
 }
+requireLiveApproval();
 
+// The release gate is mandatory for every target, including dry runs.
+const verify = spawnSync('npm run verify', { cwd: root, shell: true, stdio: 'inherit' });
+if (verify.error) throw verify.error;
+if (verify.status !== 0) process.exit(verify.status ?? 1);
 const targetMode = mode === 'production' ? 'production' : 'staging';
 const build = spawnSync(`npm run build:${targetMode}`, { cwd: root, shell: true, stdio: 'inherit' });
 if (build.error) throw build.error;
@@ -30,6 +36,11 @@ const target = JSON.parse(readFileSync(resolve(root, 'dist/build-target.json'), 
 assertBuildTarget(target);
 if (target.VITE_APP_ENV !== targetMode) throw new Error('Built artifact does not match deployment target.');
 const configFile = mode === 'production' ? 'wrangler.cutover.jsonc' : 'wrangler.jsonc';
+// Tests/builds must not change the source revision after the approval check.
+requireLiveApproval();
+if (target.commit !== execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()) {
+  throw new Error('Built artifact does not match the current source commit.');
+}
 const config = JSON.parse(readFileSync(resolve(root, configFile), 'utf8'));
 if (config.name !== `racevora-v2-${targetMode}`) throw new Error('Unexpected Worker target.');
 if (mode !== 'production' && (config.routes?.length || config.route || config.send_email?.length || config.services?.length)) {

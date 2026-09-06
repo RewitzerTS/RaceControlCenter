@@ -129,6 +129,18 @@
   async function fetchDriverSeasonAssignments(options = {}) {
     if (!global.supabaseClient) return [];
 
+    // Public pages use published result snapshots, never the private roster.
+    if (global.supabaseClient.auth?.getSession) {
+      const session = await global.supabaseClient.auth.getSession();
+      if (session.error) throw session.error;
+      if (!session.data?.session) {
+        const races = await global.RCCData.fetchRaces({ seasonId: options.seasonId });
+        const raceIds = races.map((race) => race.id);
+        const results = raceIds.length ? await global.RCCData.fetchRaceResults({ raceIds }) : [];
+        return publishedAssignmentSnapshots(races, results);
+      }
+    }
+
     let query = global.supabaseClient
       .from('season_driver_assignments')
       .select(`
@@ -183,6 +195,28 @@
       throw legacy.error;
     }
     return (legacy.data || []).map(normalizeSeasonAssignment);
+  }
+
+  function publishedAssignmentSnapshots(races = [], results = []) {
+    const byRace = new Map(races.map((race) => [String(race.id), race]));
+    return results.flatMap((row) => {
+      const race = byRace.get(String(row.race_id));
+      if (!race?.current_result_version_id
+        || String(race.current_result_version_id) !== String(row.result_version_id)) return [];
+      return [normalizeSeasonAssignment({
+        id: row.source_assignment_id || row.id,
+        driver_id: row.driver_id,
+        season_id: race.season_id,
+        team_id: row.team_id,
+        league_team: !row.points_owner_driver_id || row.points_owner_driver_id === row.driver_id ? row.points_team_name : '',
+        car_name: row.car_name_snapshot,
+        ai_driver_reference: row.ai_driver_reference_snapshot,
+        effective_from_race_id: race.id,
+        effective_round_number: Number(race.round_number),
+        is_primary: false,
+        created_at: row.created_at,
+      })];
+    });
   }
 
   function createAssignmentResolver({ drivers = [], races = [], assignments = [] } = {}) {
@@ -261,6 +295,7 @@
 
   global.RCCDriverContext = {
     fetchDriverSeasonAssignments,
+    publishedAssignmentSnapshots,
     createAssignmentResolver
   };
 })(window);

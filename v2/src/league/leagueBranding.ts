@@ -159,6 +159,11 @@ export function resolvePersonalTheme(metadataValue: unknown): ThemePreset {
   return resolveTheme({ theme_id: themeId });
 }
 
+export function readablePrimaryText(background: string, preferred: string): string {
+  if (contrastRatio(preferred, background) >= 4.5) return preferred;
+  return contrastRatio('#FFFFFF', background) >= contrastRatio('#000000', background) ? '#FFFFFF' : '#000000';
+}
+
 export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {
   const root = document.documentElement;
   const { theme } = branding;
@@ -170,7 +175,7 @@ export function applyLeagueBranding(branding: LeagueBrandingRuntime): void {
     '--brand-background': theme.background,
     '--brand-surface': theme.surface,
     '--brand-text': theme.text,
-    '--brand-on-primary': theme.textOnPrimary,
+    '--brand-on-primary': readablePrimaryText(theme.primary, theme.textOnPrimary),
   };
   for (const [name, value] of Object.entries(variables)) root.style.setProperty(name, value);
   root.style.backgroundColor = theme.surface;

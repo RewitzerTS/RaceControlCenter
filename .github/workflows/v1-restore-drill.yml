@@ -47,8 +47,9 @@ jobs:
             exit 1
           fi
           grep -Fq "expected_target_ref='lugedxtmfitxrkacmjpb'" scripts/restore-v1-drill.sh
-          grep -Fq "production_ref='kjccstcbqygxuqkvdaqw'" scripts/restore-v1-drill.sh
-          grep -Fq "staging_ref='znnkwjogtvzwfkwnmawp'" scripts/restore-v1-drill.sh
+          grep -Fq "production_ref='znnkwjogtvzwfkwnmawp'" scripts/restore-v1-drill.sh
+          grep -Fq "staging_ref='nfvwarlowjqphytqqtxz'" scripts/restore-v1-drill.sh
+          grep -Fq 'Restore drill unavailable: the pinned target was retired.' scripts/restore-v1-drill.sh
           grep -Fq "session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'" scripts/restore-v1-drill.sh
           grep -Fq 'TARGET_DB_URL does not identify the dedicated restore-drill project' scripts/restore-v1-drill.sh
           grep -Fq 'verified roles.sql is not replayed' scripts/restore-v1-drill.sh
@@ -56,7 +57,7 @@ jobs:
           grep -Fq 'auth-data.dump' scripts/restore-v1-drill.sh
           grep -Fq 'Auth user, identity or credential recovery evidence does not match' scripts/restore-v1-drill.sh
           grep -Fq "expectedTargetRef = 'lugedxtmfitxrkacmjpb'" scripts/restore-public-storage.mjs
-          grep -Fq "forbiddenRefs = ['kjccstcbqygxuqkvdaqw', 'znnkwjogtvzwfkwnmawp']" scripts/restore-public-storage.mjs
+          grep -Fq "forbiddenRefs = ['kjccstcbqygxuqkvdaqw', 'znnkwjogtvzwfkwnmawp', 'nfvwarlowjqphytqqtxz']" scripts/restore-public-storage.mjs
           forbidden_action='actions/upload''-artifact'
           if grep -Fq "$forbidden_action" .github/workflows/v1-restore-drill.yml; then
             echo 'Restore material must never be uploaded as a GitHub artifact.' >&2
