@@ -13,6 +13,9 @@ if [ -z "${SUPABASE_DB_URL:-}" ]; then
   exit 1
 fi
 
+python3 "$(dirname "$0")/backup_source.py"
+export PGSSLMODE=require
+
 backup_root="${RACEVORA_BACKUP_DIR:-$HOME/racevora-backups}"
 timestamp="$(date -u +'%Y%m%dT%H%M%SZ')"
 output_dir="${backup_root}/${timestamp}"
@@ -103,7 +106,7 @@ printf '%s\n' '2' > "${output_dir}/backup-format-version.txt"
 cat > "${output_dir}/README.txt" <<EOF
 RaceVora Supabase logical backup
 Created (UTC): ${timestamp}
-Source project: kjccstcbqygxuqkvdaqw
+Source project: znnkwjogtvzwfkwnmawp
 
 Contains:
 - roles.sql

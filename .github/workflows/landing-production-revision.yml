@@ -13,6 +13,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Check current landing revision is live
         shell: bash
         run: |
@@ -21,7 +24,8 @@ jobs:
           curl --fail --silent --show-error --location --connect-timeout 10 --max-time 20 \
             --user-agent 'RaceVora-Landing-Revision/1.0' \
             --output "$body" 'https://racevora.com/'
-          if ! grep -Fq 'data-landing-revision="cinematic-v2-2026-08-19"' "$body"; then
+          expected="$(grep -oE 'data-landing-revision="[^"]+"' index.html | head -n 1)"
+          if [ -z "$expected" ] || ! grep -Fq "$expected" "$body"; then
             echo 'Production is not serving the current RaceVora landing revision.' >&2
             sed -n '1,30p' "$body" >&2
             exit 1

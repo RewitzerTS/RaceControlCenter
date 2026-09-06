@@ -2,17 +2,13 @@ name: Encrypted Off-site Backup
 
 on:
   workflow_dispatch:
-    inputs:
-      force:
-        description: Run one backup even before scheduled backups are enabled
-        required: false
-        type: boolean
-        default: false
   pull_request:
     paths:
       - '.github/workflows/encrypted-offsite-backup.yml'
       - 'scripts/backup-supabase.sh'
       - 'scripts/backup-public-storage.py'
+      - 'scripts/backup_source.py'
+      - 'scripts/test-backup-source.py'
       - 'scripts/restore-public-storage.mjs'
       - 'docs/operations-runbook.md'
   push:
@@ -22,6 +18,8 @@ on:
       - '.github/workflows/encrypted-offsite-backup.yml'
       - 'scripts/backup-supabase.sh'
       - 'scripts/backup-public-storage.py'
+      - 'scripts/backup_source.py'
+      - 'scripts/test-backup-source.py'
       - 'scripts/restore-public-storage.mjs'
   schedule:
     - cron: '17 2 * * *'
@@ -52,8 +50,10 @@ jobs:
           workflow='.github/workflows/encrypted-offsite-backup.yml'
           bash -n scripts/backup-supabase.sh
           python3 -m py_compile scripts/backup-public-storage.py
+          python3 scripts/test-backup-source.py
+          python3 scripts/test-backup-storage.py
           node --check scripts/restore-public-storage.mjs
-          grep -Fq "RACEVORA_BACKUPS_ENABLED == 'true'" "$workflow"
+          grep -Fq "github.event_name == 'schedule' ||" "$workflow"
           grep -Fq 'supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0' "$workflow"
           grep -Fq 'racevora-backups' "$workflow"
           grep -Fq '.eu.r2.cloudflarestorage.com' "$workflow"
@@ -83,8 +83,9 @@ jobs:
   encrypted-backup:
     needs: validate-backup-definition
     if: >-
-      (github.event_name == 'schedule' && vars.RACEVORA_BACKUPS_ENABLED == 'true') ||
-      (github.event_name == 'workflow_dispatch' && (vars.RACEVORA_BACKUPS_ENABLED == 'true' || inputs.force == true))
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
@@ -118,6 +119,7 @@ jobs:
             echo '::error::BACKUP_ENCRYPTION_PASSPHRASE must contain at least 24 characters.'
             exit 1
           fi
+          python3 scripts/backup_source.py
 
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
@@ -217,6 +219,7 @@ jobs:
         env:
           OBJECT_KEY: ${{ steps.package.outputs.key }}
           LOCAL_ENCRYPTED_FILE: ${{ steps.package.outputs.encrypted }}
+          EXPECTED_SHA256: ${{ steps.package.outputs.checksum }}
         shell: bash
         run: |
           set -euo pipefail
@@ -231,7 +234,15 @@ jobs:
             echo "Uploaded backup size mismatch: local=${local_size}, remote=${remote_size}." >&2
             exit 1
           fi
-          echo "PASS encrypted off-site backup uploaded and verified (${remote_size} bytes)."
+          remote_verified="${RUNNER_TEMP}/racevora-backup-verify.gpg"
+          aws s3 cp "s3://${R2_BUCKET}/${OBJECT_KEY}" "$remote_verified" \
+            --endpoint-url "$R2_ENDPOINT" --no-progress --only-show-errors
+          remote_checksum="$(sha256sum "$remote_verified" | awk '{print $1}')"
+          if [ "$remote_checksum" != "$EXPECTED_SHA256" ]; then
+            echo 'Uploaded backup checksum mismatch.' >&2
+            exit 1
+          fi
+          echo "PASS encrypted off-site backup downloaded and SHA-256 verified (${remote_size} bytes)."
 
       - name: Remove local backup material
         if: always()
@@ -239,6 +250,7 @@ jobs:
         run: |
           rm -rf \
             "${RUNNER_TEMP}/racevora-backups" \
+            "${RUNNER_TEMP}/racevora-backup-verify.gpg" \
             "${RUNNER_TEMP}"/racevora-backup-*.tar.gz \
             "${RUNNER_TEMP}"/racevora-backup-*.tar.gz.gpg \
             "${RUNNER_TEMP}"/racevora-backup-*.tar.gz.gpg.sha256 \

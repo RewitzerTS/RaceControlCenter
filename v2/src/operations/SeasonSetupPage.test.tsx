@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SeasonSetupPage, shuffledTracks } from './SeasonSetupPage';
 
+vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ user: { id: 'season-tester' } }) }));
 const loadSeasonSetupWorkspace = vi.fn();
 const leagueClient = vi.hoisted(() => ({}));
 
@@ -19,6 +20,7 @@ describe('SeasonSetupPage', () => {
   afterEach(() => cleanup());
 
   beforeEach(() => {
+    sessionStorage.clear();
     Object.defineProperty(window, 'scrollTo', { configurable: true, value: vi.fn() });
     loadSeasonSetupWorkspace.mockResolvedValue({
       league: { id: 'league-1', name: 'Testliga', slug: 'testliga', status: 'active' },

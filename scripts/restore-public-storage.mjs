@@ -6,7 +6,7 @@ import path from 'node:path';
 import process from 'node:process';
 
 const expectedTargetRef = 'lugedxtmfitxrkacmjpb';
-const forbiddenRefs = ['kjccstcbqygxuqkvdaqw', 'znnkwjogtvzwfkwnmawp'];
+const forbiddenRefs = ['kjccstcbqygxuqkvdaqw', 'znnkwjogtvzwfkwnmawp', 'nfvwarlowjqphytqqtxz'];
 const expectedTargetUrl = `https://${expectedTargetRef}.supabase.co`;
 
 function fail(message) {
@@ -50,6 +50,7 @@ async function loadJson(file) {
 }
 
 async function main() {
+  fail('Storage restore is disabled: the pinned historical drill target was retired. Review a new isolated target first.');
   const backupDir = process.env.RACEVORA_RESTORE_BACKUP_DIR?.trim();
   const targetUrl = process.env.TARGET_SUPABASE_URL?.replace(/\/$/, '');
   const secretKey = process.env.TARGET_SUPABASE_SECRET_KEY?.trim();

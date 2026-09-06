@@ -186,7 +186,8 @@ jobs:
             if grep -Eiq '^content-security-policy:' "$https_headers"; then
               echo 'INFO Content-Security-Policy present'
             else
-              echo 'INFO Content-Security-Policy not currently enforced; keep under review before adding because the app uses multiple external resources.'
+              echo 'Missing enforced Content-Security-Policy' >&2
+              return 1
             fi
 
             echo 'Checking security.txt'
@@ -208,15 +209,17 @@ jobs:
           }
 
           check_route 'Landing' 'https://racevora.com/' 'RaceVora'
-          check_route 'Registration' 'https://racevora.com/register.html' 'league-registration-form'
+          check_route 'Registration' 'https://racevora.com/login?mode=signup' '<div id="root">'
           check_route 'Password recovery' 'https://racevora.com/forgot-password.html' 'RaceVora'
-          check_route 'Password setup' 'https://racevora.com/set-password.html' 'password-setup-status'
+          check_route 'Password setup' 'https://racevora.com/set-password.html' '<div id="root">'
           check_route 'Imprint' 'https://racevora.com/impressum.html' 'Richard Rewitzer'
           check_route 'Privacy policy' 'https://racevora.com/datenschutz.html' 'Datenschutzerklärung'
           check_route 'Terms' 'https://racevora.com/agb.html' 'Allgemeine Nutzungsbedingungen'
           check_route 'Electronic withdrawal' 'https://racevora.com/widerruf.html' 'Widerruf bestätigen'
           check_route 'Public RCC Race Hub' 'https://racevora.com/race-hub.html?league=rcc' 'site-header'
-          check_edge_options 'Withdrawal Edge Function' 'https://kjccstcbqygxuqkvdaqw.supabase.co/functions/v1/submit-consumer-withdrawal'
+          check_edge_options 'Withdrawal Edge Function' 'https://znnkwjogtvzwfkwnmawp.supabase.co/functions/v1/submit-consumer-withdrawal'
+          check_route 'Production build target' 'https://racevora.com/build-target.json' 'https://znnkwjogtvzwfkwnmawp.supabase.co'
+          check_route 'Feedback readiness' 'https://racevora.com/api/beta-feedback' '"ready":true'
           check_security_baseline
 
       - name: Health summary

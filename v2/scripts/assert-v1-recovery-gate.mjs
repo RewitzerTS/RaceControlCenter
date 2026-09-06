@@ -60,12 +60,12 @@ requireGate(manifest.phase30Preservation.recoveryZip.entryCount === 504 && manif
 requireGate(manifest.phase30Preservation.latestEncryptedOffsiteBackup.status === 'success' && manifest.phase30Preservation.latestEncryptedOffsiteBackup.euR2UploadVerified === true && manifest.phase30Preservation.latestEncryptedOffsiteBackup.storageBuckets === 1 && manifest.phase30Preservation.latestEncryptedOffsiteBackup.storageObjects === 4, 'fresh encrypted V1 backup is verified in private EU R2');
 requireGate(manifest.phase30Preservation.livePreservationAudit.v1WorkerHealthy === true && manifest.phase30Preservation.livePreservationAudit.v1ProjectStatus === 'ACTIVE_HEALTHY' && manifest.phase30Preservation.livePreservationAudit.v2StagingProjectStatus === 'ACTIVE_HEALTHY' && manifest.phase30Preservation.livePreservationAudit.protectedRccLeagueCount === 1 && manifest.phase30Preservation.livePreservationAudit.productionWritePerformed === false, 'live Phase 30 audit preserves healthy V1, healthy Staging and exactly one rcc without Production writes');
 
-requireGate(backupWorkflow.includes("cron: '17 2 * * *'") && backupWorkflow.includes('RACEVORA_BACKUPS_ENABLED'), 'scheduled backup definition remains guarded and present');
+requireGate(backupWorkflow.includes("cron: '17 2 * * *'") && backupWorkflow.includes("github.event_name == 'schedule' ||"), 'scheduled backup must execute rather than silently skip');
 requireGate(backupWorkflow.includes('--cipher-algo AES256') && backupWorkflow.includes('sha256sum'), 'backup encryption and checksum controls remain present');
 requireGate(backupWorkflow.includes('auth-data.dump') && backupWorkflow.includes('backup-format-version.txt'), 'fresh encrypted backup includes Auth recovery format v2');
 requireGate(backupWorkflow.includes('.eu.r2.cloudflarestorage.com') && !backupWorkflow.includes('actions/upload-artifact'), 'off-site backup stays in private EU R2 and outside Actions artifacts');
 requireGate(restoreWorkflow.includes('workflow_dispatch') && restoreWorkflow.includes('RESTORE_DRILL_DB_URL') && !restoreWorkflow.includes('actions/upload-artifact'), 'encrypted restore remains manual, secret-backed and outside Actions artifacts');
-requireGate(restoreScript.includes("expected_target_ref='lugedxtmfitxrkacmjpb'") && restoreScript.includes(`production_ref='${manifest.v1Data.productionProjectRef}'`) && restoreScript.includes("staging_ref='znnkwjogtvzwfkwnmawp'") && restoreScript.includes("session_pooler_host='aws-1-eu-west-1.pooler.supabase.com'"), 'restore helper pins the only allowed target and its IPv4 Session Pooler while rejecting Production and Staging');
+requireGate(restoreScript.includes("expected_target_ref='lugedxtmfitxrkacmjpb'") && restoreScript.includes("production_ref='znnkwjogtvzwfkwnmawp'") && restoreScript.includes("staging_ref='nfvwarlowjqphytqqtxz'") && restoreScript.includes('Restore drill unavailable: the pinned target was retired.'), 'retired restore target is disabled and current Production and Staging remain forbidden');
 requireGate(restoreScript.includes('verified roles.sql is not replayed') && !restoreScript.includes('--file "$backup_dir/roles.sql"'), 'restore helper retains target-managed Supabase roles');
 requireGate(restoreScript.includes('sha256sum -c') && restoreScript.includes('protected rcc tenant is missing from restored data') && restoreScript.includes('--single-transaction'), 'restore helper verifies checksums, rcc and transactional recovery');
 requireGate(restoreScript.includes('Auth user, identity or credential recovery evidence does not match') && restoreScript.includes('TARGET_SUPABASE_SECRET_KEY'), 'restore helper verifies Auth credential recovery and requires a target-only secret');
@@ -85,5 +85,5 @@ if (failures.length) {
   throw new Error(`Phase 28 V1 Recovery Gate failed: ${failures.join(', ')}`);
 }
 
-console.log(`V1 Recovery Gate passed: V2 is live and V1 remains pinned at ${manifest.v1Code.recoveryCommit.slice(0, 12)} with database/Auth/Storage recovery and shutdown protection verified.`);
+console.log(`Historical V1 recovery records validated (${manifest.v1Code.recoveryCommit.slice(0, 12)}). This is not proof of a current backup or an available restore target.`);
 

@@ -109,14 +109,14 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
       {!embedded && <section className="beta-access-intro hero-main" aria-labelledby="beta-access-title">
         <div className="hero-topline">
           <p className="hero-kicker">{t(production ? 'beta.productionKicker' : 'beta.kicker')}</p>
-          <span className="live-badge">{production ? 'V2' : 'V2 Beta'}</span>
+          {!production && <span className="live-badge">Staging</span>}
         </div>
         <h1 id="beta-access-title">{t(titleKey)}</h1>
         <p className="hero-subcopy">{t(production ? 'beta.productionCopy' : 'beta.copy')}</p>
-        <div className="beta-safety-note">
+        {!production && <div className="beta-safety-note">
           <strong>{t(production ? 'productionProtectedCopy' : 'protectedCopy')}</strong>
           <span>{production ? t('productionDetails') : t('isolationDetails', { projectRef: 'staging' })}</span>
-        </div>
+        </div>}
         <NavLink className="btn-secondary-ghost text-link" to="/">{t('route.backHome')}</NavLink>
       </section>}
 

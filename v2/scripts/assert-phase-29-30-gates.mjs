@@ -82,5 +82,5 @@ if (failures.length) {
 }
 
 console.log(
-  `Phase 29/30 gate passed: V2 ${release.releaseCommit.slice(0, 12)} is live; V1 ${manifest.v1Code.recoveryCommit.slice(0, 12)} remains recoverable and shutdown is denied.`,
+  `Historical cutover records validated (V2 ${release.releaseCommit.slice(0, 12)}, V1 ${manifest.v1Code.recoveryCommit.slice(0, 12)}). Current deployment and recovery health require live checks.`,
 );

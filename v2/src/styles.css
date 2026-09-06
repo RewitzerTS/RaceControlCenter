@@ -1581,8 +1581,42 @@ h2 {
 }
 .section-navigation a:hover,
 .section-navigation a:focus-visible { color: var(--text); background: color-mix(in srgb, var(--brand-primary) 9%, transparent); }
+.draft-recovery-notice {
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--brand-text);
+  background: var(--brand-surface);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+@media (min-width: 981px) {
+  .main-navigation .driver-navigation .nav-item {
+    width: auto;
+    min-width: 56px;
+    height: 58px;
+    padding-inline: 8px;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .main-navigation .driver-navigation .nav-item > span {
+    position: static;
+    max-width: none;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    opacity: 1;
+    transform: none;
+    font-size: 11px;
+    line-height: 1.2;
+  }
+}
+
 .section-navigation a.active {
-  color: var(--brand-background);
+  color: var(--brand-on-primary);
   background: var(--brand-primary);
 }
 .section-view-switcher { display: flex; flex-wrap: wrap; gap: 0.35rem; }
