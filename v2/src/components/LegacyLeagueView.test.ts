@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { embeddedAppDestination, legacyLeagueSource } from './LegacyLeagueView';
+import { I18nProvider } from '../i18n/I18nProvider';
 
 vi.mock('../league/LeagueProvider', () => ({
   useLeague: () => ({ leagueSlug: 'rcc' }),
@@ -51,7 +52,7 @@ describe('LegacyLeagueView', () => {
     const view = (page: string, title: string) => createElement(
       MemoryRouter,
       null,
-      createElement(LegacyLeagueView, { page, title }),
+      createElement(I18nProvider, null, createElement(LegacyLeagueView, { page, title })),
     );
     const { rerender } = render(view('kalender', 'Kalender'));
     const calendarFrame = screen.getByTitle('Kalender') as HTMLIFrameElement;
