@@ -17,13 +17,13 @@ Basis: UI/UX-Audit vom 6. September. Ziel: bestehendes Design verbessern, keine 
 
 ## Prüfung und Übergabe
 
-- [x] Automatisierte Komponenten-, Vertrags- und Browserprüfungen ergänzen und ausführen (236 Tests, 16 Desktop-/Mobil-Browsertests; erneuter vollständiger Release-Lauf folgt).
-- [ ] Desktop/Mobil: Landingpage, Kalender, Ergebnisse, Meisterschaft, Profil und Fehlersituationen prüfen.
+- [x] Automatisierte Komponenten-, Vertrags- und Browserprüfungen ergänzen und ausführen: abschließend 237 Tests und 16 Desktop-/Mobil-Browsertests erfolgreich.
+- [x] Desktop/Mobil: Landingpage, Kalender, Ergebnisse, Meisterschaft und Fehlersituationen geprüft. Profil und Einrichtung zusätzlich in echten Browser-Sitzungen geprüft; kein vollständiger Profiltest in jeder Bildschirmgröße.
 - [x] Staging-E2E: Konto durch Nutzer erstellt und angemeldet → Profil durch QA ausgefüllt → private Liga angefragt. E-Mail-Zustellung wurde vom Agenten nicht selbst beobachtet.
 - [x] Staging-E2E: Beitrittsanfrage → Annahme. Nutzer führte die Annahme mit dem Owner-Konto durch; anschließend Mitgliedschaft als Fahrer und Verknüpfung mit QA Fahrer Eins in der Verwaltung verifiziert. Erneuter Fahrer-Login nach Annahme nicht separat beobachtet.
 - [x] Staging-E2E: Ergebnisentwurf → Veröffentlichung → Wertung; dabei doppelte Bonusanzeige gefunden und behoben.
 - [x] Staging-E2E: Testfall → Stimme → Entscheidung → offizielle Ergebnisrevision V2 (durch Ligaleitung; Fahrer-Protest/Einspruch nicht separat getestet).
-- [ ] Änderungen committen, Staging-Branch pushen, Staging sicher deployen und Version kontrollieren.
+- [x] Änderungen committen, Staging-Branch pushen, Staging sicher deployen und Version kontrollieren.
 
 Nicht ausführbare Prüfungen werden ausdrücklich offen dokumentiert, nicht als bestanden gewertet. Keine Änderungen an echten Production-Daten. Production-Deployment erst nach Freigabe.
 
@@ -42,7 +42,7 @@ Noch offen / nicht als bestanden gewertet:
 
 - Der Nutzer hat ein zweites Konto erstellt und angemeldet. Profil QA Fahrer Eins / QA_EINS mit automatisch vergebener Profilnummer #1 gespeichert; Anfrage an die private QA-Liga sichtbar mit „Prüfung läuft“. Nach Annahme durch den Nutzer: 0 offene Anfragen, 2 Mitglieder, Testkonto mit Rolle Fahrer und Zuordnung QA Fahrer Eins bestätigt.
 - P2: Einige Steward-Auswahlwerte erscheinen noch auf Englisch. Die konkret aufgetretene Meldung zur fehlenden Stimme wurde in DE/EN/ES/FR ergänzt.
-- Saisonfilter für die Ergebnismatrix ergänzt: aktuelle Sitzzuordnungen plus historische Punkteinhaber bleiben erhalten; ungenutzte Spiel-Fahrer werden nicht mitgezählt. Regressionstest erfolgreich, Kontrolle nach ergänzendem Deployment steht aus.
+- Saisonfilter für die Ergebnismatrix ergänzt: aktuelle Sitzzuordnungen plus historische Punkteinhaber bleiben erhalten; ungenutzte Spiel-Fahrer werden nicht mitgezählt. Regressionstest und Kontrolle nach Deployment erfolgreich: 20 statt 22 Fahrer, QA Fahrer Eins weiterhin 25 Punkte und FL-Markierung.
 - CSV-Importcode geprüft: points wird als veröffentlichter Punktwert übernommen. Hinweis in DE/EN/ES/FR ergänzt, dass ein Bonus bereits enthalten sein muss.
 
 ## Veröffentlichungsnachweis
@@ -52,3 +52,9 @@ Erstes Staging-Deployment erfolgreich: Quellcommit `968bc45eaf27ae323eeba8352f99
 Ergänzendes Deployment `6d8aed6690c57009bf5f962d915ffc72e35561b3`, Worker `94dc4332-50bc-45f6-98e8-6be10782e4dc`, mit 237 Tests und 16 Browserprüfungen erfolgreich. Die Kontrolle im bestehenden Browser zeigte jedoch alte Skripte: `/v1-assets/*` hatte trotz unveränderlicher Dateinamen einen einjährigen immutable-Cache. Deshalb erhalten eingebettete JS-/CSS-URLs jetzt automatisch die Build-Revision, und diese ungehashten Assets müssen revalidiert werden. Damit bekommen auch bereits besuchte Browser die Korrekturen ohne manuelles Cache-Löschen. Build-Vertragsprüfung dafür ergänzt; abschließendes Deployment folgt mit denselben Gates.
 
 Die ursprünglichen neun UI/UX-Punkte sind umgesetzt. Neue E2E-Befunde sind oben ausdrücklich separat erfasst; eine vollständige Beta-Freigabe wird daraus nicht abgeleitet.
+
+## Abschluss
+
+Final ausgelieferter Code: `3140c38077288e5588ffdd3298d9c8535d3ec82a`, Staging-Worker-Version `53043391-211d-4df8-8204-f50d915fea84`. Vollständiger Release-Lauf erfolgreich: 237 Tests, 16 Browserprüfungen und alle Vertragsprüfungen. Im bestehenden Browser nach normalem Neuladen 20 Fahrer und revidierte 25 Punkte mit FL bestätigt. Live-Header bestätigt `public, must-revalidate, max-age=0` für ungehashte V1-Assets. Production blieb unverändert auf `fd00914b3ca5273e9bc1d9a80a877cd8a571927c`.
+
+Dieser abschließende Dokumentationsstand wird separat committed; er enthält keine zusätzliche Anwendungscode-Änderung und benötigt kein erneutes Deployment.
