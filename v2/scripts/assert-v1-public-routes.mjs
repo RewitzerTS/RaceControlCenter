@@ -9,6 +9,13 @@ const expectedDemoLeagueSlug = builtTarget.VITE_APP_ENV === 'production' ? 'rcc'
 const requiredPages = ['race-hub', 'kalender', 'ergebnisse', 'fahrer-wm', 'team-wm', 'grid', 'regeln-faq', 'strecken', 'strecken-profil', 'rennen-detail', 'hall-of-fame'];
 const legacyProjectRef = ['kjcc', 'stcbqygxuqkvdaqw'].join('');
 
+const securityContact = await readFile(resolve(distRoot, '.well-known', 'security.txt'), 'utf8');
+if (!securityContact.includes('Contact: mailto:support@racevora.com')
+    || !securityContact.includes('Canonical: https://racevora.com/.well-known/security.txt')
+    || /<html/i.test(securityContact)) {
+  throw new Error('Public security contact must be included as text in the deployed assets.');
+}
+
 for (const page of requiredPages) {
   await access(resolve(distRoot, `${page}.html`));
   await access(resolve(distRoot, page, 'index.html'));

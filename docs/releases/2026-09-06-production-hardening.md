@@ -12,6 +12,7 @@ Vom Owner für direkte Umsetzung und Veröffentlichung freigegeben. Basis: `main
 - Verbindliche Prüfung im sicheren Deploy-Helfer vor jeder Auslieferung; erneute Prüfung des freigegebenen Commits nach dem Build. Build-Metadaten enthalten den Commit.
 - Prüfungen auf `main` und `staging`, aktuelle Produktionsüberwachung und aktualisierte Tenant-Guard-Erwartung für die legitime Rolle `league_admin`.
 - Backup-Quelle auf aktuelles Production-Projekt begrenzt, täglicher tatsächlicher Sicherungslauf statt stiller Deaktivierung. Verschlüsselter R2-Upload wird zurückgelesen und per SHA-256 geprüft.
+- Nachprüfung: Öffentliche Sicherheitskontaktdatei wird im Build erhalten; zwei zusätzliche HTTP-Regressionstests verhindern den unbemerkten SPA-Fallback.
 
 ## Prüfung und Grenzen
 

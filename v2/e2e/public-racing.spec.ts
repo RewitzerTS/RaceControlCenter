@@ -12,6 +12,16 @@ test.afterEach(async ({ page }, testInfo) => {
   if (process.env.RACEVORA_CAPTURE_UI === '1') await page.screenshot({ path: testInfo.outputPath('verified.png') });
 });
 
+test('security disclosure contact is served as text, not the SPA', async ({ request }) => {
+  const response = await request.get('/.well-known/security.txt');
+  expect(response.status()).toBe(200);
+  expect(response.headers()['content-type']).toContain('text/plain');
+  const body = await response.text();
+  expect(body).toContain('Contact: mailto:support@racevora.com');
+  expect(body).toContain('Canonical: https://racevora.com/.well-known/security.txt');
+  expect(body).not.toMatch(/<html/i);
+});
+
 test('accessible brand and keyboard-operated mobile navigation', async ({ page }, testInfo) => {
   await page.goto('/racing/calendar?league=rcc&demo=1');
   await expect(page.locator('main iframe')).toBeVisible();

@@ -57,10 +57,11 @@ jobs:
           grep -Fq 'supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0' "$workflow"
           grep -Fq 'racevora-backups' "$workflow"
           grep -Fq '.eu.r2.cloudflarestorage.com' "$workflow"
-          grep -Fq 'postgresql-client gnupg awscli ca-certificates' "$workflow"
+          grep -Fq 'postgresql-client gnupg ca-certificates' "$workflow"
+          grep -Fq 'command -v aws' "$workflow"
           unsafe_aws_cli_host='awscli.amazonaws'".com"
           if grep -Fq "$unsafe_aws_cli_host" "$workflow"; then
-            echo 'AWS CLI must come from the signed runner package repository, not an unverified archive.' >&2
+            echo 'AWS CLI must come from the GitHub runner image, not an unverified archive.' >&2
             exit 1
           fi
           grep -Fq 'auth-data.dump' scripts/backup-supabase.sh
@@ -131,7 +132,10 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends postgresql-client gnupg awscli ca-certificates
+          sudo apt-get install -y --no-install-recommends postgresql-client gnupg ca-certificates
+          # GitHub's Ubuntu runner already includes AWS CLI v2; Ubuntu 24.04
+          # no longer provides the old awscli apt package.
+          command -v aws >/dev/null || { echo '::error::AWS CLI is missing from the runner image.'; exit 1; }
           aws --version
 
       - name: Create database backup

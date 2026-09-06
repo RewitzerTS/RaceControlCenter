@@ -285,6 +285,9 @@ manifest.icons = (manifest.icons || []).map((icon) => ({
 }));
 await writeFile(resolve(distRoot, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
 await copyFile(resolve(repositoryRoot, 'favicon.ico'), resolve(distRoot, 'favicon.ico'));
+// Preserve the public disclosure contact instead of falling through to the SPA.
+await mkdir(resolve(distRoot, '.well-known'), { recursive: true });
+await copyFile(resolve(repositoryRoot, '.well-known', 'security.txt'), resolve(distRoot, '.well-known', 'security.txt'));
 
 for (const page of publicPages) {
   const source = await readFile(resolve(repositoryRoot, `${page}.html`), 'utf8');
