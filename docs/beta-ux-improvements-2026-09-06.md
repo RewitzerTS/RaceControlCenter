@@ -20,7 +20,7 @@ Basis: UI/UX-Audit vom 6. September. Ziel: bestehendes Design verbessern, keine 
 - [x] Automatisierte Komponenten-, Vertrags- und Browserprüfungen ergänzen und ausführen (236 Tests, 16 Desktop-/Mobil-Browsertests; erneuter vollständiger Release-Lauf folgt).
 - [ ] Desktop/Mobil: Landingpage, Kalender, Ergebnisse, Meisterschaft, Profil und Fehlersituationen prüfen.
 - [x] Staging-E2E: Konto durch Nutzer erstellt und angemeldet → Profil durch QA ausgefüllt → private Liga angefragt. E-Mail-Zustellung wurde vom Agenten nicht selbst beobachtet.
-- [ ] Staging-E2E: Beitrittsanfrage → Annahme (mit getrennten Rollen, soweit zugänglich).
+- [x] Staging-E2E: Beitrittsanfrage → Annahme. Nutzer führte die Annahme mit dem Owner-Konto durch; anschließend Mitgliedschaft als Fahrer und Verknüpfung mit QA Fahrer Eins in der Verwaltung verifiziert. Erneuter Fahrer-Login nach Annahme nicht separat beobachtet.
 - [x] Staging-E2E: Ergebnisentwurf → Veröffentlichung → Wertung; dabei doppelte Bonusanzeige gefunden und behoben.
 - [x] Staging-E2E: Testfall → Stimme → Entscheidung → offizielle Ergebnisrevision V2 (durch Ligaleitung; Fahrer-Protest/Einspruch nicht separat getestet).
 - [ ] Änderungen committen, Staging-Branch pushen, Staging sicher deployen und Version kontrollieren.
@@ -40,7 +40,7 @@ Mit ausdrücklicher Freigabe wurde die private Liga `QA Beta UX 2026-09-06` ange
 
 Noch offen / nicht als bestanden gewertet:
 
-- Der Nutzer hat ein zweites Konto erstellt und angemeldet. Profil QA Fahrer Eins / QA_EINS gespeichert; Anfrage an die private QA-Liga am 06.09.2026 um 23:12 sichtbar mit „Prüfung läuft“. Annahme benötigt Wechsel zurück in die Owner-Sitzung; angefragt.
+- Der Nutzer hat ein zweites Konto erstellt und angemeldet. Profil QA Fahrer Eins / QA_EINS mit automatisch vergebener Profilnummer #1 gespeichert; Anfrage an die private QA-Liga sichtbar mit „Prüfung läuft“. Nach Annahme durch den Nutzer: 0 offene Anfragen, 2 Mitglieder, Testkonto mit Rolle Fahrer und Zuordnung QA Fahrer Eins bestätigt.
 - P2: Einige Steward-Auswahlwerte erscheinen noch auf Englisch. Die konkret aufgetretene Meldung zur fehlenden Stimme wurde in DE/EN/ES/FR ergänzt.
 - Saisonfilter für die Ergebnismatrix ergänzt: aktuelle Sitzzuordnungen plus historische Punkteinhaber bleiben erhalten; ungenutzte Spiel-Fahrer werden nicht mitgezählt. Regressionstest erfolgreich, Kontrolle nach ergänzendem Deployment steht aus.
 - CSV-Importcode geprüft: points wird als veröffentlichter Punktwert übernommen. Hinweis in DE/EN/ES/FR ergänzt, dass ein Bonus bereits enthalten sein muss.
@@ -48,5 +48,7 @@ Noch offen / nicht als bestanden gewertet:
 ## Veröffentlichungsnachweis
 
 Erstes Staging-Deployment erfolgreich: Quellcommit `968bc45eaf27ae323eeba8352f99fde1f63631fc`, Worker-Version `732ddb07-a9b6-4d90-98c5-0c0d08fe01d8`. Vollständiger Release-Check erfolgreich (236 Unit-/Komponententests, Vertragsprüfungen und Browser-Suite). Production unverändert auf `fd00914b3ca5273e9bc1d9a80a877cd8a571927c`. Die anschließend ergänzten E2E-Korrekturen durchlaufen vor Veröffentlichung dieselbe vollständige Prüfung.
+
+Ergänzendes Deployment `6d8aed6690c57009bf5f962d915ffc72e35561b3`, Worker `94dc4332-50bc-45f6-98e8-6be10782e4dc`, mit 237 Tests und 16 Browserprüfungen erfolgreich. Die Kontrolle im bestehenden Browser zeigte jedoch alte Skripte: `/v1-assets/*` hatte trotz unveränderlicher Dateinamen einen einjährigen immutable-Cache. Deshalb erhalten eingebettete JS-/CSS-URLs jetzt automatisch die Build-Revision, und diese ungehashten Assets müssen revalidiert werden. Damit bekommen auch bereits besuchte Browser die Korrekturen ohne manuelles Cache-Löschen. Build-Vertragsprüfung dafür ergänzt; abschließendes Deployment folgt mit denselben Gates.
 
 Die ursprünglichen neun UI/UX-Punkte sind umgesetzt. Neue E2E-Befunde sind oben ausdrücklich separat erfasst; eine vollständige Beta-Freigabe wird daraus nicht abgeleitet.

@@ -117,7 +117,10 @@ function transformHtml(source, includeBase = false, page = '') {
       .replace(/<body([^>]*)>/i, `<body$1 data-racevora-integrated-route="${page}">`)
       .replace('</body>', '  <script defer src="/v1-assets/js/integrated-route-redirect.js"></script>\n</body>');
   }
-  return output;
+  // Old browsers may retain the previous year-long immutable cache policy.
+  // A revisioned URL reaches the new asset even on those existing sessions.
+  return output.replace(/((?:src|href)=["'])(\/v1-assets\/[^"']+\.(?:js|css)(?:\?[^"']*)?)(["'])/g,
+    (_, prefix, url, suffix) => `${prefix}${url}${url.includes('?') ? '&' : '?'}rv=${buildTarget.commit}${suffix}`);
 }
 
 function transformLanding(source) {

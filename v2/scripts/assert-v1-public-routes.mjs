@@ -20,12 +20,20 @@ for (const page of requiredPages) {
   await access(resolve(distRoot, `${page}.html`));
   await access(resolve(distRoot, page, 'index.html'));
   const source = await readFile(resolve(distRoot, `${page}.html`), 'utf8');
+  for (const match of source.matchAll(/(?:src|href)=["'](\/v1-assets\/[^"']+\.(?:js|css)(?:\?[^"']*)?)["']/g)) {
+    if (!match[1].includes(`rv=${builtTarget.commit}`)) throw new Error(`${page}: legacy runtime asset has no build revision.`);
+  }
   if (source.includes('cdn.jsdelivr.net/npm/@supabase/supabase-js') || source.includes('cdn.jsdelivr.net/npm/chart.js')) {
     throw new Error(`${page}.html still loads a runtime dependency from jsDelivr.`);
   }
   if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(source)) {
     throw new Error(`${page}.html still contains an inline runtime script blocked by the production CSP.`);
   }
+}
+
+const cacheHeaders = await readFile(resolve(distRoot, '_headers'), 'utf8');
+if (!/\/v1-assets\/\*\s+Cache-Control: public, max-age=0, must-revalidate/.test(cacheHeaders)) {
+  throw new Error('Unhashed legacy assets must revalidate after deployment.');
 }
 
 for (const vendorFile of ['supabase.js', 'chart.umd.min.js']) {
