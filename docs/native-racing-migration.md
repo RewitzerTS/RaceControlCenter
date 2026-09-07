@@ -57,3 +57,13 @@ Verifiziert am 2026-09-08:
 - Öffentliche Build-Kennungen bestätigen: Production weiterhin `36a56b9e8ac7a2476b66fd4968b9c66f74a4aca6` mit eigener Datenbank. Keine Datenbankänderungen oder QA-Datenübertragung.
 
 Die abschließende Dokumentation wird separat committed und verändert das veröffentlichte App-Build nicht. Meisterschaft und weitere Ansichten bleiben vorerst eingebettet; Meisterschaft ist der nächste Umsetzungsschritt.
+
+## Production-Freigabe und Veröffentlichung am 2026-09-08
+
+Der Nutzer hat den Push auf den Feature-/Staging-Branch ausdrücklich bestätigt und anschließend die Übernahme dieses Standes auf Production freigegeben. Kalender und Ergebnisse wurden mit Quellstand `d0c6f6b8b232e2781a5c32c3095bbd5085b03275` veröffentlicht; Production-Worker-Version: `c89789c1-e212-417f-bffa-766d11ab4a96`.
+
+Die verpflichtende Release-Prüfung bestand erneut mit 259 Tests und 34 Browserprüfungen. Danach bestanden acht zusätzliche lesende Live-Browserprüfungen auf racevora.com (Desktop/Mobil: Navigation, Kalenderbreite, öffentliche Ergebnisse ohne privates Saisonraster, Streckenkarte und Rennlink). Die öffentliche Build-Kennung bestätigt den Quellstand sowie die unveränderte Production-Datenbank. Es wurden keine Datenbankmigrationen oder QA-Datenübertragungen durchgeführt.
+
+Feature- und Staging-Branch wurden erfolgreich auf GitHub gesichert. Die zusätzliche Aktualisierung von `main` wurde von der automatischen Aktionsprüfung mangels branchspezifischer Freigabe abgelehnt; `main` blieb deshalb auf `36a56b9e8ac7a2476b66fd4968b9c66f74a4aca6`. Das Live-Deployment ist erfolgreich und hiervon unabhängig. Für `main` ist eine gesonderte ausdrückliche Bestätigung einzuholen; keine Umgehung oder erzwungene Aktualisierung.
+
+Weitere Racing-Migrationsschritte bleiben zunächst Staging-Arbeit und benötigen vor ihrer Live-Veröffentlichung eine neue Freigabe.
