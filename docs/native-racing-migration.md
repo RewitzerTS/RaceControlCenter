@@ -14,7 +14,7 @@ Freigabe: 2026-09-07. Der Nutzer möchte die eingebetteten älteren Racing-Seite
 ## Umsetzung in überprüfbaren Schritten
 
 - [x] Kalender: aktuelle Saison, nächste/gefahrene Rennen, Streckenkarten, Rennlinks, Archiv-Auswahl, Lade-/Fehler-/Leerzustände und Mobilansicht.
-- [ ] Ergebnisse: komplette Punktematrix, Fahrer-Fixierung, Fastest Lap/BOT, korrekte offizielle Punkte, Verlauf/Filter/Vergleich.
+- [x] Ergebnisse: komplette Punktematrix, Fahrer-Fixierung, Fastest Lap/BOT, korrekte offizielle Punkte, Verlauf/Filter/Vergleich.
 - [ ] Meisterschaft: Fahrer-/Team-WM, Tendenzen, optionale Statistiken, Profilverlinkungen.
 - [ ] Grid, Fahrer- und Teamprofile, Renndetails.
 - [ ] Strecken, Streckenprofile, Regeln und Historie.
@@ -48,4 +48,12 @@ Die Ergebnisübersicht ist als native React-Ansicht implementiert: Punktematrix 
 
 Die Datenanbindung liest ausschließlich die aktuelle aktive Saison der angefragten Liga und die jeweils aktuelle veröffentlichte Ergebnisversion. Gespeicherte `awarded_points` werden nicht neu berechnet. Ersatzfahrer-Punkte gehören weiterhin dem gespeicherten vertretenen Fahrer. Anonyme Besucher verwenden veröffentlichte Zuordnungen statt des privaten Saisonrasters; angemeldete Benutzer lesen das bestehende Saisonraster unter dessen bisherigen Berechtigungen. Eigene Fahreridentität wird separat, explizit nach Benutzer und vorhandenen Ligafahrern aufgelöst. Fehler dieser optionalen Abfrage blockieren keine Ergebnisse.
 
-Zwischenstand der Prüfung: 12 neue Logik-/Abfragetests einschließlich Vergleich mit der bisherigen Matrix bestanden; erster Desktop-/Mobil-Browserlauf 24/24 bestanden. Kleine Nachbesserungen an Diagrammkontrast, Vergleichsvorauswahl und Prüfbarkeit werden im abschließenden Release-Lauf erneut geprüft. Veröffentlichung und abschließende Staging-Prüfung stehen noch aus. Meisterschaft und weitere Ansichten bleiben vorerst eingebettet.
+Verifiziert am 2026-09-08:
+
+- Vollständige Release-Prüfung bestanden: 259 Tests in 55 Dateien, alle Vertrags-/Build-Prüfungen sowie 34 Desktop-/Mobil-Browserprüfungen. Enthält 12 neue Logik-/Abfragetests einschließlich Vergleich mit der bisherigen Matrix und Tests für lange Namen, 320px-Breite, 24 Rennen, Scroll-Fixierung, Vergleich, Fehler/Wiederholen und leere Saison.
+- Zwei gebündelte Desktop-/Mobil-Sichtprüfungen abgeschlossen; Diagrammkontrast innerhalb der Ligafarben korrigiert. Kein Redesign.
+- Staging-Quellstand `4388de9251247c6e8f97ca2a09a70a4e199adf62`, Worker-Version `a7d99dc9-1976-49b5-a8b4-9055459366da`.
+- Angemeldete private QA-Liga vor und nach dem Deployment verglichen: 20 Fahrer; Spitzenwerte 25 und 18 Punkte unverändert; 1 Fastest-Lap-Markierung; 0 BOT-Markierungen. Nach dem Deployment zusätzlich DOM-verifiziert: 0 Iframes im Hauptinhalt, 1 native Ergebnisansicht, 2 initialisierte Diagramme und 2 Vergleichsauswahlen nach Betätigung des Filters.
+- Öffentliche Build-Kennungen bestätigen: Production weiterhin `36a56b9e8ac7a2476b66fd4968b9c66f74a4aca6` mit eigener Datenbank. Keine Datenbankänderungen oder QA-Datenübertragung.
+
+Die abschließende Dokumentation wird separat committed und verändert das veröffentlichte App-Build nicht. Meisterschaft und weitere Ansichten bleiben vorerst eingebettet; Meisterschaft ist der nächste Umsetzungsschritt.
