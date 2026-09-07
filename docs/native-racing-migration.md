@@ -13,7 +13,7 @@ Freigabe: 2026-09-07. Der Nutzer möchte die eingebetteten älteren Racing-Seite
 
 ## Umsetzung in überprüfbaren Schritten
 
-- [ ] Kalender: aktuelle Saison, nächste/gefahrene Rennen, Streckenkarten, Rennlinks, Archiv-Auswahl, Lade-/Fehler-/Leerzustände und Mobilansicht.
+- [x] Kalender: aktuelle Saison, nächste/gefahrene Rennen, Streckenkarten, Rennlinks, Archiv-Auswahl, Lade-/Fehler-/Leerzustände und Mobilansicht.
 - [ ] Ergebnisse: komplette Punktematrix, Fahrer-Fixierung, Fastest Lap/BOT, korrekte offizielle Punkte, Verlauf/Filter/Vergleich.
 - [ ] Meisterschaft: Fahrer-/Team-WM, Tendenzen, optionale Statistiken, Profilverlinkungen.
 - [ ] Grid, Fahrer- und Teamprofile, Renndetails.
@@ -31,4 +31,13 @@ Die Datenabfragen bleiben lesend und explizit an Liga und Saison gebunden. Beim 
 
 Die bisherige zeitbasierte Kalender-Einteilung in nächste/gefahrene Rennen bleibt erhalten. Sie bedeutet weiterhin nicht automatisch, dass ein offizielles Ergebnis veröffentlicht wurde. Änderungen an dieser fachlichen Regel sind nicht Teil des UI-Umbaus.
 
-Vor Veröffentlichung: komplette Release-Prüfung, Desktop-/Mobil-Browserprüfungen sowie anschließend eine lesende Prüfung des Staging-Deployments. Production erhält diesen Umbau nicht ohne neue Freigabe.
+## Verifizierter Staging-Meilenstein
+
+- Veröffentlichter Quellstand: `f65b1a32714265da0c022ea6a490029eb6f96692`.
+- Staging-Worker-Version: `5a49715b-437c-4484-b992-cf55da282c03`.
+- Vollständige Release-Prüfung erfolgreich: TypeScript, 247 Tests in 54 Dateien, Vertrags-/Build-Prüfungen und 26 Desktop-/Mobil-Browserprüfungen mit Testdaten.
+- Anschließend mit dem angemeldeten Staging-Zugang lesend geprüft: Der native Kalender der privaten QA-Liga zeigt Monaco, Termin, Wetter und Steward-Fall; die Streckenkarte öffnet sich korrekt.
+- Einschränkung des zusätzlichen anonymen Live-Smokes: Vier Prüfungen erwarteten Rennen der fest hinterlegten Liga `rcc`. Diese Liga existiert in Staging nicht, deshalb liefen diese Prüfungen in einen Timeout. Die Ursache wurde lesend bestätigt; weder Berechtigungen noch Daten wurden dafür geändert. Der angemeldete QA-Test ist davon getrennt.
+- Production wurde unverändert auf Quellstand `36a56b9e8ac7a2476b66fd4968b9c66f74a4aca6` bestätigt. Keine Datenbankänderungen oder Übertragung von QA-Daten.
+
+Die Dokumentation dieses Prüfergebnisses wird in einem nachfolgenden reinen Dokumentations-Commit gesichert; sie verändert das veröffentlichte App-Build nicht. Als Nächstes folgen Ergebnisse und Meisterschaft. Production erhält diesen Umbau nicht ohne neue Freigabe.
