@@ -41,3 +41,11 @@ Die bisherige zeitbasierte Kalender-Einteilung in nächste/gefahrene Rennen blei
 - Production wurde unverändert auf Quellstand `36a56b9e8ac7a2476b66fd4968b9c66f74a4aca6` bestätigt. Keine Datenbankänderungen oder Übertragung von QA-Daten.
 
 Die Dokumentation dieses Prüfergebnisses wird in einem nachfolgenden reinen Dokumentations-Commit gesichert; sie verändert das veröffentlichte App-Build nicht. Als Nächstes folgen Ergebnisse und Meisterschaft. Production erhält diesen Umbau nicht ohne neue Freigabe.
+
+## Zweiter Umsetzungsschritt: Ergebnisse
+
+Die Ergebnisübersicht ist als native React-Ansicht implementiert: Punktematrix mit fixierter Fahrerspalte, Fastest-Lap-/BOT-Markierungen, direkte Fahrer-/Rennlinks, Punkteverlauf, WM-Abstand sowie Spitze/Mein Fahrer/Vergleich. Die vorhandene Optik und Ligafarben bleiben erhalten; Diagrammwerte stehen zusätzlich als zugängliche Tabelle bereit.
+
+Die Datenanbindung liest ausschließlich die aktuelle aktive Saison der angefragten Liga und die jeweils aktuelle veröffentlichte Ergebnisversion. Gespeicherte `awarded_points` werden nicht neu berechnet. Ersatzfahrer-Punkte gehören weiterhin dem gespeicherten vertretenen Fahrer. Anonyme Besucher verwenden veröffentlichte Zuordnungen statt des privaten Saisonrasters; angemeldete Benutzer lesen das bestehende Saisonraster unter dessen bisherigen Berechtigungen. Eigene Fahreridentität wird separat, explizit nach Benutzer und vorhandenen Ligafahrern aufgelöst. Fehler dieser optionalen Abfrage blockieren keine Ergebnisse.
+
+Zwischenstand der Prüfung: 12 neue Logik-/Abfragetests einschließlich Vergleich mit der bisherigen Matrix bestanden; erster Desktop-/Mobil-Browserlauf 24/24 bestanden. Kleine Nachbesserungen an Diagrammkontrast, Vergleichsvorauswahl und Prüfbarkeit werden im abschließenden Release-Lauf erneut geprüft. Veröffentlichung und abschließende Staging-Prüfung stehen noch aus. Meisterschaft und weitere Ansichten bleiben vorerst eingebettet.

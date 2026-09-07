@@ -71,8 +71,8 @@ test('anonymous results render without requesting the private season roster', as
     if (request.url().includes('/rest/v1/season_driver_assignments')) privateRequests.push(request.url());
   });
   await page.goto('/racing/results?league=rcc&demo=1');
-  await expect(page.locator('main iframe')).toBeVisible();
-  const frame = page.frameLocator('main iframe');
+  await expect(page.locator('main iframe')).toHaveCount(0);
+  const frame = page;
   await expect(frame.locator('.results-matrix-table tbody tr').first()).toBeVisible();
   await expect(frame.locator('[data-results-retry]')).toHaveCount(0);
   expect(privateRequests).toEqual([]);
@@ -144,8 +144,8 @@ test('failed results finish loading and can be retried', async ({ page, context 
     ? route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ message: 'Temporary test failure' }) })
     : route.fallback());
   await page.goto('/racing/results?league=rcc&demo=1');
-  await expect(page.locator('main iframe')).toBeVisible();
-  const frame = page.frameLocator('main iframe');
+  await expect(page.locator('main iframe')).toHaveCount(0);
+  const frame = page;
   const retry = frame.locator('[data-results-retry]');
   await expect(retry).toBeVisible();
   await expect(frame.locator('.results-chart-panel').first()).toBeHidden();

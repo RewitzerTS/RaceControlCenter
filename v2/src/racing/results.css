@@ -1,0 +1,48 @@
+/* Keep the incumbent league palette and matrix layout, scoped to the native page. */
+.native-results h1 { font-size: clamp(1.8rem, 5.8vw, 3rem); text-transform: uppercase; overflow-wrap: anywhere; }
+.native-results > header p { margin-block: 18px 28px; max-width: 75ch; }
+.native-results h2 { font-size: 1.3rem; margin: 0; overflow-wrap: anywhere; }
+.native-results :is(.results-table-panel, .results-chart-panel) { border: 1px solid var(--line); border-radius: 16px; padding: clamp(12px, 2vw, 20px); min-width: 0; margin-block: 20px; background: var(--brand-surface); }
+.native-results .results-table-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+.native-results .results-table-heading span { color: var(--muted); font-size: .875rem; }
+.native-results .results-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.native-results .results-marker { display: inline-flex; border-radius: 8px; padding: 3px 8px; font-size: .75rem; font-weight: 800; line-height: 1.4; }
+.native-results .results-marker--fl { color: #24102f; background: #e7c5ff; }
+.native-results .results-marker--bot { color: #291b00; background: #ffdb87; }
+.native-results .results-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; isolation: isolate; scrollbar-color: var(--brand-accent) var(--brand-surface); }
+.native-results table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.native-results :is(th, td) { padding: 14px 12px; border-bottom: 1px solid var(--line); text-align: center; }
+.native-results thead th { background: color-mix(in srgb, var(--brand-primary) 11%, var(--brand-surface)); font-size: .8rem; text-transform: uppercase; }
+.native-results tbody tr { background: color-mix(in srgb, var(--brand-surface) 94%, var(--brand-primary) 6%); }
+.native-results tbody tr:nth-child(even) { background: var(--brand-surface); }
+.native-results tbody tr:hover { background: color-mix(in srgb, var(--brand-surface) 92%, var(--brand-accent) 8%); }
+.native-results .sticky-driver { position: sticky; inset-inline-start: 0; z-index: 2; min-width: 180px; max-width: 240px; text-align: start; background: var(--brand-surface); overflow-wrap: anywhere; }
+.native-results thead .sticky-driver { z-index: 3; }
+.native-results .results-race-header { min-width: 130px; max-width: 170px; }
+.native-results .results-cell-stack { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.native-results .results-points-value { font-weight: 800; }
+.native-results .results-points-value--fl { color: light-dark(#6c258e, #e7c5ff); }
+.native-results .results-total-cell { position: static; color: var(--brand-accent); }
+.native-results a { color: inherit; text-decoration: none; text-underline-offset: 3px; }
+.native-results a:hover { text-decoration: underline; }
+.native-results :is(a, button, select, summary, [tabindex]):focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.native-results button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--brand-surface); color: var(--text); cursor: pointer; font: inherit; }
+.native-results button:hover { border-color: var(--brand-accent); }
+.native-results button[aria-pressed="true"] { background: var(--brand-primary); color: var(--brand-on-primary); }
+.native-results button:disabled { opacity: .55; cursor: not-allowed; }
+.native-results .results-focus { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 28px 12px; }
+.native-results .results-focus-status { flex-basis: 100%; color: var(--muted); font-size: .875rem; margin: 0; }
+.native-results .results-compare { display: flex; flex-wrap: wrap; gap: 12px; flex-basis: 100%; }
+.native-results .results-compare label { display: grid; gap: 6px; flex: 1 1 240px; min-width: 0; }
+.native-results select { width: 100%; min-height: 44px; font-size: 1rem; background: var(--brand-surface); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.native-results .results-chart-frame { position: relative; height: 340px; }
+.native-results .results-chart-frame canvas { color: color-mix(in srgb, var(--brand-primary) 45%, var(--text)); }
+.native-results .results-chart-frame[hidden] { display: none; }
+.native-results .results-values { margin-top: 16px; }
+.native-results summary { cursor: pointer; padding-block: 10px; }
+@media (max-width: 700px) {
+  .native-results .sticky-driver { min-width: 120px; max-width: 150px; font-size: .875rem; }
+  .native-results .results-race-header { min-width: 110px; }
+  .native-results :is(th, td) { padding: 12px 8px; }
+  .native-results .results-chart-frame { height: 300px; }
+}
