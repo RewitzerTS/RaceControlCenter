@@ -1,0 +1,359 @@
+[
+  {
+    "key": "australia",
+    "trackMapFile": "australia.png",
+    "grandPrixName": "Australien GP",
+    "circuitName": "Melbourne Grand Prix Circuit",
+    "countryCode": "AU",
+    "aliases": [
+      "australien gp",
+      "australian gp",
+      "australia gp",
+      "melbourne gp"
+    ]
+  },
+  {
+    "key": "china",
+    "trackMapFile": "shanghai.png",
+    "grandPrixName": "China GP",
+    "circuitName": "Shanghai International Circuit",
+    "countryCode": "CN",
+    "aliases": [
+      "china gp",
+      "chinese gp",
+      "shanghai gp"
+    ]
+  },
+  {
+    "key": "japan",
+    "trackMapFile": "suzuka.png",
+    "grandPrixName": "Japan GP",
+    "circuitName": "Suzuka International Racing Course",
+    "countryCode": "JP",
+    "aliases": [
+      "japan gp",
+      "japanese gp",
+      "suzuka gp"
+    ]
+  },
+  {
+    "key": "bahrain",
+    "trackMapFile": "bahrain.png",
+    "grandPrixName": "Bahrain GP",
+    "circuitName": "Bahrain International Circuit",
+    "countryCode": "BH",
+    "aliases": [
+      "bahrain gp",
+      "bahrain grand prix",
+      "sakhir gp",
+      "sakhir"
+    ]
+  },
+  {
+    "key": "saudi-arabia",
+    "trackMapFile": "jeddah.png",
+    "grandPrixName": "Saudi-Arabien GP",
+    "circuitName": "Jeddah Corniche Circuit",
+    "countryCode": "SA",
+    "aliases": [
+      "saudi arabia gp",
+      "saudi-arabien gp",
+      "saudi gp",
+      "jeddah gp",
+      "jeddah"
+    ]
+  },
+  {
+    "key": "miami",
+    "trackMapFile": "miami.png",
+    "grandPrixName": "Miami GP",
+    "circuitName": "Miami International Autodrome",
+    "countryCode": "US",
+    "aliases": [
+      "miami gp",
+      "miami grand prix"
+    ]
+  },
+  {
+    "key": "imola",
+    "trackMapFile": "imola.png",
+    "grandPrixName": "Emilia-Romagna GP",
+    "circuitName": "Autodromo Enzo e Dino Ferrari",
+    "countryCode": "IT",
+    "aliases": [
+      "emilia romagna gp",
+      "emilia-romagna gp",
+      "imola gp",
+      "imola"
+    ],
+    "games": [
+      "f1_25"
+    ]
+  },
+  {
+    "key": "monaco",
+    "trackMapFile": "monaco.png",
+    "grandPrixName": "Monaco GP",
+    "circuitName": "Circuit de Monaco",
+    "countryCode": "MC",
+    "aliases": [
+      "monaco gp",
+      "monaco grand prix"
+    ]
+  },
+  {
+    "key": "canada",
+    "trackMapFile": "montreal.png",
+    "grandPrixName": "Kanada GP",
+    "circuitName": "Circuit Gilles Villeneuve",
+    "countryCode": "CA",
+    "aliases": [
+      "kanada gp",
+      "canada gp",
+      "montreal gp",
+      "circuit gilles villeneuve"
+    ]
+  },
+  {
+    "key": "spain",
+    "trackMapFile": "barcelona.png",
+    "grandPrixName": "Spanien GP",
+    "circuitName": "Circuit de Barcelona-Catalunya",
+    "countryCode": "ES",
+    "aliases": [
+      "spanien gp",
+      "spain gp",
+      "spanish gp",
+      "barcelona gp",
+      "barcelona-catalunya"
+    ],
+    "games": [
+      "f1_25"
+    ]
+  },
+  {
+    "key": "catalonia",
+    "trackMapFile": "barcelona.png",
+    "grandPrixName": "Katalonien GP",
+    "circuitName": "Circuit de Barcelona-Catalunya",
+    "countryCode": "ES",
+    "aliases": [
+      "katalonien gp",
+      "catalonia gp",
+      "catalunya gp",
+      "barcelona gp",
+      "barcelona-catalunya",
+      "circuit de barcelona catalunya"
+    ],
+    "games": [
+      "f1_26"
+    ]
+  },
+  {
+    "key": "austria",
+    "trackMapFile": "redbullring.png",
+    "grandPrixName": "Österreich GP",
+    "circuitName": "Red Bull Ring",
+    "countryCode": "AT",
+    "aliases": [
+      "österreich gp",
+      "osterreich gp",
+      "austria gp",
+      "austrian gp",
+      "österreich/austria gp",
+      "red bull ring"
+    ]
+  },
+  {
+    "key": "great-britain",
+    "trackMapFile": "silverstone.png",
+    "grandPrixName": "Großbritannien GP",
+    "circuitName": "Silverstone Circuit",
+    "countryCode": "GB",
+    "aliases": [
+      "großbritannien gp",
+      "grossbritannien gp",
+      "great britain gp",
+      "british gp",
+      "silverstone gp",
+      "silverstone"
+    ]
+  },
+  {
+    "key": "belgium",
+    "trackMapFile": "spa.png",
+    "grandPrixName": "Belgien GP",
+    "circuitName": "Circuit de Spa-Francorchamps",
+    "countryCode": "BE",
+    "aliases": [
+      "belgien gp",
+      "belgium gp",
+      "spa gp",
+      "spa-francorchamps"
+    ]
+  },
+  {
+    "key": "hungary",
+    "trackMapFile": "hungaroring.png",
+    "grandPrixName": "Ungarn GP",
+    "circuitName": "Hungaroring",
+    "countryCode": "HU",
+    "aliases": [
+      "ungarn gp",
+      "hungary gp",
+      "hungarian gp",
+      "hungaroring"
+    ]
+  },
+  {
+    "key": "netherlands",
+    "trackMapFile": "zandvoort.png",
+    "grandPrixName": "Niederlande GP",
+    "circuitName": "Circuit Zandvoort",
+    "countryCode": "NL",
+    "aliases": [
+      "niederlande gp",
+      "netherlands gp",
+      "dutch gp",
+      "zandvoort gp",
+      "zandvoort"
+    ]
+  },
+  {
+    "key": "madrid",
+    "trackMapFile": "barcelona.png",
+    "grandPrixName": "Spanien GP",
+    "circuitName": "Madring",
+    "countryCode": "ES",
+    "aliases": [
+      "grand prix von spanien",
+      "spanien gp",
+      "spain gp",
+      "spanish gp",
+      "madrid gp",
+      "spanish gp madrid",
+      "madring"
+    ],
+    "games": [
+      "f1_26"
+    ]
+  },
+  {
+    "key": "italy",
+    "trackMapFile": "monza.png",
+    "grandPrixName": "Italien GP",
+    "circuitName": "Autodromo Nazionale Monza",
+    "countryCode": "IT",
+    "aliases": [
+      "italien gp",
+      "italy gp",
+      "italian gp",
+      "monza gp",
+      "monza"
+    ]
+  },
+  {
+    "key": "azerbaijan",
+    "trackMapFile": "baku.png",
+    "grandPrixName": "Aserbaidschan GP",
+    "circuitName": "Baku City Circuit",
+    "countryCode": "AZ",
+    "aliases": [
+      "aserbaidschan gp",
+      "azerbaijan gp",
+      "baku gp",
+      "baku city circuit"
+    ]
+  },
+  {
+    "key": "singapore",
+    "trackMapFile": "singapore.png",
+    "grandPrixName": "Singapur GP",
+    "circuitName": "Marina Bay Street Circuit",
+    "countryCode": "SG",
+    "aliases": [
+      "singapur gp",
+      "singapore gp",
+      "singapore grand prix",
+      "marina bay"
+    ]
+  },
+  {
+    "key": "united-states",
+    "trackMapFile": "cota.png",
+    "grandPrixName": "USA GP",
+    "circuitName": "Circuit of the Americas",
+    "countryCode": "US",
+    "aliases": [
+      "usa gp",
+      "united states gp",
+      "us gp",
+      "cota",
+      "circuit of the americas"
+    ]
+  },
+  {
+    "key": "mexico",
+    "trackMapFile": "mexico.png",
+    "grandPrixName": "Mexiko GP",
+    "circuitName": "Autódromo Hermanos Rodríguez",
+    "countryCode": "MX",
+    "aliases": [
+      "mexiko gp",
+      "mexico gp",
+      "mexican gp",
+      "hermanos rodriguez"
+    ]
+  },
+  {
+    "key": "brazil",
+    "trackMapFile": "interlagos.png",
+    "grandPrixName": "São Paulo GP",
+    "circuitName": "Autódromo José Carlos Pace",
+    "countryCode": "BR",
+    "aliases": [
+      "sao paulo gp",
+      "são paulo gp",
+      "brazil gp",
+      "brasil gp",
+      "interlagos"
+    ]
+  },
+  {
+    "key": "las-vegas",
+    "trackMapFile": "vegas.png",
+    "grandPrixName": "Las Vegas GP",
+    "circuitName": "Las Vegas Strip Circuit",
+    "countryCode": "US",
+    "aliases": [
+      "las vegas gp",
+      "vegas gp",
+      "las vegas strip circuit"
+    ]
+  },
+  {
+    "key": "qatar",
+    "trackMapFile": "qatar.png",
+    "grandPrixName": "Katar GP",
+    "circuitName": "Lusail International Circuit",
+    "countryCode": "QA",
+    "aliases": [
+      "katar gp",
+      "qatar gp",
+      "lusail gp",
+      "lusail"
+    ]
+  },
+  {
+    "key": "abu-dhabi",
+    "trackMapFile": "abudhabi.png",
+    "grandPrixName": "Abu Dhabi GP",
+    "circuitName": "Yas Marina Circuit",
+    "countryCode": "AE",
+    "aliases": [
+      "abu dhabi gp",
+      "yas marina",
+      "yas marina gp"
+    ]
+  }
+]

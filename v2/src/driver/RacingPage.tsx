@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { AppState, EmptyState } from '../components/AppState';
 import { LegacyLeagueView } from '../components/LegacyLeagueView';
+import { RacingCalendar } from '../racing/RacingCalendar';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
@@ -119,7 +120,7 @@ function RacingSectionView() {
       <RacingNavigation />
       {leagueSlug === 'demo' && <p className="racing-demo-notice">{t('racing.demoNotice')} <NavLink to="/leagues/new">{t('profile.createLeague')}</NavLink></p>}
       {switches.length > 0 && <nav aria-label={title} className="section-view-switcher section-view-switcher--standalone">{switches.map((item) => <NavLink className={`${location.pathname}${location.search}` === item.to ? 'active' : ''} key={item.to} to={item.to}>{item.label}</NavLink>)}</nav>}
-      <LegacyLeagueView page={page} search={location.search} title={title} />
+      {page === 'kalender' ? <RacingCalendar key={leagueSlug} /> : <LegacyLeagueView page={page} search={location.search} title={title} />}
     </main>
   );
 }

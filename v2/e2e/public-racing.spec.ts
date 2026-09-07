@@ -24,7 +24,8 @@ test('security disclosure contact is served as text, not the SPA', async ({ requ
 
 test('accessible brand and keyboard-operated mobile navigation', async ({ page }, testInfo) => {
   await page.goto('/racing/calendar?league=rcc&demo=1');
-  await expect(page.locator('main iframe')).toBeVisible();
+  await expect(page.locator('[data-native-racing="calendar"]')).toBeVisible();
+  await expect(page.locator('main iframe')).toHaveCount(0);
   await expect(page.locator('a.brand')).toHaveAccessibleName('RaceVora · Home');
   if (testInfo.project.name === 'mobile') {
     const more = page.locator('#mobile-more-toggle');
@@ -46,8 +47,8 @@ test('calendar title stays within the screen down to 320px', async ({ page }, te
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/racing/calendar?league=rcc&demo=1');
-    await expect(page.locator('main iframe')).toBeVisible();
-    const title = page.frameLocator('main iframe').locator('h1').first();
+    await expect(page.locator('main iframe')).toHaveCount(0);
+    const title = page.locator('#calendar-title');
     await expect(title).toBeVisible();
     const size = await title.evaluate((element) => {
       const range = document.createRange();
@@ -57,6 +58,10 @@ test('calendar title stays within the screen down to 320px', async ({ page }, te
     });
     expect(size.left).toBeGreaterThanOrEqual(0);
     expect(size.right).toBeLessThanOrEqual(size.viewport);
+    const mapImage = page.locator('.native-calendar .track-map-button img').first();
+    await mapImage.scrollIntoViewIfNeeded();
+    await expect.poll(() => mapImage.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    await title.scrollIntoViewIfNeeded();
   }
 });
 
@@ -96,16 +101,17 @@ test('mobile standings expose position, driver and points before optional statis
 
 test('track map and race detail are independent actions', async ({ page }) => {
   await page.goto('/racing/calendar?league=rcc&demo=1');
-  const frame = page.frameLocator('main iframe');
-  const card = frame.locator('.race-card').first();
+  const card = page.locator('.native-calendar .race-card').first();
   await expect(card.locator('.race-detail-link')).toBeVisible();
   await expect(card.locator('a button')).toHaveCount(0);
   const map = card.locator('[data-trackmap-open]');
   await expect(map).toBeVisible();
   await map.click();
   await expect(page.locator('.integrated-track-map')).toBeVisible();
+  await expect.poll(() => page.locator('.integrated-track-map img').evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await expect(page).toHaveURL(/racing\/calendar/);
   await page.locator('.integrated-track-map button').click();
+  await expect(map).toBeFocused();
   await card.locator('.race-detail-link').click();
   await expect(page).toHaveURL(/racing\/races\/detail/);
 });
