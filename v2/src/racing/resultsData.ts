@@ -3,10 +3,10 @@ import type { LeagueSupabaseClient } from '../lib/supabase';
 import type { Database } from '../types/database';
 
 type Tables = Database['public']['Tables'];
-export type ResultsDriver = Pick<Tables['drivers']['Row'], 'id' | 'display_name' | 'gamertag' | 'car_name' | 'league_team' | 'is_active'>;
+export type ResultsDriver = Pick<Tables['drivers']['Row'], 'id' | 'display_name' | 'gamertag' | 'car_name' | 'league_team' | 'is_active'> & Partial<Pick<Tables['drivers']['Row'], 'number' | 'nationality_code' | 'avatar_url' | 'ai_driver_reference'>>;
 export type ResultsRace = Pick<Tables['races']['Row'], 'id' | 'season_id' | 'round_number' | 'grand_prix_name' | 'country_code' | 'status' | 'current_result_version_id'>;
 export type PublishedResult = Pick<Tables['race_results']['Row'], 'id' | 'race_id' | 'result_version_id' | 'driver_id' | 'points_owner_driver_id' | 'awarded_points' | 'participation_status' | 'fastest_lap_time_ms' | 'fastest_lap_ms' | 'fastest_lap_time' | 'points_car_name' | 'car_name_snapshot'> & Partial<Pick<Tables['race_results']['Row'], 'finish_position' | 'points_team_name'>>;
-export interface ResultsAssignment { driver_id: string; car_name: string | null; created_at: string; team_name?: string | null; effective_round_number?: number }
+export interface ResultsAssignment { driver_id: string; car_name: string | null; created_at: string; team_name?: string | null; effective_round_number?: number; id?: string; seat_code?: string; participant_type?: string; ai_driver_name?: string | null; gamertag_snapshot?: string | null; number?: number | null }
 // This existing private roster table predates the generated client snapshot.
 // Extend its read contract locally; do not create another client or change RLS.
 type ResultsDatabase = Omit<Database, 'public'> & { public: Omit<Database['public'], 'Tables'> & { Tables: Tables & {
@@ -88,7 +88,7 @@ export async function loadResults(client: LeagueSupabaseClient, slug: string, au
   const season = seasonResponse.data;
   if (!season) return { season: null, drivers: [], races: [], results: [], assignments: [] };
   const [driversResponse, racesResponse] = await Promise.all([
-    client.from('drivers').select('id,display_name,gamertag,car_name,league_team,is_active').eq('league_id', league.data.id).order('display_name').limit(500).abortSignal(signal),
+    client.from('drivers').select('id,display_name,gamertag,car_name,league_team,is_active,number,nationality_code,avatar_url,ai_driver_reference').eq('league_id', league.data.id).order('display_name').limit(500).abortSignal(signal),
     client.from('races').select('id,season_id,round_number,grand_prix_name,country_code,status,current_result_version_id').eq('season_id', season.id).order('round_number').limit(500).abortSignal(signal),
   ]);
   signal.throwIfAborted();
@@ -117,7 +117,7 @@ export async function loadResults(client: LeagueSupabaseClient, slug: string, au
   let assignments: ResultsAssignment[];
   if (authenticated) {
     const rosterClient = client as unknown as SupabaseClient<ResultsDatabase>;
-    const response = await rosterClient.from('season_driver_assignments').select('driver_id,car_name,created_at,team_name').eq('season_id', season.id).order('created_at').limit(1000).abortSignal(signal);
+    const response = await rosterClient.from('season_driver_assignments').select('id,driver_id,car_name,created_at,team_name,seat_code,participant_type,ai_driver_name,gamertag_snapshot,number').eq('season_id', season.id).order('created_at').limit(1000).abortSignal(signal);
     signal.throwIfAborted();
     if (response.error) throw response.error;
     assignments = response.data;

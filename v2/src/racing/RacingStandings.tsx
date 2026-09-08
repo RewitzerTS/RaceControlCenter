@@ -13,7 +13,7 @@ import './standings.css';
 const logos: [string[], string][] = [
   [['mclaren'], 'mclaren.png'], [['ferrari'], 'ferrari.png'], [['red bull', 'redbull'], 'red-bull.png'], [['mercedes', 'petronas'], 'mercedes.png'], [['aston martin'], 'aston-martin.png'], [['alpine', 'renault'], 'alpine.png'], [['haas'], 'haas.png'], [['racing bulls', 'rb', 'vcarb', 'alpha tauri', 'alphatauri', 'toro rosso'], 'racing-bulls.png'], [['williams'], 'williams.png'], [['sauber', 'stake', 'kick f1', 'alfa romeo'], 'sauber.png'], [['audi'], 'audi.svg'], [['cadillac'], 'cadillac.svg'],
 ];
-function CarLogo({ candidates, label }: { candidates: (string | null | undefined)[]; label: string }) {
+export function CarLogo({ candidates, label }: { candidates: (string | null | undefined)[]; label: string }) {
   const [failed, setFailed] = useState('');
   const file = candidates.flatMap((candidate) => {
     const normalized = (candidate || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();

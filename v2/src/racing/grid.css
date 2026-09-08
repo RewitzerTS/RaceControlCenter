@@ -1,0 +1,12 @@
+.native-grid-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); gap: 18px; }
+.native-grid-team { min-width: 0; padding: 18px; border: 1px solid var(--brand-line, #343b44); border-radius: 14px; background: var(--brand-surface, #191e25); }
+.native-grid-team h2 { margin: 0 0 16px; font-size: 1.25rem; overflow-wrap: anywhere; }
+.native-grid-team ul { list-style: none; padding: 0; margin: 0; }
+.native-grid-team li { padding: 14px 0; border-top: 1px solid var(--brand-line, #343b44); }
+.native-grid-seat-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.native-grid-seat-heading h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.native-grid-seat-heading > span { flex-shrink: 0; }
+.native-grid-team p { margin: 6px 0 0; overflow-wrap: anywhere; }
+.native-grid-team a { color: inherit; text-underline-offset: 4px; }
+.native-grid-team a:focus-visible { outline: 2px solid var(--brand-primary, #04bde8); outline-offset: 4px; }
+.native-grid-team .standing-car { object-fit: contain; margin-bottom: 12px; }
