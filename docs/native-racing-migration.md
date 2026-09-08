@@ -140,3 +140,11 @@ Verifikation:
 - Öffentliche Build-Kennungen bestätigen Staging mit eigener Datenbank. Production bleibt unverändert auf `d0c6f6b8b232e2781a5c32c3095bbd5085b03275` und seiner bisherigen Datenbank. Keine Migrationen und keine Übertragung von QA-Daten.
 
 Damit ist der Racing-Umbau auf Staging abgeschlossen. Die Übernahme des vollständigen Umbaus auf Production bleibt ein separater Freigabeschritt. Die abschließende Dokumentation verändert das veröffentlichte App-Build nicht.
+
+## Optische Rückführung auf die bisherigen Unterseiten, 2026-09-09
+
+Der Nutzer hat die vereinfachte Darstellung ausdrücklich zurückgewiesen: Die Migration soll die alte Gestaltung übernehmen, nicht durch eine neue ersetzen. Die bisherigen Aussagen „Optik beibehalten“ waren insofern zu weitgehend. Als konkrete Referenz dienen die bestehenden track-profile.css-, driver-profile.css-, records.css- und Regeln/Hall-of-Fame-Stile.
+
+Die native Darstellung erhält deshalb wieder das feste 3/2/1-Spaltenraster für Strecken, 120px-Kartenbilder, einzelne Statistik-Kacheln, getrennte Regeln-/FAQ-Panels, Regel-Kacheln, vier Special-Record-Karten pro Desktopzeile, zweispaltige Bestenlisten, profiltypische Hero-/Statistik-/Tabellen-Panels und größere gerahmte Champion-Darstellungen. Ein einzelner Track wird nicht mehr über die ganze Desktopbreite gedehnt. Die Änderung bleibt in legacyAppearance.css auf native Racing-Ansichten begrenzt. Keine Datenabfragen, Wertungen, Interaktionen, Datenbanken oder eingebetteten Dokumente geändert.
+
+Impeccable wurde zur Wiederherstellung der belegten alten Struktur eingesetzt, nicht als Redesign-Auftrag. Zwei begrenzte Sichtprüfungsrunden und 26 gezielte Desktop-/Mobiltests bestanden; zusätzliche Assertions sichern kompakte Track-Karten, 120px-Bildhöhe sowie umrandete Statistik-/Regelfelder ab. Die verpflichtende Gesamtprüfung wird beim Staging-Deployment erneut ausgeführt. Production bleibt außerhalb dieses Auftrags.

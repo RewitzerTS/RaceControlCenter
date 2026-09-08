@@ -11,6 +11,13 @@ async function native(page: Page, kind: string) {
 test('track hub and profile preserve statistics, seasons, local assets and native driver links', async ({ page }, info) => {
   await page.goto('/racing/tracks?league=rcc&demo=1');
   await expect(page.locator('.history-track-grid li')).toHaveCount(1); await native(page, 'tracks');
+  const gridWidth = await page.locator('.history-track-grid').evaluate((el) => el.getBoundingClientRect().width);
+  const cardWidth = await page.locator('.history-track-grid li').evaluate((el) => el.getBoundingClientRect().width);
+  const viewportWidth = page.viewportSize()!.width;
+  if (viewportWidth > 900) expect(cardWidth).toBeLessThan(gridWidth / 2);
+  else if (viewportWidth <= 600) expect(cardWidth).toBeCloseTo(gridWidth, 0);
+  expect(await page.locator('.history-track-thumbnail').evaluate((el) => el.getBoundingClientRect().height)).toBe(120);
+  expect(await page.locator('.profile-stats > div').first().evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe('1px');
   expect(await page.locator('.history-track-thumbnail').evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
   if (process.env.RACEVORA_CAPTURE_UI === '1') { await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: info.outputPath('tracks.png'), fullPage: true }); }
   await page.locator('.history-track-grid a').click(); await native(page, 'track-profile');
@@ -32,6 +39,7 @@ test('rules show saved content, retain FAQ toggles and recover from a failed rea
   await page.goto('/racing/rules?league=rcc&demo=1'); await expect(page.locator('.native-profile [role="alert"]')).toContainText('Liga-Regeln');
   fail = false; await page.locator('.native-profile').getByRole('button', { name: 'Erneut versuchen' }).click();
   await expect(page.locator('.history-facts')).toContainText('80'); await native(page, 'rules');
+  expect(await page.locator('.history-facts > div').first().evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe('1px');
   await expect(page.locator('.history-faq details')).not.toHaveAttribute('open', '');
   await page.getByText('Wie geht der Test?', { exact: true }).click(); await expect(page.locator('.history-faq p')).toBeVisible();
   await expect(page.locator('.history-faq script')).toHaveCount(0); await expect(page.locator('.history-faq p')).toContainText('<script>test</script>');

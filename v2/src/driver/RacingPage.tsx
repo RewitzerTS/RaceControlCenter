@@ -4,6 +4,7 @@ import { AppState, EmptyState } from '../components/AppState';
 import { RacingTracks } from '../racing/RacingTracks';
 import { RacingRules } from '../racing/RacingRules';
 import { RacingRecords, RacingArchive, RacingHallOfFame } from '../racing/RacingHistory';
+import '../racing/legacyAppearance.css';
 import { racingHref } from '../racing/calendarData';
 import { RacingCalendar } from '../racing/RacingCalendar';
 import { RacingResults } from '../racing/RacingResults';
