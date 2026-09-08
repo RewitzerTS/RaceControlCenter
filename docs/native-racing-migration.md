@@ -91,3 +91,11 @@ Die 20 gezielten Logik-/Abfragetests für Ergebnisse und Meisterschaft bestehen.
 - Implementierung auf Feature- und Staging-Branch gepusht. Diese abschließende Dokumentation verändert das veröffentlichte App-Build nicht.
 
 Als nächster Schritt folgen Grid, Profile und Renndetails. Sie bleiben bis zu ihrer Migration eingebettet. Keine neue Production-Freigabe erteilt.
+
+## Grid-Meilenstein, 2026-09-08
+
+Das Grid ist auf Staging eine native React-Ansicht. Quellstand `8b96f09`, Worker-Version `ed90e9b5-61e7-47e3-bd51-8c923e04f139`. Die tatsächliche Saisonbesetzung bestimmt die Fahrerzahl; 20 und 22 Sitze sind getestet. Unbekannte Teilnehmertypen werden nicht als BOT interpretiert. Team- und Fahrerlinks behalten den Liga-Kontext.
+
+Verifikation: 271 Tests in 57 Dateien, bestehende Vertragsprüfungen und 46 Desktop-/Mobil-Browserprüfungen bestanden. Angemeldeter Staging-Abgleich: QA Testsaison mit 20 Sitzen, zwei QA-Spielern mit ihren Gamertags und KI-Sitz-Zuordnungen, zehn geladenen Fahrzeuglogos, null Iframes im Hauptinhalt und kein horizontaler Seitenüberlauf. Sichtprüfung im angemeldeten Browser durchgeführt.
+
+Fahrerprofile, Teamprofile und Renndetails sind noch NICHT nativ umgesetzt; die Links führen weiterhin zu ihren vorhandenen eingebetteten Ansichten. Die historischen Statistik- und Performance-Funktionen wurden für die nächste Migration untersucht, aber noch nicht ersetzt. Production bleibt unverändert. Keine Datenbankänderungen durchgeführt.
