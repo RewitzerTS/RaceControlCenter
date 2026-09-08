@@ -16,7 +16,7 @@ Freigabe: 2026-09-07. Der Nutzer möchte die eingebetteten älteren Racing-Seite
 - [x] Kalender: aktuelle Saison, nächste/gefahrene Rennen, Streckenkarten, Rennlinks, Archiv-Auswahl, Lade-/Fehler-/Leerzustände und Mobilansicht.
 - [x] Ergebnisse: komplette Punktematrix, Fahrer-Fixierung, Fastest Lap/BOT, korrekte offizielle Punkte, Verlauf/Filter/Vergleich.
 - [x] Meisterschaft: Fahrer-/Team-WM, Tendenzen, optionale Statistiken, Profilverlinkungen (auf Staging verifiziert; noch nicht Production).
-- [ ] Grid, Fahrer- und Teamprofile, Renndetails.
+- [x] Grid, Fahrer- und Teamprofile, Renndetails (auf Staging verifiziert; noch nicht Production).
 - [ ] Strecken, Streckenprofile, Regeln und Historie.
 - [ ] Nicht mehr benötigte Einbettungsbrücken nach vollständiger Funktionsparität entfernen.
 - [ ] Gesamten Racing-Weg auf Desktop und Mobilgeräten prüfen; Production-Freigabe einholen.
@@ -99,3 +99,23 @@ Das Grid ist auf Staging eine native React-Ansicht. Quellstand `8b96f09`, Worker
 Verifikation: 271 Tests in 57 Dateien, bestehende Vertragsprüfungen und 46 Desktop-/Mobil-Browserprüfungen bestanden. Angemeldeter Staging-Abgleich: QA Testsaison mit 20 Sitzen, zwei QA-Spielern mit ihren Gamertags und KI-Sitz-Zuordnungen, zehn geladenen Fahrzeuglogos, null Iframes im Hauptinhalt und kein horizontaler Seitenüberlauf. Sichtprüfung im angemeldeten Browser durchgeführt.
 
 Fahrerprofile, Teamprofile und Renndetails sind noch NICHT nativ umgesetzt; die Links führen weiterhin zu ihren vorhandenen eingebetteten Ansichten. Die historischen Statistik- und Performance-Funktionen wurden für die nächste Migration untersucht, aber noch nicht ersetzt. Production bleibt unverändert. Keine Datenbankänderungen durchgeführt.
+
+## Gemeinsamer Profil- und Renndetail-Meilenstein, 2026-09-08
+
+Fahrerprofile, Teamprofile und Renndetails sind jetzt gemeinsam als native React-Ansichten auf Staging veröffentlicht. Quellstand `9421dc9aabf1658ec9a79ce0768d8812e4e94ecb`, Worker-Version `0c6b34d8-4c27-4465-86b6-6ec6eb717752`. Der bestehende Look bleibt erhalten; Tabellen scrollen auf schmalen Bildschirmen innerhalb ihres Bereichs. Die drei Ansichten benötigen keine eingebetteten Dokumente oder Legacy-Skripte.
+
+Erhalten sind Karriere-/Saisonauswahl, Fahrer- und Teamstatistiken, gewichteter Leistungsindex, letzte Rennen, Saison-, Strecken- und Fahrzeughistorie, direkte Profil-/Rennlinks und der vorhandene Head-to-Head-Einstieg. Renndetails zeigen die aktuelle offizielle Wertung, Fastest Lap, explizite Teilnehmerstatus, gespeicherte Zeiten, Ergebnisversionen, Streckenkarte und zugängliche Steward-Einträge. Optionale Metadaten haben einen separaten Fehler-/Wiederholen-Zustand, sodass deren Ausfall die offizielle Ergebnistabelle nicht blockiert.
+
+Die paginierten Datenabfragen sind explizit auf Liga und Saison begrenzt; Renndetails laden nur die ausgewählte Saison. Punkte werden unverändert aus der aktuellen veröffentlichten Version gelesen. Ersatzfahrer, gespeicherte Punkteinhaber und Fahrzeugwechsel werden berücksichtigt. Unbekannte IDs zeigen einen Leerzustand statt Daten einer anderen Auswahl. Keine Datenbank-, Berechtigungs- oder Production-Änderungen.
+
+Verifikation:
+
+- Vollständige Release-Prüfung bestanden: 284 Tests in 58 Dateien, sämtliche bestehenden Vertrags-/Build-Prüfungen und 56 Desktop-/Mobil-Browserprüfungen.
+- Darin 13 neue Logik-/Abfragetests einschließlich Vergleich mit den bisherigen Fahrer-, Team- und Performance-Berechnungen sowie 10 neue Browserprüfungen für Navigation, Saisonwechsel, Fehler/Wiederholen, leere/ungültige Auswahl, Metadaten-Ausfälle und mobile Breiten.
+- Zwei gebündelte Sichtprüfungsrunden; bestehende globale Profil-CSS-Kollision beseitigt, lokale Flaggen ergänzt und schmale Tabellen lesbar gehalten. Kein Redesign.
+- Angemeldeter Staging-Abgleich in der privaten QA-Liga: QA Fahrer Eins mit 25 Punkten, 1 Start, 1 Sieg, 1 Podium und 1 schnellster Runde. McLaren mit 43 Punkten, 2 Starts und 2 Podien. Werte entsprechen der zuvor geprüften veröffentlichten Wertung.
+- Monaco-Renndetails: 25/18 Punkte, 1 Fastest-Lap-Markierung, beide Teilnehmer PLAYER, gespeicherte Rennzeiten 20:00.000/20:05.000, V2 aktuell und V1 ersetzt; bestehender abgeschlossener QA-Steward-Fall sichtbar. Streckenkarte und Teamlogos laden erfolgreich.
+- Alle drei angemeldeten Seiten: jeweils 1 native Ansicht, 0 Iframes im Hauptinhalt und kein horizontaler Seitenüberlauf. Fahrer → Team → Rennen direkt in der App geprüft.
+- Öffentliche Build-Kennungen bestätigen Staging auf obigem Quellstand und eigener Datenbank. Production bleibt auf `d0c6f6b8b232e2781a5c32c3095bbd5085b03275` mit unveränderter Production-Datenbank.
+
+Die Abschlussdokumentation wird separat gesichert und verändert das veröffentlichte App-Build nicht. Strecken, Streckenprofile, Regeln und Historie sowie der abschließende Abbau verbleibender Einbettungsbrücken sind weitere, noch offene Migrationsschritte. Keine neue Production-Freigabe erteilt.
