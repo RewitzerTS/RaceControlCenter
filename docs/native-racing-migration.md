@@ -15,7 +15,7 @@ Freigabe: 2026-09-07. Der Nutzer möchte die eingebetteten älteren Racing-Seite
 
 - [x] Kalender: aktuelle Saison, nächste/gefahrene Rennen, Streckenkarten, Rennlinks, Archiv-Auswahl, Lade-/Fehler-/Leerzustände und Mobilansicht.
 - [x] Ergebnisse: komplette Punktematrix, Fahrer-Fixierung, Fastest Lap/BOT, korrekte offizielle Punkte, Verlauf/Filter/Vergleich.
-- [ ] Meisterschaft: Fahrer-/Team-WM, Tendenzen, optionale Statistiken, Profilverlinkungen.
+- [x] Meisterschaft: Fahrer-/Team-WM, Tendenzen, optionale Statistiken, Profilverlinkungen (auf Staging verifiziert; noch nicht Production).
 - [ ] Grid, Fahrer- und Teamprofile, Renndetails.
 - [ ] Strecken, Streckenprofile, Regeln und Historie.
 - [ ] Nicht mehr benötigte Einbettungsbrücken nach vollständiger Funktionsparität entfernen.
@@ -79,3 +79,15 @@ Die Sortierung und Teamzuordnung werden gegen die bisherige Berechnung getestet,
 Vorher-Abgleich auf angemeldetem Staging: private QA-Liga, 20 Fahrer, QA Fahrer Eins mit 25 Punkten / 1 Sieg / 1 Podium / 1 schnellster Runde, QA Fahrer Zwei mit 18 Punkten / 1 Podium. Team-WM: McLaren mit 43 Punkten.
 
 Die 20 gezielten Logik-/Abfragetests für Ergebnisse und Meisterschaft bestehen. Die vollständige Release-Prüfung, Staging-Veröffentlichung und der Nachher-Abgleich werden vor Abschluss separat dokumentiert. Production ist nicht Teil dieser Freigabe.
+
+### Verifizierter Meisterschaft-Meilenstein, 2026-09-08
+
+- Staging-Quellstand: `201d0361118c2c700aafbdac5174a66abda044d3`.
+- Staging-Worker-Version: `c1011dcf-b007-4591-9fe9-aba416a25552`.
+- Vollständige Release-Prüfung bestanden: 267 Tests in 56 Dateien, alle bestehenden Vertragsprüfungen und 42 Desktop-/Mobil-Browserprüfungen.
+- Zwei gebündelte Sichtprüfungen durchgeführt; Desktop-Statistikschalter und Podium-Hintergründe korrigiert. Der Funktionstest erkannte zusätzlich den falschen Logo-Assetpfad, der vor Veröffentlichung korrigiert wurde.
+- Angemeldeter Nachher-Abgleich auf Staging: dieselben 20 Fahrer und dieselben Spitzenwerte/Statistiken wie vorher; McLaren unverändert mit 43 Punkten. Beide Teamlogos erfolgreich geladen; keine Iframes im Meisterschaft-Hauptinhalt. Fahrer-/Teamwechsel funktioniert direkt in der App.
+- Öffentliche Buildkennung bestätigt Staging-Umgebung und eigene Staging-Datenbank. Production bleibt auf `d0c6f6b8b232e2781a5c32c3095bbd5085b03275` und unveränderter Production-Datenbank.
+- Implementierung auf Feature- und Staging-Branch gepusht. Diese abschließende Dokumentation verändert das veröffentlichte App-Build nicht.
+
+Als nächster Schritt folgen Grid, Profile und Renndetails. Sie bleiben bis zu ihrer Migration eingebettet. Keine neue Production-Freigabe erteilt.
