@@ -1,0 +1,39 @@
+/* Existing championship layout and league colors, without page-wide legacy styles. */
+.native-standings h1 { font-size: clamp(1.7rem, 5.8vw, 3rem); text-transform: uppercase; overflow-wrap: anywhere; }
+.native-standings header p { margin-block: 18px 28px; max-width: 75ch; }
+.native-standings h2 { font-size: 1.3rem; margin: 0; }
+.native-standings .standings-switch { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 20px; }
+.native-standings :is(button, .standings-switch a) { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: var(--brand-surface); font: inherit; cursor: pointer; }
+.native-standings .standings-switch a[aria-current] { background: var(--brand-primary); color: var(--brand-on-primary); }
+.native-standings .standings-panel { min-width: 0; padding: clamp(12px, 2vw, 20px); border: 1px solid var(--line); border-radius: 16px; }
+.native-standings .standings-heading { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.native-standings .standings-heading span { color: var(--muted); font-size: .875rem; }
+.native-standings .standings-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-color: var(--brand-accent) var(--brand-surface); }
+.native-standings table { width: 100%; border-collapse: separate; border-spacing: 0; font-variant-numeric: tabular-nums; }
+.native-standings :is(th, td) { padding: 14px 12px; border-bottom: 1px solid var(--line); text-align: start; }
+.native-standings thead th { background: color-mix(in srgb, var(--brand-primary) 11%, var(--brand-surface)); font-size: .8rem; text-transform: uppercase; }
+.native-standings tbody tr:nth-child(even) { background: var(--surface-soft); }
+.native-standings tbody tr.podium-1 { background: color-mix(in srgb, #d4af37 18%, var(--brand-surface)); }
+.native-standings tbody tr.podium-2 { background: color-mix(in srgb, #c0c0c0 14%, var(--brand-surface)); }
+.native-standings tbody tr.podium-3 { background: color-mix(in srgb, #cd7f32 14%, var(--brand-surface)); }
+.native-standings td:last-child:not([colspan]) { text-align: end; }
+.native-standings a { color: inherit; text-decoration: none; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.native-standings td a { display: inline-flex; align-items: center; min-height: 44px; }
+.native-standings a:hover { text-decoration: underline; }
+.native-standings :is(button, .standings-switch a):hover { border-color: var(--brand-accent); }
+.native-standings :is(a, button, [tabindex]):focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.native-standings .standing-car { width: 72px; height: 44px; object-fit: contain; }
+.native-standings .standing-trend { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-soft); color: var(--muted); }
+.native-standings .standing-trend svg { width: 16px; height: 16px; fill: currentColor; }
+.native-standings :is(.standing-trend--up, .standing-trend--new) { color: light-dark(#16724f, #55e2ad); }
+.native-standings .standing-trend--down { color: light-dark(#a62626, #ff8383); }
+.native-standings button.standings-detail-toggle { display: none; }
+@media (max-width: 700px) {
+  .native-standings button.standings-detail-toggle { display: inline-flex; margin-bottom: 14px; text-align: start; }
+  .native-standings :is(th, td) { padding: 10px 8px; }
+  .native-standings .standings-table--drivers:not(.standings-table--expanded) { table-layout: fixed; }
+  .native-standings .standings-table--drivers:not(.standings-table--expanded) :is(th, td):is(:nth-child(2), :nth-child(4), :nth-child(5), :nth-child(6), :nth-child(7), :nth-child(8)):not([colspan]) { display: none; }
+  .native-standings .standings-table--drivers:not(.standings-table--expanded) :is(th, td):first-child:not([colspan]) { width: 42px; }
+  .native-standings .standings-table--drivers:not(.standings-table--expanded) :is(th, td):last-child:not([colspan]) { width: 65px; }
+  .native-standings :is(.standings-table--expanded, .standings-table--teams) { min-width: 780px; }
+}

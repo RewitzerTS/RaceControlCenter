@@ -80,7 +80,8 @@ test('anonymous results render without requesting the private season roster', as
 
 test('mobile standings expose position, driver and points before optional statistics', async ({ page }, testInfo) => {
   await page.goto('/racing/standings?league=rcc&demo=1');
-  const frame = page.frameLocator('main iframe');
+  await expect(page.locator('main iframe')).toHaveCount(0);
+  const frame = page;
   const table = frame.locator('.standings-table');
   await expect(frame.locator('#drivers-standings-body tr').first().locator('td')).toHaveCount(9);
   if (testInfo.project.name === 'mobile') {
@@ -96,6 +97,8 @@ test('mobile standings expose position, driver and points before optional statis
     await expect(row.locator('td').nth(3)).toBeVisible();
     await toggle.click();
     await expect(row.locator('td').nth(3)).toBeHidden();
+  } else {
+    await expect(frame.locator('.standings-detail-toggle')).toBeHidden();
   }
 });
 

@@ -5,8 +5,8 @@ import type { Database } from '../types/database';
 type Tables = Database['public']['Tables'];
 export type ResultsDriver = Pick<Tables['drivers']['Row'], 'id' | 'display_name' | 'gamertag' | 'car_name' | 'league_team' | 'is_active'>;
 export type ResultsRace = Pick<Tables['races']['Row'], 'id' | 'season_id' | 'round_number' | 'grand_prix_name' | 'country_code' | 'status' | 'current_result_version_id'>;
-export type PublishedResult = Pick<Tables['race_results']['Row'], 'id' | 'race_id' | 'result_version_id' | 'driver_id' | 'points_owner_driver_id' | 'awarded_points' | 'participation_status' | 'fastest_lap_time_ms' | 'fastest_lap_ms' | 'fastest_lap_time' | 'points_car_name' | 'car_name_snapshot'>;
-export interface ResultsAssignment { driver_id: string; car_name: string | null; created_at: string }
+export type PublishedResult = Pick<Tables['race_results']['Row'], 'id' | 'race_id' | 'result_version_id' | 'driver_id' | 'points_owner_driver_id' | 'awarded_points' | 'participation_status' | 'fastest_lap_time_ms' | 'fastest_lap_ms' | 'fastest_lap_time' | 'points_car_name' | 'car_name_snapshot'> & Partial<Pick<Tables['race_results']['Row'], 'finish_position' | 'points_team_name'>>;
+export interface ResultsAssignment { driver_id: string; car_name: string | null; created_at: string; team_name?: string | null; effective_round_number?: number }
 // This existing private roster table predates the generated client snapshot.
 // Extend its read contract locally; do not create another client or change RLS.
 type ResultsDatabase = Omit<Database, 'public'> & { public: Omit<Database['public'], 'Tables'> & { Tables: Tables & {
@@ -104,7 +104,7 @@ export async function loadResults(client: LeagueSupabaseClient, slug: string, au
     let complete = false;
     for (let page = 0; page < 20; page++) {
       signal.throwIfAborted();
-      const response = await client.from('race_results').select('id,race_id,result_version_id,driver_id,points_owner_driver_id,awarded_points,participation_status,fastest_lap_time_ms,fastest_lap_ms,fastest_lap_time,points_car_name,car_name_snapshot')
+      const response = await client.from('race_results').select('id,race_id,result_version_id,driver_id,points_owner_driver_id,awarded_points,participation_status,fastest_lap_time_ms,fastest_lap_ms,fastest_lap_time,points_car_name,car_name_snapshot,finish_position,points_team_name')
         .in('race_id', chunk.map((race) => race.id)).in('result_version_id', chunk.map((race) => race.current_result_version_id!))
         .order('race_id').order('id').range(page * 1000, page * 1000 + 999).abortSignal(signal);
       signal.throwIfAborted();
@@ -117,12 +117,12 @@ export async function loadResults(client: LeagueSupabaseClient, slug: string, au
   let assignments: ResultsAssignment[];
   if (authenticated) {
     const rosterClient = client as unknown as SupabaseClient<ResultsDatabase>;
-    const response = await rosterClient.from('season_driver_assignments').select('driver_id,car_name,created_at').eq('season_id', season.id).order('created_at').limit(1000).abortSignal(signal);
+    const response = await rosterClient.from('season_driver_assignments').select('driver_id,car_name,created_at,team_name').eq('season_id', season.id).order('created_at').limit(1000).abortSignal(signal);
     signal.throwIfAborted();
     if (response.error) throw response.error;
     assignments = response.data;
   } else {
-    assignments = currentResults(races, results).map((row) => ({ driver_id: row.driver_id, car_name: row.car_name_snapshot, created_at: '' }));
+    assignments = currentResults(races, results).map((row) => ({ driver_id: row.driver_id, car_name: row.car_name_snapshot, created_at: '', team_name: !row.points_owner_driver_id || row.points_owner_driver_id === row.driver_id ? row.points_team_name : '', effective_round_number: races.find((race) => race.id === row.race_id)!.round_number }));
   }
   return { season, drivers, races, results: currentResults(races, results), assignments };
 }

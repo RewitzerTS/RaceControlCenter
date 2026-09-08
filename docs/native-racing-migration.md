@@ -67,3 +67,15 @@ Die verpflichtende Release-Prüfung bestand erneut mit 259 Tests und 34 Browserp
 Feature- und Staging-Branch wurden erfolgreich auf GitHub gesichert. Die zusätzliche Aktualisierung von `main` wurde von der automatischen Aktionsprüfung mangels branchspezifischer Freigabe abgelehnt; `main` blieb deshalb auf `36a56b9e8ac7a2476b66fd4968b9c66f74a4aca6`. Das Live-Deployment ist erfolgreich und hiervon unabhängig. Für `main` ist eine gesonderte ausdrückliche Bestätigung einzuholen; keine Umgehung oder erzwungene Aktualisierung.
 
 Weitere Racing-Migrationsschritte bleiben zunächst Staging-Arbeit und benötigen vor ihrer Live-Veröffentlichung eine neue Freigabe.
+
+Nachtrag: Die branchspezifische Freigabe wurde anschließend erteilt; `main`, `staging` und der Feature-Branch wurden auf `34f5721` gesichert. Die veröffentlichte Production-Anwendung blieb dabei unverändert.
+
+## Dritter Umsetzungsschritt: Meisterschaft
+
+Fahrer- und Team-WM sind als direkte React-Ansichten umgesetzt. Liga-/Saisonkontext, Tendenzen gegenüber dem vorherigen Rennen, mobile optionale Statistiken, Fahrzeuglogos sowie Fahrer-/Teamprofil-Links bleiben erhalten. Die gemeinsame lesende Ergebnisabfrage wurde um Zielposition und Team-Snapshots ergänzt; es gibt keine neuen Datenbanktabellen oder Berechtigungsänderungen.
+
+Die Sortierung und Teamzuordnung werden gegen die bisherige Berechnung getestet, einschließlich Ersatzfahrern, Gleichständen, Teamwechseln und Fahrern ohne Punkte. Es werden weiterhin ausschließlich veröffentlichte `awarded_points` verwendet. Schnellste Runden werden gemessen und dem gespeicherten Punkteinhaber zugeordnet, ohne einen Bonus erneut aufzuschlagen.
+
+Vorher-Abgleich auf angemeldetem Staging: private QA-Liga, 20 Fahrer, QA Fahrer Eins mit 25 Punkten / 1 Sieg / 1 Podium / 1 schnellster Runde, QA Fahrer Zwei mit 18 Punkten / 1 Podium. Team-WM: McLaren mit 43 Punkten.
+
+Die 20 gezielten Logik-/Abfragetests für Ergebnisse und Meisterschaft bestehen. Die vollständige Release-Prüfung, Staging-Veröffentlichung und der Nachher-Abgleich werden vor Abschluss separat dokumentiert. Production ist nicht Teil dieser Freigabe.
