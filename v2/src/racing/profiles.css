@@ -1,0 +1,52 @@
+.native-profile h1 { font-size: clamp(1.7rem, 5.8vw, 3rem); overflow-wrap: anywhere; }
+.native-profile h2 { font-size: 1.4rem; margin: 0 0 16px; overflow-wrap: anywhere; }
+.native-profile h3 { font-size: 1.05rem; }
+.native-profile p { line-height: 1.6; overflow-wrap: anywhere; }
+.native-profile a { color: inherit; text-underline-offset: 3px; }
+.native-profile :is(a, button, select, summary):focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.native-profile :is(button, select, .native-profile .profile-action) { min-height: 44px; border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 14px; color: var(--text); background: var(--brand-surface); font: inherit; }
+.native-profile :is(button, .native-profile .profile-action):hover { border-color: var(--brand-accent); }
+.native-profile .profile-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin: 24px 0; }
+.native-profile .profile-controls label { display: grid; gap: 8px; flex: 1 1 240px; min-width: 0; }
+.native-profile .profile-controls select { width: 100%; min-width: 0; font-size: 16px; }
+.native-profile .profile-action { display: inline-flex; align-items: center; justify-content: center; }
+.native-profile .profile-identity { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding-block: 24px; border-block: 1px solid var(--line); }
+.native-profile .profile-identity > div { flex: 1 1 200px; min-width: 0; }
+.native-profile .profile-identity h2 { font-size: clamp(1.5rem, 4vw, 2.5rem); margin-bottom: 8px; }
+.native-profile .profile-identity p { margin: 6px 0; }
+.native-profile .profile-avatar, .native-profile .profile-initials { width: 88px; height: 88px; border-radius: 14px; object-fit: cover; }
+.native-profile .profile-initials { display: grid; place-items: center; background: var(--surface-soft); font-size: 2rem; font-weight: 700; }
+.native-profile .profile-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.native-profile .profile-flag { width: 26px; height: 18px; object-fit: contain; }
+.native-profile .profile-number { font-size: 2rem; font-variant-numeric: tabular-nums; }
+.native-profile .profile-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; padding-block: 24px; }
+.native-profile .profile-stats dt { color: var(--muted); font-size: .9rem; }
+.native-profile .profile-stats dd { font-weight: 700; font-size: 1.5rem; margin: 6px 0 0; }
+.native-profile .profile-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--line); min-width: 0; }
+.native-profile .profile-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.native-profile .profile-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; scrollbar-color: var(--brand-accent) var(--brand-surface); }
+.native-profile .profile-table-scroll table { width: 100%; min-width: 680px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.native-profile .profile-table-scroll :is(th, td) { padding: 14px 12px; text-align: start; border-bottom: 1px solid var(--line); min-width: 80px; }
+.native-profile .profile-table-scroll th { background: var(--surface-soft); font-size: .875rem; }
+.native-profile .profile-table-scroll td { max-width: 300px; overflow-wrap: anywhere; }
+.native-profile .profile-list { list-style: none; margin: 0; padding: 0; }
+.native-profile .profile-list li { padding: 16px 0; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.native-profile .profile-list li p { margin: 8px 0 0; }
+.native-profile .profile-list img, .native-profile .profile-identity .standing-car { object-fit: contain; }
+.native-profile .profile-form { display: flex; flex-wrap: wrap; list-style: none; padding: 0; gap: 24px; min-height: 0; align-content: start; }
+.native-profile .profile-form li { flex: 1 1 120px; min-width: 0; display: grid; gap: 8px; }
+.native-profile .profile-form strong { font-size: 1.6rem; }
+.native-profile .profile-form a { overflow-wrap: anywhere; }
+.native-profile .profile-performance { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 20px; }
+.native-profile .profile-performance dd { margin: 8px 0 0; }
+.native-profile .profile-performance meter { display: block; width: 100%; height: 16px; accent-color: var(--brand-accent); }
+.native-profile .profile-rating strong { font-size: 2rem; }
+.native-profile .profile-method { color: var(--muted); max-width: 75ch; }
+.native-profile .profile-race-summary dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+.native-profile .profile-race-summary dt { color: var(--muted); }
+.native-profile .profile-race-summary dd { margin: 8px 0 0; overflow-wrap: anywhere; }
+.native-profile .profile-track-map { display: block; width: min(100%, 560px); max-height: 320px; object-fit: contain; margin-inline: auto; }
+.native-profile .profile-fastest { color: #d7adff; }
+.native-profile .profile-badge { font-size: .8rem; display: inline-block; margin-inline-start: 8px; }
+.native-profile .profile-description { white-space: pre-wrap; }
+@media (max-width: 620px) { .native-profile .profile-columns { grid-template-columns: 1fr; gap: 0; } .native-profile .profile-controls { align-items: stretch; } .native-profile .profile-action { width: 100%; } .native-profile .profile-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
