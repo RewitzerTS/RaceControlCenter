@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { AppState, EmptyState } from '../components/AppState';
-import { LegacyLeagueView } from '../components/LegacyLeagueView';
+import { RacingTracks } from '../racing/RacingTracks';
+import { RacingRules } from '../racing/RacingRules';
+import { RacingRecords, RacingArchive, RacingHallOfFame } from '../racing/RacingHistory';
+import { racingHref } from '../racing/calendarData';
 import { RacingCalendar } from '../racing/RacingCalendar';
 import { RacingResults } from '../racing/RacingResults';
 import { RacingStandings } from '../racing/RacingStandings';
@@ -66,19 +69,20 @@ export const MOBILE_RACING_PRIMARY_PATHS = RACING_SECTIONS.filter((item) => item
 export const MOBILE_RACING_MORE_PATHS = RACING_SECTIONS.filter((item) => !item.mobilePrimary).map((item) => item.to);
 
 function RacingNavigation() {
+  const { leagueSlug } = useLeague();
   const { t } = useI18n();
   const location = useLocation();
   const secondaryActive = MOBILE_RACING_MORE_PATHS.some((path) => location.pathname.startsWith(path));
   return (
     <nav aria-label={t('racing.navigation')} className="section-navigation">
       {RACING_SECTIONS.map((item) => (
-        <NavLink className={item.mobilePrimary ? 'section-navigation-link--primary' : 'section-navigation-link--secondary'} key={item.to} to={item.to}>{item.to === '/racing/standings' ? <><span className="racing-nav-label--full">{t(item.key)}</span><span className="racing-nav-label--compact">{t('racing.championshipShort')}</span></> : t(item.key)}</NavLink>
+        <NavLink className={item.mobilePrimary ? 'section-navigation-link--primary' : 'section-navigation-link--secondary'} key={item.to} to={racingHref(item.to, leagueSlug)}>{item.to === '/racing/standings' ? <><span className="racing-nav-label--full">{t(item.key)}</span><span className="racing-nav-label--compact">{t('racing.championshipShort')}</span></> : t(item.key)}</NavLink>
       ))}
       <details className={`section-navigation-more${secondaryActive ? ' active' : ''}`}>
         <summary>{t('racing.navigation')}</summary>
         <div>
           {RACING_SECTIONS.filter((item) => !item.mobilePrimary).map((item) => (
-            <NavLink key={item.to} to={item.to}>{t(item.key)}</NavLink>
+            <NavLink key={item.to} to={racingHref(item.to, leagueSlug)}>{t(item.key)}</NavLink>
           ))}
         </div>
       </details>
@@ -124,8 +128,13 @@ function RacingSectionView() {
     <main className="racing-page dashboard-shell integrated-section-page" id="main-content">
       <RacingNavigation />
       {leagueSlug === 'demo' && <p className="racing-demo-notice">{t('racing.demoNotice')} <NavLink to="/leagues/new">{t('profile.createLeague')}</NavLink></p>}
-      {switches.length > 0 && <nav aria-label={title} className="section-view-switcher section-view-switcher--standalone">{switches.map((item) => <NavLink className={`${location.pathname}${location.search}` === item.to ? 'active' : ''} key={item.to} to={item.to}>{item.label}</NavLink>)}</nav>}
-      {page === 'kalender' ? <RacingCalendar key={leagueSlug} /> : page === 'ergebnisse' ? <RacingResults key={leagueSlug} /> : page === 'grid' ? <RacingGrid key={leagueSlug} /> : page === 'fahrer-profil' ? <RacingDriverProfile key={leagueSlug} /> : page === 'team-profil' ? <RacingTeamProfile key={leagueSlug} /> : page === 'rennen-detail' ? <RacingRaceDetail key={leagueSlug} /> : page === 'fahrer-wm' || page === 'team-wm' ? <RacingStandings key={leagueSlug} teams={page === 'team-wm'} /> : <LegacyLeagueView page={page} search={location.search} title={title} />}
+      {switches.length > 0 && <nav aria-label={title} className="section-view-switcher section-view-switcher--standalone">{switches.map((item) => {
+        const targetView = new URLSearchParams(item.to.split('?')[1]).get('view')!;
+        const activeView = page === 'hall-of-fame' ? 'hall-of-fame' : page === 'saison-archiv' ? 'seasons' : 'records';
+        const active = activeView === targetView;
+        return <Link aria-current={active ? 'page' : undefined} className={active ? 'active' : ''} key={item.to} to={racingHref('/racing/history', leagueSlug, { view: targetView, ...(params.get('season') ? { season: params.get('season')! } : {}) })}>{item.label}</Link>;
+      })}</nav>}
+      {page === 'kalender' ? <RacingCalendar key={leagueSlug} /> : page === 'ergebnisse' ? <RacingResults key={leagueSlug} /> : page === 'grid' ? <RacingGrid key={leagueSlug} /> : page === 'fahrer-profil' ? <RacingDriverProfile key={leagueSlug} /> : page === 'team-profil' ? <RacingTeamProfile key={leagueSlug} /> : page === 'rennen-detail' ? <RacingRaceDetail key={leagueSlug} /> : page === 'fahrer-wm' || page === 'team-wm' ? <RacingStandings key={leagueSlug} teams={page === 'team-wm'} /> : page === 'strecken' || page === 'strecken-profil' ? <RacingTracks key={leagueSlug} profile={page === 'strecken-profil'} /> : page === 'regeln-faq' ? <RacingRules key={leagueSlug} /> : page === 'rekorde' ? <RacingRecords key={leagueSlug} /> : page === 'hall-of-fame' ? <RacingHallOfFame key={leagueSlug} /> : page === 'saison-archiv' ? <RacingArchive key={leagueSlug} /> : <p>{t('racing.empty')}</p>}
     </main>
   );
 }

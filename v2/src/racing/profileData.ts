@@ -4,7 +4,7 @@ import type { Database } from '../types/database';
 import { currentResults, fastestLapDriver, type PublishedResult, type ResultsAssignment, type ResultsDriver, type ResultsRace } from './resultsData';
 
 type Tables = Database['public']['Tables'];
-export type HistorySeason = Pick<Tables['seasons']['Row'], 'id' | 'name' | 'start_date' | 'created_at' | 'is_active'>;
+export type HistorySeason = Pick<Tables['seasons']['Row'], 'id' | 'name' | 'start_date' | 'created_at' | 'is_active'> & Partial<Pick<Tables['seasons']['Row'], 'game_key' | 'game_label' | 'archived_at'>>;
 export type HistoryRace = ResultsRace & Pick<Tables['races']['Row'], 'circuit_name' | 'race_date' | 'race_start_at' | 'race_time' | 'weather'>;
 export type HistoryResult = PublishedResult & Pick<Tables['race_results']['Row'], 'grid_position' | 'race_time'> & Partial<Pick<Tables['race_results']['Row'], 'race_time_ms'>>;
 export type HistoryAssignment = ResultsAssignment & { season_id: string };
@@ -31,7 +31,7 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
   if (league.error) throw league.error;
   const leagueId = league.data.id;
   const [seasons, drivers] = await Promise.all([
-    readHistoryPages((from, to) => client.from('seasons').select('id,name,start_date,created_at,is_active').eq('league_id', leagueId).order('created_at').order('id').range(from, to).abortSignal(signal), signal),
+    readHistoryPages((from, to) => client.from('seasons').select('id,name,start_date,created_at,is_active,game_key,game_label,archived_at').eq('league_id', leagueId).order('created_at').order('id').range(from, to).abortSignal(signal), signal),
     readHistoryPages((from, to) => client.from('drivers').select('id,display_name,gamertag,car_name,league_team,is_active,number,nationality_code,avatar_url,ai_driver_reference').eq('league_id', leagueId).order('id').range(from, to).abortSignal(signal), signal),
   ]);
   const races: HistoryRace[] = [];

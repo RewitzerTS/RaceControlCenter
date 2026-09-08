@@ -10,14 +10,14 @@ type Tables = Database['public']['Tables'];
 type Revision = Pick<Tables['result_versions']['Row'], 'id' | 'version_number' | 'status' | 'change_reason'>;
 type Steward = Pick<Tables['steward_cases']['Row'], 'id' | 'title' | 'description' | 'reported_driver_id' | 'accused_driver_id' | 'status' | 'rule_code' | 'rule_version'>;
 type Extras = { raceId: string; versions: Revision[] | null; stewards: Steward[] | null };
-function formatRaceDuration(milliseconds: number | null | undefined) {
+export function formatRaceDuration(milliseconds: number | null | undefined) {
   if (milliseconds == null || !Number.isFinite(milliseconds) || milliseconds < 0) return '—';
   const hours = Math.floor(milliseconds / 3600000);
   const minutes = Math.floor((milliseconds % 3600000) / 60000);
   const seconds = ((milliseconds % 60000) / 1000).toFixed(3).padStart(6, '0');
   return hours ? `${hours}:${String(minutes).padStart(2, '0')}:${seconds}` : `${minutes}:${seconds}`;
 }
-function lapTime(row: HistoryResult) {
+export function lapTime(row: HistoryResult) {
   if (row.fastest_lap_time) return row.fastest_lap_time;
   const value = [row.fastest_lap_time_ms, row.fastest_lap_ms].find((n) => n != null && n > 0);
   return value ? `${Math.floor(value / 60000)}:${((value % 60000) / 1000).toFixed(3).padStart(6, '0')}` : '—';

@@ -1,0 +1,30 @@
+.native-profile .history-track-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 24px; list-style: none; padding: 0; }
+.native-profile .history-track-grid li { min-width: 0; border: 1px solid var(--line); border-radius: 14px; }
+.native-profile .history-track-grid a { display: block; padding: 20px; text-decoration: none; border-radius: inherit; }
+.native-profile .history-track-grid a:hover { background: var(--surface-soft); }
+.native-profile .history-track-grid h2 { margin: 0; font-size: 1.2rem; }
+.native-profile .history-track-thumbnail { display: block; height: 150px; width: 100%; object-fit: contain; margin-bottom: 20px; }
+.native-profile .history-facts { margin: 0; }
+.native-profile .history-facts > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 20px; padding-block: 14px; border-bottom: 1px solid var(--line); }
+.native-profile .history-facts dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.native-profile .history-facts dt { color: var(--muted); }
+.native-profile .history-faq details, .native-profile .history-archive-race { padding-block: 20px; border-bottom: 1px solid var(--line); }
+.native-profile summary { cursor: pointer; line-height: 1.5; overflow-wrap: anywhere; }
+.native-profile .history-faq p { white-space: pre-wrap; max-width: 75ch; }
+.native-profile .history-record-row { display: flex; gap: 16px; justify-content: space-between; align-items: baseline; }
+.native-profile .history-record-row a { margin-inline-end: auto; min-width: 0; }
+.native-profile .history-record-row strong { font-variant-numeric: tabular-nums; }
+.native-profile .history-specials { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+.native-profile .history-specials article { padding: 24px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+.native-profile .history-specials h3 { margin-top: 0; }
+.native-profile .history-archive-race summary { padding-block: 8px; }
+.native-profile .history-archive-race summary small { display: block; color: var(--muted); margin-top: 6px; }
+.native-profile .history-champions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; padding-block: 24px; }
+.native-profile .history-champions img { width: 96px; height: 96px; object-fit: contain; }
+.native-profile .history-champions h3 { font-size: 1.4rem; }
+.native-profile .history-champions > div { min-width: 0; }
+.native-profile .history-celebration { position: fixed; inset: 0; pointer-events: none; z-index: 100; overflow: hidden; }
+.native-profile .history-celebration i { position: absolute; top: -20px; width: 8px; height: 12px; background: #f3cd68; animation: history-confetti 3s ease-in forwards; }
+@keyframes history-confetti { to { transform: translateY(110vh) rotate(540deg); } }
+@media (prefers-reduced-motion: reduce) { .native-profile .history-celebration { display: none; } }
+@media (max-width: 620px) { .native-profile .history-specials, .native-profile .history-champions { grid-template-columns: 1fr; } }

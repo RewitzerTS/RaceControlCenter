@@ -6,6 +6,7 @@ const race = { id: '30000000-0000-4000-8000-000000000001', season_id: season.id,
 const drivers = [1, 2].map((position) => ({ id: `50000000-0000-4000-8000-00000000000${position}`, league_id: league.id, display_name: `Test Driver ${position}`, gamertag: `Test${position}`, is_active: true, league_team: 'Test Team', car_name: 'Test Car', nationality_code: 'DE', number: position }));
 const results = drivers.map((driver, index) => ({ id: `60000000-0000-4000-8000-00000000000${index + 1}`, race_id: race.id, result_version_id: race.current_result_version_id, driver_id: driver.id, grid_position: index + 1, finish_position: index + 1, participation_status: 'HUMAN', base_points: index ? 18 : 25, awarded_points: index ? 18 : 26, fastest_lap_time_ms: index ? 92000 : 91000, race_time_ms: 3600000 + index * 4000, car_name_snapshot: 'Test Car', points_team_name: 'Test Team' }));
 const tables: Record<string, unknown[]> = { leagues: [league], seasons: [season], races: [race], drivers, race_results: results };
+export const publicRacingFixture = { league, season, race, drivers, results };
 
 export async function installPublicFixture(context: BrowserContext) {
   await context.route('https://*.supabase.co/**', async (route) => {
