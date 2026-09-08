@@ -17,9 +17,10 @@ Freigabe: 2026-09-07. Der Nutzer möchte die eingebetteten älteren Racing-Seite
 - [x] Ergebnisse: komplette Punktematrix, Fahrer-Fixierung, Fastest Lap/BOT, korrekte offizielle Punkte, Verlauf/Filter/Vergleich.
 - [x] Meisterschaft: Fahrer-/Team-WM, Tendenzen, optionale Statistiken, Profilverlinkungen (auf Staging verifiziert; noch nicht Production).
 - [x] Grid, Fahrer- und Teamprofile, Renndetails (auf Staging verifiziert; noch nicht Production).
-- [ ] Strecken, Streckenprofile, Regeln und Historie.
-- [ ] Nicht mehr benötigte Einbettungsbrücken nach vollständiger Funktionsparität entfernen.
-- [ ] Gesamten Racing-Weg auf Desktop und Mobilgeräten prüfen; Production-Freigabe einholen.
+- [x] Strecken, Streckenprofile, Regeln und Historie (Staging).
+- [x] Nicht mehr benötigte Racing-Einbettungsbrücken entfernen; Career-Kompatibilität erhalten.
+- [x] Gesamten Racing-Weg auf Desktop und Mobilgeräten prüfen.
+- [ ] Separate Production-Freigabe für den vollständigen Racing-Umbau einholen.
 
 Jeder Schritt erhält Funktions-, Fehler- und Navigationstests. Ein begonnener Schritt ist nicht automatisch abgeschlossen oder live freigegeben.
 
@@ -119,3 +120,23 @@ Verifikation:
 - Öffentliche Build-Kennungen bestätigen Staging auf obigem Quellstand und eigener Datenbank. Production bleibt auf `d0c6f6b8b232e2781a5c32c3095bbd5085b03275` mit unveränderter Production-Datenbank.
 
 Die Abschlussdokumentation wird separat gesichert und verändert das veröffentlichte App-Build nicht. Strecken, Streckenprofile, Regeln und Historie sowie der abschließende Abbau verbleibender Einbettungsbrücken sind weitere, noch offene Migrationsschritte. Keine neue Production-Freigabe erteilt.
+
+## Abschluss der nativen Racing-Migration auf Staging, 2026-09-08
+
+Die letzten drei Arbeitspakete sind umgesetzt: Streckenübersicht und Streckenprofile, Regeln/FAQs sowie Rekorde, Hall of Fame und Saisonarchiv werden direkt in React gerendert. Alle Racing-Unterseiten benötigen keine Iframes mehr. Nicht mehr benötigte Racing-spezifische HTML-/CSS-Brücken wurden aus LegacyLeagueView entfernt; die von Career/Head-to-Head noch benötigte Kompatibilität bleibt erhalten. Alte öffentliche URLs bleiben erreichbar und leiten in die App weiter.
+
+Staging-Quellstand: `338e3e62527c82d16c45a1aa6d11853f2b98561a`. Worker-Version: `01337cce-82c3-4c05-91b4-1cd3529c5c9a`.
+
+Die vorhandenen Berechnungen und Katalogdaten wurden übernommen und gegen die bisherigen Implementierungen getestet. Offizielle Punkte stammen weiterhin ausschließlich aus der aktuellen veröffentlichten Ergebnisversion. Regeln und FAQs werden lesend aus den Liga-Einstellungen geladen; fehlende Daten, ungültige Auswahl und Ladefehler haben eigene Zustände. Liga-/Saisonfilter, direkte Profil- und Rennlinks sowie Browser-Zurück sind geprüft. Die statische Hall-of-Fame-Historie der Saisons 1–13 gehört laut ausdrücklicher Nutzerbestätigung ausschließlich RCC und wird nur dort geladen; andere Ligen erhalten keine fremden Titel. Es wurde kein neues Meisterschafts-Datenmodell eingeführt.
+
+Verifikation:
+
+- Vollständige Release-Prüfung bestanden: 297 Tests in 59 Dateien, sämtliche Vertrags-/Build-Prüfungen und 72 Desktop-/Mobil-Browserprüfungen.
+- 13 neue Logik-/Abfragetests prüfen unter anderem Parität der Strecken- und Rekordberechnungen, F1-25-/F1-26-Zuordnung, Zeitformate, Regeln und RCC-Archivbegrenzung. 16 neue Browserprüfungen decken die neuen Seiten, Filter, Navigation, aktuelle Archiv-Ergebnisversionen, Fehler/Wiederholen und mobile Breiten ab.
+- Impeccable für Härtung und begrenzte Sichtprüfung verwendet; bestehende Optik beibehalten. Die Browserprüfung fand und behob die gleichzeitige Aktivmarkierung aller Historie-Schalter. Der gezielte UI-Detektor meldete keine Befunde.
+- Angemeldeter Staging-Abgleich: unverändert zehn nicht festgelegte QA-Regeln und fünf FAQs. Monaco mit einem Rennen, zwei Starts und Liga-Bestzeit 1:10.000 von QA Fahrer Eins; Tabelle unverändert 25/18 Punkte, je ein Start, Fastest Lap bei QA Fahrer Eins, Pole bei QA Fahrer Zwei.
+- QA-Rekorde: 25/18 Fahrerpunkte, 43 McLaren-Punkte, ein Sieg und zwei Team-Podien. QA-Hall-of-Fame korrekt leer, Saisonarchiv korrekt leer bei weiterhin aktiver QA-Saison. Vollständige Archivtabellen und das RCC-Archiv wurden mit isolierten Browser-Testdaten geprüft, nicht durch Änderungen an QA-/Produktivdaten.
+- Neue angemeldete Ansichten ohne Iframes; aktive Historie-Auswahl korrekt. Ein vorübergehender Fehler der Liga-Zugangsprüfung verschwand nach Betätigung von „Erneut laden“; weder Neuanmeldung noch Berechtigungsänderung notwendig.
+- Öffentliche Build-Kennungen bestätigen Staging mit eigener Datenbank. Production bleibt unverändert auf `d0c6f6b8b232e2781a5c32c3095bbd5085b03275` und seiner bisherigen Datenbank. Keine Migrationen und keine Übertragung von QA-Daten.
+
+Damit ist der Racing-Umbau auf Staging abgeschlossen. Die Übernahme des vollständigen Umbaus auf Production bleibt ein separater Freigabeschritt. Die abschließende Dokumentation verändert das veröffentlichte App-Build nicht.
