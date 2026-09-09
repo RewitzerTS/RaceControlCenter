@@ -27,9 +27,12 @@
 .native-calendar .calendar-status { flex-shrink: 0; color: var(--muted); font-size: .8rem; padding-top: 4px; }
 .native-calendar .race-meta { color: var(--muted); line-height: 1.7; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
 .native-calendar .race-meta strong { color: var(--text); }
-.native-calendar .calendar-map { margin-top: auto; min-height: 140px; display: grid; place-items: center; background: var(--surface-soft); border-radius: 14px; }
-.native-calendar .track-map-button { position: relative; z-index: 1; padding: 12px; width: 100%; min-height: 140px; display: grid; place-items: center; border: 0; border-radius: inherit; background: transparent; cursor: zoom-in; }
-.native-calendar .track-map-button img { width: 100%; height: 130px; object-fit: contain; }
+.native-calendar .race-card { grid-template-columns: minmax(0, 1fr) minmax(100px, 36%); gap: 12px; }
+.native-calendar .race-top { grid-column: 1 / -1; }
+.native-calendar .race-meta { min-width: 0; }
+.native-calendar .calendar-map { min-width: 0; align-self: center; display: grid; place-items: center; background: var(--surface-soft); border-radius: 10px; }
+.native-calendar .track-map-button { position: relative; z-index: 1; padding: 4px; width: 100%; min-height: 88px; display: grid; place-items: center; border: 0; border-radius: inherit; background: transparent; cursor: zoom-in; }
+.native-calendar .track-map-button img { width: 100%; height: 96px; object-fit: contain; }
 .native-calendar .calendar-image-fallback { color: var(--muted); font-size: .875rem; }
 .native-calendar .calendar-archive-controls { display: grid; gap: 12px; max-width: 460px; }
 .native-calendar .calendar-archive-controls select { min-width: 0; width: 100%; min-height: 48px; padding: 10px; color: var(--text); background: var(--brand-surface); border: 1px solid var(--line); border-radius: 10px; font-size: 1rem; }
@@ -39,4 +42,8 @@
   .native-calendar .calendar-heading h1 { font-size: clamp(1.5rem, 6.8vw, 2rem); }
   .native-calendar .calendar-toggle-row { gap: 8px; }
   .native-calendar :is(.calendar-toggle, .calendar-link) { padding: 10px 12px; }
+}
+@media (max-width: 480px) {
+  .native-calendar .race-card { grid-template-columns: minmax(0, 1fr); }
+  .native-calendar .calendar-map { width: 100%; }
 }

@@ -23,8 +23,9 @@ test('track hub and profile preserve statistics, seasons, local assets and nativ
   await page.locator('.history-track-grid a').click(); await native(page, 'track-profile');
   await expect(page.locator('.profile-identity h2')).toHaveText('Japan GP');
   await expect(page.locator('.profile-identity .track-identity-record')).toContainText('1:31.000');
-  await expect(page.locator('.profile-stats > div')).toHaveCount(6);
-  await expect(page.locator('.profile-stats > div').last()).toContainText('F1-Rundenrekord');
+  await expect(page.locator('.profile-stats > div')).toHaveCount(0);
+  await expect(page.locator('.track-f1-record')).toContainText('F1 Rekord');
+  expect(await page.locator('.track-f1-record').evaluate((el) => getComputedStyle(el).whiteSpace)).toBe('nowrap');
   await expect(page.locator('.track-f1-record')).not.toHaveText('—');
   if (viewportWidth > 900) {
     const copy = await page.locator('.track-identity-copy').boundingBox();

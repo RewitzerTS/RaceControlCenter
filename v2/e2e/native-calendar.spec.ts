@@ -3,7 +3,7 @@ import { installPublicFixture } from './public-fixture';
 
 test.beforeEach(async ({ context }) => { await installPublicFixture(context); });
 
-test('native calendar has one page, no old document request, and working back navigation', async ({ page }) => {
+test('native calendar has one page, no old document request, and working back navigation', async ({ page }, info) => {
   const oldDocuments: string[] = [];
   page.on('request', (request) => { if (request.resourceType() === 'document' && /\/kalender(?:\.html)?(?:\?|$)/.test(request.url())) oldDocuments.push(request.url()); });
   await page.goto('/racing/calendar?league=rcc&demo=1');
@@ -11,6 +11,12 @@ test('native calendar has one page, no old document request, and working back na
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('iframe')).toHaveCount(0);
   const map = page.locator('.native-calendar [data-trackmap-open]');
+  const metadata = await page.locator('.native-calendar .race-meta:visible').boundingBox();
+  const graphic = await map.boundingBox();
+  if (page.viewportSize()!.width > 480) expect(graphic!.x).toBeGreaterThanOrEqual(metadata!.x + metadata!.width);
+  else expect(graphic!.y).toBeGreaterThanOrEqual(metadata!.y + metadata!.height);
+  expect(await map.evaluate((el) => getComputedStyle(el).paddingTop)).toBe('4px');
+  if (process.env.RACEVORA_CAPTURE_UI === '1') await page.screenshot({ path: info.outputPath('calendar.png'), fullPage: true });
   await map.click();
   await page.keyboard.press('Escape');
   await expect(map).toBeFocused();
