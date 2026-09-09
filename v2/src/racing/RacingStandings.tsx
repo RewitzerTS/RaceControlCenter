@@ -11,7 +11,7 @@ import './racing.css';
 import './standings.css';
 
 const logos: [string[], string][] = [
-  [['mclaren'], 'mclaren.png'], [['ferrari'], 'ferrari.png'], [['red bull', 'redbull'], 'red-bull.png'], [['mercedes', 'petronas'], 'mercedes.png'], [['aston martin'], 'aston-martin.png'], [['alpine', 'renault'], 'alpine.png'], [['haas'], 'haas.png'], [['racing bulls', 'rb', 'vcarb', 'alpha tauri', 'alphatauri', 'toro rosso'], 'racing-bulls.png'], [['williams'], 'williams.png'], [['sauber', 'stake', 'kick f1', 'alfa romeo'], 'sauber.png'], [['audi'], 'audi.svg'], [['cadillac'], 'cadillac.svg'],
+  [['mclaren'], 'mclaren.svg'], [['ferrari'], 'ferrari.svg'], [['red bull', 'redbull'], 'red-bull.svg'], [['mercedes', 'petronas'], 'mercedes.svg'], [['aston martin'], 'aston-martin.svg'], [['alpine', 'renault'], 'alpine.svg'], [['haas'], 'haas.svg'], [['racing bulls', 'rb', 'vcarb', 'alpha tauri', 'alphatauri', 'toro rosso'], 'racing-bulls.svg'], [['williams'], 'williams.svg'], [['sauber', 'stake', 'kick f1', 'alfa romeo'], 'sauber.svg'], [['audi'], 'audi.svg'], [['cadillac'], 'cadillac.svg'],
 ];
 export function CarLogo({ candidates, label }: { candidates: (string | null | undefined)[]; label: string }) {
   const [failed, setFailed] = useState('');

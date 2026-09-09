@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { installPublicFixture } from './public-fixture';
+import { installPublicFixture, publicRacingFixture as f } from './public-fixture';
 
 test.beforeEach(async ({ context }) => installPublicFixture(context));
 test('grid is native, fits the viewport and keeps league-aware profile links', async ({ page }) => {
@@ -22,3 +22,16 @@ test('grid retries failed requests without showing stale seats', async ({ page, 
   await page.locator('.native-grid button').click();
   await expect(page.locator('.native-grid-team li')).toHaveCount(2);
 });
+
+for (const [name, file] of [['Aston Martin', 'aston-martin'], ['Kick Sauber', 'sauber'], ['Mercedes', 'mercedes']]) {
+  test(`${name} emblems decode in grid and championship`, async ({ page, context }) => {
+    await context.route('**/rest/v1/drivers?**', (route) => route.fulfill({ json: f.drivers.map((driver) => ({ ...driver, league_team: name, car_name: name })) }));
+    await context.route('**/rest/v1/race_results?**', (route) => route.fulfill({ json: f.results.map((result) => ({ ...result, car_name_snapshot: name, points_team_name: name })) }));
+    for (const path of ['grid', 'standings']) {
+      await page.goto(`/racing/${path}?league=rcc&demo=1`);
+      const logo = page.locator(`img.standing-car[src$="/${file}.svg"]`).first();
+      await expect(logo).toBeAttached();
+      await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+    }
+  });
+}

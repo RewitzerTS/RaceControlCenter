@@ -22,6 +22,15 @@ test('track hub and profile preserve statistics, seasons, local assets and nativ
   if (process.env.RACEVORA_CAPTURE_UI === '1') { await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: info.outputPath('tracks.png'), fullPage: true }); }
   await page.locator('.history-track-grid a').click(); await native(page, 'track-profile');
   await expect(page.locator('.profile-identity h2')).toHaveText('Japan GP');
+  await expect(page.locator('.profile-identity .track-identity-record')).toContainText('1:31.000');
+  await expect(page.locator('.profile-stats > div')).toHaveCount(6);
+  await expect(page.locator('.profile-stats > div').last()).toContainText('F1-Rundenrekord');
+  await expect(page.locator('.track-f1-record')).not.toHaveText('—');
+  if (viewportWidth > 900) {
+    const copy = await page.locator('.track-identity-copy').boundingBox();
+    const record = await page.locator('.track-identity-record').boundingBox();
+    expect(record!.x).toBeGreaterThanOrEqual(copy!.x + copy!.width);
+  }
   await expect(page.locator('.native-profile')).toContainText('1:31.000');
   await expect(page.locator('.profile-table-scroll').first().locator('tbody tr')).toHaveCount(2);
   if (process.env.RACEVORA_CAPTURE_UI === '1') { await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: info.outputPath('track-profile.png'), fullPage: true }); }
@@ -64,7 +73,7 @@ test('archive retains full official tables, FL and race navigation without stale
 test('hall of fame keeps the rcc archive and accessible celebration', async ({ page }, info) => {
   await page.goto('/racing/history?view=hall-of-fame&league=rcc&demo=1'); await expect(page.locator('.history-champions').first()).toContainText('Richard'); await native(page, 'hall-of-fame');
   await expect(page.locator('.native-profile')).toContainText('Saison 13');
-  expect(await page.locator('.history-champions img').first().evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
+  await expect.poll(() => page.locator('.history-champions img').first().evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
   if (process.env.RACEVORA_CAPTURE_UI === '1') { await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: info.outputPath('hall.png'), fullPage: true }); }
   await page.getByRole('button', { name: 'Champions feiern' }).click(); await expect(page.locator('.history-celebration')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' }); await expect(page.locator('.history-celebration')).toBeHidden();
