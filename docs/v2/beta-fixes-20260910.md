@@ -38,3 +38,14 @@ Bestehender öffentlicher Einstieg für RCC: /racing/calendar?league=rcc.
 Keine dedizierte öffentliche Liga-Profilseite gefunden; gespeicherter Discord-Link wird nicht
 gerendert. Eine neue öffentliche Seite ist eine separate Produktentscheidung, nicht Teil
 dieser Fehlerkorrekturen.
+
+## Prüfstand
+
+309 Unit-Tests und 80 native Browser-E2E-Tests bestanden.
+Sieben zusätzliche Layouttests bestanden (320 / 820 / 1280 px; zwei nicht relevante
+Tablet-Tests auf Desktop/Mobil planmäßig übersprungen). Persönliches Farbthema per
+Tastatur ein-/ausklappbar; kein Seitenüberlauf. QA-Webserver nach erfolgreichem
+Testlauf wegen hängender Windows-Prozessbereinigung manuell beendet.
+Sichtprüfung ergänzte eine explizite Einzelspalte für die Renninfos; eigener
+Zeilenpositions-Test schützt gegen erneutes Zusammenlaufen.
+Reale iOS-/Android-Geräte wurden nicht geprüft; Safe Area ist auf CSS-/Theme-Ebene korrigiert.

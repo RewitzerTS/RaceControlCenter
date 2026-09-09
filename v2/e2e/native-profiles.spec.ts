@@ -32,6 +32,9 @@ test('driver, team and race are native with complete statistics and linked navig
   await expect(page.locator('.profile-fastest').last()).toHaveText('26');
   await expect(page.locator('.profile-table-scroll tbody tr').first()).toContainText('1:00:00.000');
   await expect(page.locator('.race-detail-panels > section')).toHaveCount(2);
+  const infoRows = await page.locator('.profile-race-summary dl > div').evaluateAll(elements => elements.map(el => el.getBoundingClientRect().y));
+  expect(infoRows).toHaveLength(6);
+  expect(infoRows.every((y, index) => index === 0 || y > infoRows[index - 1])).toBe(true);
   await expect(page.getByText('Ergebnisversionen', { exact: true })).toHaveCount(0);
   await expect(page.locator('main iframe')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

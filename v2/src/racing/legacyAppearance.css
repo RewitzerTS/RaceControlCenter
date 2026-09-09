@@ -70,7 +70,7 @@
 .native-profile .race-detail-panels .profile-section { margin-top: 16px; }
 .native-profile .race-detail-panels .profile-race-summary { display: block; padding: 0; border: 0; background: transparent; }
 .native-profile .race-detail-panels .profile-flag { width: 32px; height: 22px; margin-bottom: 12px; }
-.native-profile .race-detail-panels dl { display: grid; gap: 0; margin: 0; }
+.native-profile .race-detail-panels dl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin: 0; }
 .native-profile .race-detail-panels dl > div { display: flex; justify-content: space-between; gap: 16px; padding-block: 10px; border-bottom: 1px solid var(--line); }
 .native-profile .race-detail-panels dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
 @media (max-width: 760px) { .native-profile .race-detail-panels { grid-template-columns: minmax(0, 1fr); gap: 0; } }
