@@ -12,7 +12,6 @@
   const rails = [...(story?.querySelectorAll('.story-rail i') || [])];
   const header = document.querySelector('[data-header]');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const mobile = window.matchMedia('(max-width: 700px)');
   const images = new Map();
   const authDrawer = document.querySelector('#racevora-auth-drawer');
   const authFrame = authDrawer?.querySelector('[data-auth-frame]');
@@ -78,7 +77,7 @@
   }
 
   function draw(index) {
-    if (!canvas || mobile.matches || reduceMotion.matches) return false;
+    if (!canvas || reduceMotion.matches) return false;
     const image = images.get(index);
     if (!image?.complete || !image.naturalWidth) return false;
     const context = canvas.getContext('2d', { alpha: false });
@@ -95,6 +94,8 @@
     const drawHeight = image.naturalHeight * scale;
     context.drawImage(image, (width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
     lastFrame = index;
+    canvas.dataset.frame = String(index);
+    story?.classList.add('is-ready');
     return true;
   }
 
@@ -106,7 +107,6 @@
     image.onload = () => {
       if (index === 0) {
         draw(0);
-        story?.classList.add('is-ready');
       }
       if (index === requestedFrame) requestUpdate();
     };
@@ -114,10 +114,11 @@
   }
 
   function beginLoading() {
-    if (started || mobile.matches || reduceMotion.matches) return;
+    if (started || reduceMotion.matches) return;
     started = true;
     loadFrame(0);
     for (let index = 1; index <= 4; index += 1) loadFrame(index);
+    requestUpdate();
   }
 
   function update() {
@@ -129,7 +130,11 @@
     const progress = Math.min(1, Math.max(0, -rect.top / distance));
     const frame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT));
     requestedFrame = frame;
-    if (started && !mobile.matches) {
+    if (started) {
+      // Keep decoded image memory bounded during long touch-scroll sessions.
+      for (const index of images.keys()) {
+        if (Math.abs(index - frame) > 12 && index !== lastFrame) images.delete(index);
+      }
       loadFrame(frame);
       for (let offset = 1; offset <= 4; offset += 1) {
         loadFrame(Math.min(FRAME_COUNT - 1, frame + offset));
@@ -159,12 +164,5 @@
   window.addEventListener('scroll', requestUpdate, { passive: true });
   window.addEventListener('resize', () => { lastFrame = -1; requestUpdate(); }, { passive: true });
   reduceMotion.addEventListener?.('change', () => window.location.reload());
-  mobile.addEventListener?.('change', () => window.location.reload());
-  // A CSS-hidden video still downloads. Attach its source only on eligible screens.
-  const mobileVideo = document.querySelector('.mobile-master');
-  if (mobileVideo && mobile.matches && !reduceMotion.matches) {
-    mobileVideo.src = new URL('racevora-master-mobile.mp4', `${ASSET_ROOT}/`).href;
-    mobileVideo.play()?.catch(() => { /* The poster remains visible if autoplay is unavailable. */ });
-  }
   update();
 })();

@@ -119,7 +119,7 @@ test('track map and race detail are independent actions', async ({ page }) => {
   await expect(page).toHaveURL(/racing\/races\/detail/);
 });
 
-test('landing loads a bounded frame window and no hidden desktop video', async ({ page }, testInfo) => {
+test('landing scrolls frames forward and backward on desktop and mobile without video', async ({ page }, info) => {
   const frames = new Set<string>();
   const videos = new Set<string>();
   page.on('request', (request) => {
@@ -129,16 +129,30 @@ test('landing loads a bounded frame window and no hidden desktop video', async (
   await page.goto('/');
   await expect(page.locator('.cinematic-story')).toBeVisible();
   await page.waitForTimeout(2000); // Observe delayed preloading, not just DOM readiness.
-  if (testInfo.project.name === 'desktop') {
-    expect(frames.size).toBeLessThanOrEqual(9);
-    expect(videos.size).toBe(0);
-    await page.locator('.cinematic-story').evaluate((element) => window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY + (element.clientHeight - window.innerHeight) / 2, behavior: 'instant' }));
-    await expect.poll(() => frames.size).toBeGreaterThan(5);
-    expect(frames.size).toBeLessThan(30);
-  } else {
-    expect(frames.size).toBe(0);
-    expect(videos.size).toBe(1);
-  }
+  const canvas = page.locator('.story-sticky canvas');
+  await expect(canvas).toBeVisible();
+  await expect(canvas).toHaveAttribute('data-frame', '0');
+  expect(frames.size).toBeLessThanOrEqual(9);
+  expect(videos.size).toBe(0);
+  await page.locator('.cinematic-story').evaluate((element) => window.scrollTo({ top: element.getBoundingClientRect().top + window.scrollY + (element.clientHeight - window.innerHeight) / 2, behavior: 'instant' }));
+  await expect.poll(() => frames.size).toBeGreaterThan(5);
+  expect(frames.size).toBeLessThan(30);
+  await expect.poll(async () => Number(await canvas.getAttribute('data-frame'))).toBeGreaterThan(30);
+  if (process.env.RACEVORA_CAPTURE_UI === '1') await page.screenshot({ path: info.outputPath('landing-scroll.png') });
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect(canvas).toHaveAttribute('data-frame', '0');
+  expect(videos.size).toBe(0);
+});
+
+test('landing respects reduced motion without loading frames or video', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const motionRequests: string[] = [];
+  page.on('request', (request) => { if (/\/frames\/frame-|racevora-master-mobile\.mp4/.test(request.url())) motionRequests.push(request.url()); });
+  await page.goto('/');
+  await expect(page.locator('.motion-poster')).toBeVisible();
+  await expect(page.locator('.story-sticky canvas')).toBeHidden();
+  await page.waitForTimeout(1500);
+  expect(motionRequests).toEqual([]);
 });
 
 test('failed results finish loading and can be retried', async ({ page, context }) => {
