@@ -4,7 +4,8 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 60000,
   expect: { timeout: 25000 },
-  workers: 2,
+  // Keep the local Workers proxy stable on memory-constrained development hosts.
+  workers: 1,
   retries: 0,
   reporter: 'list',
   use: { baseURL: process.env.RACEVORA_SMOKE_URL || 'http://127.0.0.1:8789', locale: 'de-DE', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
