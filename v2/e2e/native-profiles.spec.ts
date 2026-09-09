@@ -11,7 +11,7 @@ test('driver, team and race are native with complete statistics and linked navig
   await expect(page.locator('.profile-stats div').filter({ has: page.locator('dt', { hasText: /^Punkte$/ }) }).locator('dd')).toHaveText('26');
   await expect(page.locator('.profile-stats div').filter({ has: page.locator('dt', { hasText: /^Schnellste Runden$/ }) }).locator('dd')).toHaveText('1');
   await expect(page.locator('.profile-flag')).toBeVisible();
-  expect(await page.locator('.profile-flag').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect.poll(() => page.locator('.profile-flag').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await page.locator('.profile-form').evaluate((element) => element.getBoundingClientRect().height)).toBeLessThan(200);
   if (process.env.RACEVORA_CAPTURE_UI === '1') await page.screenshot({ path: testInfo.outputPath('driver.png'), fullPage: true });
@@ -32,7 +32,7 @@ test('driver, team and race are native with complete statistics and linked navig
   await expect(page.locator('.profile-fastest').last()).toHaveText('26');
   await expect(page.locator('.profile-table-scroll tbody tr').first()).toContainText('1:00:00.000');
   await expect(page.locator('.profile-track-map')).toBeVisible();
-  expect(await page.locator('.profile-track-map').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect.poll(() => page.locator('.profile-track-map').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(page.locator('main iframe')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   if (process.env.RACEVORA_CAPTURE_UI === '1') await page.screenshot({ path: testInfo.outputPath('race.png'), fullPage: true });

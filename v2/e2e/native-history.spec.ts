@@ -18,7 +18,7 @@ test('track hub and profile preserve statistics, seasons, local assets and nativ
   else if (viewportWidth <= 600) expect(cardWidth).toBeCloseTo(gridWidth, 0);
   expect(await page.locator('.history-track-thumbnail').evaluate((el) => el.getBoundingClientRect().height)).toBe(120);
   expect(await page.locator('.profile-stats > div').first().evaluate((el) => getComputedStyle(el).borderTopWidth)).toBe('1px');
-  expect(await page.locator('.history-track-thumbnail').evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
+  await expect.poll(() => page.locator('.history-track-thumbnail').evaluate((i: HTMLImageElement) => i.complete && i.naturalWidth > 0)).toBe(true);
   if (process.env.RACEVORA_CAPTURE_UI === '1') { await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: info.outputPath('tracks.png'), fullPage: true }); }
   await page.locator('.history-track-grid a').click(); await native(page, 'track-profile');
   await expect(page.locator('.profile-identity h2')).toHaveText('Japan GP');
