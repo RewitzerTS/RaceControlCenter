@@ -2720,6 +2720,8 @@ export type Database = {
         Returns: Json
       }
       get_league_member_admin_workspace: { Args: never; Returns: Json }
+      get_linkable_league_drivers: { Args: never; Returns: Json }
+      link_league_member_driver: { Args: { p_user_id: string; p_driver_id: string }; Returns: Json }
       get_my_league_join_requests: { Args: never; Returns: Json }
       get_league_race_admin_workspace: { Args: never; Returns: Json }
       get_season_setup_workspace: { Args: never; Returns: Json }

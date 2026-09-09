@@ -1,0 +1,20 @@
+.member-driver-link { display: grid; gap: .5rem; min-width: 0; max-width: 26rem; overflow-wrap: anywhere; }
+.member-driver-link form, .member-driver-link label { display: grid; gap: .65rem; min-width: 0; }
+.member-driver-link select { width: 100%; min-width: 0; max-width: 100%; min-height: 44px; }
+.member-driver-link p { margin: 0; font-size: .9rem; line-height: 1.5; }
+.member-driver-link button { min-height: 44px; white-space: normal; }
+.member-driver-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.member-driver-link .text-action { justify-self: start; }
+.member-driver-link [role="alert"] { color: var(--danger, #ffb4ab); }
+.admin-data-panel .responsive-table td .member-driver-link strong { display: inline; }
+.admin-data-panel .responsive-table .member-driver-link .primary-action { background: var(--brand-primary, #35246a); color: var(--brand-on-primary, #fff); border-color: var(--brand-primary, #35246a); }
+.admin-data-panel .responsive-table .member-driver-link .text-action { color: var(--brand-text, #f7f9fc); }
+.admin-data-panel .responsive-table .member-driver-link button:disabled { opacity: .5; cursor: not-allowed; }
+.admin-data-panel .member-driver-link select { min-width: 0; }
+@media (max-width: 760px) {
+  .member-management-page .responsive-table--records table { min-width: 0; width: 100%; }
+  .member-management-page .responsive-table--records tbody { grid-template-columns: minmax(0, 1fr); }
+  .member-management-page .responsive-table--records td[data-label="Fahrerprofil"] { grid-column: 1 / -1; }
+  .member-management-page .responsive-table--records select { min-width: 0; max-width: 100%; }
+  .member-driver-link { width: 100%; }
+}
