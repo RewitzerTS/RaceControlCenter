@@ -12,7 +12,7 @@ interface AuthContextValue {
   captcha: { enabled: boolean; turnstileSiteKey: string | null };
   requestPasswordRecovery: (email: string, captchaToken: string | null) => Promise<void>;
   signIn: (email: string, password: string, captchaToken: string | null) => Promise<void>;
-  signUp: (email: string, password: string, captchaToken: string | null) => Promise<'signed-in' | 'confirmation-required'>;
+  signUp: (email: string, password: string, captchaToken: string | null) => Promise<'signed-in' | 'confirmation-required' | 'existing-account'>;
   signOut: () => Promise<void>;
   deleteAccount: (confirmationEmail: string) => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
@@ -97,6 +97,7 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
         },
       });
       if (signUpError) throw signUpError;
+      if (!data.session && data.user?.identities?.length === 0) return 'existing-account';
       if (data.session) {
         setError(null);
         setSession(data.session);
@@ -166,4 +167,3 @@ export function useAuth(): AuthContextValue {
   if (!context) throw new Error('useAuth must be used inside AuthProvider.');
   return context;
 }
-

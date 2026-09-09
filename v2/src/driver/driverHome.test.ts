@@ -157,4 +157,12 @@ describe('Driver Home rules', () => {
       target: 3,
     }], now)).toBe(Date.parse('2026-08-27T12:00:00Z'));
   });
+
+  it('does not invent another week for expired tasks awaiting refresh', () => {
+    expect(nextChallengeRotation([{
+      activeFrom: '2026-08-20T12:00:00Z', activeUntil: '2026-08-27T12:00:00Z',
+      code: 'expired', metric: 'starts', progress: 1, rewardVc: 100, status: 'completed', target: 1,
+    }], Date.parse('2026-08-28T12:00:00Z'))).toBe(Date.parse('2026-08-27T12:00:00Z'));
+    expect(nextChallengeRotation([])).toBeNull();
+  });
 });

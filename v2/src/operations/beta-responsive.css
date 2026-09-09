@@ -1,0 +1,31 @@
+.profile-personalization { min-width: 0; }
+.profile-personalization fieldset { min-inline-size: 0; }
+.profile-personalization[open] > .profile-setting-summary::after { content: "−"; }
+.owner-leagues button { color: var(--brand-text); }
+.profile-personalization > .profile-setting-summary { min-height: 44px; cursor: pointer; }
+.profile-personalization > p { margin-top: 16px; }
+.profile-personalization:not([open]) + .profile-theme-preview { display: none; }
+@media (max-width: 980px) {
+  .main-navigation.main-navigation--open { max-height: calc(100dvh - 100px - env(safe-area-inset-top)); overflow-y: auto; overscroll-behavior: contain; }
+  .main-navigation .navigation-league-switcher { flex-basis: 100%; }
+  .main-navigation .navigation-league-switcher .league-switcher { max-width: none; width: 100%; }
+  /* The blurred header contains fixed descendants: keep the picker in flow. */
+  .main-navigation .league-switcher__options, .mobile-more-navigation .league-switcher__options { position: static; inset: auto; width: 100%; max-height: min(320px, 45dvh); margin-top: 8px; }
+  .league-switcher__option { flex-wrap: wrap; }
+  .league-switcher__option strong { white-space: normal; overflow-wrap: anywhere; }
+}
+@media (max-width: 700px) {
+  .profile-personalization .theme-picker { grid-template-columns: minmax(0, 1fr); }
+  .profile-personalization .theme-option { grid-template-columns: auto 70px minmax(0, 1fr); }
+  .profile-personalization .theme-swatches { width: 70px; }
+  .profile-personalization .profile-setting-summary { flex-wrap: wrap; }
+  .operations-page { width: 100%; padding-inline: max(12px, env(safe-area-inset-left)) max(12px, env(safe-area-inset-right)); }
+  .owner-grid { grid-template-columns: minmax(0, 1fr); }
+  .owner-leagues, .owner-flags, .admin-data-panel { min-width: 0; padding: 14px; }
+  .responsive-table--records { width: 100%; margin-inline: 0; padding-inline: 0; }
+  .responsive-table--records table, .responsive-table--records tbody { width: 100%; min-width: 0; }
+  .responsive-table--records :is(button, select) { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+  .responsive-table--records button { height: auto; padding-block: 10px; }
+  .operations-header { align-items: stretch; flex-direction: column; gap: 16px; }
+  .operations-header h1 { overflow-wrap: anywhere; font-size: clamp(1.7rem, 7vw, 2.65rem); }
+}

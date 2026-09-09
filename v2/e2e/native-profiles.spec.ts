@@ -31,8 +31,8 @@ test('driver, team and race are native with complete statistics and linked navig
   await expect(page.locator('.profile-table-scroll tbody tr')).toHaveCount(2);
   await expect(page.locator('.profile-fastest').last()).toHaveText('26');
   await expect(page.locator('.profile-table-scroll tbody tr').first()).toContainText('1:00:00.000');
-  await expect(page.locator('.profile-track-map')).toBeVisible();
-  await expect.poll(() => page.locator('.profile-track-map').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(page.locator('.race-detail-panels > section')).toHaveCount(2);
+  await expect(page.getByText('Ergebnisversionen', { exact: true })).toHaveCount(0);
   await expect(page.locator('main iframe')).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   if (process.env.RACEVORA_CAPTURE_UI === '1') await page.screenshot({ path: testInfo.outputPath('race.png'), fullPage: true });
@@ -62,9 +62,7 @@ test('optional race metadata failure preserves results and allows retry', async 
   await page.goto(`/racing/races/detail?league=rcc&demo=1&round=1&season=${season}`);
   await expect(page.locator('.profile-table-scroll tbody tr')).toHaveCount(2);
   await expect(page.locator('.native-profile [role="alert"]')).toContainText('Steward-Einträge');
-  await page.locator('.native-profile summary').click();
-  await expect(page.locator('.native-profile details')).toContainText('V2 · Aktuell');
-  await expect(page.locator('.native-profile details')).toContainText('V1 · Ersetzt');
+  await expect(page.getByText('Ergebnisversionen', { exact: true })).toHaveCount(0);
   fail = false;
   await page.locator('.native-profile button').click();
   await expect(page.locator('.native-profile')).toContainText('Test incident');

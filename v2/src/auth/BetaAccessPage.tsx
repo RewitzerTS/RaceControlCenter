@@ -21,6 +21,7 @@ export function authErrorFeedbackKey(mode: AccessMode, error: unknown): MessageK
     if (code === 'invalid_credentials' || code === 'user_not_found' || code === 'user_banned') return 'beta.signInInvalid';
     return 'beta.signInError';
   }
+  if (mode === 'sign-up' && (code === 'user_already_exists' || code === 'email_exists')) return 'beta.existingAccount';
   if (mode === 'sign-up') return 'beta.signUpError';
   return 'beta.recoveryError';
 }
@@ -74,6 +75,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         await signIn(email, password, captchaToken);
       } else if (mode === 'sign-up') {
         const result = await signUp(email, password, captchaToken);
+        if (result === 'existing-account') setFeedback({ key: 'beta.existingAccount', tone: 'status' });
         if (result === 'confirmation-required') setFeedback({ key: production ? 'beta.productionConfirmation' : 'beta.confirmation', tone: 'status' });
       } else {
         await requestPasswordRecovery(email, captchaToken);
@@ -172,4 +174,3 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
     </main>
   );
 }
-

@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { authErrorFeedbackKey } from './BetaAccessPage';
 
 describe('authErrorFeedbackKey', () => {
+  it('directs registered emails to login or recovery', () => {
+    expect(authErrorFeedbackKey('sign-up', { code: 'user_already_exists' })).toBe('beta.existingAccount');
+    expect(authErrorFeedbackKey('sign-up', { code: 'email_exists' })).toBe('beta.existingAccount');
+  });
   it('uses a safe shared message for unknown accounts and wrong passwords', () => {
     expect(authErrorFeedbackKey('sign-in', { code: 'invalid_credentials' })).toBe('beta.signInInvalid');
     expect(authErrorFeedbackKey('sign-in', { code: 'user_not_found' })).toBe('beta.signInInvalid');

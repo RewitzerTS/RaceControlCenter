@@ -175,8 +175,9 @@ export function ProfilePage() {
             <button className="primary-action" disabled={saving} type="submit">{saving ? t('pending') : t('steward.save')}</button>
           </form>
         </details>
-        <article className="profile-personalization">
-          <div><p className="section-label">{t('profile.settings')}</p><h2>{t('profile.themeTitle')}</h2><p>{t('profile.themeCopy')}</p></div>
+        <details className="profile-personalization">
+          <summary className="profile-setting-summary"><strong>{t('profile.themeTitle')}</strong><span className="profile-setting-current">{selectedTheme.name}</span></summary>
+          <p>{t('profile.themeCopy')}</p>
           <fieldset className="theme-picker profile-theme-picker">
             <legend>{t('profile.themeTitle')}</legend>
             {THEME_PRESETS.map((theme) => <label key={theme.id} className={themePreset === theme.id ? 'theme-option theme-option--active' : 'theme-option'}><input type="radio" name="personal-theme" checked={themePreset === theme.id} onChange={() => void selectTheme(theme.id)} /><span className="theme-swatches" aria-hidden="true">{[theme.primary, theme.secondary, theme.accent, theme.accent2].map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{theme.name}</strong><small>{theme.subtitle}</small></span></label>)}
@@ -192,7 +193,7 @@ export function ProfilePage() {
           </fieldset>
           {themeFeedback === 'saved' && <p className="form-success" role="status">{t('profile.themeSaved')}</p>}
           {themeFeedback === 'error' && <p className="form-error" role="alert">{t('profile.themeError')}</p>}
-        </article>
+        </details>
         <aside className="profile-theme-preview" style={{ '--preview-primary': selectedTheme.primary, '--preview-secondary': selectedTheme.surface, '--preview-accent': selectedTheme.accent, '--preview-background': selectedTheme.background, '--preview-text': selectedTheme.text, '--preview-on-primary': selectedTheme.textOnPrimary } as CSSProperties}>
           <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{themePreset === CUSTOM_THEME_ID ? t('profile.customTheme') : selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
         </aside>

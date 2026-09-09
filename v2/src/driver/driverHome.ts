@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import type { Database } from '../types/database';
 
@@ -131,7 +131,7 @@ export function nextChallengeRotation(challenges: DriverChallenge[], now = Date.
   if (!challenges.length) return null;
   const scheduledEnd = challenges
     .map((challenge) => challenge.activeUntil ? Date.parse(challenge.activeUntil) : Number.NaN)
-    .filter((value) => Number.isFinite(value) && value > now)
+    .filter(Number.isFinite)
     .sort((left, right) => left - right)[0];
   if (scheduledEnd) return scheduledEnd;
 
@@ -292,23 +292,42 @@ export function useDriverHome(
   const [loading, setLoading] = useState(Boolean(driverIdentityId));
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const loadedIdentity = useRef<string | null>(null);
 
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+
+  useEffect(() => {
+    if (!driverIdentityId || loading) return;
+    const end = nextChallengeRotation(snapshot.challenges);
+    // Refresh at the boundary, retry missing successors, and update on return.
+    const delay = end === null ? 60_000 : Math.max(15_000, Math.min(end - Date.now() + 1_000, 60_000));
+    const timer = globalThis.setTimeout(reload, delay);
+    const onVisible = () => { if (document.visibilityState === 'visible') reload(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      globalThis.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [driverIdentityId, loading, snapshot.challenges, reload, reloadKey]);
 
   useEffect(() => {
     let active = true;
     setError(null);
 
     if (!driverIdentityId) {
+      loadedIdentity.current = null;
       setSnapshot(EMPTY_SNAPSHOT);
       setLoading(false);
       return () => { active = false; };
     }
 
-    setLoading(true);
+    setLoading(loadedIdentity.current !== driverIdentityId);
     void loadSnapshot(client, driverIdentityId)
       .then((nextSnapshot) => {
-        if (active) setSnapshot(nextSnapshot);
+        if (active) {
+          loadedIdentity.current = driverIdentityId;
+          setSnapshot(nextSnapshot);
+        }
       })
       .catch(() => {
         if (active) setError('driver-home-load-failed');
