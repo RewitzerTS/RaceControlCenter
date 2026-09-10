@@ -1,5 +1,27 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { resetRouteScroll } from './App';
+import { resetRouteScroll, resolveExperienceBranding } from './App';
+import { applyLeagueBranding, fallbackLeagueBranding } from './league/leagueBranding';
+
+describe('personal theme independent of league permissions', () => {
+  it('retains saved colors when the league role is missing or failed', () => {
+    const branding = resolveExperienceBranding(fallbackLeagueBranding('rcc'), { theme_preset: 11 }, false, true);
+    expect(branding.slug).toBe('racevora');
+    expect(branding.theme.id).toBe(11);
+    applyLeagueBranding(branding);
+    expect(document.documentElement.style.getPropertyValue('--brand-primary')).toBe('#C7A24E');
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute('content')).toBe('#17191E');
+  });
+  it('updates personal colors without requiring a league role', () => {
+    for (const id of [1, 11, 2]) {
+      const branding = resolveExperienceBranding(fallbackLeagueBranding('rcc'), { theme_preset: id }, false, true);
+      applyLeagueBranding(branding);
+      expect(document.documentElement.dataset.leagueTheme).toBe(String(id));
+    }
+  });
+  it('preserves the public and demo standard palette', () => {
+    expect(resolveExperienceBranding(fallbackLeagueBranding('rcc'), { theme_preset: 11 }, true, false).theme.id).toBe(0);
+  });
+});
 
 afterEach(() => {
   document.body.replaceChildren();

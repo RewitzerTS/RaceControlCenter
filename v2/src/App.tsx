@@ -10,6 +10,12 @@ import { LeagueProvider, useLeague } from './league/LeagueProvider';
 import { applyLeagueBranding, fallbackLeagueBranding, resolvePersonalTheme, shouldUseStandardRaceVoraBranding } from './league/leagueBranding';
 import { RoleProvider, useRole } from './roles/RoleProvider';
 
+export function resolveExperienceBranding(branding: ReturnType<typeof fallbackLeagueBranding>, metadata: unknown, standardPalette: boolean, missingRole: boolean) {
+  if (standardPalette) return fallbackLeagueBranding('racevora');
+  // League identity may fall back, but personal colors are not a permission.
+  return { ...(missingRole ? fallbackLeagueBranding('racevora') : branding), theme: resolvePersonalTheme(metadata) };
+}
+
 export function resetRouteScroll(hash: string): void {
   if (hash) {
     window.requestAnimationFrame(() => {
@@ -49,7 +55,7 @@ function AuthorizedExperience({ environment }: { environment: Parameters<typeof 
   const { branding, leagueSlug } = useLeague();
   const { loading: authLoading, user } = useAuth();
   const { loading: roleLoading, role } = useRole();
-  const useStandardBranding = (!roleLoading && Boolean(user) && !role) || shouldUseStandardRaceVoraBranding({
+  const useStandardBranding = shouldUseStandardRaceVoraBranding({
     authenticated: Boolean(user),
     authLoading,
     leagueSlug,
@@ -58,12 +64,9 @@ function AuthorizedExperience({ environment }: { environment: Parameters<typeof 
   });
 
   useEffect(() => {
-    if (useStandardBranding || !user) {
-      applyLeagueBranding(fallbackLeagueBranding('racevora'));
-      return;
-    }
-    applyLeagueBranding({ ...branding, theme: resolvePersonalTheme(user.user_metadata) });
-  }, [branding, useStandardBranding, user]);
+    applyLeagueBranding(resolveExperienceBranding(branding, user?.user_metadata,
+      useStandardBranding || !user, !roleLoading && !role));
+  }, [branding, useStandardBranding, user, roleLoading, role]);
 
   return <AppShell environment={environment} />;
 }
