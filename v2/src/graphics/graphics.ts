@@ -180,7 +180,7 @@ function raceStatusLabel(value: string | null | undefined): string | null {
   return normalized && RACE_STATUS_CODES.has(normalized) ? normalized : null;
 }
 
-function raceResultTime(row: ResultRow, winnerTimeMs: number | null) {
+export function raceResultTime(row: ResultRow, winnerTimeMs: number | null) {
   const status = row.status.trim().toUpperCase();
   const recordedTime = row.raceTime?.trim();
   const recordedStatus = raceStatusLabel(recordedTime);

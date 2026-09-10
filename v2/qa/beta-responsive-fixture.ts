@@ -16,6 +16,7 @@ export const client = {
 };
 export function useLeague() { return { client, leagueSlug: 'qa-only', setLeagueSlug: () => {}, branding: { name: 'Race Control Center' } }; }
 export function useRole() { return { role: 'platform_owner' }; }
+export function useFeatureFlags() { return { socialGraphics: true }; }
 const user = { id: 'qa-user', email: 'qa@example.invalid', user_metadata: { display_name: 'QA Fahrer', theme_preset: 0 } };
 export function useAuth() { return { loading: false, user, updateThemePreset: async () => {}, updateCustomTheme: async () => {}, updateDisplayName: async () => {} }; }
 export function useDriverIdentity() { return { loading: false, identity: { id: 'qa-identity', public_id: 12345, status: 'active' } }; }

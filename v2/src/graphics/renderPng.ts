@@ -461,7 +461,7 @@ const PILOT_TITLE_LINES: Record<GraphicModel['type'], [string, string]> = {
 function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel, theme: GraphicTheme, options: GraphicRenderOptions, layout: PilotLayout, logo: HTMLImageElement | null, countryFlag: HTMLImageElement | null) {
   const meta = graphicEventMeta(model);
   const brandName = options.branding?.name?.trim() || meta.leagueName;
-  const [firstLine, secondLine] = PILOT_TITLE_LINES[model.type];
+  const [firstLine, secondLine] = model.source.statistics ? ['DRIVER', 'STATISTICS'] : PILOT_TITLE_LINES[model.type];
 
   drawLeagueWatermark(context, brandName, logo, theme, layout);
   drawLeagueName(context, brandName, theme, layout);
@@ -470,7 +470,7 @@ function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel,
   drawCalendarIcon(context, calendarX, layout.headerY - 14 * layout.scale, theme.primary);
   drawText(context, formatGraphicDate(meta.raceDate), layout.width - layout.margin, layout.headerY, 136 * layout.scale, 22 * layout.scale, theme.primary, 750, 14);
   context.textAlign = 'left';
-  drawText(context, model.type === 'achievement' ? model.eyebrow.toUpperCase() : `ROUND ${meta.round ?? '—'}`, layout.margin + 8, layout.eyebrowY, 360 * layout.scale, 23 * layout.scale, theme.primary, 800, 14);
+  drawText(context, model.type === 'achievement' || meta.round === null ? model.eyebrow.toUpperCase() : `ROUND ${meta.round}`, layout.margin + 8, layout.eyebrowY, 360 * layout.scale, 23 * layout.scale, theme.primary, 800, 14);
   drawText(context, firstLine, layout.margin + 8, layout.titleFirstY, layout.width * 0.54, layout.titleSize, theme.text, 900, 34);
   drawText(context, secondLine, layout.margin + 8, layout.titleSecondY, layout.width * 0.58, layout.titleSize, theme.primary, 900, 34);
   const eventMarkX = layout.margin + 8;
@@ -490,6 +490,19 @@ function drawPilotHeader(context: CanvasRenderingContext2D, model: GraphicModel,
 }
 
 function drawPilotRows(context: CanvasRenderingContext2D, model: GraphicModel, theme: GraphicTheme, layout: PilotLayout) {
+  if (model.source.statistics) {
+    const frame = pilotTableFrame(layout);
+    const height = (layout.dataBottom - layout.dataTop) / Math.max(1, model.rows.length);
+    model.rows.forEach((row, index) => {
+      const y = layout.dataTop + height * (index + 0.5);
+      context.textAlign = 'left';
+      drawText(context, row.primary, frame.left + 30, y, frame.width * 0.65, 32 * layout.scale, theme.text, 700, 16);
+      context.textAlign = 'right';
+      drawText(context, row.value, frame.right - 30, y, frame.width * 0.25, 40 * layout.scale, theme.primary, 800, 20);
+    });
+    context.textAlign = 'left';
+    return;
+  }
   const isRaceResult = model.type === 'race_result';
   const isStandings = model.type === 'driver_standings' || model.type === 'team_standings';
   const isPodium = model.type === 'podium';

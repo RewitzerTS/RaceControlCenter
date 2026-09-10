@@ -19,6 +19,8 @@ import {
 import { useRole } from '../roles/RoleProvider';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
+import { driverGraphicCopy } from '../graphics/driverGraphics';
+import { useFeatureFlags } from '../features/FeatureFlagProvider';
 
 const CUSTOM_THEME_FIELDS = [
   ['primary', 'profile.themePrimary'],
@@ -35,7 +37,8 @@ export function ProfilePage() {
   const { deleteAccount, loading: authLoading, updateCustomTheme, updateDisplayName, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { role } = useRole();
-  const { plural, t } = useI18n();
+  const { plural, t, language } = useI18n();
+  const features = useFeatureFlags();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
   const [displayNameEditorOpen, setDisplayNameEditorOpen] = useState(false);
@@ -153,6 +156,7 @@ export function ProfilePage() {
   return (
     <main className="profile-page dashboard-shell" id="main-content">
       <section className="profile-layout">
+        {role && features.socialGraphics && <article className="profile-create-league"><div><h2>{driverGraphicCopy[language].title}</h2><p>{driverGraphicCopy[language].copy}</p></div><NavLink className="primary-action" to="/profile/graphics">{driverGraphicCopy[language].title}</NavLink></article>}
         <article className="hero-main profile-summary">
           <p className="hero-kicker">{t('profile.account')}</p>
           <h1>{displayName || user.email?.split('@')[0] || t('home.defaultDriver')}</h1>

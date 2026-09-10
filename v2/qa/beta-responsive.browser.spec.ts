@@ -1,4 +1,24 @@
 import { expect, test } from '@playwright/test';
+test('driver graphics exports full standings and personal statistics', async ({ page }, info) => {
+  await page.goto('/qa/beta-responsive.html?view=graphics');
+  await expect(page.getByRole('heading', { name: 'Grafik erstellen' })).toBeVisible();
+  await expect(page.locator('canvas')).toBeVisible();
+  await expect.poll(() => page.locator('canvas').evaluate((element: HTMLCanvasElement) => element.getContext('2d')!.getImageData(10, 10, 1, 1).data[3])).toBe(255);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: '../.impeccable/review/driver-graphics-race-' + info.project.name + '.png', fullPage: true });
+  await page.getByText('Fahrerwertung', { exact: true }).click();
+  await expect(page.getByLabel('Fahrerwertung', { exact: true })).toBeChecked();
+  await expect(page.getByRole('button', { name: '3', exact: true })).toBeVisible();
+  const archive = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Alle Seiten herunterladen' }).click();
+  expect((await archive).suggestedFilename()).toMatch(/\.zip$/);
+  await page.getByText('Meine Statistik', { exact: true }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'PNG herunterladen' }).click();
+  expect((await download).suggestedFilename()).toMatch(/\.png$/);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: '../.impeccable/review/driver-graphics-' + info.project.name + '.png', fullPage: true });
+});
 test.beforeEach(async ({ context }) => { await context.route('https://*.supabase.co/**', (route) => route.abort()); });
 test('owner directory opens with keyboard, wraps emails and paginates', async ({ page }, info) => {
   await page.goto('/qa/beta-responsive.html?view=owner');

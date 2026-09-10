@@ -42,6 +42,7 @@ const InstagramStudioPage = lazy(() => import('../graphics/InstagramStudioPage')
 const NotificationCenterPage = lazy(() => import('../operations/NotificationCenterPage').then((module) => ({ default: module.NotificationCenterPage })));
 const VoraPage = lazy(() => import('../vora/VoraPage').then((module) => ({ default: module.VoraPage })));
 const GraphicsStudioPage = lazy(() => import('../graphics/GraphicsStudioPage').then((module) => ({ default: module.GraphicsStudioPage })));
+const DriverGraphicsPage = lazy(() => import('../graphics/DriverGraphicsPage').then((module) => ({ default: module.DriverGraphicsPage })));
 const DemoE2EPage = lazy(() => import('../demo/DemoE2EPage').then((module) => ({ default: module.DemoE2EPage })));
 
 type IconName = 'admin' | 'bell' | 'career' | 'home' | 'league' | 'logout' | 'more' | 'owner' | 'profile' | 'racing' | 'steward' | 'vora';
@@ -530,6 +531,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/career/*" element={leagueRoute(<Suspense fallback={routeLoading}><CareerPage /></Suspense>)} />
           <Route path="/vora" element={leagueRoute(<Suspense fallback={routeLoading}><VoraPage /></Suspense>)} />
           <Route path="/profile" element={<Suspense fallback={routeLoading}><ProfilePage /></Suspense>} />
+          <Route path="/profile/graphics" element={accessLoading ? routeLoading : user && hasLeagueAccess && features.socialGraphics ? <Suspense fallback={routeLoading}><DriverGraphicsPage /></Suspense> : <Navigate replace to="/profile" />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/login" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />
           <Route path="/beta" element={<BetaAccessPage appEnvironment={environment.appEnvironment} />} />

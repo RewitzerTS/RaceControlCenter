@@ -29,7 +29,7 @@ export function fastestLapDriver(rows: PublishedResult[]): string | null {
   return winner;
 }
 
-export function currentResults(races: ResultsRace[], results: PublishedResult[]) {
+export function currentResults<T extends PublishedResult>(races: ResultsRace[], results: T[]) {
   const versions = new Map(races.map((race) => [race.id, race.current_result_version_id]));
   return results.filter((row) => Boolean(versions.get(row.race_id)) && versions.get(row.race_id) === row.result_version_id);
 }
