@@ -41,6 +41,6 @@ describe('driver graphics', () => {
     data.results[1].race_time_ms = 5401250;
     data.results[2].race_time = 'DNF';
     const model = buildDriverGraphic(data, 'race_result', 'season', 'race', '', 'RCC', driverGraphicCopy.en)!;
-    expect(model.rows.map((row) => row.detail).slice(0, 3)).toEqual(['1:30:00', '+1.250', 'DNF']);
+    expect(model.rows.map((row) => row.detail).slice(0, 3)).toEqual(['1:30:00', '+00:01.250', 'DNF']);
   });
 });
