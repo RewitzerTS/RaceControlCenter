@@ -1,5 +1,20 @@
 import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ context }) => { await context.route('https://*.supabase.co/**', (route) => route.abort()); });
+test('owner directory opens with keyboard, wraps emails and paginates', async ({ page }, info) => {
+  await page.goto('/qa/beta-responsive.html?view=owner');
+  const card = page.locator('.owner-users');
+  await expect(card.locator('table')).toHaveCount(0);
+  await card.locator('summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(card.getByText('zweiter@example.invalid')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await card.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: '../.impeccable/review/owner-users-' + info.project.name + '.png' });
+  await card.getByRole('button', { name: 'Weiter', exact: true }).click();
+  await expect(card.getByText('last@example.invalid')).toBeVisible();
+  await card.locator('summary').click();
+  await expect(card.locator('table')).toHaveCount(0);
+});
 test('members and owner use the available width without overflowing controls', async ({ page }, info) => {
   for (const view of ['members', 'owner']) {
     await page.goto('/qa/beta-responsive.html?view=' + view);

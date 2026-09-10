@@ -6,6 +6,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import { loadOwnerSnapshot, setPlatformFlag, type OwnerSnapshot } from './operations';
 import '../graphics/instagram.css';
+import { OwnerUsersCard } from './OwnerUsersCard';
 
 export function OwnerControlPage() {
   const { client, setLeagueSlug } = useLeague();
@@ -42,6 +43,7 @@ export function OwnerControlPage() {
       <section className="owner-leagues"><h2>{t('owner.leagues')}</h2><div className="responsive-table responsive-table--records" role="region" tabIndex={0}><table><thead><tr><th>{t('owner.league')}</th><th>{t('owner.status')}</th><th>{t('owner.action')}</th></tr></thead><tbody>{snapshot.leagues.map((league) => <tr key={league.id}><td data-label={t('owner.league')} data-mobile-primary="true"><strong>{league.name}</strong><small>{league.slug}</small></td><td data-label={t('owner.status')}>{league.status}</td><td data-label={t('owner.action')}><button type="button" onClick={() => { setLeagueSlug(league.slug); navigate(league.slug === 'demo' ? '/owner/demo' : '/admin'); }}>{league.slug === 'demo' ? t('owner.openDemo') : t('owner.open')}</button></td></tr>)}</tbody></table></div></section>
       <section className="owner-flags"><h2>{t('owner.featureFlags')}</h2>{snapshot.flags.map((flag) => <label key={flag.key}><span><strong>{flag.key}</strong><small>{t('owner.flagCopy')}</small></span><input type="checkbox" checked={flag.enabled} onChange={(event) => void toggleFlag(flag.key, event.target.checked)} /></label>)}</section>
     </div>
+    <OwnerUsersCard client={client} />
     {error && <p className="inline-error" role="alert">{t('owner.updateError')}</p>}
   </main>;
 }

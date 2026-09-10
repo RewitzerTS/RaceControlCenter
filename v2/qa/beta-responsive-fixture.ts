@@ -8,6 +8,7 @@ export const client = {
     return query;
   },
   rpc: async (name: string, args: any) => {
+    if (name === 'get_owner_registered_users') return { data: { total: 51, users: args.p_offset ? [{ id: 'last', name: 'Letzter Nutzer', email: 'last@example.invalid' }] : [{ id: 'first', name: 'Ein sehr langer registrierter Anzeigename', email: 'sehr.lange.email.adresse.fuer.den.mobilen.test@example.invalid' }, { id: 'second', name: null, email: 'zweiter@example.invalid' }] }, error: null };
     if (name === 'get_my_league_join_requests') return { data: [], error: null };
     if (name === 'get_owner_control_snapshot') return { data: { counts: { leagues: 12, global_drivers: 20, pending_jobs: 0, failed_jobs: 0 }, leagues, flags: [] }, error: null };
     return membersClient.rpc(name, args);

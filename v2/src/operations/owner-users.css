@@ -1,0 +1,13 @@
+.owner-users { margin-top: 1.5rem; min-width: 0; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.owner-users > summary { padding: clamp(1rem, 3vw, 2rem); cursor: pointer; min-height: 44px; }
+.owner-users > summary h2 { display: inline; margin: 0 0 0 0.4rem; font-size: 1.2rem; }
+.owner-users > summary::marker { color: var(--text); }
+.owner-users-content { padding: 0 clamp(1rem, 3vw, 2rem) 1.5rem; }
+.owner-users table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.owner-users th, .owner-users td { text-align: left; padding: 0.85rem 0.5rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; vertical-align: top; }
+.owner-users th:first-child { width: 38%; }
+.owner-users nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; margin-top: 1rem; }
+.owner-users button { min-height: 44px; padding: 0.5rem 0.8rem; background: transparent; color: var(--text); border: 1px solid var(--line-strong); border-radius: 8px; cursor: pointer; }
+.owner-users button:hover:not(:disabled) { background: var(--surface); }
+.owner-users button:disabled { opacity: 0.5; cursor: default; }
+.owner-users :is(button, summary):focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
