@@ -15,6 +15,14 @@ test('members and owner use the available width without overflowing controls', a
 test('personal theme collapses and reopens with keyboard', async ({ page }, info) => {
   await page.goto('/qa/beta-responsive.html?view=profile');
   const section = page.locator('details.profile-personalization');
+  const deletion = page.locator('details.profile-delete-account');
+  await expect(deletion.locator('.profile-delete-confirmation')).toBeHidden();
+  await deletion.locator(':scope > summary').click();
+  await expect(deletion.locator('.profile-delete-confirmation')).toBeVisible();
+  await expect(deletion.locator('#profile-delete-email')).toBeHidden();
+  await deletion.locator(':scope > summary').click();
+  const summaryLayout = await section.locator('summary').evaluate(el => ({ display: getComputedStyle(el).display, markerColumn: getComputedStyle(el, '::after').gridColumnStart }));
+  expect(summaryLayout).toEqual({ display: 'grid', markerColumn: '2' });
   await expect(section.locator('fieldset')).toBeHidden();
   await section.locator('summary').focus();
   await page.keyboard.press('Enter');
@@ -30,6 +38,7 @@ test('tablet league options remain inside the scrollable menu', async ({ page },
   await page.goto('/qa/beta-responsive.html');
   await page.getByRole('button', { name: 'Menü öffnen' }).click();
   await page.locator('.league-switcher__trigger').click();
+  await expect(page.locator('.league-switcher__indicator')).toBeVisible();
   const options = page.locator('.league-switcher__options');
   await expect(options).toBeVisible();
   const box = await options.boundingBox();
@@ -40,4 +49,3 @@ test('tablet league options remain inside the scrollable menu', async ({ page },
   await page.keyboard.press('Escape');
   await expect(options).toHaveCount(0);
 });
-

@@ -188,6 +188,7 @@ export function LeagueSwitcher({
           <small>{t('leagueSwitcher.active')}</small>
           <strong>{currentLeagueName}</strong>
         </span>
+        <svg className="league-switcher__indicator" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3 5h10l-5 6z" fill="currentColor" /></svg>
       </button>
       {open && <div aria-label={t('leagueSwitcher.change')} className="league-switcher__options" id={optionsId} role="menu">
         {leagues.map((league) => {

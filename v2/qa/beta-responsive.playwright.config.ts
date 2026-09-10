@@ -8,6 +8,5 @@ export default defineConfig({
     { name: 'tablet', use: { viewport: { width: 820, height: 900 } } },
     { name: 'mobile', use: { viewport: { width: 320, height: 844 } } },
   ],
-  webServer: { cwd: fileURLToPath(new URL('..', import.meta.url)), command: 'node node_modules/vite/bin/vite.js --config qa/beta-responsive-vite.config.ts', url: 'http://127.0.0.1:4175/qa/beta-responsive.html', reuseExistingServer: false },
+  webServer: { cwd: fileURLToPath(new URL('..', import.meta.url)), command: 'node node_modules/vite/bin/vite.js --config qa/beta-responsive-vite.config.ts', url: 'http://127.0.0.1:4175/qa/beta-responsive.html', reuseExistingServer: process.env.RACEVORA_REUSE_QA_SERVER === '1' },
 });
-

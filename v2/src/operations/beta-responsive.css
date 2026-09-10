@@ -1,4 +1,15 @@
 .profile-personalization { min-width: 0; }
+.profile-personalization > .profile-setting-summary { display: grid; grid-template-columns: minmax(0, 1fr) 36px; }
+.profile-personalization > .profile-setting-summary::after { grid-column: 2; grid-row: 1; }
+.profile-personalization .profile-setting-current { grid-column: 1; grid-row: 2; margin-left: 0; text-align: left; }
+.profile-delete-account { display: block; }
+.profile-delete-account[open] > .profile-setting-summary { margin-bottom: 16px; }
+.profile-delete-account[open] > .profile-setting-summary::after { content: "−"; }
+.league-switcher__indicator { width: 16px; height: 16px; flex: 0 0 16px; color: var(--brand-text); }
+.league-switcher__trigger[aria-expanded="true"] .league-switcher__indicator { transform: rotate(180deg); }
+/* Paint the actual notch area as well as browser theme-color, including standalone iOS. */
+.site-header { background: var(--brand-surface); }
+.site-header::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top, 0px); background: var(--brand-surface); pointer-events: none; }
 .profile-personalization fieldset { min-inline-size: 0; }
 .profile-personalization[open] > .profile-setting-summary::after { content: "−"; }
 .owner-leagues button { color: var(--brand-text); }

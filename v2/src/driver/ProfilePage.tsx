@@ -203,11 +203,12 @@ export function ProfilePage() {
           <LeagueSwitcher isPlatformOwner={role === 'platform_owner'} userId={user.id} />
         </article>
         <article className="profile-join-requests">
-          <header><p className="section-label">{t('joinRequests.kicker')}</p><h2>{t('joinRequests.title')}</h2><p>{t('joinRequests.intro')}</p></header>
+          <header><p className="section-label">{t('joinRequests.kicker')}</p><h2>{t('joinRequests.title')}</h2></header>
           <LeagueJoinRequestStatusList />
         </article>
-        <article className="profile-session profile-delete-account">
-          <div><p className="section-label">{t('profile.account')}</p><h2>{t('profile.deleteAccount')}</h2><p>{t('profile.deleteAccountCopy')}</p><p className="profile-delete-preserved">{t('profile.deleteAccountPreserved')}</p></div>
+        <details className="profile-session profile-delete-account">
+          <summary className="profile-setting-summary"><strong>{t('profile.deleteAccount')}</strong></summary>
+          <div><p>{t('profile.deleteAccountCopy')}</p><p className="profile-delete-preserved">{t('profile.deleteAccountPreserved')}</p></div>
           <details className="profile-delete-confirmation">
             <summary className="text-action danger-action">{t('profile.deleteAccountOpen')}</summary>
             <div className="profile-delete-confirmation-body">
@@ -219,7 +220,7 @@ export function ProfilePage() {
             </div>
           </details>
           {deleteAccountError && <p className="form-error profile-session-error" role="alert">{t('profile.deleteAccountError')}</p>}
-        </article>
+        </details>
       </section>
     </main>
   );
