@@ -4,3 +4,4 @@ v2/supabase/.temp/
 v2/wrangler.log
 scripts/__pycache__/
 .impeccable/review/
+v2/.impeccable/review/

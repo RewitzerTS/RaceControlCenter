@@ -5,6 +5,7 @@ import { OwnerControlPage } from '../src/operations/OwnerControlPage';
 import { LeagueMembersPage } from '../src/operations/LeagueMembersPage';
 import { ProfilePage } from '../src/driver/ProfilePage';
 import { DriverGraphicsPage } from '../src/graphics/DriverGraphicsPage';
+import { RaceCalendarEditor } from '../src/operations/RaceCalendarEditor';
 import { LeagueSwitcher } from '../src/league/LeagueSwitcher';
 import '../src/styles.css';
 import '../src/beta-ux.css';
@@ -20,7 +21,7 @@ function Fixture() {
         <div className="header-tools"><div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner userId="qa-user" /></div></div>
       </nav>
     </div></header>
-    <div className="shell-frame">{mode === 'graphics' ? <DriverGraphicsPage /> : mode === 'profile' ? <ProfilePage /> : mode === 'members' ? <LeagueMembersPage /> : <OwnerControlPage />}</div>
+    <div className="shell-frame">{mode === 'calendar' ? <main className="operations-page admin-management-page"><RaceCalendarEditor onSaved={async () => {}}/></main> : mode === 'graphics' ? <DriverGraphicsPage /> : mode === 'profile' ? <ProfilePage /> : mode === 'members' ? <LeagueMembersPage /> : <OwnerControlPage />}</div>
   </div></BrowserRouter>;
 }
 createRoot(document.getElementById('root')!).render(<Fixture />);

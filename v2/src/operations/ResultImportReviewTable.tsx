@@ -1,4 +1,5 @@
 import type { AiResultAnalysis, AiResultRow } from './imageResultImport';
+import { canonicalImportTeam, matchImportDriver } from './importMatching';
 import type { ImportedResultRow, LeagueDriver } from './operations';
 import { operationsCopyFor, useOperationsCopy, type OperationsCopy } from './operationsCopy';
 import { parseFastestLapToMs } from './resultCsv';
@@ -30,20 +31,6 @@ function normalize(value: string | null | undefined): string {
     .replace(/[^a-z0-9]/g, '');
 }
 
-function findDriverMatch(rawName: string, drivers: LeagueDriver[]): { driver: LeagueDriver; source: MatchSource } | null {
-  const raw = normalize(rawName);
-  if (!raw) return null;
-  for (const driver of drivers) {
-    if (normalize(driver.gamertag) === raw) return { driver, source: 'gamertag' };
-    if (normalize(driver.display_name) === raw) return { driver, source: 'driverName' };
-  }
-  const candidates = drivers.filter((driver) => {
-    const values = [normalize(driver.gamertag), normalize(driver.display_name)].filter((value) => value.length >= 4);
-    return values.some((value) => value.includes(raw) || raw.includes(value));
-  });
-  return candidates.length === 1 ? { driver: candidates[0], source: 'similar' } : null;
-}
-
 function toField(value: number | string | null | undefined): string {
   return value == null ? '' : String(value);
 }
@@ -52,8 +39,8 @@ export function buildResultReviewRows(analysis: AiResultAnalysis, drivers: Leagu
   const rows = analysis.rows
     .filter((row) => row.driver.trim())
     .sort((left, right) => Number(left.position ?? 999) - Number(right.position ?? 999))
-    .map((row: AiResultRow, index) => {
-      const match = findDriverMatch(row.driver, drivers);
+    .map((row: AiResultRow, index): ResultReviewRow => {
+      const match = matchImportDriver(row.driver, drivers);
       return {
         key: `${index}-${normalize(row.driver) || 'driver'}`,
         driverId: match?.driver.id ?? '',
@@ -66,7 +53,7 @@ export function buildResultReviewRows(analysis: AiResultAnalysis, drivers: Leagu
         fastestLap: row.fastest_lap?.trim() ?? '',
         raceTime: row.race_time?.trim() ?? '',
         points: '0',
-        teamName: match?.driver.league_team?.trim() || row.team?.trim() || '',
+        teamName: match?.driver.league_team?.trim() || canonicalImportTeam(row.team ?? '', drivers),
         carName: match?.driver.car_name?.trim() || '',
       };
     });

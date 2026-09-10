@@ -4,6 +4,7 @@ import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
+import { RaceCalendarEditor } from './RaceCalendarEditor';
 import { completeLeagueSeason, loadRaceAdminWorkspace, type RaceAdminWorkspace } from './operations';
 
 type ViewMode = 'races' | 'results' | 'standings';
@@ -108,6 +109,7 @@ export function LeagueRacesPage() {
     <header className="operations-header"><div><p className="section-label">Ligaleitung · {leagueSlug}</p><h1>{mode === 'races' ? 'Rennen' : mode === 'results' ? 'Ergebnisse' : 'Wertungen'}</h1><p>Rennkalender, offizielle Ergebnisstände und Meisterschaft der aktiven Liga in einer gemeinsamen, revisionssicheren Übersicht.</p></div><NavLink className="text-link" to="/admin">Zur Ligaleitung</NavLink></header>
     <nav className="admin-view-tabs" aria-label="Rennverwaltung"><NavLink to="/admin/races">Rennen</NavLink><NavLink to="/admin/results">Ergebnisse</NavLink><NavLink to="/admin/standings">Wertungen</NavLink></nav>
     <section className="operations-metrics admin-race-metrics" aria-label="Saisonübersicht"><div><strong>{formatNumber(visibleRaces.length)}</strong><span>Rennen</span></div><div><strong>{formatNumber(officialRaces)}</strong><span>Offizielle Ergebnisse</span></div><div><strong>{formatNumber(workspace.driver_standings.length)}</strong><span>Gewertete Fahrer</span></div><div><strong>{currentSeason?.name ?? '—'}</strong><span>Aktive Saison</span></div></section>
+    {mode === 'races' && currentSeason && <RaceCalendarEditor key={`${leagueSlug}:${currentSeason.id}`} onSaved={reload}/>}
     {completionMessage && <section className="season-completion-success" role="status"><p>{completionMessage}</p><NavLink className="text-link" to="/racing/history?view=seasons">Saisonarchiv öffnen</NavLink></section>}
     {mode === 'races' && currentSeason && <section className="season-completion-panel" aria-labelledby="season-completion-title">
       <div><p className="section-label">Saisonverwaltung</p><h2 id="season-completion-title">{currentSeason.name} abschließen</h2><p>Alle Rennen, Ergebnisversionen und Wertungen bleiben unverändert erhalten und werden im Kalender-Archiv verfügbar.</p></div>

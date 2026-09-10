@@ -8,6 +8,8 @@ export const client = {
     return query;
   },
   rpc: async (name: string, args: any) => {
+    if (name === 'get_editable_race_calendar') return { data: { season_id: 'qa', tracks: [{ key: 'monaco', grand_prix_name: 'Monaco GP' }, { key: 'spa', grand_prix_name: 'Belgien GP' }], races: [{ id: 'qa-race', round: 1, name: 'Monaco GP', track_key: 'monaco', date: '2026-11-20', time: '20:00', weather: 'dynamisch', has_sprint: false, updated_at: '2026-09-10T00:00:00Z', locked: false }, { id: 'qa-locked', round: 2, name: 'Geschütztes Rennen', locked: true }] }, error: null };
+    if (name === 'update_league_calendar_race') return { data: { saved: true }, error: null };
     if (name === 'get_owner_registered_users') return { data: { total: 51, users: args.p_offset ? [{ id: 'last', name: 'Letzter Nutzer', email: 'last@example.invalid' }] : [{ id: 'first', name: 'Ein sehr langer registrierter Anzeigename', email: 'sehr.lange.email.adresse.fuer.den.mobilen.test@example.invalid' }, { id: 'second', name: null, email: 'zweiter@example.invalid' }] }, error: null };
     if (name === 'get_my_league_join_requests') return { data: [], error: null };
     if (name === 'get_owner_control_snapshot') return { data: { counts: { leagues: 12, global_drivers: 20, pending_jobs: 0, failed_jobs: 0 }, leagues, flags: [] }, error: null };

@@ -21,7 +21,6 @@ import {
   buildResultReviewRows,
   ResultImportReviewTable,
   resultReviewRowsToImported,
-  reviewRowsReady,
   type ResultReviewRow,
 } from './ResultImportReviewTable';
 import { parseResultCsv } from './resultCsv';
@@ -176,7 +175,12 @@ export function ResultImportPage() {
   if (workspaceError && (!races || !drivers || !config)) return <AppState action={<button className="text-action" onClick={() => void reload().catch((error) => setWorkspaceError(error instanceof Error ? error.message : copy('import.workspaceLoadError')))} type="button">{copy('shared.retry')}</button>} copy={workspaceError} title={copy('import.workspaceLoadErrorTitle')} tone="error" />;
   if (!races || !drivers || !config) return <AppState copy={copy('import.loading')} title={copy('import.loadingTitle')} tone="loading" />;
 
-  const saveReady = reviewRows.length ? reviewRowsReady(reviewRows) : importMethod === 'csv' && csv.trim().split(/\r?\n/).length > 1;
+  let reviewError = '';
+  if (reviewRows.length) {
+    try { resultReviewRowsToImported(reviewRows, drivers.drivers, copy); }
+    catch (error) { reviewError = error instanceof Error ? error.message : copy('review.assignAllError'); }
+  }
+  const saveReady = reviewRows.length ? !reviewError : importMethod === 'csv' && csv.trim().split(/\r?\n/).length > 1;
   const availableRaces = races ? activeSeasonRaces(races) : [];
   const scoringRules = resultScoringRulesForRace(races, raceId);
   return <main className="operations-page admin-management-page" id="main-content">
@@ -197,7 +201,8 @@ export function ResultImportPage() {
         : importMethod === 'csv'
           ? <label><span>{copy('import.checkCsv')}</span><textarea aria-describedby="result-review-hint" aria-label={copy('import.checkCsv')} rows={12} value={csv} onChange={(event) => setCsv(event.target.value)}/><small id="result-review-hint">{copy('import.checkCsvHint')}</small></label>
           : <div className="result-import-waiting"><strong>{copy('import.waitingTitle')}</strong><p>{copy('import.waitingCopy')}</p></div>}
-      <div className="admin-form-actions result-import-save-actions"><button className="primary-action" disabled={busy !== '' || !raceId || !saveReady} onClick={() => void create()} type="button">{copy('import.saveDraft')}</button><small>{copy('import.officialUnchanged')}</small></div>
+      {reviewError && <p className="inline-error" id="result-save-blocker" role="status">{reviewError}{reviewRows.some((row) => !row.driverId) && <>: {reviewRows.filter((row) => !row.driverId).map((row) => row.rawDriver).join(', ')}</>}</p>}
+      <div className="admin-form-actions result-import-save-actions"><button aria-describedby={reviewError ? 'result-save-blocker' : undefined} className="primary-action" disabled={busy !== '' || !raceId || !saveReady} onClick={() => void create()} type="button">{copy('import.saveDraft')}</button><small>{copy('import.officialUnchanged')}</small></div>
     </section>
     <section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">{copy('import.release')}</p><h2>{copy('import.reviewedDrafts')}</h2></div><strong>{config.result_drafts.length}</strong></div>{config.result_drafts.length ? <div className="workflow-list">{config.result_drafts.map((draft) => <article key={draft.id}><div><h3>{draft.race_name} · V{draft.version_number}</h3><p>{draft.change_reason}</p><small>{copy('import.rows', { count: draft.row_count, status: draft.status })}</small></div><button className="primary-action" disabled={busy !== ''} onClick={() => void publish(draft.id)} type="button">{copy('import.publishNow')}</button></article>)}</div> : <EmptyState copy={copy('import.noDraftsCopy')} title={copy('import.noDraftsTitle')} />}</section>
   </main>;

@@ -84,3 +84,16 @@ test('tablet league options remain inside the scrollable menu', async ({ page },
   await page.keyboard.press('Escape');
   await expect(options).toHaveCount(0);
 });
+test('calendar edits keep a compact accessible form', async ({ page }, testInfo) => {
+  await page.goto('/qa/beta-responsive.html?view=calendar');
+  await page.getByText('Rennkalender bearbeiten', { exact: true }).click();
+  const buttons = page.getByRole('button', { name: 'Rennen bearbeiten', exact: true });
+  await expect(buttons.nth(1)).toBeDisabled();
+  await buttons.first().click();
+  await page.getByLabel('Datum', { exact: true }).fill('2026-12-01');
+  await expect(page.getByLabel('Startzeit (Berlin)')).toHaveValue('20:00');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBeTruthy();
+  await page.screenshot({ path: `.impeccable/review/calendar-editor-${testInfo.project.name}.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Änderungen speichern' }).click();
+  await expect(page.getByText('Änderungen gespeichert. Bestehende Ergebnisse bleiben unverändert.')).toBeVisible();
+});

@@ -1,0 +1,25 @@
+.race-calendar-editor > summary {
+  cursor: pointer;
+  min-height: 44px;
+  align-content: center;
+  font-weight: 700;
+}
+.race-calendar-editor .admin-form {
+  background: none;
+  border: 0;
+  padding-inline: 0;
+}
+.race-calendar-editor .calendar-sprint-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.race-calendar-editor .calendar-sprint-toggle input {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  flex: 0 0 20px;
+}
+.race-calendar-editor .admin-form-actions { gap: 12px; }
+.race-calendar-editor input, .race-calendar-editor select { font-size: 16px; }

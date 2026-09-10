@@ -2828,6 +2828,14 @@ export type Database = {
         Args: { p_calendar: Json; p_season_id: string }
         Returns: Json
       }
+      get_editable_race_calendar: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      update_league_calendar_race: {
+        Args: { p_race_id: string; p_expected_updated_at: string; p_entry: Json }
+        Returns: Json
+      }
       configure_league_season_rules_and_calendar: {
         Args: { p_calendar: Json; p_fastest_lap_bonus_enabled: boolean; p_season_id: string }
         Returns: Json
