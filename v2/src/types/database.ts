@@ -2642,6 +2642,20 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_driver_onboarding_with_code: {
+        Args: {
+          p_display_name: string
+          p_gamertag: string
+          p_league_identifier?: string
+          p_nationality_code?: string
+          p_real_name?: string
+        }
+        Returns: Json
+      }
+      get_current_league_join_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       create_league: {
         Args: { p_is_public?: boolean; p_name: string; p_slug: string }
         Returns: Json

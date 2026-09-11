@@ -127,8 +127,8 @@ export function AdminWorkspacePage() {
           <h2 id="admin-navigation-title">{t('admin.navigation')}</h2>
           <div className="operations-league-access">
             <span>{t('admin.leagueId')}</span>
-            <code title={snapshot.league.id}>{snapshot.league.id}</code>
-            <button aria-live="polite" className="operations-league-id-copy" onClick={() => void copyLeagueId(snapshot.league.id)} type="button">{leagueIdCopyState === 'copied' ? t('admin.leagueIdCopied') : t('admin.copyLeagueId')}</button>
+            <code>{snapshot.league.join_code}</code>
+            <button disabled={!snapshot.league.join_code} aria-live="polite" className="operations-league-id-copy" onClick={() => void copyLeagueId(snapshot.league.join_code!)} type="button">{leagueIdCopyState === 'copied' ? t('admin.leagueIdCopied') : t('admin.copyLeagueId')}</button>
             <NavLink className="operations-join-requests-link" to="/admin/users">{t('admin.manageJoinRequests')}</NavLink>
             {leagueIdCopyState === 'failed' && <span className="visually-hidden" role="status">{t('admin.leagueIdCopyFailed')}</span>}
           </div>

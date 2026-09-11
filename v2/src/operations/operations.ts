@@ -16,7 +16,7 @@ export type MetricCounts = {
 };
 
 export type AuditItem = { id: string; action: string; entity_type: string; occurred_at: string };
-export type OwnerLeague = { id: string; name: string; slug: string; status: string };
+export type OwnerLeague = { id: string; name: string; slug: string; status: string; join_code?: string };
 export type PlatformFlag = { key: string; enabled: boolean; description_key: string; updated_at: string };
 export type AdminSnapshot = { league: OwnerLeague; counts: MetricCounts; recent_audit: AuditItem[] };
 export type OwnerSnapshot = { counts: MetricCounts; leagues: OwnerLeague[]; flags: PlatformFlag[]; recent_audit: AuditItem[] };
@@ -196,7 +196,11 @@ function object(value: Json | null): Record<string, Json | undefined> {
 export async function loadAdminSnapshot(client: LeagueSupabaseClient): Promise<AdminSnapshot> {
   const response = await client.rpc('get_league_admin_workspace');
   if (response.error) throw response.error;
-  return object(response.data) as unknown as AdminSnapshot;
+  const code = await client.rpc('get_current_league_join_code');
+  if (code.error) throw code.error;
+  if (typeof code.data !== 'string' || !/^\d{5}$/.test(code.data)) throw new Error('Liga-Beitrittscode konnte nicht geladen werden. Bitte erneut versuchen.');
+  const snapshot = object(response.data) as unknown as AdminSnapshot;
+  return { ...snapshot, league: { ...snapshot.league, join_code: code.data } };
 }
 
 export async function loadOwnerSnapshot(client: LeagueSupabaseClient): Promise<OwnerSnapshot> {

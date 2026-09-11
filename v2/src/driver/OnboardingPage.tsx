@@ -54,7 +54,7 @@ export function OnboardingPage() {
       nationalityCode: nationalityCode.trim().toUpperCase(),
     };
     try {
-      const response = await client.rpc('complete_driver_onboarding', {
+      const response = await client.rpc('complete_driver_onboarding_with_code', {
         p_display_name: profile.displayName,
         p_gamertag: profile.gamertag,
         p_real_name: profile.realName,
@@ -74,7 +74,7 @@ export function OnboardingPage() {
         },
       });
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : '';
+      const message = reason && typeof reason === 'object' && 'message' in reason ? String(reason.message) : '';
       setError(message.includes('League ID') ? t('onboarding.leagueNotFound') : t('onboarding.submitError'));
       setBusy(false);
     }
