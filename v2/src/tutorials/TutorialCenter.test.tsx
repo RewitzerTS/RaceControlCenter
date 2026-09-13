@@ -15,6 +15,18 @@ function renderCenter(props: Partial<React.ComponentProps<typeof TutorialCenter>
 }
 
 describe('TutorialCenter', () => {
+  beforeEach(() => {
+    vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+      matches: false, media: query, onchange: null,
+      addListener: vi.fn(), removeListener: vi.fn(),
+      addEventListener: vi.fn(), removeEventListener: vi.fn(), dispatchEvent: vi.fn(),
+    })));
+  });
+  afterEach(() => {
+    document.querySelectorAll('[data-tutorial-test-target]').forEach((target) => target.remove());
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
   it('does not advance or pretend to highlight a missing target', async () => {
     renderCenter();
     fireEvent.click(screen.getByRole('button', { name: 'Open tutorials' }));
@@ -23,6 +35,8 @@ describe('TutorialCenter', () => {
     expect(screen.getByText(/This section is not available yet/)).toBeInTheDocument();
     const target = document.createElement('section');
     target.className = 'dashboard-hero';
+    target.scrollIntoView = vi.fn();
+    target.dataset.tutorialTestTarget = 'true';
     document.body.append(target);
     await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled());
     target.remove();
