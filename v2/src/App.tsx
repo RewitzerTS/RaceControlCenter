@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { BrowserRouter, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
+import { OwnerMfaGate } from './auth/OwnerMfaGate';
 import { AppShell } from './components/AppShell';
 import { EnvironmentGate } from './components/EnvironmentGate';
 import { DriverIdentityProvider } from './driver/DriverIdentityProvider';
@@ -93,7 +94,9 @@ function AuthBridge({ environment }: { environment: Parameters<typeof AppShell>[
   const { client } = useLeague();
   return (
     <AuthProvider captcha={environment.authCaptcha} client={client}>
-      <AuthorizedShell environment={environment} />
+      <OwnerMfaGate client={client} production={environment.appEnvironment === 'production'}>
+        <AuthorizedShell environment={environment} />
+      </OwnerMfaGate>
     </AuthProvider>
   );
 }

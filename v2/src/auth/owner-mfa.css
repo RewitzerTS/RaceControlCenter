@@ -1,0 +1,36 @@
+.owner-mfa {
+  min-height: 100svh;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  padding: max(32px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  color: var(--text, #f5f7ff);
+}
+.owner-mfa-panel {
+  width: min(100%, 520px);
+  min-width: 0;
+  padding: clamp(20px, 5vw, 36px);
+  border: 1px solid var(--line-strong, #444856);
+  border-radius: 20px;
+  background: var(--surface, #171a22);
+}
+.owner-mfa-panel h1 { margin: 8px 0 20px; font-size: clamp(1.75rem, 6vw, 2.25rem); line-height: 1.15; overflow-wrap: anywhere; }
+.owner-mfa-panel p { line-height: 1.6; }
+.owner-mfa-panel form { display: grid; gap: 12px; margin-block: 24px 12px; }
+.owner-mfa-panel label { font-weight: 650; }
+.owner-mfa-panel button, .owner-mfa-panel summary, .owner-mfa-panel select, .owner-mfa-panel input { min-height: 44px; }
+.owner-mfa-panel button { white-space: normal; overflow-wrap: anywhere; }
+.owner-mfa-panel .primary-action { width: 100%; }
+.owner-mfa-panel input[type="text"], .owner-mfa-panel select { width: 100%; min-width: 0; padding: 12px; border: 1px solid var(--line-strong, #687082); border-radius: 10px; background: var(--bg, #101219); color: inherit; font-size: 1.2rem; }
+.owner-mfa-panel input[type="text"] { letter-spacing: .16em; font-variant-numeric: tabular-nums; }
+.owner-mfa-qr { display: block; width: 224px; height: auto; max-width: 100%; margin: 20px auto; padding: 12px; background: #fff; border-radius: 8px; }
+.owner-mfa-key, .owner-mfa-recovery { border-top: 1px solid var(--line-strong, #444856); margin-top: 20px; padding-top: 12px; }
+.owner-mfa-panel summary { cursor: pointer; align-content: center; line-height: 1.5; }
+.owner-mfa-key code { display: block; padding: 12px; font-size: 1rem; overflow-wrap: anywhere; user-select: all; }
+.owner-mfa-panel .owner-mfa-backup { display: flex; gap: 12px; align-items: flex-start; line-height: 1.5; font-size: .95rem; font-weight: 400; cursor: pointer; }
+.owner-mfa-backup input { flex: 0 0 20px; width: 20px; margin: 0; }
+.owner-mfa-note { font-size: .875rem; }
+.owner-mfa-error { color: #ffb5bf; }
+.owner-mfa-signout { margin-top: 12px; }
+.owner-mfa-panel button:disabled { cursor: not-allowed; opacity: .65; }
+.owner-mfa-panel :focus-visible { outline: 3px solid #f4f7ff; outline-offset: 3px; }

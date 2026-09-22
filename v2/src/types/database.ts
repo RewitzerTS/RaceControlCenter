@@ -2695,6 +2695,7 @@ export type Database = {
         Returns: Json
       }
       current_app_role: { Args: never; Returns: string }
+      get_owner_mfa_status: { Args: never; Returns: Json }
       enqueue_race_summary_notification: {
         Args: {
           p_dedupe_key: string
