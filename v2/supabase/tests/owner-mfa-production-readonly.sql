@@ -1,5 +1,6 @@
 -- Production-safe permission checks: no fixture rows or factor changes.
-begin read only;
+begin;
+set transaction read only;
 do $$
 begin
   perform set_config('test.owner_id', (select user_id::text from public.platform_owners limit 1), true);
