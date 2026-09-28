@@ -21,6 +21,7 @@ import { useDriverIdentity } from './DriverIdentityProvider';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 import { driverGraphicCopy } from '../graphics/driverGraphics';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
+import { ProfileGamertagEditor } from './ProfileGamertagEditor';
 
 const CUSTOM_THEME_FIELDS = [
   ['primary', 'profile.themePrimary'],
@@ -179,6 +180,7 @@ export function ProfilePage() {
             <button className="primary-action" disabled={saving} type="submit">{saving ? t('pending') : t('steward.save')}</button>
           </form>
         </details>
+        <ProfileGamertagEditor key={user.id} />
         <details className="profile-personalization">
           <summary className="profile-setting-summary"><strong>{t('profile.themeTitle')}</strong><span className="profile-setting-current">{selectedTheme.name}</span></summary>
           <p>{t('profile.themeCopy')}</p>

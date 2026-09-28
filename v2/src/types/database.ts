@@ -2632,6 +2632,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      update_my_gamertag: {
+        Args: { p_gamertag: string }
+        Returns: string
+      }
       complete_driver_onboarding: {
         Args: {
           p_display_name: string

@@ -1,4 +1,9 @@
 .profile-personalization { min-width: 0; }
+.profile-gamertag-card .profile-form { min-height: 0; margin-top: 1rem; }
+.profile-gamertag-card .profile-form input { width: 100%; min-width: 0; box-sizing: border-box; }
+.profile-gamertag-card .profile-form p { margin: 0; }
+.profile-gamertag-card .profile-form .form-error { color: #ff8b8d; }
+.profile-gamertag-card .profile-form .form-success { color: var(--muted); }
 .profile-personalization > .profile-setting-summary { display: grid; grid-template-columns: minmax(0, 1fr) 36px; }
 .profile-personalization > .profile-setting-summary::after { grid-column: 2; grid-row: 1; }
 .profile-personalization .profile-setting-current { grid-column: 1; grid-row: 2; margin-left: 0; text-align: left; }

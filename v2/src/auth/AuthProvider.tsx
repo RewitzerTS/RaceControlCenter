@@ -3,6 +3,7 @@ import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, 
 import { CUSTOM_THEME_ID, customThemeMetadata, type CustomThemeColors } from '../league/leagueBranding';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import { ACCOUNT_DELETION_FUNCTION } from './accountDeletion';
+import { saveOwnGamertag } from '../driver/gamertag';
 
 interface AuthContextValue {
   session: Session | null;
@@ -16,6 +17,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   deleteAccount: (confirmationEmail: string) => Promise<void>;
   updateDisplayName: (displayName: string) => Promise<void>;
+  updateGamertag: (gamertag: string) => Promise<void>;
   updateThemePreset: (themePreset: number) => Promise<void>;
   updateCustomTheme: (theme: CustomThemeColors) => Promise<void>;
   completeOnboarding: (profile: { displayName: string; gamertag: string; realName: string; nationalityCode: string }) => Promise<void>;
@@ -129,6 +131,13 @@ export function AuthProvider({ captcha, client, children }: PropsWithChildren<{
       });
       if (updateError) throw updateError;
       setSession((current) => current && data.user ? { ...current, user: data.user } : current);
+    },
+    updateGamertag: async (gamertag) => {
+      const saved = await saveOwnGamertag(client, gamertag);
+      setSession((current) => current && current.user.id === session?.user.id ? {
+        ...current,
+        user: { ...current.user, user_metadata: { ...current.user.user_metadata, gamertag: saved } },
+      } : current);
     },
     updateCustomTheme: async (theme) => {
       const { data, error: updateError } = await client.auth.updateUser({
