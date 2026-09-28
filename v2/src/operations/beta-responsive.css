@@ -1,4 +1,11 @@
 .profile-personalization { min-width: 0; }
+.profile-logo-theme { display: grid; gap: 0.6rem; min-width: 0; }
+.profile-logo-theme .text-action { justify-self: start; max-width: 100%; min-height: 44px; white-space: normal; text-align: left; }
+.profile-logo-theme :is(p, small) { margin: 0; color: var(--muted); overflow-wrap: anywhere; }
+.profile-logo-theme [role="alert"] { color: var(--brand-text); }
+.profile-logo-theme-preview { display: grid; gap: 0.7rem; padding: 1rem; border-radius: 12px; min-width: 0; overflow-wrap: anywhere; }
+.profile-logo-theme-preview > span:first-child { font-size: 0.8rem; }
+.profile-logo-theme-sample { justify-self: start; padding: 0.65rem 1rem; border-radius: 8px; font-weight: 700; }
 .profile-gamertag-card .profile-form { min-height: 0; margin-top: 1rem; }
 .profile-gamertag-card .profile-form input { width: 100%; min-width: 0; box-sizing: border-box; }
 .profile-gamertag-card .profile-form p { margin: 0; }

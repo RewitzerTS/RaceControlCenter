@@ -22,6 +22,8 @@ import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 import { driverGraphicCopy } from '../graphics/driverGraphics';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import { ProfileGamertagEditor } from './ProfileGamertagEditor';
+import { ProfileLogoTheme } from './ProfileLogoTheme';
+import { useLeague } from '../league/LeagueProvider';
 
 const CUSTOM_THEME_FIELDS = [
   ['primary', 'profile.themePrimary'],
@@ -40,6 +42,7 @@ export function ProfilePage() {
   const { role } = useRole();
   const { plural, t, language } = useI18n();
   const features = useFeatureFlags();
+  const { branding, brandingLoading, leagueSlug } = useLeague();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
   const [displayNameEditorOpen, setDisplayNameEditorOpen] = useState(false);
@@ -50,6 +53,7 @@ export function ProfilePage() {
   const [customTheme, setCustomTheme] = useState<CustomThemeColors>(() => toCustomThemeColors(THEME_PRESETS[0]));
   const [hasStoredCustomTheme, setHasStoredCustomTheme] = useState(false);
   const [themeSaving, setThemeSaving] = useState(false);
+  const [logoImportBusy, setLogoImportBusy] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState(false);
@@ -120,7 +124,7 @@ export function ProfilePage() {
   }
 
   async function saveCustomTheme() {
-    if (!customThemeHasAccessibleContrast(customTheme)) return;
+    if (logoImportBusy || themeSaving || !customThemeHasAccessibleContrast(customTheme)) return;
     setThemeSaving(true);
     setThemeFeedback(null);
     try {
@@ -184,17 +188,23 @@ export function ProfilePage() {
         <details className="profile-personalization">
           <summary className="profile-setting-summary"><strong>{t('profile.themeTitle')}</strong><span className="profile-setting-current">{selectedTheme.name}</span></summary>
           <p>{t('profile.themeCopy')}</p>
-          <fieldset className="theme-picker profile-theme-picker">
+          <fieldset className="theme-picker profile-theme-picker" disabled={themeSaving || logoImportBusy}>
             <legend>{t('profile.themeTitle')}</legend>
             {THEME_PRESETS.map((theme) => <label key={theme.id} className={themePreset === theme.id ? 'theme-option theme-option--active' : 'theme-option'}><input type="radio" name="personal-theme" checked={themePreset === theme.id} onChange={() => void selectTheme(theme.id)} /><span className="theme-swatches" aria-hidden="true">{[theme.primary, theme.secondary, theme.accent, theme.accent2].map((color) => <i key={color} style={{ background: color }} />)}</span><span><strong>{theme.name}</strong><small>{theme.subtitle}</small></span></label>)}
             <label className={themePreset === CUSTOM_THEME_ID ? 'theme-option theme-option--active' : 'theme-option'}><input type="radio" name="personal-theme" checked={themePreset === CUSTOM_THEME_ID} onChange={selectCustomTheme} /><span className="theme-swatches" aria-hidden="true">{[customTheme.primary, customTheme.secondary, customTheme.accent, customTheme.accent2].map((color, index) => <i key={`${index}-${color}`} style={{ background: color }} />)}</span><span><strong>{t('profile.customTheme')}</strong><small>{t('profile.customThemeCopy')}</small></span></label>
             {themePreset === CUSTOM_THEME_ID && <div className="profile-custom-theme-editor" role="group" aria-label={t('profile.customTheme')}>
               <p>{t('profile.customThemeHint')}</p>
+              <ProfileLogoTheme key={`${user.id}:${leagueSlug}:${branding.logoUrl}`} logoUrl={!brandingLoading && branding.slug === leagueSlug ? branding.logoUrl : ''} leagueName={branding.name} disabled={themeSaving || brandingLoading} onBusy={setLogoImportBusy} onColors={(colors) => { setCustomTheme(colors); setThemeFeedback(null); }} />
+              <div className="profile-logo-theme-preview" aria-label={t('profile.logoThemePreview')} style={{ background: customTheme.background, color: customTheme.text }}>
+                <span>{t('profile.logoThemePreview')}</span>
+                <strong>{branding.name}</strong>
+                <span className="profile-logo-theme-sample" style={{ background: customTheme.primary, color: customTheme.textOnPrimary }}>{t('profile.logoThemeSample')}</span>
+              </div>
               <div className="profile-custom-theme-fields">
                 {CUSTOM_THEME_FIELDS.map(([key, label]) => <label className="profile-custom-theme-field" key={key}><span><strong>{t(label)}</strong><small>{customTheme[key]}</small></span><input aria-label={t(label)} type="color" value={customTheme[key]} onChange={(event) => patchCustomTheme(key, event.target.value)} /></label>)}
               </div>
               {!customThemeContrastSafe && <p className="form-error" role="status">{t('profile.customThemeContrast')}</p>}
-              <button className="primary-action" disabled={themeSaving || !customThemeContrastSafe} onClick={() => void saveCustomTheme()} type="button">{themeSaving ? t('pending') : t('profile.customThemeSave')}</button>
+              <button className="primary-action" disabled={themeSaving || logoImportBusy || !customThemeContrastSafe} onClick={() => void saveCustomTheme()} type="button">{themeSaving ? t('pending') : t('profile.customThemeSave')}</button>
             </div>}
           </fieldset>
           {themeFeedback === 'saved' && <p className="form-success" role="status">{t('profile.themeSaved')}</p>}
