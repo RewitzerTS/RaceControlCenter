@@ -83,5 +83,5 @@ do $$ begin
   begin perform public.save_league_team_lineup('next',null,null,'Forbidden','{}','[]',''); raise exception 'Outsider write allowed'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
-rollback;
 select 'team_management_workflow_rollback_tests_passed' as result;
+rollback;
