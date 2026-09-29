@@ -37,7 +37,9 @@ describe('sequential image imports', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Jetzt offiziell freigeben' }));
     await waitFor(() => expect(mocks.publish).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(save()).not.toBeDisabled());
-    await analyze('r2'); await waitFor(() => expect(save()).not.toBeDisabled()); fireEvent.click(save());
+    await analyze('r2'); await waitFor(() => expect(save()).toBeDisabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Zuordnung bestätigen' }));
+    await waitFor(() => expect(save()).not.toBeDisabled()); fireEvent.click(save());
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
     expect(mocks.create.mock.calls[1][1]).toBe('r2');
     expect(mocks.create.mock.calls[1][2][0].driver_id).toBe('carlos');

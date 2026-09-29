@@ -19,13 +19,18 @@ function oneEditApart(a: string, b: string): boolean {
 export function matchImportDriver(rawName: string, drivers: LeagueDriver[]) {
   const raw = normalizedName(rawName);
   if (!raw) return null;
-  const exact = drivers.filter((driver) => [driver.gamertag, driver.display_name].some((name) => normalizedName(name) === raw));
-  if (exact.length === 1) return { driver: exact[0], source: normalizedName(exact[0].gamertag) === raw ? 'gamertag' as const : 'driverName' as const };
+  const names = (driver: LeagueDriver) => [driver.gamertag, driver.display_name, ...(driver.gamertag_aliases ?? [])];
+  const destinations = (matches: LeagueDriver[]) => [...new Map(matches.map(driver => {
+    const target = drivers.find(item => item.id === driver.import_driver_id) ?? driver;
+    return [target.id, target] as const;
+  })).values()];
+  const exact = destinations(drivers.filter(driver => names(driver).some(name => normalizedName(name) === raw)));
+  if (exact.length === 1) return { driver: exact[0], source: normalizedName(exact[0].display_name) === raw ? 'driverName' as const : 'gamertag' as const };
   if (exact.length > 1 || raw.length < 4) return null;
-  const candidates = drivers.filter((driver) => [driver.gamertag, driver.display_name].some((name) => {
+  const candidates = destinations(drivers.filter((driver) => names(driver).some((name) => {
     const value = normalizedName(name);
     return value.length >= 4 && (value.includes(raw) || raw.includes(value) || oneEditApart(raw, value));
-  }));
+  })));
   return candidates.length === 1 ? { driver: candidates[0], source: 'similar' as const } : null;
 }
 

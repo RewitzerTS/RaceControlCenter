@@ -22,6 +22,7 @@ import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 import { driverGraphicCopy } from '../graphics/driverGraphics';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import { ProfileGamertagEditor } from './ProfileGamertagEditor';
+import { GamertagAliasesEditor } from './GamertagAliasesEditor';
 import { ProfileLogoTheme } from './ProfileLogoTheme';
 import { useLeague } from '../league/LeagueProvider';
 
@@ -185,6 +186,7 @@ export function ProfilePage() {
           </form>
         </details>
         <ProfileGamertagEditor key={user.id} />
+        {identity?.status === 'active' && <GamertagAliasesEditor key={`aliases-${user.id}-${leagueSlug}`} />}
         <details className="profile-personalization">
           <summary className="profile-setting-summary"><strong>{t('profile.themeTitle')}</strong><span className="profile-setting-current">{selectedTheme.name}</span></summary>
           <p>{t('profile.themeCopy')}</p>

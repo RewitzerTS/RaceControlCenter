@@ -68,6 +68,7 @@ function requireInteger(value: string, label: string, minimum: number, copy: Ope
 
 export function resultReviewRowsToImported(rows: ResultReviewRow[], drivers: LeagueDriver[], copy: OperationsCopy = operationsCopyFor('de')): ImportedResultRow[] {
   if (!rows.length) throw new Error(copy('review.emptyError'));
+  if (rows.some(row => row.matchSource === 'similar')) throw new Error(copy('review.assignAllError'));
   const driverIds = rows.map((row) => row.driverId);
   if (driverIds.some((id) => !id)) throw new Error(copy('review.assignAllError'));
   if (new Set(driverIds).size !== driverIds.length) throw new Error(copy('review.duplicateDriverError'));
@@ -98,7 +99,7 @@ export function resultReviewRowsToImported(rows: ResultReviewRow[], drivers: Lea
 }
 
 export function reviewRowsReady(rows: ResultReviewRow[]): boolean {
-  return rows.length > 0 && rows.every((row) => row.driverId && row.finishPosition && row.points.trim());
+  return rows.length > 0 && rows.every((row) => row.matchSource !== 'similar' && row.driverId && row.finishPosition && row.points.trim());
 }
 
 function confidencePresentation(row: ResultReviewRow) {
@@ -137,6 +138,10 @@ export function ResultImportReviewTable({ rows, drivers, onChange, scoringRules 
         <strong>{copy('review.rows', { count: rows.length })}</strong>
       </div>
       <p className="result-review-scroll-hint">{copy('review.mobileHint')}</p>
+      {rows.filter(row => row.matchSource === 'similar').map(row => <div className="alias-match-confirmation" key={row.key}>
+        <p>{copy('review.similar')}: <strong>{row.rawDriver}</strong> → {drivers.find(driver => driver.id === row.driverId)?.display_name}</p>
+        <button type="button" className="secondary-action" onClick={() => selectDriver(row, row.driverId)}>{copy('review.confirmAssignment')}</button>
+      </div>)}
       <div className="result-review-mobile-list">
         {rows.map((row, index) => {
           const { confidence, confidenceLevel } = confidencePresentation(row);

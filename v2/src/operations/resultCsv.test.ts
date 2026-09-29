@@ -1,7 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { parseFastestLapToMs, parseResultCsv } from './resultCsv';
+import type { LeagueDriver } from './operations';
 
 describe('result CSV import', () => {
+  const aaron = { id: 'aaron', display_name: 'Aaron', gamertag: 'Darkqz', gamertag_aliases: ['D4RK', 'Fabiylolboi'] } as LeagueDriver;
+
+  it('resolves alternate platform names to the existing driver ID', () => {
+    for (const name of ['Darkqz', 'D4RK', 'Fabiylolboi']) {
+      const [row] = parseResultCsv(`driver;position;points\n${name};1;25`, [aaron]);
+      expect(row).toMatchObject({ driver_id: 'aaron', driver_name: name });
+    }
+  });
+
+  it('rejects ambiguous and merely similar names instead of assigning statistics', () => {
+    const duplicate = { ...aaron, id: 'duplicate' };
+    expect(() => parseResultCsv('driver;position;points\nD4RK;1;25', [aaron, duplicate])).toThrow(/nicht eindeutig/);
+    expect(() => parseResultCsv('driver;position;points\nFabiylolbo1;1;25', [aaron])).toThrow(/nicht eindeutig/);
+    expect(() => parseResultCsv('driver;position;points\nNobody;1;25', [aaron])).toThrow(/nicht eindeutig/);
+  });
+
   it('parses fastest laps and quoted values', () => {
     const rows = parseResultCsv([
       'driver;finish_position;grid_position;points;team_name;car_name;fastest_lap_time',

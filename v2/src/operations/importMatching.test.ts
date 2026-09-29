@@ -3,6 +3,14 @@ import { canonicalImportTeam, matchImportDriver } from './importMatching';
 import type { LeagueDriver } from './operations';
 const driver = (id: string, display_name: string, league_team = 'Williams'): LeagueDriver => ({ id, display_name, league_team, gamertag: null } as LeagueDriver);
 describe('conservative AI import matching', () => {
+  it('recognizes platform aliases, deduplicates one driver and refuses collisions', () => {
+    const a = { ...driver('a','Aaron'), gamertag: 'Darkqz', gamertag_aliases: ['D4RK','Fabiylolboi','FABIYLOLBOI'] };
+    for (const name of ['Darkqz','D4RK','Fabiylolboi']) expect(matchImportDriver(name,[a])?.driver.id).toBe('a');
+    const b = { ...driver('b','Other'), gamertag:'D4RK' };
+    expect(matchImportDriver('D4RK',[a,b])).toBeNull();
+    expect(matchImportDriver('D4RK',[a,{...b,import_driver_id:'a'}])?.driver.id).toBe('a');
+    expect(matchImportDriver('_-',[a])).toBeNull();
+  });
   it('recognizes Sain2 without changing the original input or roster', () => {
     const roster = [driver('sainz', 'Carlos Sainz')];
     expect(matchImportDriver('Carlos Sain2', roster)).toMatchObject({ driver: { id: 'sainz' }, source: 'similar' });

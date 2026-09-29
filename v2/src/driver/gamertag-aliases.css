@@ -1,0 +1,19 @@
+.gamertag-aliases { min-width: 0; }
+.gamertag-aliases-body { display: grid; gap: 1rem; margin-top: 1rem; }
+.gamertag-aliases-body p { margin: 0; max-width: 70ch; overflow-wrap: anywhere; }
+.gamertag-alias-list { list-style: none; margin: 0; padding: 0; }
+.gamertag-alias-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--line); }
+.gamertag-alias-list li > div { min-width: 0; overflow-wrap: anywhere; }
+.gamertag-alias-list small { display: block; }
+.gamertag-alias-list button { min-height: 44px; flex-shrink: 0; }
+.gamertag-alias-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.gamertag-alias-form label { display: grid; gap: .5rem; min-width: 0; }
+.gamertag-alias-form input, .gamertag-alias-form select { width: 100%; min-width: 0; min-height: 44px; font: inherit; }
+.gamertag-alias-form button { grid-column: 1 / -1; justify-self: start; }
+.gamertag-aliases :focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.alias-match-confirmation { margin-block: 1rem; }
+@media (max-width: 600px) {
+  .gamertag-alias-form { grid-template-columns: minmax(0, 1fr); }
+  .gamertag-alias-form button { width: 100%; }
+  .gamertag-alias-list li { flex-wrap: wrap; }
+}

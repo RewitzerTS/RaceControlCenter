@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useI18n, type Language } from '../i18n/I18nProvider';
 
 const de = {
+  'review.confirmAssignment': 'Zuordnung bestätigen',
   'shared.scope': 'Ligaleitung · {league}',
   'shared.deniedTitle': 'Zugriff verweigert',
   'shared.back': 'Zur Ligaleitung',
@@ -163,6 +164,7 @@ export type OperationsCopy = (key: OperationsCopyKey, values?: Values) => string
 
 const en: Record<OperationsCopyKey, string> = {
   ...de,
+  'review.confirmAssignment': 'Confirm assignment',
   'import.reasonImages': 'Result import via AI image analysis',
   'import.reasonCsv': 'Result import via CSV',
   'shared.scope': 'League management · {league}', 'shared.deniedTitle': 'Access denied', 'shared.back': 'Back to league management', 'shared.retry': 'Try again', 'shared.close': 'Close', 'shared.save': 'Save', 'shared.saving': 'Saving …', 'shared.edit': 'Edit', 'shared.action': 'Action', 'shared.status': 'Status', 'shared.active': 'Active', 'shared.inactive': 'Inactive',
@@ -174,6 +176,7 @@ const en: Record<OperationsCopyKey, string> = {
 
 const es: Record<OperationsCopyKey, string> = {
   ...en,
+  'review.confirmAssignment': 'Confirmar asignación',
   'import.reasonImages': 'Importación de resultados mediante análisis de imágenes con IA',
   'import.reasonCsv': 'Importación de resultados mediante CSV',
   'shared.scope': 'Dirección de liga · {league}', 'shared.deniedTitle': 'Acceso denegado', 'shared.back': 'Volver a la dirección de liga', 'shared.retry': 'Reintentar', 'shared.close': 'Cerrar', 'shared.save': 'Guardar', 'shared.saving': 'Guardando …', 'shared.edit': 'Editar', 'shared.action': 'Acción', 'shared.status': 'Estado', 'shared.active': 'Activo', 'shared.inactive': 'Inactivo',
@@ -189,6 +192,7 @@ es['review.copy'] = 'Los puntos se calculan según la posición final y la regla
 
 const fr: Record<OperationsCopyKey, string> = {
   ...en,
+  'review.confirmAssignment': 'Confirmer l’affectation',
   'import.reasonImages': 'Import des résultats par analyse d’images avec IA',
   'import.reasonCsv': 'Import des résultats par CSV',
   'shared.scope': 'Direction de ligue · {league}', 'shared.deniedTitle': 'Accès refusé', 'shared.back': 'Retour à la direction de ligue', 'shared.retry': 'Réessayer', 'shared.close': 'Fermer', 'shared.save': 'Enregistrer', 'shared.saving': 'Enregistrement …', 'shared.edit': 'Modifier', 'shared.action': 'Action', 'shared.status': 'Statut', 'shared.active': 'Actif', 'shared.inactive': 'Inactif',

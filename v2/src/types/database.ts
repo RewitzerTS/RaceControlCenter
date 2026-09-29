@@ -2632,6 +2632,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_driver_gamertags: { Args: { p_driver_id?: string }; Returns: Json }
+      add_driver_gamertag: { Args: { p_alias: string; p_platform?: string; p_driver_id?: string }; Returns: Json }
+      remove_driver_gamertag: { Args: { p_alias_id: string; p_driver_id?: string }; Returns: Json }
       update_my_gamertag: {
         Args: { p_gamertag: string }
         Returns: string

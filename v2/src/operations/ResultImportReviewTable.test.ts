@@ -37,6 +37,13 @@ const analysis: AiResultAnalysis = {
 };
 
 describe('result import review table', () => {
+  it('requires explicit confirmation of fuzzy suggestions before saving', () => {
+    const roster = [{ ...drivers[0], display_name: 'Carlos Sainz' }];
+    const rows = buildResultReviewRows({ ...analysis, rows: [{ ...analysis.rows[0], driver: 'Carlos Sain2' }] }, roster);
+    expect(rows[0].matchSource).toBe('similar');
+    expect(() => resultReviewRowsToImported(rows, roster)).toThrow();
+    expect(resultReviewRowsToImported(rows.map(row => ({ ...row, matchSource: 'manual' })), roster)[0].driver_id).toBe(roster[0].id);
+  });
   beforeEach(() => {
     globalThis.localStorage.setItem('racevora.locale', 'de');
   });

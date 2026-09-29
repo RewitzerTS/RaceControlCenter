@@ -1,4 +1,5 @@
-import type { ImportedResultRow } from './operations';
+import type { ImportedResultRow, LeagueDriver } from './operations';
+import { matchImportDriver } from './importMatching';
 
 function detectDelimiter(header: string) {
   return (header.match(/;/g) ?? []).length > (header.match(/,/g) ?? []).length ? ';' : ',';
@@ -42,7 +43,7 @@ export function parseFastestLapToMs(value: string) {
   return total > 0 && total <= 600_000 ? total : undefined;
 }
 
-export function parseResultCsv(text: string): ImportedResultRow[] {
+export function parseResultCsv(text: string, drivers?: LeagueDriver[]): ImportedResultRow[] {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) throw new Error('CSV benötigt Kopfzeile und mindestens eine Ergebniszeile.');
 
@@ -82,7 +83,10 @@ export function parseResultCsv(text: string): ImportedResultRow[] {
       throw new Error(`Ungültige CSV-Zeile ${index + 2}. Fahrer, Position, Startplatz, Punkte und schnellste Runde müssen geprüft werden.`);
     }
 
+    const match = drivers ? matchImportDriver(driver, drivers) : null;
+    if (drivers && (!match || match.source === 'similar')) throw new Error(`CSV-Zeile ${index + 2}: „${driver}“ ist nicht eindeutig. Bitte den genauen Haupt-Gamertag prüfen.`);
     return {
+      ...(match ? { driver_id: match.driver.id } : {}),
       driver_name: driver,
       finish_position: finish,
       grid_position: grid,

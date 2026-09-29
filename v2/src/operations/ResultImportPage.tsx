@@ -139,7 +139,7 @@ export function ResultImportPage() {
     try {
       const rows = reviewRows.length
         ? resultReviewRowsToImported(reviewRows, drivers?.drivers ?? [], copy)
-        : parseResultCsv(csv);
+        : parseResultCsv(csv, drivers?.drivers ?? []);
       const changeReason = copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv');
       await createLeagueResultDraft(client, raceId, rows, changeReason);
       draft.markSaved();
