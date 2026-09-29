@@ -31,7 +31,8 @@ const LeagueBrandingPage = lazy(() => import('../operations/LeagueBrandingPage')
 const LeagueMembersPage = lazy(() => import('../operations/LeagueMembersPage').then((module) => ({ default: module.LeagueMembersPage })));
 const LeagueDriversPage = lazy(() => import('../operations/LeagueDriversPage').then((module) => ({ default: module.LeagueDriversPage })));
 const LeagueRacesPage = lazy(() => import('../operations/LeagueRacesPage').then((module) => ({ default: module.LeagueRacesPage })));
-const LeagueTeamsPage = lazy(() => import('../operations/V1CompletionPages').then((module) => ({ default: module.LeagueTeamsPage })));
+const LeagueTeamsPage = lazy(() => import('../operations/LeagueDriversPage').then((module) => ({ default: module.LeagueDriversPage })));
+const LegacyLeagueTeamsPage = lazy(() => import('../operations/V1CompletionPages').then((module) => ({ default: module.LeagueTeamsPage })));
 const LeagueRulesPage = lazy(() => import('../operations/V1CompletionPages').then((module) => ({ default: module.LeagueRulesPage })));
 const ResultImportPage = lazy(() => import('../operations/V1CompletionPages').then((module) => ({ default: module.ResultImportPage })));
 const LeagueAuditPage = lazy(() => import('../operations/V1CompletionPages').then((module) => ({ default: module.LeagueAuditPage })));
@@ -547,6 +548,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/admin/results" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/standings" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRacesPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/teams" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueTeamsPage /></Suspense> : <Navigate replace to="/" />} />
+          <Route path="/admin/teams/legacy" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LegacyLeagueTeamsPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/rules" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueRulesPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/results/import" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><ResultImportPage /></Suspense> : <Navigate replace to="/" />} />
           <Route path="/admin/audit" element={accessLoading ? routeLoading : canAdmin ? <Suspense fallback={routeLoading}><LeagueAuditPage /></Suspense> : <Navigate replace to="/" />} />

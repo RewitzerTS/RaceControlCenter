@@ -2843,6 +2843,13 @@ export type Database = {
         }
         Returns: Json
       }
+      get_league_team_directory: { Args: Record<PropertyKey, never>; Returns: Json }
+      create_league_team: { Args: { p_name: string }; Returns: string }
+      assign_league_driver_team: { Args: { p_driver_id: string; p_team_id: string | null; p_effective_from_round?: number | null }; Returns: Json }
+      start_league_season_from_profiles: {
+        Args: { p_assignments: Json; p_calendar: Json; p_fastest_lap_bonus_enabled: boolean; p_game_key: string; p_name: string; p_slug: string; p_start_date: string }
+        Returns: Json
+      }
       configure_league_season_calendar: {
         Args: { p_calendar: Json; p_season_id: string }
         Returns: Json

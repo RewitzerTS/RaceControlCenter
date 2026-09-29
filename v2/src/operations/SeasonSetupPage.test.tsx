@@ -1,10 +1,11 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { SeasonSetupPage, shuffledTracks } from './SeasonSetupPage';
+import { SeasonSetupPage, shuffledTracks, generateRaceDates } from './SeasonSetupPage';
 
 vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ user: { id: 'season-tester' } }) }));
 const loadSeasonSetupWorkspace = vi.fn();
+const loadTeamDirectory = vi.fn();
 const leagueClient = vi.hoisted(() => ({}));
 
 vi.mock('../league/LeagueProvider', () => ({
@@ -15,11 +16,16 @@ vi.mock('./operations', async (importOriginal) => ({
   ...await importOriginal<typeof import('./operations')>(),
   loadSeasonSetupWorkspace: (...args: unknown[]) => loadSeasonSetupWorkspace(...args),
 }));
+vi.mock('./leagueTeams', async (importOriginal) => ({
+  ...await importOriginal<typeof import('./leagueTeams')>(),
+  loadTeamDirectory: (...args: unknown[]) => loadTeamDirectory(...args),
+}));
 
 describe('SeasonSetupPage', () => {
   afterEach(() => cleanup());
 
   beforeEach(() => {
+    loadTeamDirectory.mockResolvedValue({ teams: [], profiles: [], preferences: [] });
     sessionStorage.clear();
     Object.defineProperty(window, 'scrollTo', { configurable: true, value: vi.fn() });
     loadSeasonSetupWorkspace.mockResolvedValue({
@@ -69,7 +75,7 @@ describe('SeasonSetupPage', () => {
 
     await screen.findByRole('heading', { name: 'Rennkalender planen' });
     fireEvent.click(screen.getByRole('radio', { name: /Zufällige Reihenfolge/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Kalender zufällig mischen' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kalender erstellen / neu mischen' }));
 
     expect((screen.getByLabelText('Strecke Rennen 1') as HTMLSelectElement).value).toBe('belgium');
     expect((screen.getByLabelText('Strecke Rennen 2') as HTMLSelectElement).value).toBe('bahrain');
@@ -111,6 +117,13 @@ describe('SeasonSetupPage', () => {
 });
 
 describe('shuffledTracks', () => {
+  it('schedules two races on each Monday without advancing the date between them', () => {
+    expect(generateRaceDates(5, '2026-09-28', [1], 2)).toEqual(['2026-09-28', '2026-09-28', '2026-10-05', '2026-10-05', '2026-10-12']);
+  });
+  it('supports multiple weekdays and defaults to one race per day', () => {
+    expect(generateRaceDates(5, '2026-09-29', [1, 3], 2)).toEqual(['2026-09-30', '2026-09-30', '2026-10-05', '2026-10-05', '2026-10-07']);
+    expect(generateRaceDates(2, '2026-09-28', [1])).toEqual(['2026-09-28', '2026-10-05']);
+  });
   it('uses Fisher-Yates without mutating the preset order', () => {
     const tracks = ['a', 'b', 'c'];
 

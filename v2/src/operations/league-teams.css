@@ -1,0 +1,34 @@
+.driver-directory-nav { display: flex; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+.driver-directory-nav a { color: inherit; padding: .75rem 1rem; text-underline-offset: .3em; }
+.driver-directory-nav a.active { background: var(--surface-strong); border-radius: 12px; font-weight: 700; }
+.driver-directory-filters, .team-create-form { display: flex; flex-wrap: wrap; gap: 1rem; align-items: end; margin-block: 1.25rem; }
+.driver-directory-filters > label:first-child, .team-create-form > label { flex: 1 1 16rem; }
+.driver-directory-filters label, .league-team-panel label { display: grid; gap: .5rem; min-width: 0; }
+.driver-directory-filters input[type="search"], .league-team-panel input, .league-team-panel select { width: 100%; min-width: 0; max-width: 100%; min-height: 44px; padding: .7rem; font: inherit; color: inherit; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
+.driver-directory-filters .admin-check { display: flex; align-items: center; min-height: 44px; }
+.league-driver-directory td .text-link { display: block; margin-top: .65rem; }
+.league-driver-directory td, .league-team-directory li { overflow-wrap: anywhere; }
+.league-team-panel { padding: clamp(1rem, 3vw, 1.75rem); background: var(--surface); border-radius: 14px; }
+.league-team-panel h2, .team-assignment-form h3 { margin: 0 0 .7rem; }
+.league-team-panel p { max-width: 70ch; }
+.league-team-directory { list-style: none; padding: 0; margin: 1.5rem 0; }
+.league-team-directory li { display: grid; grid-template-columns: minmax(10rem, 1fr) 2fr; gap: .75rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
+.team-assignment-form { margin-top: 2rem; }
+.driver-roster-disclosure { margin-top: 1.5rem; }
+.driver-roster-disclosure > summary { cursor: pointer; padding: 1rem; font-weight: 700; }
+.driver-roster-disclosure > summary:focus-visible, .driver-directory-nav a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.season-player-fields select { width: 100%; min-width: 0; max-width: 100%; min-height: 44px; padding: .7rem; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
+.season-player-fields label { min-width: 0; }
+.league-driver-directory .table-action-button { color: var(--text); }
+.season-setup-page .season-grid-summary strong, .season-setup-page .season-calendar-table-heading > span, .season-setup-page .season-calendar-table tbody th { color: var(--text); }
+.season-setup-page .season-calendar-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+  .season-setup-page .season-calendar-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .season-setup-page .season-calendar-controls { grid-template-columns: minmax(0, 1fr); }
+  .league-team-directory li { grid-template-columns: 1fr; gap: .35rem; }
+  .team-create-form button { width: 100%; }
+  .league-driver-directory .responsive-table--records td { padding-block: .35rem; }
+  .league-driver-directory .responsive-table--records tr { padding-block: 1rem; }
+}
