@@ -91,5 +91,5 @@ do $$ begin
   begin perform public.create_league_team('Forbidden'); raise exception 'Outsider write permitted'; exception when insufficient_privilege then null; end;
 end $$;
 reset role;
-rollback;
 select 'league_driver_teams_rollback_tests_passed' as result;
+rollback;
