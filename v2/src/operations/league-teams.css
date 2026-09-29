@@ -11,6 +11,41 @@
 .league-team-panel { padding: clamp(1rem, 3vw, 1.75rem); background: var(--surface); border-radius: 14px; }
 .league-team-panel h2, .team-assignment-form h3 { margin: 0 0 .7rem; }
 .league-team-panel p { max-width: 70ch; }
+.team-manager-heading, .team-lineup > header, .team-editor-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.team-manager-heading > div { min-width: 0; }
+.team-manager-context { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 1.5rem; margin-block: 1.5rem 1rem; }
+.team-manager-tabs { display: flex; flex-wrap: wrap; gap: .5rem; }
+.team-manager-tabs button { min-height: 44px; padding: .75rem 1rem; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
+.team-manager-tabs button[aria-pressed="true"] { background: var(--surface-strong); outline: 2px solid var(--text); font-weight: 700; }
+.team-manager :is(button, summary, input, select):focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
+.team-manager button { max-width: 100%; min-height: 44px; white-space: normal; }
+.team-manager button:disabled { cursor: not-allowed; }
+.team-manager button:not(:disabled):hover { filter: brightness(1.15); }
+.team-manager input { caret-color: var(--text); }
+.team-manager ::selection { background: var(--text); color: var(--surface); }
+.team-lineup-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-block: 1.5rem; }
+.team-lineup { min-width: 0; border-top: 1px solid var(--line-strong); padding-block: 1.25rem; }
+.team-lineup h3 { margin: 0; font-size: 1.25rem; overflow-wrap: anywhere; }
+.team-lineup > header > span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.team-lineup ul, .team-unassigned ul { padding: 0; margin: 1rem 0; list-style: none; }
+.team-lineup li { display: flex; justify-content: space-between; align-items: center; min-height: 72px; gap: 1rem; overflow-wrap: anywhere; }
+.team-lineup li > div, .team-unassigned li > div { display: grid; gap: .3rem; min-width: 0; }
+.team-driver-car { flex: 0 1 40%; text-align: right; }
+.team-driver-detail, .team-empty-seat, .team-lineup li span, .team-unassigned li span, .team-view-label { color: color-mix(in srgb, var(--text) 78%, var(--surface)); }
+.team-lineup-editor { border-block: 1px solid var(--line-strong); padding-block: 1.5rem; margin-block: 1.5rem; }
+.team-lineup-editor fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.team-lineup-editor legend { padding: 0 0 1rem; font-weight: 700; font-size: 1.25rem; }
+.team-editor-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-block: 1.5rem; }
+.team-editor-slots > div { min-width: 0; }
+.team-editor-departures { display: grid; gap: 1rem; margin-block: 1.5rem; }
+.team-unassigned { border-top: 1px solid var(--line-strong); padding-block: 1rem; }
+.team-unassigned summary { cursor: pointer; min-height: 44px; font-weight: 700; }
+.team-unassigned li { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 1rem; padding-block: .75rem; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .team-manager-context, .team-lineup-list, .team-editor-slots { grid-template-columns: minmax(0, 1fr); }
+  .team-manager-heading > button, .team-editor-actions > button { width: 100%; }
+  .team-manager-tabs button { flex: 1 1 8rem; }
+}
 .league-team-directory { list-style: none; padding: 0; margin: 1.5rem 0; }
 .league-team-directory li { display: grid; grid-template-columns: minmax(10rem, 1fr) 2fr; gap: .75rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
 .team-assignment-form { margin-top: 2rem; }

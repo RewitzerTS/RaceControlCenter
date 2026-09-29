@@ -2847,6 +2847,8 @@ export type Database = {
         Returns: Json
       }
       get_league_team_directory: { Args: Record<PropertyKey, never>; Returns: Json }
+      get_league_team_manager: { Args: { p_mode: string; p_round: number | null }; Returns: Json }
+      save_league_team_lineup: { Args: { p_mode: string; p_round: number | null; p_original_name: string | null; p_name: string; p_driver_ids: string[]; p_departures: Json; p_revision: string }; Returns: Json }
       create_league_team: { Args: { p_name: string }; Returns: string }
       assign_league_driver_team: { Args: { p_driver_id: string; p_team_id: string | null; p_effective_from_round?: number | null }; Returns: Json }
       start_league_season_from_profiles: {

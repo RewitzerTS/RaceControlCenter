@@ -1,64 +1,119 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { NavLink, useSearchParams } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
-import { assignLeagueTeam, createLeagueTeam, type TeamDirectory } from './leagueTeams';
-import { loadRosterWorkspace, vehicleChangeRounds, type RosterWorkspace } from './roster';
+import { useI18n } from '../i18n/I18nProvider';
+import { vehicleChangeRounds } from './roster';
+import { departingMembers, loadTeamManager, saveTeamManager, teamEditReady, type TeamEdit, type TeamManager, type TeamMode } from './teamManager';
+import { teamManagerCopy, teamManagerError } from './teamManagerCopy';
 
-export function LeagueTeamPanel({ directory, onSaved }: { directory: TeamDirectory; onSaved: () => Promise<void> }) {
+export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
   const { client } = useLeague();
+  const { language } = useI18n();
+  const copy = teamManagerCopy[language];
   const [params] = useSearchParams();
-  const [name, setName] = useState('');
-  const [driverId, setDriverId] = useState(() => directory.profiles.find(profile => profile.id === params.get('driver') && profile.is_active)?.id ?? '');
-  const [teamId, setTeamId] = useState(() => directory.preferences.find(item => item.driver_id === params.get('driver'))?.team_id ?? '');
+  const [mode, setMode] = useState<TeamMode>('current');
   const [round, setRound] = useState('');
-  const [roster, setRoster] = useState<RosterWorkspace | null>(null);
+  const [state, setState] = useState<TeamManager | null>(null);
+  const [edit, setEdit] = useState<TeamEdit | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [saved, setSaved] = useState('');
+  const [saved, setSaved] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [needsReload, setNeedsReload] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     let active = true;
-    void loadRosterWorkspace(client).then(value => { if (active) setRoster(value); }).catch(() => { if (active) setError('Saisonstand konnte nicht geladen werden. Bitte die Seite neu laden.'); });
+    setState(null); setEdit(null); setError(''); setSaved(false); setLoadFailed(false); setNeedsReload(false);
+    void loadTeamManager(client, mode, round ? Number(round) : null)
+      .then(value => { if (active) setState(value); })
+      .catch(() => { if (active) setLoadFailed(true); });
     return () => { active = false; };
-  }, [client]);
-  async function create(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setError(''); setSaved('');
-    try { const id = await createLeagueTeam(client, name); await onSaved(); setName(''); setTeamId(id); setSaved('Liga-Team angelegt. Du kannst jetzt Fahrer zuordnen.'); }
-    catch (reason) { setError(reason instanceof Error ? reason.message : 'Team konnte nicht angelegt werden.'); }
-    finally { setBusy(false); }
+  }, [client, mode, round, retry]);
+  function begin(name: string | null, driverId = '') {
+    if (!state) return;
+    const members = name === null ? [] : state.profiles.filter(p => p.team_name === name);
+    setEdit({ original: name, name: name ?? '', drivers: [members[0]?.id ?? driverId, members[1]?.id ?? ''], departures: {} });
+    setError(''); setSaved(false);
+    requestAnimationFrame(() => {
+      formRef.current?.scrollIntoView({ block: 'center' });
+      formRef.current?.querySelector<HTMLInputElement | HTMLSelectElement>('input:not([readonly]), select')?.focus({ preventScroll: true });
+    });
   }
-  async function assign(event: FormEvent) {
-    event.preventDefault(); setBusy(true); setError(''); setSaved('');
+  async function save(event: FormEvent) {
+    event.preventDefault();
+    if (!state || !edit || busy || needsReload) return;
+    setBusy(true); setError(''); setSaved(false);
     try {
-      await assignLeagueTeam(client, driverId, teamId || null, round ? Number(round) : null);
-      await onSaved();
-      setRoster(await loadRosterWorkspace(client));
-      setSaved(round ? `Teamwechsel ab Rennen ${round} gespeichert. Das Fahrzeug bleibt unverändert.` : 'Team-Vorgabe gespeichert. Die laufende Saison bleibt unverändert.');
-    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Zuordnung konnte nicht gespeichert werden.'); }
-    finally { setBusy(false); }
+      const value = await saveTeamManager(client, state, edit, round ? Number(round) : null);
+      setState(value); setEdit(null); setSaved(true);
+      // A failed refresh of the separate driver list cannot undo a committed lineup.
+      void onSaved().catch(() => undefined);
+    } catch (reason) {
+      setError(teamManagerError(reason, copy));
+      const message = reason && typeof reason === 'object' && 'message' in reason ? String(reason.message) : '';
+      setNeedsReload(message.includes('TEAM_STATE_CHANGED') || message.includes('ROSTER_'));
+    } finally { setBusy(false); }
   }
-  return <section className="league-team-panel" aria-labelledby="league-teams-heading">
-    <h2 id="league-teams-heading">Eigene Liga-Teams</h2>
-    <p>Dein Teamname ist unabhängig vom F1-Fahrzeug. Beispielsweise kann „RCC Racing“ mit Mercedes fahren.</p>
-    <form className="team-create-form" onSubmit={event => void create(event)}>
-      <label><span>Neuer Teamname</span><input required minLength={2} maxLength={80} value={name} onChange={event => setName(event.target.value)} /></label>
-      <button className="primary-action" disabled={busy || name.trim().length < 2} type="submit">Team erstellen</button>
-    </form>
-    {error && <p className="inline-error" role="alert">{error}</p>}
-    {saved && <p className="inline-success" role="status">{saved}</p>}
-    {directory.teams.length === 0 ? <p>Noch keine eigenen Liga-Teams. Erstelle oben das erste Team.</p> : <ul className="league-team-directory">{directory.teams.map(team => {
-      const members = directory.profiles.filter(profile => directory.preferences.some(preference => preference.driver_id === profile.id && preference.team_id === team.id));
-      return <li key={team.id}><strong>{team.name}</strong><span>{members.length ? members.map(profile => `${profile.display_name}${profile.gamertag ? ` · ${profile.gamertag}` : ''}`).join(', ') : 'Noch keine Fahrer zugeordnet'}</span></li>;
-    })}</ul>}
-    <form className="team-assignment-form" onSubmit={event => void assign(event)}>
-      <h3>Fahrer einem Team zuordnen</h3>
-      <div className="admin-form-columns">
-        <label><span>Fahrerprofil</span><select required value={driverId} onChange={event => { const id = event.target.value; setDriverId(id); setTeamId(directory.preferences.find(item => item.driver_id === id)?.team_id ?? ''); setRound(''); setSaved(''); }}><option value="">Fahrer auswählen</option>{directory.profiles.filter(profile => profile.is_active).map(profile => <option key={profile.id} value={profile.id}>{profile.display_name} · {profile.gamertag || 'Gamertag fehlt'}</option>)}</select></label>
-        <label><span>Liga-Team</span><select value={teamId} onChange={event => { setTeamId(event.target.value); if (!event.target.value) setRound(''); }}><option value="">Keine eigene Team-Vorgabe</option>{directory.teams.map(team => <option key={team.id} value={team.id}>{team.name}</option>)}</select></label>
-        <label><span>Gültigkeit</span><select disabled={!teamId || !roster} value={round} onChange={event => setRound(event.target.value)}><option value="">Nur als Vorgabe für die nächste Saison</option>{roster && vehicleChangeRounds(roster.races).map(race => <option key={race.id} value={race.round}>Aktive Saison: ab Rennen {race.round} · {race.name}</option>)}</select></label>
+  const rounds = state ? vehicleChangeRounds(state.races) : [];
+  const canEdit = Boolean(state && (mode === 'next' || (state.season && round && rounds.some(r => r.round === Number(round)))));
+  const unassigned = state?.profiles.filter(p => !p.team_name) ?? [];
+  const race = state?.races.find(r => r.round === Number(round));
+  return <section className="league-team-panel team-manager" aria-labelledby="league-teams-heading">
+    <header className="team-manager-heading"><div><h2 id="league-teams-heading">{copy.title}</h2><p>{copy.intro}</p></div>
+      <button className="primary-action" type="button" disabled={!canEdit || Boolean(edit) || busy} onClick={() => begin(null, state?.profiles.find(p => p.id === params.get('driver'))?.id)}>{copy.create}</button>
+    </header>
+    <div className="team-manager-context">
+      <div className="team-manager-tabs" role="group" aria-label={copy.title}>
+        {(['current', 'next'] as const).map(value => <button key={value} type="button" aria-pressed={mode === value} disabled={Boolean(edit) || busy} onClick={() => { setMode(value); setRound(''); }}>{copy[value]}</button>)}
       </div>
-      <p>{round ? 'Der Teamwechsel gilt ab dem gewählten Rennen und wird für die nächste Saison vorgemerkt. Frühere Ergebnisse bleiben erhalten.' : 'Diese Vorgabe wird bei der nächsten Saison-Einrichtung vorausgewählt. Sie ändert keine laufenden Wertungen.'}</p>
-      <button className="primary-action" disabled={busy || !driverId || !roster} type="submit">{busy ? 'Wird gespeichert …' : 'Team zuordnen'}</button>
-    </form>
-    <details className="driver-roster-disclosure"><summary>Bisherige Teamdaten</summary><p>Die bisherige Sammelbearbeitung von Teamnamen und Fahrzeugen bleibt verfügbar. Für zeitlich begrenzte Saisonwechsel verwende die neue Zuordnung oben.</p><NavLink className="text-link" to="/admin/teams/legacy">Bisherige Teamdaten bearbeiten</NavLink></details>
+      {mode === 'current' && <label><span>{copy.round}</span><select value={round} disabled={!state || Boolean(edit) || busy || !rounds.length} onChange={event => setRound(event.target.value)}>
+        <option value="">{copy.chooseRound}</option>{rounds.map(r => <option key={r.id} value={r.round}>{copy.roundWord} {r.round} · {r.name}</option>)}
+      </select></label>}
+    </div>
+    {!state && (loadFailed ? <div role="alert"><p>{copy.loadError}</p><button type="button" className="text-action" onClick={() => setRetry(value => value + 1)}>{copy.retry}</button></div> : <p role="status">{copy.loading}</p>)}
+    {state && <>
+      <p className="team-context-note">{mode === 'next' ? copy.nextHint : !state.season ? copy.noSeason : !rounds.length ? copy.noRounds : round ? copy.raceHint : copy.chooseHint}</p>
+      {mode === 'current' && state.season && <p className="team-view-label"><strong>{state.season.name}</strong> · {race ? `${copy.roundWord} ${race.round} · ${race.name}` : copy.view}</p>}
+      {error && <div role="alert"><p className="inline-error">{error}</p>{needsReload && <button className="text-action" type="button" onClick={() => { setRound(''); setRetry(value => value + 1); }}>{copy.reload}</button>}</div>}
+      {saved && <p className="inline-success" role="status">{copy.saved}</p>}
+      {edit && <form ref={formRef} className="team-lineup-editor" onSubmit={event => void save(event)}>
+        <fieldset disabled={busy || needsReload}><legend>{copy.editor}</legend>
+          <label><span>{copy.name}</span><input required minLength={2} maxLength={80} readOnly={edit.original !== null} value={edit.name} onChange={event => setEdit({ ...edit, name: event.target.value })} /></label>
+          <div className="team-editor-slots">{([0, 1] as const).map(index => {
+            const selected = state.profiles.find(p => p.id === edit.drivers[index]);
+            return <div key={index}><label><span>{index === 0 ? copy.driver1 : copy.driver2}</span>
+              <select value={edit.drivers[index]} onChange={event => {
+                const drivers: [string, string] = [...edit.drivers]; drivers[index] = event.target.value;
+                setEdit({ ...edit, drivers });
+              }}><option value="">{copy.free}</option>{state.profiles.map(p => <option key={p.id} value={p.id} disabled={edit.drivers[1 - index] === p.id || (mode === 'current' && !p.car_name)}>{p.display_name}{p.gamertag ? ` · ${p.gamertag}` : ''}</option>)}</select>
+            </label>{selected && <p className="team-driver-detail">{selected.car_name || copy.noCar}{selected.team_name && selected.team_name !== edit.original && <><br />{copy.move}: <strong>{selected.team_name}</strong></>}</p>}</div>;
+          })}</div>
+          {departingMembers(state, edit).length > 0 && <div className="team-editor-departures"><p>{copy.departureHint}</p>{departingMembers(state, edit).map(p => <label key={p.id}>
+            <span>{copy.departure} {p.display_name}</span><select required value={edit.departures[p.id] ?? ''} onChange={event => setEdit({ ...edit, departures: { ...edit.departures, [p.id]: event.target.value } })}>
+              <option value="">{copy.destination}</option>{state.teams.filter(t => t.name !== edit.original).map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+            </select></label>)}</div>}
+          <p>{copy.vehicles}</p>
+          <div className="team-editor-actions"><button className="primary-action" type="submit" disabled={!teamEditReady(state, edit, round ? Number(round) : null)}>{busy ? copy.saving : copy.save}</button>
+            <button className="text-action" type="button" onClick={() => { setEdit(null); setError(''); }}>{copy.cancel}</button></div>
+        </fieldset>
+      </form>}
+      {state.teams.length === 0 && <p>{copy.empty}</p>}
+      <div className="team-lineup-list">{state.teams.map(team => {
+        const members = state.profiles.filter(p => p.team_name === team.name);
+        return <article className="team-lineup" key={team.name} aria-label={team.name}>
+          <header><h3>{team.name}</h3><span>{members.length} / 2</span></header>
+          <ul>{members.map(p => <li key={p.id}><div><strong>{p.display_name}</strong><span>{p.gamertag}</span></div><span className="team-driver-car">{p.car_name || copy.noCar}</span></li>)}
+            {Array.from({ length: Math.max(0, 2 - members.length) }, (_, index) => <li className="team-empty-seat" key={index}>{copy.free}</li>)}</ul>
+          {members.length > 2 && <p>{copy.overfull}</p>}
+          <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || members.length > 2} onClick={() => begin(team.name)}>{copy.edit}</button>
+        </article>;
+      })}</div>
+      <details className="team-unassigned" open={unassigned.length > 0}><summary>{copy.unassigned} ({unassigned.length})</summary>
+        {unassigned.length ? <ul>{unassigned.map(p => <li key={p.id}><div><strong>{p.display_name}</strong><span>{p.gamertag} · {p.car_name || copy.noCar}</span></div>
+          <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || (mode === 'current' && !p.car_name)} onClick={() => begin(null, p.id)}>{copy.assign}</button></li>)}</ul> : <p>{copy.unassignedEmpty}</p>}
+      </details>
+    </>}
+    <details className="driver-roster-disclosure"><summary>{copy.legacy}</summary><p>{copy.legacyHint}</p><NavLink className="text-link" to="/admin/teams/legacy">{copy.legacyLink}</NavLink></details>
   </section>;
 }
