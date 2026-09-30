@@ -36,6 +36,11 @@ describe('team lineup transaction', () => {
     expect(teamEditReady({ ...state, profiles: state.profiles.map(p => ({ ...p, is_active: false })) }, edit, 2)).toBe(false);
     expect(teamEditReady({ ...state, profiles: state.profiles.map(p => ({ ...p, car_name: null })) }, edit, 2)).toBe(false);
   });
+  it('renames a team centrally but rejects collisions and departures back into the retired name', () => {
+    expect(teamEditReady(state, { ...edit, name: 'Hobbyracer' }, 2)).toBe(true);
+    expect(teamEditReady(state, { ...edit, name: 'Beta' }, 2)).toBe(false);
+    expect(teamEditReady(state, { ...edit, name: 'Hobbyracer', departures: { b: 'Alpha' } }, 2)).toBe(false);
+  });
   it('next-season planning has no effective round or car requirement', () => {
     const next = { ...state, mode: 'next' as const, season: null, profiles: state.profiles.map(p => ({ ...p, car_name: null })) };
     expect(teamEditReady(next, edit, null)).toBe(true);

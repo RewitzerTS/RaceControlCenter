@@ -49,8 +49,10 @@ describe('roster workflow', () => {
     fireEvent.change(screen.getByLabelText('Gültig ab Rennen'), { target: { value: '2' } });
     expect(screen.queryByRole('option', { name: /Abgeschlossen/ })).toBeNull();
     fireEvent.change(screen.getByLabelText('Neues Fahrzeug / F1-Sitz'), { target: { value: 'ai' } });
+    expect(screen.queryByLabelText('Team ab diesem Rennen')).toBeNull();
+    expect(screen.getByText(/Liga-Team bleibt unverändert/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Fahrzeugwechsel speichern' }));
-    await waitFor(() => expect(rpc).toHaveBeenCalledWith('change_season_vehicle', { p_driver_id: 'human', p_effective_from_round: 2, p_team_name: 'Team Neu', p_car_name: 'Auto Neu', p_ai_driver_id: 'ai' }));
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('change_league_vehicle', { p_driver_id: 'human', p_effective_from_round: 2, p_car_name: 'Auto Neu', p_ai_driver_id: 'ai' }));
   });
   it('keeps user input and explains a concurrent result lock', async () => {
     rpc.mockImplementation(async (name: string) => ({ data: name === 'get_league_roster_workspace' ? workspace : null, error: name === 'set_race_substitution' ? { message: 'ROSTER_RACE_LOCKED' } : null }));

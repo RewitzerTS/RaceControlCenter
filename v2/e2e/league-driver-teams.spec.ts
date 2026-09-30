@@ -113,7 +113,7 @@ test('outgoing driver requires a destination; failed save preserves choices', as
   const state = await fixture(context, { error: 'TEAM_FULL' });
   await page.goto('/admin/teams');
   await page.getByLabel('Änderungen gültig ab').selectOption('2');
-  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Besetzung bearbeiten' }).click();
+  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team bearbeiten' }).click();
   await page.getByRole('combobox', { name: 'Fahrer 1', exact: true }).selectOption(state.drivers[1].id);
   await expect(page.getByRole('button', { name: 'Besetzung speichern' })).toBeDisabled();
   await page.getByRole('combobox', { name: 'Neues Team für Test Driver 1', exact: true }).selectOption('Junior');
@@ -129,13 +129,39 @@ test('stale edit requires explicit reload without writing again', async ({ page,
   const state = await fixture(context, { error: 'TEAM_STATE_CHANGED' });
   await page.goto('/admin/teams');
   await page.getByLabel('Änderungen gültig ab').selectOption('2');
-  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Besetzung bearbeiten' }).click();
+  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team bearbeiten' }).click();
   await page.getByRole('button', { name: 'Besetzung speichern' }).click();
   await expect(page.getByRole('alert')).toContainText('zwischenzeitlich geändert');
   await expect(page.getByRole('button', { name: 'Besetzung speichern' })).toBeDisabled();
   await page.getByRole('button', { name: 'Aktuellen Stand laden' }).click();
   await expect(page.getByLabel('Änderungen gültig ab')).toHaveValue('');
   expect(state.writes).toHaveLength(1);
+});
+
+test('legacy team URL leads to the single manager and preserves the selected driver', async ({ page, context }) => {
+  const state = await fixture(context);
+  await page.goto(`/admin/teams/legacy?driver=${state.drivers[0].id}`);
+  await expect(page).toHaveURL(/\/admin\/teams\?driver=/);
+  await expect(page.getByRole('link', { name: 'Bisherige Teamdaten öffnen' })).toHaveCount(0);
+  await expect(page.getByText('Ersatzfahrer & Fahrzeugwechsel in der laufenden Saison')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Team erstellen', exact: true })).toHaveCount(1);
+  await page.getByLabel('Änderungen gültig ab').selectOption('2');
+  await page.getByLabel('Team für: Test Driver 1').selectOption('Junior');
+  await expect(page.getByLabel('Teamname', { exact: true })).toHaveValue('Junior');
+  await expect(page.getByRole('combobox', { name: 'Fahrer 2', exact: true })).toHaveValue(state.drivers[0].id);
+  await page.getByRole('button', { name: 'Besetzung speichern' }).click();
+  expect(state.writes.at(-1)?.body).toMatchObject({ p_original_name: 'Junior', p_name: 'Junior', p_driver_ids: [state.drivers[1].id, state.drivers[0].id] });
+});
+
+test('team name is edited in the central lineup editor', async ({ page, context }) => {
+  const state = await fixture(context);
+  await page.goto('/admin/teams');
+  await page.getByLabel('Änderungen gültig ab').selectOption('2');
+  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team bearbeiten' }).click();
+  await page.getByLabel('Teamname', { exact: true }).fill('Hobbyracer');
+  await page.getByRole('button', { name: 'Besetzung speichern' }).click();
+  await expect(page.getByRole('status')).toContainText('gespeichert');
+  expect(state.writes.at(-1)?.body).toMatchObject({ p_original_name: 'RCC Racing', p_name: 'Hobbyracer', p_round: 2 });
 });
 
 test('empty league retries loading and can prepare teams without a current season', async ({ page, context }) => {

@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { NavLink, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { vehicleChangeRounds } from './roster';
 import { departingMembers, loadTeamManager, saveTeamManager, teamEditReady, type TeamEdit, type TeamManager, type TeamMode } from './teamManager';
-import { teamManagerCopy, teamManagerError } from './teamManagerCopy';
+import { teamManagerCopy, teamManagerError, teamAssignmentCopy } from './teamManagerCopy';
 
 export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
   const { client } = useLeague();
   const { language } = useI18n();
   const copy = teamManagerCopy[language];
+  const assignmentCopy = teamAssignmentCopy[language];
   const [params] = useSearchParams();
+  const [assigningId, setAssigningId] = useState(params.get('driver') ?? '');
+  const assignmentRef = useRef<HTMLSelectElement>(null);
   const [mode, setMode] = useState<TeamMode>('current');
   const [round, setRound] = useState('');
   const [state, setState] = useState<TeamManager | null>(null);
@@ -33,7 +36,9 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
   function begin(name: string | null, driverId = '') {
     if (!state) return;
     const members = name === null ? [] : state.profiles.filter(p => p.team_name === name);
-    setEdit({ original: name, name: name ?? '', drivers: [members[0]?.id ?? driverId, members[1]?.id ?? ''], departures: {} });
+    const ids = members.map(p => p.id);
+    if (driverId && !ids.includes(driverId) && ids.length < 2) ids.push(driverId);
+    setEdit({ original: name, name: name ?? '', drivers: [ids[0] ?? '', ids[1] ?? ''], departures: {} });
     setError(''); setSaved(false);
     requestAnimationFrame(() => {
       formRef.current?.scrollIntoView({ block: 'center' });
@@ -46,7 +51,7 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
     setBusy(true); setError(''); setSaved(false);
     try {
       const value = await saveTeamManager(client, state, edit, round ? Number(round) : null);
-      setState(value); setEdit(null); setSaved(true);
+      setState(value); setEdit(null); setAssigningId(''); setSaved(true);
       // A failed refresh of the separate driver list cannot undo a committed lineup.
       void onSaved().catch(() => undefined);
     } catch (reason) {
@@ -59,9 +64,10 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
   const canEdit = Boolean(state && (mode === 'next' || (state.season && round && rounds.some(r => r.round === Number(round)))));
   const unassigned = state?.profiles.filter(p => !p.team_name) ?? [];
   const race = state?.races.find(r => r.round === Number(round));
+  const assigning = state?.profiles.find(p => p.id === assigningId);
   return <section className="league-team-panel team-manager" aria-labelledby="league-teams-heading">
     <header className="team-manager-heading"><div><h2 id="league-teams-heading">{copy.title}</h2><p>{copy.intro}</p></div>
-      <button className="primary-action" type="button" disabled={!canEdit || Boolean(edit) || busy} onClick={() => begin(null, state?.profiles.find(p => p.id === params.get('driver'))?.id)}>{copy.create}</button>
+      <button className="primary-action" type="button" disabled={!canEdit || Boolean(edit) || busy} onClick={() => begin(null, assigning?.id)}>{copy.create}</button>
     </header>
     <div className="team-manager-context">
       <div className="team-manager-tabs" role="group" aria-label={copy.title}>
@@ -77,9 +83,16 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
       {mode === 'current' && state.season && <p className="team-view-label"><strong>{state.season.name}</strong> · {race ? `${copy.roundWord} ${race.round} · ${race.name}` : copy.view}</p>}
       {error && <div role="alert"><p className="inline-error">{error}</p>{needsReload && <button className="text-action" type="button" onClick={() => { setRound(''); setRetry(value => value + 1); }}>{copy.reload}</button>}</div>}
       {saved && <p className="inline-success" role="status">{copy.saved}</p>}
+      {assigning && !edit && <div className="team-assignment-choice">
+        <label><span>{assignmentCopy.target}: {assigning.display_name}</span><select ref={assignmentRef} value="" disabled={!canEdit || busy || (mode === 'current' && !assigning.car_name)} onChange={event => { if (event.target.value) begin(event.target.value, assigning.id); }}>
+          <option value="">{assignmentCopy.choose}</option>{state.teams.map(team => <option key={team.name} value={team.name} disabled={state.profiles.filter(p => p.team_name === team.name && p.id !== assigning.id).length >= 2}>{team.name}</option>)}
+        </select></label><p>{assignmentCopy.hint}</p>
+        <button className="text-action" type="button" onClick={() => setAssigningId('')}>{copy.cancel}</button>
+      </div>}
       {edit && <form ref={formRef} className="team-lineup-editor" onSubmit={event => void save(event)}>
         <fieldset disabled={busy || needsReload}><legend>{copy.editor}</legend>
-          <label><span>{copy.name}</span><input required minLength={2} maxLength={80} readOnly={edit.original !== null} value={edit.name} onChange={event => setEdit({ ...edit, name: event.target.value })} /></label>
+          <label><span>{copy.name}</span><input required minLength={2} maxLength={80} value={edit.name} onChange={event => setEdit({ ...edit, name: event.target.value })} /></label>
+          {state.teams.some(t => t.name !== edit.original && t.name.toLocaleLowerCase() === edit.name.trim().toLocaleLowerCase()) && <p role="alert">{copy.duplicate}</p>}
           <div className="team-editor-slots">{([0, 1] as const).map(index => {
             const selected = state.profiles.find(p => p.id === edit.drivers[index]);
             return <div key={index}><label><span>{index === 0 ? copy.driver1 : copy.driver2}</span>
@@ -91,7 +104,7 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
           })}</div>
           {departingMembers(state, edit).length > 0 && <div className="team-editor-departures"><p>{copy.departureHint}</p>{departingMembers(state, edit).map(p => <label key={p.id}>
             <span>{copy.departure} {p.display_name}</span><select required value={edit.departures[p.id] ?? ''} onChange={event => setEdit({ ...edit, departures: { ...edit.departures, [p.id]: event.target.value } })}>
-              <option value="">{copy.destination}</option>{state.teams.filter(t => t.name !== edit.original).map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+              <option value="">{copy.destination}</option>{state.teams.filter(t => t.name !== edit.original && t.name !== edit.name.trim()).map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
             </select></label>)}</div>}
           <p>{copy.vehicles}</p>
           <div className="team-editor-actions"><button className="primary-action" type="submit" disabled={!teamEditReady(state, edit, round ? Number(round) : null)}>{busy ? copy.saving : copy.save}</button>
@@ -111,9 +124,8 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
       })}</div>
       <details className="team-unassigned" open={unassigned.length > 0}><summary>{copy.unassigned} ({unassigned.length})</summary>
         {unassigned.length ? <ul>{unassigned.map(p => <li key={p.id}><div><strong>{p.display_name}</strong><span>{p.gamertag} · {p.car_name || copy.noCar}</span></div>
-          <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || (mode === 'current' && !p.car_name)} onClick={() => begin(null, p.id)}>{copy.assign}</button></li>)}</ul> : <p>{copy.unassignedEmpty}</p>}
+          <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || (mode === 'current' && !p.car_name)} onClick={() => { setAssigningId(p.id); requestAnimationFrame(() => { assignmentRef.current?.scrollIntoView({ block: 'center' }); assignmentRef.current?.focus({ preventScroll: true }); }); }}>{assignmentCopy.assign}</button></li>)}</ul> : <p>{copy.unassignedEmpty}</p>}
       </details>
     </>}
-    <details className="driver-roster-disclosure"><summary>{copy.legacy}</summary><p>{copy.legacyHint}</p><NavLink className="text-link" to="/admin/teams/legacy">{copy.legacyLink}</NavLink></details>
   </section>;
 }

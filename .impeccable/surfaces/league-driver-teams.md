@@ -1,6 +1,14 @@
 # League driver and team administration
 
-## Current change — 2026-09-30
+## Current change — unified team management, 2026-09-30
+
+Scope and release target: Staging only. The user confirmed consolidating the overlapping team editors, not changing Production or the points calculation.
+
+The sole team creation and editing surface is `/admin/teams`. Legacy links redirect here while preserving the driver query. Driver actions choose an existing team in this same surface; a new team is created only with the primary “Team erstellen” action. Team names and the two driver seats share one editor. Current-season changes still require an explicitly selected unrun race, and removing a driver requires another team. Vehicle changes live only in the driver view and preserve the effective independent league team server-side.
+
+Visual finish review: SHIP for this scoped simplification. Desktop overview and narrow-mobile editor captures were inspected; labels, native controls, wrapping and action hierarchy remain usable within the incumbent design. No new image assets or global visual rules. Detector findings: `[]`. Targeted verification: 19 unit tests and 16 desktop/mobile browser tests passed. The Staging migration and rollback-only integration test passed, covering central rename, existing-team assignment guards, team-preserving vehicle changes and unchanged historical results. Advisors match the prior baseline. Full release verification and Staging deployment are recorded in the task handoff.
+
+## Previous change — unified driver editor, 2026-09-30
 
 The user superseded the earlier season-profile-selection requirement: season setup now contains only Season, Calendar and Review. Driver seating happens afterward in Drivers & Teams. The earlier review below describes the preceding release, not this pending change.
 

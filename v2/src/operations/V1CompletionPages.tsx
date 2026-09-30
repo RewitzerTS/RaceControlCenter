@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AppState, EmptyState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
@@ -6,7 +6,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import {
   createLeagueResultDraft, loadConfigurationWorkspace, loadDriverAdminWorkspace, loadRaceAdminWorkspace,
-  publishLeagueResultDraft, renameLeagueTeam, saveLeagueRules,
+  publishLeagueResultDraft, saveLeagueRules,
   type ConfigurationWorkspace, type DriverAdminWorkspace, type LeagueFaq, type RaceAdminWorkspace,
 } from './operations';
 import { analysisToReviewCsv, analyzeRaceResultImages, prepareRaceResultImages } from './imageResultImport';
@@ -23,19 +23,6 @@ function Header({ title, copy }: { title: string; copy: string }) {
 function useAdminAllowed() {
   const { role } = useRole();
   return role === 'league_admin' || role === 'platform_owner';
-}
-
-export function LeagueTeamsPage() {
-  const { client } = useLeague(); const allowed = useAdminAllowed();
-  const [workspace,setWorkspace]=useState<DriverAdminWorkspace|null>(null); const [editing,setEditing]=useState(''); const [name,setName]=useState(''); const [car,setCar]=useState(''); const [busy,setBusy]=useState(false); const [message,setMessage]=useState('');
-  const reload=useCallback(async()=>setWorkspace(await loadDriverAdminWorkspace(client)),[client]);
-  useEffect(()=>{if(allowed) void reload().catch((e)=>setMessage(e instanceof Error?e.message:'Teams konnten nicht geladen werden.'));},[allowed,reload]);
-  const teams=useMemo(()=>{const map=new Map<string,{name:string;car:string;drivers:string[]}>(); for(const d of workspace?.drivers??[]){const key=d.league_team||'Ohne Team'; const item=map.get(key)??{name:key,car:d.car_name??'',drivers:[]}; item.drivers.push(d.display_name); if(!item.car&&d.car_name)item.car=d.car_name; map.set(key,item);} return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));},[workspace]);
-  async function save(){setBusy(true);setMessage('');try{await renameLeagueTeam(client,editing,name,car);await reload();setEditing('');setMessage('Team und zugeordnete Fahrer wurden aktualisiert.');}catch(e){setMessage(e instanceof Error?e.message:'Team konnte nicht gespeichert werden.');}finally{setBusy(false);}}
-  if(!allowed)return <AppState copy="Du benötigst die Rolle Ligaleitung, um Teams und Fahrzeuge zu verwalten." title="Zugriff verweigert" tone="denied" />;
-  if(!workspace&&!message)return <AppState copy="Teams, Fahrzeuge und Fahrerzuordnungen werden geladen." title="Teams werden geladen" tone="loading" />;
-  if(!workspace)return <AppState action={<button className="text-action" onClick={()=>void reload().catch((e)=>setMessage(e instanceof Error?e.message:'Teams konnten nicht geladen werden.'))} type="button">Erneut versuchen</button>} copy={message} title="Teams konnten nicht geladen werden" tone="error" />;
-  return <main className="operations-page admin-management-page" id="main-content"><Header title="Teams verwalten" copy="Teamnamen und Fahrzeuge zentral pflegen. Historische offizielle Ergebnisse bleiben unverändert."/>{message&&<p className={message.includes('aktualisiert')?'inline-success':'inline-error'} role="status">{message}</p>}<section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">Aktuelles Feld</p><h2>Teams</h2></div><strong>{teams.length}</strong></div><div className="team-admin-list">{teams.map((team)=><article key={team.name}><div><h3>{team.name}</h3><p>{team.drivers.join(' · ')}</p><small>{team.car||'Kein Fahrzeug hinterlegt'}</small></div>{editing===team.name?<div className="team-edit-fields"><label><span>Teamname</span><input value={name} onChange={(e)=>setName(e.target.value)}/></label><label><span>Fahrzeug</span><input value={car} onChange={(e)=>setCar(e.target.value)}/></label><button className="primary-action" disabled={busy} onClick={()=>void save()} type="button">Speichern</button><button className="text-action" onClick={()=>setEditing('')} type="button">Abbrechen</button></div>:<button onClick={()=>{setEditing(team.name);setName(team.name);setCar(team.car);}} type="button">Bearbeiten</button>}</article>)}</div></section></main>;
 }
 
 const RULE_SELECTS = [

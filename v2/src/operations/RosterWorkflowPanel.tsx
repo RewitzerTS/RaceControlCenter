@@ -18,7 +18,6 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
   const [driverId, setDriverId] = useState('');
   const [round, setRound] = useState('');
   const [aiId, setAiId] = useState('');
-  const [team, setTeam] = useState('');
   const [car, setCar] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +36,7 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
   const openRounds = vehicleChangeRounds(workspace?.races ?? []);
   const existing = workspace?.substitutions.find((sub) => sub.race_id === raceId && sub.primary_driver_id === primaryId);
   const validSub = Boolean(race && !race.locked && primaryId && subId && primaryId !== subId);
-  const validVehicle = Boolean(driverId && openRounds.some((item) => item.round === Number(round)) && team.trim() && car.trim());
+  const validVehicle = Boolean(driverId && openRounds.some((item) => item.round === Number(round)) && car.trim());
 
   async function mutate(action: () => Promise<void>) {
     if (busy) return;
@@ -49,7 +48,7 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
   function chooseDriver(id: string) {
     setDriverId(id); setAiId('');
     const driver = drivers.drivers.find((item) => item.id === id);
-    setTeam(driver?.league_team ?? ''); setCar(driver?.car_name ?? '');
+    setCar(driver?.car_name ?? '');
   }
   return <section className="admin-data-panel roster-panel" aria-labelledby="roster-title">
     <div className="admin-panel-heading"><div><h2 id="roster-title">{copy.title}</h2><p>{copy.hint}</p></div></div>
@@ -72,17 +71,16 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
         {race?.locked && <p>{copy.locked}</p>}
         {validSub && <p className="roster-summary"><strong>{name(subId)}</strong> {copy.for} <strong>{name(primaryId)}</strong> · {race?.name}</p>}
         <div className="admin-form-actions"><button className="primary-action" type="submit" disabled={busy || !validSub}>{busy ? copy.saving : copy.saveSub}</button>{existing && !race?.locked && <button className="text-action" type="button" disabled={busy} onClick={() => void mutate(async () => { await saveSubstitution(client, raceId, primaryId, null); setSubId(''); })}>{copy.remove}</button>}</div>
-      </form> : <form className="admin-form" onSubmit={(event) => { event.preventDefault(); if (validVehicle) void mutate(() => saveVehicleChange(client, driverId, Number(round), team, car, aiId || null)); }}>
+      </form> : <form className="admin-form" onSubmit={(event) => { event.preventDefault(); if (validVehicle) void mutate(() => saveVehicleChange(client, driverId, Number(round), car, aiId || null)); }}>
         <p>{copy.vehicleHint}</p>
         {!openRounds.length && <p>{copy.noOpen}</p>}
         <fieldset disabled={busy || !openRounds.length} className="roster-fields"><legend className="visually-hidden">{copy.vehicle}</legend>
           <label><span>{copy.driver}</span><select required value={driverId} onChange={(event) => { chooseDriver(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{humans.map((driver) => <option key={driver.id} value={driver.id}>{driver.display_name}</option>)}</select></label>
           <label><span>{copy.from}</span><select required value={round} onChange={(event) => { setRound(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{openRounds.map((item) => <option key={item.id} value={item.round}>{copy.round} {item.round} · {item.name}</option>)}</select></label>
-          {drivers.ai_drivers.length > 0 && <label><span>{copy.seat}</span><select value={aiId} onChange={(event) => { setAiId(event.target.value); const ai = drivers.ai_drivers.find((item) => item.id === event.target.value); if (ai) { setTeam(ai.league_team ?? ''); setCar(ai.car_name ?? ''); } setSaved(false); }}><option value="">{copy.custom}</option>{drivers.ai_drivers.map((ai) => <option key={ai.id} value={ai.id}>{ai.display_name} · {ai.car_name}</option>)}</select></label>}
-          <label><span>{copy.team}</span><input maxLength={80} required value={team} onChange={(event) => { setTeam(event.target.value); setSaved(false); }} /></label>
+          {drivers.ai_drivers.length > 0 && <label><span>{copy.seat}</span><select value={aiId} onChange={(event) => { setAiId(event.target.value); const ai = drivers.ai_drivers.find((item) => item.id === event.target.value); if (ai) setCar(ai.car_name ?? ''); setSaved(false); }}><option value="">{copy.custom}</option>{drivers.ai_drivers.map((ai) => <option key={ai.id} value={ai.id}>{ai.display_name} · {ai.car_name}</option>)}</select></label>}
           <label><span>{copy.car}</span><input maxLength={80} required value={car} onChange={(event) => { setCar(event.target.value); setSaved(false); }} /></label>
         </fieldset>
-        {validVehicle && <p className="roster-summary"><strong>{name(driverId)}</strong> · {team} · {car} · {copy.round} {round} →</p>}
+        {validVehicle && <p className="roster-summary"><strong>{name(driverId)}</strong> · {car} · {copy.round} {round} →</p>}
         <div className="admin-form-actions"><button className="primary-action" type="submit" disabled={busy || !validVehicle}>{busy ? copy.saving : copy.saveVehicle}</button></div>
       </form>}
       <details className="roster-history"><summary>{copy.history}</summary>

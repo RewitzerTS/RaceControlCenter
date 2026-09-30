@@ -49,6 +49,10 @@
 .league-team-directory { list-style: none; padding: 0; margin: 1.5rem 0; }
 .league-team-directory li { display: grid; grid-template-columns: minmax(10rem, 1fr) 2fr; gap: .75rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
 .team-assignment-form { margin-top: 2rem; }
+.team-assignment-choice { margin-block: 1.5rem; max-width: 42rem; }
+.team-assignment-choice label { display: grid; gap: .5rem; font-weight: 700; }
+.team-assignment-choice select { width: 100%; min-width: 0; min-height: 44px; padding: .7rem; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
+.team-assignment-choice select:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .driver-roster-disclosure { margin-top: 1.5rem; }
 .driver-roster-disclosure > summary { cursor: pointer; padding: 1rem; font-weight: 700; }
 .driver-roster-disclosure > summary:focus-visible, .driver-directory-nav a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }

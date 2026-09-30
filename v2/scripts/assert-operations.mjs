@@ -29,6 +29,13 @@ const [migration, processors, adminParity, completionMigration, seasonAuditFix, 
 ].map((path) => readFile(resolve(root, path), 'utf8')));
 
 const violations = [];
+const [teamPanel, vehicleApi] = await Promise.all([
+  'src/operations/LeagueTeamPanel.tsx', 'src/operations/roster.ts',
+].map((path) => readFile(resolve(root, path), 'utf8')));
+if (!shell.includes('path="/admin/teams/legacy" element={<Navigate replace to={`/admin/teams${location.search}`} />') || shell.includes('LegacyLeagueTeamsPage')) violations.push('legacy team entry must redirect to the central manager');
+for (const contract of ['teamAssignmentCopy', 'team-assignment-choice', 'saveTeamManager', 'copy.create']) if (!teamPanel.includes(contract)) violations.push('missing central team manager contract: ' + contract);
+if (teamPanel.includes('/admin/teams/legacy')) violations.push('central manager exposes a second team editor');
+if (!vehicleApi.includes("'change_league_vehicle'")) violations.push('vehicle-only changes must use the team-preserving RPC');
 const [driverEditor, driverEditorApi, driverEditorMigration, driverEditorTest] = await Promise.all([
   'src/operations/LeagueDriverEditor.tsx', 'src/operations/driverEditor.ts',
   'supabase/migrations/20260930140200_unified_driver_editor.sql', 'supabase/tests/unified-driver-editor.sql',
@@ -58,7 +65,7 @@ if (seasonAuditFix.includes('update public.v2_audit_events')) violations.push('s
 for (const contract of ['configure_league_season_calendar', 'start_league_season_with_calendar', "'season.calendar.configured'", "r.status <> 'upcoming'", 'end_date = null']) if (!seasonCalendar.includes(contract)) violations.push('missing guided season calendar contract: ' + contract);
 for (const contract of ['upcoming_race_count', 'missing_result_count', "rv.status <> 'active'", "errcode = '55000'", 'for update;']) if (!seasonCompletionGuard.includes(contract)) violations.push('missing guarded season completion contract: ' + contract);
 for (const contract of ['create table public.race_penalties', 'steward_case_id uuid', 'private.has_league_capability', 'public.matches_requested_league', 'd.league_id = s.league_id', 'alter table public.race_penalties enable row level security']) if (!racePenaltyCompatibility.includes(contract)) violations.push('missing race penalties compatibility contract: ' + contract);
-for (const contract of ['LeagueTeamsPage', 'LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseResultCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
+for (const contract of ['LeagueRulesPage', 'ResultImportPage', 'LeagueAuditPage', 'parseResultCsv']) if (!completionPages.includes(contract)) violations.push('missing V1 completion workflow: ' + contract);
 if (admin.includes('folgt in der V1-Migration') || admin.includes('operations-menu__pending')) violations.push('V1 migration still exposes pending admin placeholders');
 if (admin.includes("t('admin.preview')") || admin.includes('to="/racing"')) violations.push('obsolete admin user-preview action is still visible');
 if (resultImportPage.includes("copy('import.reason')") || resultImportPage.includes('reason.trim()')) violations.push('result import still asks for a redundant manual change reason');

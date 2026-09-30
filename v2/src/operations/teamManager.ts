@@ -23,10 +23,11 @@ export function departingMembers(state: TeamManager, edit: TeamEdit) {
 export function teamEditReady(state: TeamManager, edit: TeamEdit, round: number | null) {
   const ids = edit.drivers.filter(Boolean);
   return edit.name.trim().length >= 2 && edit.name.trim().length <= 80
+    && !state.teams.some(t => t.name !== edit.original && t.name.toLocaleLowerCase() === edit.name.trim().toLocaleLowerCase())
     && new Set(ids).size === ids.length && ids.every(id => state.profiles.some(p => p.id === id && p.is_active))
     && ids.every(id => state.mode === 'next' || Boolean(state.profiles.find(p => p.id === id)?.car_name))
     && (state.mode === 'next' ? round === null : Boolean(round && vehicleChangeRounds(state.races).some(r => r.round === round) && state.season))
-    && departingMembers(state, edit).every(p => Boolean(edit.departures[p.id] && edit.departures[p.id] !== edit.name && state.teams.some(t => t.name === edit.departures[p.id])));
+    && departingMembers(state, edit).every(p => Boolean(edit.departures[p.id] && edit.departures[p.id] !== edit.name.trim() && edit.departures[p.id] !== edit.original && state.teams.some(t => t.name === edit.departures[p.id])));
 }
 export async function saveTeamManager(client: LeagueSupabaseClient, state: TeamManager, edit: TeamEdit, round: number | null) {
   if (!teamEditReady(state, edit, round)) throw new Error('TEAM_FORM_INCOMPLETE');

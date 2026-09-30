@@ -33,9 +33,9 @@ export async function saveSubstitution(client: LeagueSupabaseClient, raceId: str
   if (error) throw new Error(error.message);
 }
 
-export async function saveVehicleChange(client: LeagueSupabaseClient, driverId: string, round: number, team: string, car: string, aiDriverId: string | null) {
-  const { error } = await client.rpc('change_season_vehicle', {
-    p_driver_id: driverId, p_effective_from_round: round, p_team_name: team.trim(), p_car_name: car.trim(), p_ai_driver_id: aiDriverId,
+export async function saveVehicleChange(client: LeagueSupabaseClient, driverId: string, round: number, car: string, aiDriverId: string | null) {
+  const { error } = await client.rpc('change_league_vehicle', {
+    p_driver_id: driverId, p_effective_from_round: round, p_car_name: car.trim(), p_ai_driver_id: aiDriverId,
   });
   if (error) throw new Error(error.message);
 }

@@ -95,7 +95,12 @@ const fr: Copy = {
   ROSTER_LATER_CHANGE_EXISTS: 'Un changement ultérieur est déjà prévu. Modifiez-le en premier.',
   ROSTER_VEHICLE_REQUIRED: 'Indiquez une équipe et un véhicule (80 caractères maximum chacun).', ROSTER_ROUND_REQUIRED: 'Sélectionnez une course de la saison active.',
 };
-export const rosterCopies: Record<Language, Copy> = { de, en, es, fr };
+export const rosterCopies: Record<Language, Copy & { ROSTER_TEAM_REQUIRED: string }> = {
+  de: { ...de, title: 'Ersatzfahrer & Fahrzeugwechsel', profileHint: 'Teams verwaltest du unter „Liga-Teams“. Fahrzeuge und Ersatzfahrer bearbeitest du hier.', vehicleHint: 'Nur das Fahrzeug ändert sich ab dem gewählten Rennen. Das dann gültige Liga-Team bleibt unverändert. Teams verwaltest du unter „Liga-Teams“.', ROSTER_VEHICLE_REQUIRED: 'Bitte ein Fahrzeug mit höchstens 80 Zeichen angeben.', ROSTER_TEAM_REQUIRED: 'Ordne den Fahrer zuerst unter „Liga-Teams“ einem Team zu.' },
+  en: { ...en, title: 'Substitutes & vehicle changes', profileHint: 'Manage teams under League teams. Change cars and substitutes here.', vehicleHint: 'Only the car changes from the selected race. The effective league team is preserved. Manage teams under League teams.', ROSTER_VEHICLE_REQUIRED: 'Enter a vehicle with up to 80 characters.', ROSTER_TEAM_REQUIRED: 'Assign the driver to a team under League teams first.' },
+  es: { ...es, profileHint: 'Gestiona los equipos en Equipos de la liga. Aquí puedes cambiar coches y suplentes.', vehicleHint: 'Solo cambia el coche desde la carrera elegida. Se conserva el equipo vigente. Gestiona los equipos en Equipos de la liga.', ROSTER_VEHICLE_REQUIRED: 'Indica un vehículo de hasta 80 caracteres.', ROSTER_TEAM_REQUIRED: 'Asigna primero el piloto a un equipo en Equipos de la liga.' },
+  fr: { ...fr, profileHint: 'Gérez les équipes dans Équipes de la ligue. Modifiez ici les voitures et remplaçants.', vehicleHint: 'Seule la voiture change à partir de la course choisie. L’équipe en vigueur est conservée. Gérez les équipes dans Équipes de la ligue.', ROSTER_VEHICLE_REQUIRED: 'Indiquez une voiture de 80 caractères maximum.', ROSTER_TEAM_REQUIRED: 'Attribuez d’abord une équipe au pilote dans Équipes de la ligue.' },
+};
 export function rosterError(reason: unknown, language: Language): string {
   const message = reason instanceof Error ? reason.message : '';
   const copy = rosterCopies[language];

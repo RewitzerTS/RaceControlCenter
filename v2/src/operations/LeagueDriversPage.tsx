@@ -81,6 +81,6 @@ export function LeagueDriversPage() {
       {workspace?.drivers.length !== 0 && !workspace?.drivers.some(driver => (showAi || isHumanDriver(driver)) && `${driver.display_name} ${directory?.profiles.find(item => item.id === driver.id)?.gamertag ?? driver.gamertag ?? ''}`.toLocaleLowerCase().includes(search.toLocaleLowerCase().trim())) && <p role="status">Keine passenden Fahrer. Ändere die Suche oder blende KI-Fahrer ein.</p>}
       <p><NavLink className="text-link" to="/admin/users">Mitglieder mit Fahrerprofilen verknüpfen</NavLink></p>
     </section>}
-    {workspace && <details id="driver-roster-workflows" className="driver-roster-disclosure"><summary>Besetzung &amp; Fahrzeugwechsel in der laufenden Saison</summary><RosterWorkflowPanel drivers={workspace} onSaved={async () => { await reload(); setEditing(null); }} /></details>}
+    {!teamsView && workspace && <details id="driver-roster-workflows" className="driver-roster-disclosure"><summary>Ersatzfahrer &amp; Fahrzeugwechsel in der laufenden Saison</summary><RosterWorkflowPanel drivers={workspace} onSaved={async () => { await reload(); setEditing(null); }} /></details>}
   </main>;
 }

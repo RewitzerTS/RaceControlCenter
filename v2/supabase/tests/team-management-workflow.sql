@@ -37,7 +37,7 @@ do $$ declare f record; r jsonb; s jsonb; rev text; a uuid; b uuid; begin
   begin perform public.save_league_team_lineup('current',2,null,'Invalid',array[f.foreign_driver],'[]',rev); raise exception 'Foreign driver accepted'; exception when invalid_parameter_value then null; end;
   begin perform public.save_league_team_lineup('current',2,'Alpha','Alpha',array[f.d1,f.d3],'[]',rev); raise exception 'Departure without destination accepted'; exception when invalid_parameter_value then null; end;
   begin perform public.save_league_team_lineup('current',2,'Alpha','Alpha',array[f.d1],jsonb_build_array(jsonb_build_object('driver_id',f.d2,'team_name','Beta')),rev); raise exception 'Overfull destination accepted'; exception when invalid_parameter_value then null; end;
-  begin perform public.save_league_team_lineup('current',2,'Alpha','Renamed',array[f.d1,f.d2],'[]',rev); raise exception 'Historical team renamed'; exception when invalid_parameter_value then null; end;
+  begin perform public.save_league_team_lineup('current',2,'Alpha','Beta',array[f.d1,f.d2],'[]',rev); raise exception 'Duplicate team name accepted'; exception when unique_violation then null; end;
   -- One transaction moves C to Alpha and B to Beta, including full-team swaps.
   s:=public.save_league_team_lineup('current',2,'Alpha','Alpha',array[f.d1,f.d3],jsonb_build_array(jsonb_build_object('driver_id',f.d2,'team_name','Beta')),rev);
   if not exists(select 1 from jsonb_array_elements(s->'profiles') p where p->>'id'=f.d3::text and p->>'team_name'='Alpha' and p->>'car_name'='Ferrari SF-25') then raise exception 'Swap or car preservation failed'; end if;
@@ -76,6 +76,34 @@ do $$ declare f record; rid uuid; version_id uuid; state jsonb; begin
   if not exists(select 1 from jsonb_array_elements(state->'teams') t where t->>'name'='Legacy actual team') then raise exception 'Legacy team hidden'; end if;
   if has_function_privilege('anon','public.get_league_team_manager(text,integer)','execute') or has_table_privilege('authenticated','league_roster_private.teams','insert') then raise exception 'Excessive privilege'; end if;
 end $$;
+
+-- Central name edits and car changes preserve race-effective team history.
+set local role authenticated;
+do $$ declare f record; state jsonb; before_car text; begin
+  select * into f from tm_fixture;
+  state:=public.get_league_team_manager('current',3);
+  select p->>'car_name' into before_car from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text;
+  state:=public.save_league_team_lineup('current',3,'Alpha','Circuit Atlas',array[f.d1],'[]',state->>'revision');
+  if not exists(select 1 from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text and p->>'team_name'='Circuit Atlas' and p->>'car_name'=before_car) then raise exception 'Central rename changed vehicle'; end if;
+  state:=public.get_league_team_manager('current',2);
+  if not exists(select 1 from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text and p->>'team_name'='Alpha') then raise exception 'Rename rewrote previous team'; end if;
+  perform public.change_league_vehicle(f.d1,3,'McLaren test',null);
+  state:=public.get_league_team_manager('current',3);
+  if not exists(select 1 from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text and p->>'team_name'='Circuit Atlas' and p->>'car_name'='McLaren test') then raise exception 'Vehicle change changed effective team'; end if;
+  begin perform public.change_league_vehicle(f.foreign_driver,3,'Invalid',null); raise exception 'Foreign vehicle changed'; exception when insufficient_privilege then null; end;
+  begin perform public.change_league_vehicle(f.d1,1,'Invalid',null); raise exception 'Locked vehicle changed'; exception when invalid_parameter_value then null; end;
+  state:=public.get_league_team_manager('next',null);
+  perform public.save_league_team_lineup('next',null,'Circuit Atlas','Next Atlas',array[f.d1],'[]',state->>'revision');
+  state:=public.get_league_team_manager('current',3);
+  if not exists(select 1 from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text and p->>'team_name'='Circuit Atlas') then raise exception 'Next rename changed current team'; end if;
+end $$;
+reset role;
+do $$ declare f record; begin
+  select * into f from tm_fixture;
+  if (select to_jsonb(r) from public.race_results r where r.driver_id=f.d2 and r.race_id=(select id from public.races where season_id=f.sid and round_number=1)) is distinct from f.before_result then raise exception 'Central editing changed published result'; end if;
+  if has_function_privilege('anon','public.change_league_vehicle(uuid,integer,text,uuid)','execute') then raise exception 'Anonymous vehicle access'; end if;
+end $$;
+
 select set_config('request.jwt.claims',jsonb_build_object('sub',outsider,'role','authenticated')::text,true) from tm_fixture;
 set local role authenticated;
 do $$ begin
