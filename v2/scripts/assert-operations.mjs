@@ -29,6 +29,10 @@ const [migration, processors, adminParity, completionMigration, seasonAuditFix, 
 ].map((path) => readFile(resolve(root, path), 'utf8')));
 
 const violations = [];
+const [driverEditor, driverEditorApi, driverEditorMigration, driverEditorTest] = await Promise.all([
+  'src/operations/LeagueDriverEditor.tsx', 'src/operations/driverEditor.ts',
+  'supabase/migrations/20260930140200_unified_driver_editor.sql', 'supabase/tests/unified-driver-editor.sql',
+].map((path) => readFile(resolve(root, path), 'utf8')));
 for (const contract of [
   'create table public.v2_audit_events', 'create table public.platform_feature_flags',
   'create table public.user_notifications', 'enable row level security',
@@ -60,7 +64,13 @@ if (admin.includes("t('admin.preview')") || admin.includes('to="/racing"')) viol
 if (resultImportPage.includes("copy('import.reason')") || resultImportPage.includes('reason.trim()')) violations.push('result import still asks for a redundant manual change reason');
 for (const contract of ["copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv')", 'result-import-race-row']) if (!resultImportPage.includes(contract)) violations.push('missing automatic result-import audit reason contract: ' + contract);
 for (const contract of ['addLeagueMember', 'setLeagueMemberRole', 'removeLeagueMember', 'confirmRemove']) if (!members.includes(contract)) violations.push('missing member management workflow: ' + contract);
-for (const contract of ['loadDriverAdminWorkspace', 'upsertLeagueDriver', 'RosterWorkflowPanel', 'rosterCopies', "copy('drivers.create')", "copy('shared.edit')", 'readOnly={Boolean(editing.id && workspace?.active_season)}']) if (!drivers.includes(contract)) violations.push('missing driver and effective-dated roster workflow: ' + contract);
+for (const contract of ['loadDriverAdminWorkspace', 'LeagueDriverEditor', 'RosterWorkflowPanel', "copy('drivers.create')", "copy('shared.edit')"]) if (!drivers.includes(contract)) violations.push('missing driver and effective-dated roster workflow: ' + contract);
+for (const contract of ['input readOnly', 'Gamertags nach Plattform', 'saveDriverEditor', 'vehicleChangeRounds', 'occupiedAi', 'Rennen ausdrücklich auswählen']) if (!driverEditor.includes(contract)) violations.push('missing unified driver editor safeguard: ' + contract);
+for (const contract of ['save_league_driver_editor', 'p_revision:', 'p_ai_driver_id:', 'p_aliases:', 'start_league_season_setup']) if (!driverEditorApi.includes(contract)) violations.push('missing atomic driver editor API: ' + contract);
+for (const contract of ['private.roster_admin_league()', 'DRIVER_EDITOR_STALE', "p_profile ? 'number'", 'public.change_season_vehicle(d.id,p_round,team,ai.car_name,ai.id)', 'security invoker', 'from public,anon,authenticated']) if (!driverEditorMigration.includes(contract)) violations.push('missing server-side driver editor safeguard: ' + contract);
+for (const contract of ['Number write accepted', 'Occupied seat accepted', 'Atomic save failed', 'Historical result changed', 'Personal alias modified', 'Wrong game accepted', 'Outsider write', 'rollback;']) if (!driverEditorTest.includes(contract)) violations.push('missing unified driver editor regression: ' + contract);
+if (drivers.includes('GamertagAliasesEditor')) violations.push('league aliases must be integrated into driver editing');
+if (!seasonSetupPage.includes('startSeasonWithoutAssignments') || seasonSetupPage.includes('setAssignments')) violations.push('season setup still assigns drivers');
 for (const contract of ["t('owner.control')", 'setPlatformFlag', "'/owner/demo'", "'/admin'"]) if (!owner.includes(contract)) violations.push('missing owner contract: ' + contract);
 for (const contract of ['markInboxItemRead', 'notification-unread']) if (!notifications.includes(contract)) violations.push('missing notification contract: ' + contract);
 for (const contract of ['.operations-page', '.responsive-table', '@media (max-width: 700px)', 'env(safe-area-inset-bottom)']) if (!styles.includes(contract)) violations.push('missing responsive contract: ' + contract);
