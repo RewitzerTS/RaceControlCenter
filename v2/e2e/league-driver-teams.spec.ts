@@ -47,7 +47,7 @@ async function fixture(context: BrowserContext, options: { error?: string; noSea
     }
     if (name === 'create_league_team') { const body = route.request().postDataJSON(); writes.push({ name, body }); const team = { id: '70000000-0000-4000-8000-000000000002', name: body.p_name }; teams.push(team); return route.fulfill({ json: team.id }); }
     if (name === 'assign_league_driver_team') { const body = route.request().postDataJSON(); writes.push({ name, body }); preferences.push({ driver_id: body.p_driver_id, team_id: body.p_team_id }); return route.fulfill({ json: {} }); }
-    if (name === 'start_league_season_from_profiles') { writes.push({ name, body: route.request().postDataJSON() }); return route.fulfill({ json: { season: { id: 'season', name: 'Test', slug: 'test' }, players: 1, ai_drivers: 1, races: 3, started: true } }); }
+    if (name === 'start_league_season_setup') { writes.push({ name, body: route.request().postDataJSON() }); return route.fulfill({ json: { season: { id: 'season', name: 'Test', slug: 'test' }, players: 1, ai_drivers: 1, races: 3, started: true } }); }
     if (name === 'get_season_setup_workspace') return route.fulfill({ json: {
       league: publicRacingFixture.league, active_season: null, games: [{ key: 'f1_25', label: 'F1 25', roster: [
         { seat_code: 'mercedes-russell', ai_driver_name: 'George Russell', number: 63, nationality_code: 'GB', team_name: 'Mercedes', car_name: 'Mercedes W16' },
@@ -152,19 +152,13 @@ test('empty league retries loading and can prepare teams without a current seaso
   expect(state.writes.at(-1)?.body).toMatchObject({ p_mode: 'next', p_round: null, p_driver_ids: [] });
 });
 
-test('selects existing profiles and schedules two races per Monday', async ({ page, context }, info) => {
+test('skips driver assignment and schedules two races per Monday', async ({ page, context }, info) => {
   const state = await fixture(context);
   await page.goto('/admin/season/setup');
-  await page.getByRole('button', { name: 'Starterfeld einrichten' }).click();
-  await page.getByRole('checkbox', { name: 'Spieler zuordnen' }).nth(0).check();
-  await page.getByLabel('Fahrerprofil für George Russell').selectOption(state.drivers[0].id);
-  await page.getByLabel('Liga-Team für George Russell').selectOption(state.teams[0].id);
-  await page.getByRole('checkbox', { name: 'Spieler zuordnen' }).nth(1).check();
-  await expect(page.getByLabel('Fahrerprofil für Kimi Antonelli').locator(`option[value="${state.drivers[0].id}"]`)).toHaveAttribute('disabled', '');
-  await page.getByRole('checkbox', { name: 'Spieler zuordnen' }).nth(1).uncheck();
-  await page.evaluate(() => { (document.activeElement as HTMLElement | null)?.blur(); window.scrollTo(0, 0); });
-  await page.screenshot({ path: `.impeccable/review/season-profiles-${info.project.name}.png`, fullPage: true });
+  await expect(page.getByLabel('Schritt 1 von 3')).toBeVisible();
   await page.getByRole('button', { name: 'Rennkalender einrichten' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Spieler zuordnen' })).toHaveCount(0);
+  await expect(page.getByLabel('Schritt 2 von 3')).toBeVisible();
   await page.getByLabel('Rennen pro Renntag', { exact: false }).fill('2');
   await page.getByLabel('Erster Renntag').fill('2026-09-28');
   await page.getByRole('checkbox', { name: 'So', exact: true }).uncheck();
@@ -181,6 +175,7 @@ test('selects existing profiles and schedules two races per Monday', async ({ pa
   await page.getByRole('button', { name: 'Kalender prüfen' }).click();
   await page.getByRole('button', { name: 'Saison starten', exact: true }).click();
   await expect.poll(() => state.writes.length).toBe(1);
-  expect(state.writes[0].body.p_assignments).toEqual([{ seat_code: 'mercedes-russell', driver_id: state.drivers[0].id, team_id: state.teams[0].id }]);
+  expect(state.writes[0].body).not.toHaveProperty('p_assignments');
+  await expect(page).toHaveURL(/admin\/drivers\?seasonStarted=1/);
   expect(state.writes[0].body.p_calendar[1]).toMatchObject({ date: '2026-09-28', time: '21:00' });
 });

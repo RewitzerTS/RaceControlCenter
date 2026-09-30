@@ -67,3 +67,25 @@
   .league-driver-directory .responsive-table--records td { padding-block: .35rem; }
   .league-driver-directory .responsive-table--records tr { padding-block: 1rem; }
 }
+.season-setup-steps--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.driver-profile-editor { scroll-margin-top: 7rem; }
+.driver-profile-editor form, .driver-editor-fields { min-width: 0; }
+.driver-editor-fields { border: 0; padding: 0; margin: 0; display: grid; gap: 1.5rem; }
+.driver-editor-fields fieldset { min-width: 0; border: 0; border-block-start: 1px solid var(--line); padding: 1.25rem 0 0; margin: 0; }
+.driver-editor-fields legend { padding-inline-end: .75rem; font-size: 1.15rem; font-weight: 700; }
+.driver-editor-fields p, .driver-editor-fields small { max-width: 70ch; }
+.driver-editor-fields small { display: block; margin-block-start: .35rem; }
+.driver-editor-fields input[readonly] { border-style: dashed; cursor: default; }
+.driver-editor-aliases { display: grid; gap: 1rem; margin-block: 1rem; }
+.driver-editor-alias { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; gap: .75rem; align-items: end; }
+.driver-editor-alias label { min-width: 0; }
+.driver-editor-personal { margin-block-start: 1.25rem; overflow-wrap: anywhere; }
+.driver-editor-fields input, .driver-editor-fields select { min-width: 0; width: 100%; font-size: 1rem; }
+.driver-editor-fields select { min-height: 44px; padding: .7rem; font: inherit; font-size: 1rem; color: var(--text); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
+.driver-editor-fields label { display: grid; gap: .5rem; }
+.driver-editor-fields .admin-check input { width: auto; }
+.driver-editor-fields .admin-check { display: flex; }
+@media (max-width: 640px) {
+  .driver-editor-alias { grid-template-columns: minmax(0, 1fr); padding-block-end: 1rem; border-block-end: 1px solid var(--line); }
+  .driver-editor-alias button { justify-self: start; }
+}

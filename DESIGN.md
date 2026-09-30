@@ -85,7 +85,7 @@ Drivers/Teams navigation consists of real links. The active link uses the strong
 
 The driver directory uses the existing administrative record table and mobile labels. Identity, preferred team, current race assignment, status and actions occupy separate roles. The team form uses persistent labels, native text fields/selects, and minimum 44px controls. Empty teams and empty directories have plain-language states.
 
-The season wizard reuses the existing step indicator, form hierarchy, draft recovery notice, native choices, review screen and save feedback. Profile selection supplies existing name and gamertag context; team selection has explicit vehicle context. This behavior is scoped in `.impeccable/surfaces/league-driver-teams.md` and is not a new global screen template.
+The season wizard reuses the existing step indicator, form hierarchy, draft recovery notice, native choices, review screen and save feedback. The pending September 30 change removes driver selection from this wizard: driver profile, platform gamertags and race-effective AI assignment share the driver editor; team management stays separate. Start numbers are read-only. This behavior and its release status are scoped in `.impeccable/surfaces/league-driver-teams.md` and are not a new global screen template.
 
 ## Do's and Don'ts
 

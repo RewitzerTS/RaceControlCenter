@@ -1,5 +1,13 @@
 # League driver and team administration
 
+## Current change — 2026-09-30
+
+The user superseded the earlier season-profile-selection requirement: season setup now contains only Season, Calendar and Review. Driver seating happens afterward in Drivers & Teams. The earlier review below describes the preceding release, not this pending change.
+
+Driver editing groups display name, main gamertag, read-only start number, nationality, platform gamertags and season AI selection in one form. There is no separate “Weitere Gamertags” disclosure in league administration. Personal account aliases remain visible but are not editable by the league administrator. AI changes require an explicitly chosen unrun race and preserve the independent league team.
+
+The incumbent visual system is retained. Native controls, grouped fieldsets, persistent labels, a single save action and responsive layouts are used. Local build, 12 targeted unit tests and 22 mocked desktop/mobile browser tests pass. Desktop and mobile editor captures were inspected; undersized selects were corrected to 44px touch targets in one visual correction pass. The owner explicitly authorized direct Production application and testing. The migration is applied, and transactionally rolled-back Production integration tests pass (20/22 AI seats, aliases, read-only numbers, explicit effective race, occupied seats, tenant denial and unchanged published results). No synthetic users or leagues remain; before/after counts are 23 aliases and 510 results. Advisor findings match the prior baseline. The final website release remains subject to the mandatory deployment gate.
+
 Mode: Operate. Extend Production's established administration, not the unrelated Staging redesign. Confirmed: select existing league driver profiles in season setup, reuse their gamertags and identity, and manage independent named league teams and F1 vehicles. Preserve results and career history. Target desktop and mobile.
 
 Additional user requirement: races per selected weekday, e.g. two races each Monday. Add a native numeric field to the existing calendar controls and generate repeated dates; each race retains an individually editable start time.
