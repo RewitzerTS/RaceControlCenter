@@ -84,6 +84,23 @@ do $$ declare f record; state jsonb; result jsonb; cal jsonb; ai1 uuid; ai2 uuid
   exception when invalid_parameter_value then null; end;
   set constraints all immediate;
   set constraints all deferred;
+  -- Claiming an AI must not silently discard that AI's already scheduled team move.
+  begin
+    perform public.save_league_driver_editor(f.d3,jsonb_build_object('display_name','Test C','gamertag','TagC','is_active',true),'[]',ai4,2,public.get_league_driver_editor(f.d3)->>'revision');
+    raise exception 'Scheduled AI move discarded';
+  exception when invalid_parameter_value then
+    if sqlerrm<>'ROSTER_LATER_CHANGE_EXISTS' then raise; end if;
+  end;
+  -- A team change must not conflict with an already scheduled future human claim.
+  select (p->>'id')::uuid into ai4 from jsonb_array_elements(public.get_league_team_manager('current',3)->'profiles') p
+    where (p->>'is_ai')::boolean and p->>'team_name' is null limit 1;
+  perform public.save_league_driver_editor(f.d3,jsonb_build_object('display_name','Test C','gamertag','TagC','is_active',true),'[]',ai4,3,public.get_league_driver_editor(f.d3)->>'revision');
+  begin
+    perform public.change_season_vehicle(ai4,2,'Delayed','Test car',null);
+    raise exception 'Scheduled human claim ignored';
+  exception when invalid_parameter_value then
+    if sqlerrm<>'ROSTER_LATER_CHANGE_EXISTS' then raise; end if;
+  end;
   -- A fresh F1 26 season must not inherit teams from F1 25.
   result:=public.start_league_season_setup('Season two','season-two','f1_26',current_date+21,cal,false);
   state:=public.get_league_team_manager('current',1);
