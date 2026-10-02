@@ -4,8 +4,7 @@ import { useAuth } from '../auth/AuthProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { racingHref } from './calendarData';
-import { loadResults, type ResultsData } from './resultsData';
-import { buildStandings, standingSnapshot, type Trend } from './standingsData';
+import { buildStandings, loadStandings, standingSnapshot, type StandingsData, type Trend } from './standingsData';
 import { standingsMessages } from './standingsMessages';
 import './racing.css';
 import './standings.css';
@@ -31,7 +30,7 @@ export function RacingStandings({ teams }: { teams: boolean }) {
   const { user, loading: authLoading } = useAuth();
   const { language, formatNumber } = useI18n();
   const copy = standingsMessages[language];
-  const [data, setData] = useState<ResultsData | null>(null);
+  const [data, setData] = useState<StandingsData | null>(null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const [expanded, setExpanded] = useState(false);
@@ -40,7 +39,7 @@ export function RacingStandings({ teams }: { teams: boolean }) {
   useEffect(() => {
     const controller = new AbortController();
     setData(null); setError(false);
-    if (!authLoading) void loadResults(client, leagueSlug, Boolean(userId), controller.signal).then((next) => {
+    if (!authLoading) void loadStandings(client, leagueSlug, Boolean(userId), controller.signal).then((next) => {
       if (!controller.signal.aborted) setData(next);
     }).catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
@@ -62,7 +61,7 @@ export function RacingStandings({ teams }: { teams: boolean }) {
           const snapshot = driver ? standingSnapshot(data, driver.id, standings!.latestRace) : null;
           return <StandingTeamDriver key={seat} name={driver?.name} href={driver ? racingHref('/racing/drivers/profile', leagueSlug, { driver: driver.id }) : undefined} logo={<CarLogo label={driver?.car || entry.teamName} candidates={[snapshot?.car_name, snapshot?.league_team, driver?.car, entry.teamName]} />} />;
         })}<td><strong>{formatNumber(entry.points)}</strong></td></tr>)}{!standings!.teamStandings.length && <tr><td colSpan={8}>{copy.emptyTeams}</td></tr>}</tbody> : <tbody id="drivers-standings-body">{standings!.driverStandings.map((entry, index) => {
-          const snapshot = standingSnapshot(data, entry.driverId, standings!.latestRace);
+          const snapshot = data.currentRoster ? null : standingSnapshot(data, entry.driverId, standings!.latestRace);
           return <tr key={entry.driverId} className={index < 3 ? `podium-${index + 1}` : ''}><td>{index + 1}</td><td><TrendIcon trend={entry.trend} label={copy[entry.trend]} /></td><td><Link to={racingHref('/racing/drivers/profile', leagueSlug, { driver: entry.driverId })}>{entry.driverName}</Link></td><td>{teamLabel(entry.leagueTeam)}</td><td><CarLogo label={entry.carName} candidates={[snapshot?.car_name, snapshot?.league_team, entry.carName, entry.leagueTeam]} /></td><td>{formatNumber(entry.wins)}</td><td>{formatNumber(entry.podiums)}</td><td>{formatNumber(entry.fastestLaps)}</td><td><strong>{formatNumber(entry.points)}</strong></td></tr>;
         })}{!standings!.driverStandings.length && <tr><td colSpan={9}>{copy.emptyDrivers}</td></tr>}</tbody>}
       </table></div>

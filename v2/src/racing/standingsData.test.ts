@@ -1,7 +1,9 @@
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '../types/database';
 import { describe, expect, it } from 'vitest';
-import { buildStandings, standingSnapshot, standingTrend } from './standingsData';
+import { buildStandings, loadStandings, standingSnapshot, standingTrend, type StandingsData } from './standingsData';
 import { currentResults, type PublishedResult, type ResultsData } from './resultsData';
 import { standingsMessages } from './standingsMessages';
 
@@ -56,5 +58,81 @@ describe('native championship', () => {
   });
   it('covers all app languages', () => {
     for (const copy of Object.values(standingsMessages)) expect(Object.keys(copy).sort()).toEqual(Object.keys(standingsMessages.de).sort());
+  });
+  it('shows all three effective teams before the first race despite empty initial team assignments', () => {
+    const source: StandingsData = {
+      season: { id: 's', name: 'Season 15' },
+      races: races.map(race => ({ ...race, status: 'upcoming', current_result_version_id: null })), results: [],
+      drivers: Array.from({ length: 6 }, (_, i) => ({ ...drivers[0], id: String(i), display_name: `Driver ${i}`, league_team: 'Previous season team' })),
+      assignments: Array.from({ length: 6 }, (_, i) => ({ driver_id: String(i), car_name: 'Car A', team_name: i < 2 ? 'Ice Team' : '', created_at: '' })),
+      currentRoster: Array.from({ length: 6 }, (_, i) => ({ driver_id: String(i), team_name: ['Ice Team', 'Black Team', 'Stars Team'][Math.floor(i / 2)], car_name: 'Current car' })),
+    };
+    const table = buildStandings(source);
+    expect(table.driverStandings.map(row => row.leagueTeam)).toEqual(['Ice Team', 'Ice Team', 'Black Team', 'Black Team', 'Stars Team', 'Stars Team']);
+    expect(table.driverStandings.every(row => row.points === 0 && row.trend === 'flat')).toBe(true);
+    expect(source.assignments[2].team_name).toBe('');
+  });
+  it('uses the current team and car only for display, preserving published historical team points', () => {
+    const original = buildStandings(fixture());
+    const current = buildStandings({ ...fixture(), currentRoster: [
+      { driver_id: '0', team_name: 'Next Team', car_name: 'Next Car' },
+      { driver_id: '1', team_name: null, car_name: 'Other Car' },
+    ] });
+    expect(current.driverStandings.find(row => row.driverId === '0')).toMatchObject({ leagueTeam: 'Next Team', carName: 'Next Car', points: 26 });
+    expect(current.driverStandings.find(row => row.driverId === '1')).toMatchObject({ leagueTeam: 'Ohne Team', points: 44 });
+    expect(current.teamStandings).toEqual(original.teamStandings);
+    expect(current.driverStandings.map(({ leagueTeam: _team, carName: _car, ...row }) => row))
+      .toEqual(original.driverStandings.map(({ leagueTeam: _team, carName: _car, ...row }) => row));
+  });
+  it('includes newly assigned drivers and keeps departed point owners without reviving old season profiles', () => {
+    const table = buildStandings({ ...fixture(), currentRoster: [{ driver_id: '3', team_name: 'New Team', car_name: 'Car' }] });
+    expect(table.driverStandings.map(row => row.driverId)).toEqual(['1', '0', '3']);
+    expect(table.driverStandings.at(-1)).toMatchObject({ points: 0, leagueTeam: 'New Team' });
+    expect(buildStandings({ ...fixture(), results: [], currentRoster: [] }).driverStandings).toEqual([]);
+  });
+});
+
+describe('championship roster loading', () => {
+  function clientFixture(options: { fail?: boolean; empty?: boolean; noSeason?: boolean; abort?: AbortController } = {}) {
+    const requests: { url: URL; body: string }[] = [];
+    const source = fixture();
+    const client = createClient<Database>('https://standings-test.supabase.co', 'test-publishable-key', {
+      auth: { persistSession: false, autoRefreshToken: false, storageKey: crypto.randomUUID() },
+      global: { fetch: async (input, init) => {
+        const url = new URL(String(input)); requests.push({ url, body: String(init?.body ?? '') });
+        const name = url.pathname.split('/').pop();
+        if (name === 'get_season_championship_roster') {
+          options.abort?.abort();
+          return new Response(JSON.stringify(options.fail ? { message: 'No access' } : options.empty ? [] : [{ driver_id: '0', team_name: 'Current Team', car_name: 'Current Car' }]), { status: options.fail ? 403 : 200, headers: { 'Content-Type': 'application/json' } });
+        }
+        const tables: Record<string, unknown> = { leagues: { id: 'league' }, seasons: options.noSeason ? null : source.season, drivers: source.drivers, races: source.races, race_results: source.results, season_driver_assignments: source.assignments };
+        return new Response(JSON.stringify(tables[name!] ?? []), { headers: { 'Content-Type': 'application/json' } });
+      } },
+    });
+    return { client, requests };
+  }
+  it('reads the selected season roster and preserves result snapshots', async () => {
+    const { client, requests } = clientFixture();
+    const data = await loadStandings(client, 'league', true, new AbortController().signal);
+    expect(JSON.parse(requests.at(-1)!.body)).toEqual({ p_season_id: 's' });
+    expect(data.currentRoster?.[0].team_name).toBe('Current Team');
+    expect(data.assignments[0].team_name).toBe('Team A');
+    expect(data.results).toEqual(fixture().results);
+  });
+  it('never requests private roster data for guests or when no season exists', async () => {
+    for (const authenticated of [false, true]) {
+      const { client, requests } = clientFixture({ noSeason: authenticated });
+      await loadStandings(client, 'league', authenticated, new AbortController().signal);
+      expect(requests.some(({ url }) => url.pathname.includes('get_season_championship_roster'))).toBe(false);
+    }
+  });
+  it('distinguishes an empty roster from a denied or stale request', async () => {
+    const empty = clientFixture({ empty: true });
+    expect((await loadStandings(empty.client, 'league', true, new AbortController().signal)).currentRoster).toEqual([]);
+    const failed = clientFixture({ fail: true });
+    await expect(loadStandings(failed.client, 'league', true, new AbortController().signal)).rejects.toBeTruthy();
+    const abort = new AbortController();
+    const stale = clientFixture({ abort });
+    await expect(loadStandings(stale.client, 'league', true, abort.signal)).rejects.toBeTruthy();
   });
 });

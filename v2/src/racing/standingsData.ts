@@ -1,4 +1,19 @@
-import { currentResults, fastestLapDriver, type ResultsData, type ResultsRace } from './resultsData';
+import type { LeagueSupabaseClient } from '../lib/supabase';
+import { currentResults, fastestLapDriver, loadResults, type ResultsData, type ResultsRace } from './resultsData';
+
+export interface ChampionshipMember { driver_id: string; team_name: string | null; car_name: string | null }
+export interface StandingsData extends ResultsData { currentRoster?: ChampionshipMember[] }
+
+export async function loadStandings(client: LeagueSupabaseClient, slug: string, authenticated: boolean, signal: AbortSignal): Promise<StandingsData> {
+  const data = await loadResults(client, slug, authenticated, signal);
+  if (!authenticated || !data.season) return data;
+  const response = await client.rpc('get_season_championship_roster', { p_season_id: data.season.id }).abortSignal(signal);
+  signal.throwIfAborted();
+  // Never silently fall back to stale initial assignments on a failed roster read.
+  if (response.error) throw response.error;
+  if (!Array.isArray(response.data)) throw new Error('Championship roster unavailable');
+  return { ...data, currentRoster: response.data };
+}
 
 export type Trend = 'up' | 'down' | 'flat' | 'new';
 export interface DriverStanding { driverId: string; driverName: string; leagueTeam: string; carName: string; wins: number; podiums: number; fastestLaps: number; points: number; trend: Trend }
@@ -13,7 +28,7 @@ export function standingSnapshot(data: ResultsData, driverId: string, race?: Res
   return assignment ? { ...driver, league_team: assignment.team_name ?? '', car_name: assignment.car_name || driver.car_name } : driver;
 }
 
-function standingsForRaces(data: ResultsData, races: ResultsRace[]) {
+function standingsForRaces(data: StandingsData, races: ResultsRace[]) {
   const raceIds = new Set(races.map((race) => race.id));
   const results = currentResults(data.races, data.results).filter((row) => raceIds.has(row.race_id));
   const fastest = new Map(races.map((race) => [race.id, fastestLapDriver(results.filter((row) => row.race_id === race.id))]));
@@ -46,7 +61,22 @@ function standingsForRaces(data: ResultsData, races: ResultsRace[]) {
     if (owner) owner.fastestLaps++;
   }
   const eligible = new Set(data.assignments.length ? data.assignments.map((entry) => entry.driver_id) : data.drivers.filter((entry) => entry.is_active !== false).map((entry) => entry.id));
-  const driverStandings = [...drivers.values()].filter((entry) => !eligible.size || eligible.has(entry.driverId))
+  if (data.currentRoster) {
+    eligible.clear();
+    for (const member of data.currentRoster) {
+      eligible.add(member.driver_id);
+      const driver = drivers.get(member.driver_id);
+      if (driver) {
+        // Display today's effective lineup, not a season-start or result snapshot.
+        // A null team is authoritative; do not resurrect last season's profile team.
+        driver.leagueTeam = member.team_name || 'Ohne Team';
+        driver.carName = member.car_name || '—';
+      }
+    }
+    // Departed/replaced drivers keep points already earned in this season.
+    for (const row of results) eligible.add(row.points_owner_driver_id || row.driver_id);
+  }
+  const driverStandings = [...drivers.values()].filter((entry) => (!data.currentRoster && !eligible.size) || eligible.has(entry.driverId))
     .sort((a, b) => b.points - a.points || b.wins - a.wins || b.podiums - a.podiums || b.fastestLaps - a.fastestLaps || normalized(a.driverName).localeCompare(normalized(b.driverName), 'de'));
   const teamStandings = [...teams.values()].map((team) => ({ ...team, drivers: team.drivers.sort((a, b) => normalized(a.name).localeCompare(normalized(b.name), 'de')).slice(0, 2) }))
     .sort((a, b) => b.points - a.points || a.teamName.localeCompare(b.teamName, 'de', { sensitivity: 'base' }));
@@ -59,7 +89,7 @@ export function standingTrend(current: number, previous: number, hasPreviousRace
   return current < previous ? 'up' : current > previous ? 'down' : 'flat';
 }
 
-export function buildStandings(data: ResultsData) {
+export function buildStandings(data: StandingsData) {
   const published = new Set(currentResults(data.races, data.results).map((row) => row.race_id));
   const completed = data.races.filter((race) => race.status === 'completed' || published.has(race.id)).sort((a, b) => a.round_number - b.round_number);
   const current = standingsForRaces(data, completed);

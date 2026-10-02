@@ -2729,6 +2729,7 @@ export type Database = {
       get_league_admin_workspace: { Args: never; Returns: Json }
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_roster_workspace: { Args: never; Returns: Json }
+      get_season_championship_roster: { Args: { p_season_id: string }; Returns: { driver_id: string; team_name: string | null; car_name: string | null }[] }
       set_race_substitution: {
         Args: { p_race_id: string; p_primary_driver_id: string; p_substitute_driver_id: string | null }
         Returns: Json
