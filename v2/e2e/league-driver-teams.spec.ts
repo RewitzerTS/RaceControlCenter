@@ -1,7 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture } from './public-fixture';
 
-async function fixture(context: BrowserContext, options: { error?: string; noSeason?: boolean; empty?: boolean; loadError?: boolean } = {}) {
+async function fixture(context: BrowserContext, options: { error?: string; noSeason?: boolean; empty?: boolean; loadError?: boolean; ai?: boolean } = {}) {
   await installPublicFixture(context);
   const user = { id: '91000000-0000-4000-8000-000000000075', email: 'league-admin@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: { onboarding_complete: true, display_name: 'Test Admin' } };
   const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -15,6 +15,7 @@ async function fixture(context: BrowserContext, options: { error?: string; noSea
   const preferences: Array<{ driver_id: string; team_id: string }> = [];
   const drivers = publicRacingFixture.drivers.map(d => ({ ...d, ai_driver_reference: null, identity_linked: true, result_count: 12 }));
   const profiles = options.empty ? [] : drivers.map((d, i) => ({ id: d.id, display_name: d.display_name, gamertag: d.gamertag, is_active: true, team_name: i === 0 ? 'RCC Racing' : 'Junior', car_name: i === 0 ? 'Mercedes W16' : 'Red Bull RB21' }));
+  if (options.ai) profiles.push({ id: '70000000-0000-4000-8000-000000000020', display_name: 'George Russell', gamertag: '', is_active: true, team_name: '', car_name: 'Mercedes W16', is_ai: true } as typeof profiles[number]);
   const managerTeams = options.empty ? [] : [{ name: 'RCC Racing' }, { name: 'Junior' }];
   let failure = options.error;
   let loadFailure = options.loadError;
@@ -164,18 +165,15 @@ test('team name is edited in the central lineup editor', async ({ page, context 
   expect(state.writes.at(-1)?.body).toMatchObject({ p_original_name: 'RCC Racing', p_name: 'Hobbyracer', p_round: 2 });
 });
 
-test('empty league retries loading and can prepare teams without a current season', async ({ page, context }) => {
+test('empty league retries loading and requires a season before creating teams', async ({ page, context }) => {
   const state = await fixture(context, { noSeason: true, empty: true, loadError: true });
   await page.goto('/admin/teams');
   await expect(page.getByRole('alert')).toContainText('Teams konnten nicht geladen werden');
   await page.getByRole('button', { name: 'Erneut laden', exact: true }).click();
   await expect(page.getByText('Keine laufende Saison.', { exact: false })).toBeVisible();
-  await page.getByRole('button', { name: 'Nächste Saison', exact: true }).click();
-  await page.getByRole('button', { name: 'Team erstellen', exact: true }).click();
-  await page.getByLabel('Teamname', { exact: true }).fill('Nächstes Team');
-  await page.getByRole('button', { name: 'Besetzung speichern' }).click();
-  await expect(page.getByRole('status')).toContainText('gespeichert');
-  expect(state.writes.at(-1)?.body).toMatchObject({ p_mode: 'next', p_round: null, p_driver_ids: [] });
+  await expect(page.getByRole('button', { name: 'Nächste Saison', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Team erstellen', exact: true })).toBeDisabled();
+  expect(state.writes).toHaveLength(0);
 });
 
 test('skips driver assignment and schedules two races per Monday', async ({ page, context }, info) => {
@@ -204,4 +202,16 @@ test('skips driver assignment and schedules two races per Monday', async ({ page
   expect(state.writes[0].body).not.toHaveProperty('p_assignments');
   await expect(page).toHaveURL(/admin\/drivers\?seasonStarted=1/);
   expect(state.writes[0].body.p_calendar[1]).toMatchObject({ date: '2026-09-28', time: '21:00' });
+});
+test('team creation offers free AI profiles in the same two places', async ({ page, context }) => {
+  await fixture(context, { ai: true });
+  await page.goto('/admin/teams');
+  await expect(page.getByRole('button', { name: 'Nächste Saison', exact: true })).toHaveCount(0);
+  await page.getByLabel('Änderungen gültig ab').selectOption('2');
+  await page.getByRole('button', { name: 'Team erstellen', exact: true }).click();
+  await page.getByLabel('Teamname', { exact: true }).fill('Mixed Team');
+  await page.getByRole('combobox', { name: 'Fahrer 1', exact: true }).selectOption({ label: 'George Russell · KI' });
+  await expect(page.getByRole('combobox', { name: 'Fahrer 2', exact: true }).locator('option[value="70000000-0000-4000-8000-000000000020"]')).toHaveAttribute('disabled', '');
+  await page.getByRole('button', { name: 'Besetzung speichern' }).click();
+  await expect(page.getByRole('article', { name: 'Mixed Team', exact: true })).toContainText('George Russell · KI');
 });

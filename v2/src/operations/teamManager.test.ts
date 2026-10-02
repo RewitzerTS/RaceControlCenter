@@ -41,10 +41,14 @@ describe('team lineup transaction', () => {
     expect(teamEditReady(state, { ...edit, name: 'Beta' }, 2)).toBe(false);
     expect(teamEditReady(state, { ...edit, name: 'Hobbyracer', departures: { b: 'Alpha' } }, 2)).toBe(false);
   });
-  it('next-season planning has no effective round or car requirement', () => {
-    const next = { ...state, mode: 'next' as const, season: null, profiles: state.profiles.map(p => ({ ...p, car_name: null })) };
-    expect(teamEditReady(next, edit, null)).toBe(true);
+  it('does not permit the removed next-season mode, even from stale clients', () => {
+    const next = { ...state, mode: 'next', season: null } as unknown as TeamManager;
+    expect(teamEditReady(next, edit, null)).toBe(false);
     expect(teamEditReady(next, edit, 2)).toBe(false);
+  });
+  it('accepts an available AI driver in one of the two team places', () => {
+    const mixed = { ...state, profiles: state.profiles.map(p => p.id === 'c' ? { ...p, is_ai: true, gamertag: null } : p) };
+    expect(teamEditReady(mixed, edit, 2)).toBe(true);
   });
   it('saves lineup and required departures in one RPC without changing cars or points', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: state, error: null });

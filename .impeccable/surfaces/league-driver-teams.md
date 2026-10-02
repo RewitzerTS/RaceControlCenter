@@ -1,5 +1,17 @@
 # League driver and team administration
 
+## Current change — season-scoped human and AI teams, 2026-10-02
+
+Scope: Staging only. Production remains unchanged. Supersedes next-season preference UI described in the historical sections below.
+
+The manager has one current-season context and one explicit unrun-race selector. The next-season tab is removed. New seasons start with no independent team assignments, including the 20/22 AI grid. Available AI profiles appear in the same two-place editor, marked KI. Linked AI profiles are not counted or offered as additional members. When claiming an AI seat, a human without a team inherits its team place; an existing human team stays intact. Capacity is checked at future rounds and on final transaction state. Team changes still require another destination for departing members. No results or XP are rewritten.
+
+The driver directory now shows season team/vehicle and AI assignment instead of preferred team and stale master-profile team values. Incumbent tokens, typography, controls and mobile record layout are preserved (Impeccable distill). No new visual assets or global style changes.
+
+Finish verdict: SHIP for the scoped UI. Desktop directory and mobile editor captures inspected in one batched review; no visual correction required. Keyboard focus, selection contrast and horizontal overflow assertions pass. Targeted tests: 18 unit tests and 18 desktop/mobile browser scenarios pass (the AI option assertion was corrected to check its native disabled attribute). Both rollback-only database suites pass on Staging, including fresh F1 25/F1 26 seasons, team inheritance, mixed rosters, full-team swaps, future capacity, tenant denial and historical result preservation. No synthetic fixture leagues remain. Full release gate and Staging deployment are tracked in the task handoff.
+
+Advisors: no new security warning; one expected INFO for the intentionally inaccessible private season_teams table with RLS and no client policies. Its FK indexes are present. Old preferences/catalog records remain stored for history but are not consumed by the new UI.
+
 ## Current change — unified team management, 2026-09-30
 
 Scope and release target: Staging only. The user confirmed consolidating the overlapping team editors, not changing Production or the points calculation.

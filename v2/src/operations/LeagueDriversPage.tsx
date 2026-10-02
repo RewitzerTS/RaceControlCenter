@@ -8,6 +8,7 @@ import { useOperationsCopy } from './operationsCopy';
 import { RosterWorkflowPanel } from './RosterWorkflowPanel';
 import { isHumanDriver } from './roster';
 import { loadTeamDirectory, type TeamDirectory } from './leagueTeams';
+import { loadTeamManager, type TeamManager } from './teamManager';
 import { LeagueTeamPanel } from './LeagueTeamPanel';
 import './league-teams.css';
 import { LeagueDriverEditor } from './LeagueDriverEditor';
@@ -22,6 +23,7 @@ export function LeagueDriversPage() {
   const location = useLocation();
   const teamsView = location.pathname.endsWith('/teams');
   const [directory, setDirectory] = useState<TeamDirectory | null>(null);
+  const [seasonRoster, setSeasonRoster] = useState<TeamManager | null>(null);
   const [search, setSearch] = useState('');
   const [showAi, setShowAi] = useState(false);
   const { client, leagueSlug } = useLeague();
@@ -34,16 +36,16 @@ export function LeagueDriversPage() {
   const allowed = role === 'league_admin' || role === 'platform_owner';
 
   const reload = useCallback(async () => {
-    const [data, teamData] = await Promise.all([loadDriverAdminWorkspace(client), loadTeamDirectory(client)]);
-    setWorkspace(data); setDirectory(teamData);
-  }, [client]);
+    const [data, teamData, roster] = await Promise.all([loadDriverAdminWorkspace(client), loadTeamDirectory(client), teamsView ? null : loadTeamManager(client, 'current', null).catch(() => null)]);
+    setWorkspace(data); setDirectory(teamData); setSeasonRoster(roster);
+  }, [client, teamsView]);
 
   useEffect(() => {
     if (!allowed) return;
     let active = true;
-    void Promise.all([loadDriverAdminWorkspace(client), loadTeamDirectory(client)]).then(([data, teamData]) => { if (active) { setWorkspace(data); setDirectory(teamData); } }).catch((reason) => { if (active) setError(reason instanceof Error ? reason.message : copy('drivers.loadError')); });
+    void Promise.all([loadDriverAdminWorkspace(client), loadTeamDirectory(client), teamsView ? null : loadTeamManager(client, 'current', null).catch(() => null)]).then(([data, teamData, roster]) => { if (active) { setWorkspace(data); setDirectory(teamData); setSeasonRoster(roster); } }).catch((reason) => { if (active) setError(reason instanceof Error ? reason.message : copy('drivers.loadError')); });
     return () => { active = false; };
-  }, [allowed, client, copy]);
+  }, [allowed, client, copy, teamsView]);
 
   function beginEdit(driver: LeagueDriver) {
     setEditing(toInput(driver));
@@ -66,14 +68,15 @@ export function LeagueDriversPage() {
     {!teamsView && <section className="admin-data-panel" aria-labelledby="driver-list-title">
       <div className="admin-panel-heading"><h2 id="driver-list-title">Fahrerübersicht</h2><span>{workspace?.drivers.filter(isHumanDriver).length ?? 0} Fahrerprofile</span></div>
       <div className="driver-directory-filters"><label><span>Fahrer suchen</span><input type="search" placeholder="Name oder Gamertag" value={search} onChange={event => setSearch(event.target.value)} /></label><label className="admin-check"><input checked={showAi} type="checkbox" onChange={event => setShowAi(event.target.checked)} /><span>Auch KI-Fahrer anzeigen</span></label></div>
-      {workspace?.drivers.length ? <div className="responsive-table responsive-table--records"><table><thead><tr><th>Fahrerprofil</th><th>Team-Vorgabe</th><th>Aktuell im Rennbetrieb</th><th>Status</th><th>Aktion</th></tr></thead><tbody>{workspace.drivers.filter(driver => (showAi || isHumanDriver(driver)) && `${driver.display_name} ${directory?.profiles.find(item => item.id === driver.id)?.gamertag ?? driver.gamertag ?? ''}`.toLocaleLowerCase().includes(search.toLocaleLowerCase().trim())).map(driver => {
+      {workspace?.drivers.length ? <div className="responsive-table responsive-table--records"><table><thead><tr><th>Fahrerprofil</th><th>Team dieser Saison</th><th>KI-Zuordnung</th><th>Status</th><th>Aktion</th></tr></thead><tbody>{workspace.drivers.filter(driver => (showAi || isHumanDriver(driver)) && `${driver.display_name} ${directory?.profiles.find(item => item.id === driver.id)?.gamertag ?? driver.gamertag ?? ''}`.toLocaleLowerCase().includes(search.toLocaleLowerCase().trim())).map(driver => {
         const profile = directory?.profiles.find(item => item.id === driver.id);
-        const preferredTeamId = directory?.preferences.find(item => item.driver_id === driver.id)?.team_id;
-        const team = directory?.teams.find(item => item.id === preferredTeamId);
+        const member = seasonRoster?.profiles.find(item => item.id === driver.id);
+        const currentAi = workspace.ai_assignments.find(item => item.human_driver_id === driver.id && item.is_current);
+        const scheduledAi = workspace.ai_assignments.filter(item => item.human_driver_id === driver.id && !item.is_current && item.effective_from_round > (seasonRoster?.view_round ?? 0));
         return <tr key={driver.id} className={driver.is_active ? '' : 'row-inactive'}>
           <td data-label="Fahrerprofil" data-mobile-primary="true"><strong>{driver.display_name}</strong><small>{profile?.gamertag || driver.gamertag || 'Gamertag fehlt'} · #{driver.number ?? '—'}</small></td>
-          <td data-label="Team-Vorgabe"><strong>{team?.name ?? 'Keine eigene Vorgabe'}</strong><small>Für die nächste Saison</small></td>
-          <td data-label="Aktuell im Rennbetrieb"><strong>{driver.league_team ?? 'Ohne Team'}</strong><small>{driver.car_name || 'Kein Fahrzeug'}</small></td>
+          <td data-label="Team dieser Saison"><strong>{!seasonRoster ? 'Zuordnung nicht geladen' : !seasonRoster.season ? 'Keine laufende Saison' : member?.team_name ?? 'Noch nicht zugeordnet'}</strong><small>{seasonRoster?.season?.name}{member?.car_name ? ` · ${member.car_name}` : ''}</small></td>
+          <td data-label="KI-Zuordnung"><strong>{!isHumanDriver(driver) ? 'KI-Fahrer' : member?.ai_driver_name ?? currentAi?.ai_driver_name ?? 'Noch nicht zugeordnet'}</strong>{scheduledAi.map(item => <small key={item.id}>Ab Rennen {item.effective_from_round}: {item.ai_driver_name}</small>)}</td>
           <td data-label="Status">{driver.is_active ? copy('shared.active') : copy('shared.inactive')}<small>{driver.result_count} Ergebnisse · {driver.identity_linked ? 'Konto verknüpft' : isHumanDriver(driver) ? 'Ohne Konto-Verknüpfung' : 'KI-Fahrer'}</small></td>
           <td data-label="Aktion"><button className="table-action-button" onClick={() => beginEdit(driver)} type="button">{copy('shared.edit')}</button>{isHumanDriver(driver) && <NavLink className="text-link" to={`/admin/teams?driver=${driver.id}`}>Team zuordnen</NavLink>}</td>
         </tr>;

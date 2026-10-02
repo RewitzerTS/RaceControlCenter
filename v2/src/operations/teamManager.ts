@@ -3,8 +3,8 @@ import type { Json } from '../types/database';
 import type { LeagueProfile } from './leagueTeams';
 import { vehicleChangeRounds, type RosterRace } from './roster';
 
-export type TeamMode = 'current' | 'next';
-export type TeamMember = LeagueProfile & { team_name: string | null; car_name: string | null };
+export type TeamMode = 'current';
+export type TeamMember = LeagueProfile & { team_name: string | null; car_name: string | null; is_ai?: boolean; ai_driver_id?: string | null; ai_driver_name?: string | null };
 export type TeamManager = { mode: TeamMode; season: { id: string; name: string } | null; view_round: number | null; revision: string; races: RosterRace[]; teams: { name: string }[]; profiles: TeamMember[] };
 export type TeamEdit = { original: string | null; name: string; drivers: [string, string]; departures: Record<string, string> };
 function response(data: unknown): TeamManager {
@@ -25,8 +25,8 @@ export function teamEditReady(state: TeamManager, edit: TeamEdit, round: number 
   return edit.name.trim().length >= 2 && edit.name.trim().length <= 80
     && !state.teams.some(t => t.name !== edit.original && t.name.toLocaleLowerCase() === edit.name.trim().toLocaleLowerCase())
     && new Set(ids).size === ids.length && ids.every(id => state.profiles.some(p => p.id === id && p.is_active))
-    && ids.every(id => state.mode === 'next' || Boolean(state.profiles.find(p => p.id === id)?.car_name))
-    && (state.mode === 'next' ? round === null : Boolean(round && vehicleChangeRounds(state.races).some(r => r.round === round) && state.season))
+    && ids.every(id => Boolean(state.profiles.find(p => p.id === id)?.car_name))
+    && (state.mode === 'current' && Boolean(round && vehicleChangeRounds(state.races).some(r => r.round === round) && state.season))
     && departingMembers(state, edit).every(p => Boolean(edit.departures[p.id] && edit.departures[p.id] !== edit.name.trim() && edit.departures[p.id] !== edit.original && state.teams.some(t => t.name === edit.departures[p.id])));
 }
 export async function saveTeamManager(client: LeagueSupabaseClient, state: TeamManager, edit: TeamEdit, round: number | null) {

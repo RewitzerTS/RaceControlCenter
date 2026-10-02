@@ -18,7 +18,7 @@ select set_config('request.jwt.claims',jsonb_build_object('sub',actor,'role','au
 set local role authenticated;
 do $$ declare f record; r jsonb; s jsonb; rev text; a uuid; b uuid; begin
   select * into f from tm_fixture;
-  s:=public.get_league_team_manager('next',null);
+  s:=public.get_league_team_manager('current',null);
   if s->'season'<>'null'::jsonb then raise exception 'Unexpected season'; end if;
   a:=public.create_league_team('Alpha'); b:=public.create_league_team('Beta');
   r:=public.start_league_season_from_profiles('Synthetic season','synthetic-season','f1_25',current_date,
@@ -31,7 +31,7 @@ do $$ declare f record; r jsonb; s jsonb; rev text; a uuid; b uuid; begin
       jsonb_build_object('track_key','belgium','date',current_date+14,'time','20:00','weather','klar','has_sprint',false)),false);
   update tm_fixture set sid=(r->'season'->>'id')::uuid;
   s:=public.get_league_team_manager('current',2); rev:=s->>'revision';
-  if jsonb_array_length(s->'profiles')<>4 or jsonb_array_length(s->'teams')<>2 then raise exception 'Manager omitted humans or included AI'; end if;
+  if (select count(*) from jsonb_array_elements(s->'profiles') p where not (p->>'is_ai')::boolean)<>4 or jsonb_array_length(s->'teams')<>2 then raise exception 'Manager omitted humans'; end if;
   begin perform public.save_league_team_lineup('current',null,null,'Invalid',array[f.d1],'[]',rev); raise exception 'Implicit round accepted'; exception when invalid_parameter_value then null; end;
   begin perform public.save_league_team_lineup('current',2,null,'Invalid',array[f.d1,f.d1],'[]',rev); raise exception 'Duplicate driver accepted'; exception when invalid_parameter_value then null; end;
   begin perform public.save_league_team_lineup('current',2,null,'Invalid',array[f.foreign_driver],'[]',rev); raise exception 'Foreign driver accepted'; exception when invalid_parameter_value then null; end;
@@ -42,11 +42,7 @@ do $$ declare f record; r jsonb; s jsonb; rev text; a uuid; b uuid; begin
   s:=public.save_league_team_lineup('current',2,'Alpha','Alpha',array[f.d1,f.d3],jsonb_build_array(jsonb_build_object('driver_id',f.d2,'team_name','Beta')),rev);
   if not exists(select 1 from jsonb_array_elements(s->'profiles') p where p->>'id'=f.d3::text and p->>'team_name'='Alpha' and p->>'car_name'='Ferrari SF-25') then raise exception 'Swap or car preservation failed'; end if;
   begin perform public.save_league_team_lineup('current',2,null,'Stale',array[f.d1],'[]',rev); raise exception 'Stale revision accepted'; exception when serialization_failure then null; end;
-  -- Prepare next season independently, preserving the running-season snapshot.
-  s:=public.get_league_team_manager('next',null);
-  s:=public.save_league_team_lineup('next',null,null,'Hobbyracer',array[f.d1,f.d2],'[]',s->>'revision');
-  s:=public.get_league_team_manager('current',2);
-  if not exists(select 1 from jsonb_array_elements(s->'profiles') p where p->>'id'=f.d2::text and p->>'team_name'='Beta') then raise exception 'Next-season planning changed current season'; end if;
+  begin perform public.get_league_team_manager('next',null); raise exception 'Removed next mode accepted'; exception when invalid_parameter_value then null; end;
 end $$;
 reset role;
 do $$ declare f record; rid uuid; version_id uuid; state jsonb; begin
@@ -92,10 +88,7 @@ do $$ declare f record; state jsonb; before_car text; begin
   if not exists(select 1 from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text and p->>'team_name'='Circuit Atlas' and p->>'car_name'='McLaren test') then raise exception 'Vehicle change changed effective team'; end if;
   begin perform public.change_league_vehicle(f.foreign_driver,3,'Invalid',null); raise exception 'Foreign vehicle changed'; exception when insufficient_privilege then null; end;
   begin perform public.change_league_vehicle(f.d1,1,'Invalid',null); raise exception 'Locked vehicle changed'; exception when invalid_parameter_value then null; end;
-  state:=public.get_league_team_manager('next',null);
-  perform public.save_league_team_lineup('next',null,'Circuit Atlas','Next Atlas',array[f.d1],'[]',state->>'revision');
-  state:=public.get_league_team_manager('current',3);
-  if not exists(select 1 from jsonb_array_elements(state->'profiles') p where p->>'id'=f.d1::text and p->>'team_name'='Circuit Atlas') then raise exception 'Next rename changed current team'; end if;
+  begin perform public.save_league_team_lineup('next',null,'Circuit Atlas','Next Atlas',array[f.d1],'[]',state->>'revision'); raise exception 'Removed next write accepted'; exception when invalid_parameter_value then null; end;
 end $$;
 reset role;
 do $$ declare f record; begin

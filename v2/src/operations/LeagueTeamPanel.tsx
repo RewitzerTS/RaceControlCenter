@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { vehicleChangeRounds } from './roster';
-import { departingMembers, loadTeamManager, saveTeamManager, teamEditReady, type TeamEdit, type TeamManager, type TeamMode } from './teamManager';
+import { departingMembers, loadTeamManager, saveTeamManager, teamEditReady, type TeamEdit, type TeamManager } from './teamManager';
 import { teamManagerCopy, teamManagerError, teamAssignmentCopy } from './teamManagerCopy';
 
 export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
@@ -14,7 +14,7 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
   const [params] = useSearchParams();
   const [assigningId, setAssigningId] = useState(params.get('driver') ?? '');
   const assignmentRef = useRef<HTMLSelectElement>(null);
-  const [mode, setMode] = useState<TeamMode>('current');
+  const mode = 'current' as const;
   const [round, setRound] = useState('');
   const [state, setState] = useState<TeamManager | null>(null);
   const [edit, setEdit] = useState<TeamEdit | null>(null);
@@ -61,8 +61,8 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
     } finally { setBusy(false); }
   }
   const rounds = state ? vehicleChangeRounds(state.races) : [];
-  const canEdit = Boolean(state && (mode === 'next' || (state.season && round && rounds.some(r => r.round === Number(round)))));
-  const unassigned = state?.profiles.filter(p => !p.team_name) ?? [];
+  const canEdit = Boolean(state && (state.season && round && rounds.some(r => r.round === Number(round))));
+  const unassigned = state?.profiles.filter(p => p.is_active && !p.team_name) ?? [];
   const race = state?.races.find(r => r.round === Number(round));
   const assigning = state?.profiles.find(p => p.id === assigningId);
   return <section className="league-team-panel team-manager" aria-labelledby="league-teams-heading">
@@ -70,21 +70,18 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
       <button className="primary-action" type="button" disabled={!canEdit || Boolean(edit) || busy} onClick={() => begin(null, assigning?.id)}>{copy.create}</button>
     </header>
     <div className="team-manager-context">
-      <div className="team-manager-tabs" role="group" aria-label={copy.title}>
-        {(['current', 'next'] as const).map(value => <button key={value} type="button" aria-pressed={mode === value} disabled={Boolean(edit) || busy} onClick={() => { setMode(value); setRound(''); }}>{copy[value]}</button>)}
-      </div>
-      {mode === 'current' && <label><span>{copy.round}</span><select value={round} disabled={!state || Boolean(edit) || busy || !rounds.length} onChange={event => setRound(event.target.value)}>
+      <label><span>{copy.round}</span><select value={round} disabled={!state || Boolean(edit) || busy || !rounds.length} onChange={event => setRound(event.target.value)}>
         <option value="">{copy.chooseRound}</option>{rounds.map(r => <option key={r.id} value={r.round}>{copy.roundWord} {r.round} · {r.name}</option>)}
-      </select></label>}
+      </select></label>
     </div>
     {!state && (loadFailed ? <div role="alert"><p>{copy.loadError}</p><button type="button" className="text-action" onClick={() => setRetry(value => value + 1)}>{copy.retry}</button></div> : <p role="status">{copy.loading}</p>)}
     {state && <>
-      <p className="team-context-note">{mode === 'next' ? copy.nextHint : !state.season ? copy.noSeason : !rounds.length ? copy.noRounds : round ? copy.raceHint : copy.chooseHint}</p>
-      {mode === 'current' && state.season && <p className="team-view-label"><strong>{state.season.name}</strong> · {race ? `${copy.roundWord} ${race.round} · ${race.name}` : copy.view}</p>}
+      <p className="team-context-note">{!state.season ? copy.noSeason : !rounds.length ? copy.noRounds : round ? copy.raceHint : copy.chooseHint}</p>
+      {state.season && <p className="team-view-label"><strong>{state.season.name}</strong> · {race ? `${copy.roundWord} ${race.round} · ${race.name}` : copy.view}</p>}
       {error && <div role="alert"><p className="inline-error">{error}</p>{needsReload && <button className="text-action" type="button" onClick={() => { setRound(''); setRetry(value => value + 1); }}>{copy.reload}</button>}</div>}
       {saved && <p className="inline-success" role="status">{copy.saved}</p>}
       {assigning && !edit && <div className="team-assignment-choice">
-        <label><span>{assignmentCopy.target}: {assigning.display_name}</span><select ref={assignmentRef} value="" disabled={!canEdit || busy || (mode === 'current' && !assigning.car_name)} onChange={event => { if (event.target.value) begin(event.target.value, assigning.id); }}>
+        <label><span>{assignmentCopy.target}: {assigning.display_name}</span><select ref={assignmentRef} value="" disabled={!canEdit || busy || (!assigning.car_name)} onChange={event => { if (event.target.value) begin(event.target.value, assigning.id); }}>
           <option value="">{assignmentCopy.choose}</option>{state.teams.map(team => <option key={team.name} value={team.name} disabled={state.profiles.filter(p => p.team_name === team.name && p.id !== assigning.id).length >= 2}>{team.name}</option>)}
         </select></label><p>{assignmentCopy.hint}</p>
         <button className="text-action" type="button" onClick={() => setAssigningId('')}>{copy.cancel}</button>
@@ -99,7 +96,7 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
               <select value={edit.drivers[index]} onChange={event => {
                 const drivers: [string, string] = [...edit.drivers]; drivers[index] = event.target.value;
                 setEdit({ ...edit, drivers });
-              }}><option value="">{copy.free}</option>{state.profiles.map(p => <option key={p.id} value={p.id} disabled={edit.drivers[1 - index] === p.id || (mode === 'current' && !p.car_name)}>{p.display_name}{p.gamertag ? ` · ${p.gamertag}` : ''}</option>)}</select>
+              }}><option value="">{copy.free}</option>{state.profiles.map(p => <option key={p.id} value={p.id} disabled={edit.drivers[1 - index] === p.id || !p.is_active || !p.car_name}>{p.display_name}{p.is_ai ? ` · ${copy.ai}` : ''}{p.gamertag ? ` · ${p.gamertag}` : ''}</option>)}</select>
             </label>{selected && <p className="team-driver-detail">{selected.car_name || copy.noCar}{selected.team_name && selected.team_name !== edit.original && <><br />{copy.move}: <strong>{selected.team_name}</strong></>}</p>}</div>;
           })}</div>
           {departingMembers(state, edit).length > 0 && <div className="team-editor-departures"><p>{copy.departureHint}</p>{departingMembers(state, edit).map(p => <label key={p.id}>
@@ -116,15 +113,15 @@ export function LeagueTeamPanel({ onSaved }: { onSaved: () => Promise<void> }) {
         const members = state.profiles.filter(p => p.team_name === team.name);
         return <article className="team-lineup" key={team.name} aria-label={team.name}>
           <header><h3>{team.name}</h3><span>{members.length} / 2</span></header>
-          <ul>{members.map(p => <li key={p.id}><div><strong>{p.display_name}</strong><span>{p.gamertag}</span></div><span className="team-driver-car">{p.car_name || copy.noCar}</span></li>)}
+          <ul>{members.map(p => <li key={p.id}><div><strong>{p.display_name}{p.is_ai ? ` · ${copy.ai}` : ''}</strong><span>{p.gamertag}</span></div><span className="team-driver-car">{p.car_name || copy.noCar}</span></li>)}
             {Array.from({ length: Math.max(0, 2 - members.length) }, (_, index) => <li className="team-empty-seat" key={index}>{copy.free}</li>)}</ul>
           {members.length > 2 && <p>{copy.overfull}</p>}
           <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || members.length > 2} onClick={() => begin(team.name)}>{copy.edit}</button>
         </article>;
       })}</div>
       <details className="team-unassigned" open={unassigned.length > 0}><summary>{copy.unassigned} ({unassigned.length})</summary>
-        {unassigned.length ? <ul>{unassigned.map(p => <li key={p.id}><div><strong>{p.display_name}</strong><span>{p.gamertag} · {p.car_name || copy.noCar}</span></div>
-          <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || (mode === 'current' && !p.car_name)} onClick={() => { setAssigningId(p.id); requestAnimationFrame(() => { assignmentRef.current?.scrollIntoView({ block: 'center' }); assignmentRef.current?.focus({ preventScroll: true }); }); }}>{assignmentCopy.assign}</button></li>)}</ul> : <p>{copy.unassignedEmpty}</p>}
+        {unassigned.length ? <ul>{unassigned.map(p => <li key={p.id}><div><strong>{p.display_name}{p.is_ai ? ` · ${copy.ai}` : ''}</strong><span>{p.gamertag} · {p.car_name || copy.noCar}</span></div>
+          <button className="text-action" type="button" disabled={!canEdit || Boolean(edit) || busy || (!p.car_name)} onClick={() => { setAssigningId(p.id); requestAnimationFrame(() => { assignmentRef.current?.scrollIntoView({ block: 'center' }); assignmentRef.current?.focus({ preventScroll: true }); }); }}>{assignmentCopy.assign}</button></li>)}</ul> : <p>{copy.unassignedEmpty}</p>}
       </details>
     </>}
   </section>;

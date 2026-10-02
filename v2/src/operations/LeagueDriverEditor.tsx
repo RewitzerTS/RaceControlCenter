@@ -54,6 +54,7 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
       setError(isStale ? 'Das Profil wurde zwischenzeitlich geändert. Lade den aktuellen Stand vor dem Bearbeiten neu.'
         : message.includes('ROSTER_RACE_LOCKED') ? 'Für dieses Rennen liegen bereits Ergebnisse vor. Wähle ein noch ungefahrenes Rennen.'
         : message.includes('ROSTER_LATER_CHANGE_EXISTS') ? 'Es ist bereits eine spätere Zuordnung geplant. Diese darf nicht überschrieben werden.'
+        : message.includes('TEAM_FULL') ? 'Durch diese Zuordnung hätte ein Team mehr als zwei Fahrer. Passe zuerst die Team-Besetzung für dieses Rennen an.'
         : message.includes('already assigned') ? 'Dieser KI-Fahrer ist im gewählten Zeitraum bereits vergeben. Wähle einen freien Fahrer.'
         : message || 'Speichern fehlgeschlagen. Deine Eingaben bleiben erhalten; bitte erneut versuchen.');
     } finally { setBusy(false); }
