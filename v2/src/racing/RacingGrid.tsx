@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useI18n } from '../i18n/I18nProvider';
-import { loadResults, type ResultsData } from './resultsData';
+import { loadStandings, type StandingsData } from './standingsData';
 import { racingHref } from './calendarData';
 import { buildGrid } from './gridData';
 import { CarLogo } from './RacingStandings';
@@ -22,14 +22,14 @@ export function RacingGrid() {
   const { user, loading } = useAuth();
   const { language } = useI18n();
   const copy = messages[language];
-  const [data, setData] = useState<ResultsData | null>(null);
+  const [data, setData] = useState<StandingsData | null>(null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const userId = user?.id || '';
   useEffect(() => {
     const controller = new AbortController();
     setData(null); setError(false);
-    if (!loading) void loadResults(client, leagueSlug, Boolean(userId), controller.signal).then((value) => { if (!controller.signal.aborted) setData(value); }).catch(() => { if (!controller.signal.aborted) setError(true); });
+    if (!loading) void loadStandings(client, leagueSlug, Boolean(userId), controller.signal).then((value) => { if (!controller.signal.aborted) setData(value); }).catch(() => { if (!controller.signal.aborted) setError(true); });
     return () => controller.abort();
   }, [client, leagueSlug, userId, loading, retry]);
   const grid = data ? buildGrid(data) : null;

@@ -110,4 +110,11 @@ test('signed-in drivers see all three season teams before any race, including af
   await page.locator('.native-standings [role="alert"] button').click();
   await expect(rows).toHaveCount(6);
   await expect(page.locator('#drivers-standings-body')).not.toContainText('Ohne Team');
+  await page.goto('/racing/grid?league=rcc');
+  await expect(page.locator('.native-grid-team')).toHaveCount(3);
+  for (const name of teamNames) {
+    const team = page.locator('.native-grid-team').filter({ has: page.getByRole('heading', { name, exact: true }) });
+    await expect(team.locator('li')).toHaveCount(2);
+  }
+  await expect(page.locator('.native-grid')).not.toContainText('Previous season team');
 });

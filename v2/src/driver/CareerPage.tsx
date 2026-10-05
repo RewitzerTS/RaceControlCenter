@@ -13,7 +13,7 @@ export function CareerPage() {
   const location = useLocation();
   const { loading: authLoading, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
-  const { client } = useLeague();
+  const { client, leagueSlug } = useLeague();
   const { formatDate, formatNumber, t } = useI18n();
   const careerSection = location.pathname === '/career/profile'
     ? { page: 'fahrer-profil', title: t('career.driverProfile') }
@@ -23,6 +23,7 @@ export function CareerPage() {
   const { error, loading, reload, snapshot } = useDriverHome(
     client,
     careerSection ? null : identity?.id ?? null,
+    leagueSlug,
   );
 
   if (authLoading || identityLoading || (!careerSection && loading)) {

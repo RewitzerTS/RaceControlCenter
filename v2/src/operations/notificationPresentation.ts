@@ -31,6 +31,11 @@ export function notificationPresentation(item: InboxNotification): NotificationP
   const isResult = item.notification_kind === 'race_summary';
   const caseNumber = text(payload.case_number, '—');
   const version = number(payload.result_version);
+  const league = text(payload.league_slug, '');
+  const suffix = league ? `?league=${encodeURIComponent(league)}` : '';
+  if (payload.event_type === 'league.join_requested') return { categoryKey: 'notification.kind.system', params: {}, reference: null, target: `/admin/users${suffix}` };
+  if (payload.event_type === 'steward.case_opened') return { categoryKey: 'notification.kind.steward', params: { caseNumber }, reference: caseNumber, target: `/stewarding${suffix}` };
+  if (payload.event_type === 'career.level_up') return { categoryKey: 'notification.kind.system', params: { level: number(payload.level) }, reference: null, target: '/career' };
 
   return {
     categoryKey: isSteward ? 'notification.kind.steward' : isResult ? 'notification.kind.result' : 'notification.kind.system',

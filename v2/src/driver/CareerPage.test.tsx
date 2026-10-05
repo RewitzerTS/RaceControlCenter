@@ -63,7 +63,7 @@ describe('CareerPage detail routes', () => {
 
     expect(screen.getByTestId('legacy-view')).toHaveTextContent('fahrer-profil');
     expect(screen.queryByText('home.loadingTitle')).not.toBeInTheDocument();
-    expect(useDriverHomeMock).toHaveBeenCalledWith(client, null);
+    expect(useDriverHomeMock).toHaveBeenCalledWith(client, null, 'test-league');
   });
 
   it('renders head-to-head without waiting for dashboard data', () => {
@@ -71,6 +71,6 @@ describe('CareerPage detail routes', () => {
 
     expect(screen.getByTestId('legacy-view')).toHaveTextContent('head-to-head');
     expect(screen.queryByText('home.loadingTitle')).not.toBeInTheDocument();
-    expect(useDriverHomeMock).toHaveBeenCalledWith(client, null);
+    expect(useDriverHomeMock).toHaveBeenCalledWith(client, null, 'test-league');
   });
 });

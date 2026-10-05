@@ -6,6 +6,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { loadInbox, markInboxItemRead, type InboxNotification } from './operations';
 import { notificationPresentation } from './notificationPresentation';
+import { INBOX_CHANGED } from './useUnreadNotifications';
 
 export function NotificationCenterPage() {
   const { user } = useAuth();
@@ -17,7 +18,8 @@ export function NotificationCenterPage() {
   useEffect(() => {
     if (!user) { setItems([]); return; }
     let active = true;
-    void loadInbox(client).then((data) => { if (active) setItems(data); }).catch(() => { if (active) setError(true); });
+    setItems(null); setError(false);
+    void loadInbox(client).then((data) => { if (active) setItems(data); }).catch(() => { if (active) { setError(true); setItems([]); } });
     return () => { active = false; };
   }, [client, user]);
 
@@ -25,6 +27,7 @@ export function NotificationCenterPage() {
     if (item.read_at) return;
     try {
       await markInboxItemRead(client, item.id);
+      window.dispatchEvent(new Event(INBOX_CHANGED));
       setItems((current) => current?.map((entry) => entry.id === item.id ? { ...entry, read_at: new Date().toISOString() } : entry) ?? []);
     } catch { setError(true); }
   }

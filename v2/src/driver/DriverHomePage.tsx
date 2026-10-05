@@ -9,6 +9,7 @@ import { ChallengeRotationCountdown } from './ChallengeRotationCountdown';
 import { useDriverIdentity } from './DriverIdentityProvider';
 import { highestAchievementTiers, levelProgress, selectDriverHero, useDriverHome } from './driverHome';
 import { LevelGauge } from './LevelGauge';
+import { RaceDayCarousel } from './RaceDayCarousel';
 
 export function DriverHomePage() {
   const { loading: authLoading, user } = useAuth();
@@ -16,7 +17,7 @@ export function DriverHomePage() {
   const { client, leagueSlug } = useLeague();
   const { role } = useRole();
   const { formatDate, formatNumber, formatTime, plural, t } = useI18n();
-  const { error, loading, reload, snapshot } = useDriverHome(client, identity?.id ?? null);
+  const { error, loading, reload, snapshot } = useDriverHome(client, identity?.id ?? null, leagueSlug);
 
   if (authLoading || identityLoading) {
     return <AppState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} tone="loading" />;
@@ -134,19 +135,20 @@ export function DriverHomePage() {
         </span>
       </section>
 
+      <RaceDayCarousel key={`${leagueSlug}:${snapshot.nextRace?.race_date}`} races={snapshot.nextRaceDay ?? []} league={leagueSlug} gameKey={snapshot.activeSeason?.gameKey} />
       <section className="dashboard-hero v2-driver-dashboard" aria-labelledby="driver-hero-title">
         <article className="hero-main">
           <div className="hero-topline">
             <p className="hero-kicker">{hero.kicker}</p>
           </div>
           <h1 id="driver-hero-title">{t('home.greeting', { name: displayName })}</h1>
-          <div className="next-race-showcase">
+          {!snapshot.nextRaceDay?.length && <div className="next-race-showcase">
             <span className="section-label">{seasonCompleted ? t('home.seasonStatus') : t('home.nextRace')}</span>
             <strong>{seasonCompleted ? t('home.noActiveSeason') : snapshot.nextRace?.grand_prix_name ?? t('home.noRaceScheduled')}</strong>
             <small>{seasonCompleted
               ? t('home.seasonArchived', { season: snapshot.latestArchivedSeason?.name ?? t('home.season') })
               : <>{snapshot.nextRace?.race_date ? formatDate(snapshot.nextRace.race_date) : t('home.dateTbd')}{raceStart ? ' · ' + formatTime(raceStart) : ''}</>}</small>
-          </div>
+          </div>}
           <div className="driver-hero-actions">
             <NavLink className="btn-primary-glow primary-action" to={hero.to}>{hero.action}</NavLink>
             <NavLink className="btn-secondary-ghost text-link" to={seasonCompleted && canManageSeason ? '/admin/season/setup' : '/racing'}>

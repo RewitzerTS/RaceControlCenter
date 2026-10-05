@@ -52,6 +52,7 @@ describe('Driver Home rules', () => {
       },
       nextRace: {
         grand_prix_name: 'Monza',
+        circuit_name: 'Monza', season_id: 'season-1', round_number: 1,
         id: 'race-1',
         race_date: '2026-08-27',
         race_start_at: null,
@@ -66,6 +67,7 @@ describe('Driver Home rules', () => {
       activeSeason: { archivedAt: null, id: 'season-1', name: 'Season 1' },
       nextRace: {
         grand_prix_name: 'Monza',
+        circuit_name: 'Monza', season_id: 'season-1', round_number: 1,
         id: 'race-1',
         race_date: '2026-08-27',
         race_start_at: null,

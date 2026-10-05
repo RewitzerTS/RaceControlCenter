@@ -17,6 +17,7 @@ import {
   type MessageKey,
 } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { NotificationBadge, useUnreadNotifications } from '../operations/useUnreadNotifications';
 import { LeagueSwitcher } from '../league/LeagueSwitcher';
 import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from '../league/leagueBranding';
 import { useRole } from '../roles/RoleProvider';
@@ -335,7 +336,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const { t } = useI18n();
-  const { branding, leagueSlug } = useLeague();
+  const { branding, leagueSlug, client } = useLeague();
   const { error: roleError, loading: roleLoading, role } = useRole();
   const features = useFeatureFlags();
   const { loading: authLoading, signOut, user } = useAuth();
@@ -354,6 +355,8 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const canAdmin = role === 'league_admin' || role === 'platform_owner';
   const canOwner = features.ownerControl && role === 'platform_owner';
   const canNotify = features.notificationsV2 && Boolean(user);
+  const unreadCount = useUnreadNotifications(client, canNotify ? user?.id ?? null : null);
+  const notificationLabel = unreadCount ? t('notification.unreadCount', { count: unreadCount }) : t('nav.notifications');
   const canCreateGraphics = canAdmin && features.socialGraphics;
   const accessLoading = authLoading || roleLoading;
   const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
@@ -444,12 +447,13 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
         {canNotify && (
           <NavLink
-            aria-label={t('nav.notifications')}
+            aria-label={notificationLabel}
             className={({ isActive }) => isActive ? 'mobile-header-notifications mobile-header-notifications--active' : 'mobile-header-notifications'}
             onClick={closeNavigation}
             to="/notifications"
           >
             <NavIcon name="bell" />
+            <NotificationBadge count={unreadCount} />
           </NavLink>
         )}
 
@@ -473,7 +477,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           </div>
           <div className="header-tools">
             {user && shouldShowLeagueSwitcher(user.id) && <div className="navigation-league-switcher"><LeagueSwitcher isPlatformOwner={role === 'platform_owner'} onSwitch={closeNavigation} userId={user.id} /></div>}
-            {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={t('nav.notifications')}><NavIcon name="bell" /><span>{t('nav.notifications')}</span></NavLink>}
+            {canNotify && <NavLink onClick={closeNavigation} className="topbar-icon-link" to="/notifications" aria-label={notificationLabel}><NavIcon name="bell" /><span>{t('nav.notifications')}</span><NotificationBadge count={unreadCount} /></NavLink>}
             <span className="role-chip">{roleLoading ? t('pending') : user && !role ? t('leagueSwitcher.none') : roleLabel(role, t)}</span>
             <NavLink
               className={({ isActive }) => isActive ? 'nav-item nav-item--active topbar-profile-link' : 'nav-item topbar-profile-link'}

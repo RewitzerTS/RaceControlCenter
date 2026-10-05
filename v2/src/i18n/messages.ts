@@ -2,6 +2,7 @@ import { instagramMessages } from '../graphics/instagramMessages';
 import { feedbackMessages } from '../feedback/feedbackMessages';
 import { tutorialMessages } from '../tutorials/tutorialMessages';
 import { uxMessages } from './uxMessages';
+import { raceDayMessages } from './raceDayMessages';
 
 export const SUPPORTED_LANGUAGES = ['de', 'en', 'es', 'fr'] as const;
 export type Language = (typeof SUPPORTED_LANGUAGES)[number];
@@ -11,6 +12,7 @@ const de = {
   ...feedbackMessages.de,
   ...tutorialMessages.de,
   ...uxMessages.de,
+  ...raceDayMessages.de,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Übersicht",
@@ -770,6 +772,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
     ...feedbackMessages.en,
   ...tutorialMessages.en,
   ...uxMessages.en,
+  ...raceDayMessages.en,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Overview",
@@ -1525,6 +1528,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
     ...feedbackMessages.es,
   ...tutorialMessages.es,
   ...uxMessages.es,
+  ...raceDayMessages.es,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Resumen",
@@ -2280,6 +2284,7 @@ export const messages: Record<Language, Record<MessageKey, string>> = {
     ...feedbackMessages.fr,
   ...tutorialMessages.fr,
   ...uxMessages.fr,
+  ...raceDayMessages.fr,
   "product": "RaceVora",
   "staging": "V2 Staging",
   "overview": "Vue d’ensemble",

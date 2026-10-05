@@ -93,6 +93,24 @@
         return (races || []).map((race) => ({ ...race, season_id: race.season_id || season.id }));
       }));
       const races = raceGroups.flat();
+      const currentRosters = [];
+      const session = await window.supabaseClient?.auth?.getSession?.();
+      if (session?.error) throw session.error;
+      if (session?.data?.session) {
+        for (let from = 0; ; from += 1000) {
+          const historical = await window.supabaseClient.rpc('get_league_team_history')
+            .order('season_id').order('driver_id').order('effective_round_number').order('created_at').range(from, from + 999);
+          if (historical.error || !Array.isArray(historical.data)) throw historical.error || new Error('Team history unavailable');
+          assignments.push(...historical.data.filter((row) => seasons.some((season) => season.id === row.season_id)));
+          if (historical.data.length < 1000) break;
+          if (from >= 99000) throw new Error('Team history pagination limit reached');
+        }
+        for (const season of seasons.filter((entry) => entry.is_active)) {
+          const current = await window.supabaseClient.rpc('get_season_championship_roster', { p_season_id: season.id });
+          if (current.error || !Array.isArray(current.data)) throw current.error || new Error('Current roster unavailable');
+          currentRosters.push(...current.data.map((row) => ({ ...row, season_id: season.id })));
+        }
+      }
       const raceIds = races.map((race) => race.id).filter(Boolean);
 
       const raceResults = [];
@@ -121,6 +139,7 @@
         seasons: seasons || [],
         drivers: drivers || [],
         assignments: assignments || [],
+        currentRosters,
         races,
         completedRaces,
         raceResults,
@@ -155,9 +174,16 @@
   }
 
   function driverDisplaySnapshot(history, driverId, raceId) {
-    return history.resolver?.resolveDriverSnapshot?.(driverId, raceId)
+    const driver = history.resolver?.resolveDriverSnapshot?.(driverId, raceId)
       || history.driversById.get(String(driverId))
       || null;
+    if (!driver || !raceId) return driver;
+    const assignment = history.resolver?.getAssignmentForRace?.(driverId, raceId);
+    const row = actualResultForDriver(history.resultsByRace.get(String(raceId)) || [], driverId);
+    const team = row && pointsOwnerId(row) === String(driverId) ? row.points_team_name : null;
+    return { ...driver, league_team: team ?? assignment?.league_team ?? '',
+      car_name: row?.car_name_snapshot ?? assignment?.car_name ?? '',
+      teamKnown: team != null || assignment?.league_team != null };
   }
 
   function calculateDriverStats(driverId, history, options = {}) {
@@ -249,14 +275,21 @@
     const teamMap = new Map();
     actualEntries.forEach(({ race }) => {
       const snapshot = driverDisplaySnapshot(history, id, race.id) || driver;
-      const team = String(snapshot.league_team || snapshot.car_name || 'Ohne Team');
+      const team = String(snapshot.league_team || (snapshot.teamKnown ? 'Ohne Team' : 'Nicht hinterlegt'));
       const car = String(snapshot.car_name || '');
-      const key = `${team}::${car}`;
-      if (!teamMap.has(key)) teamMap.set(key, { team, car, starts: 0, firstRaceId: race.id, lastRaceId: race.id });
+      const seasonId = String(race.season_id);
+      const key = `${seasonId}::${team}::${car}`;
+      if (!teamMap.has(key)) teamMap.set(key, { team, car, starts: 0, seasonId, seasonName: history.seasonsById.get(seasonId)?.name || '—', firstRaceId: race.id, lastRaceId: race.id });
       const bucket = teamMap.get(key);
       bucket.starts += 1;
       bucket.lastRaceId = race.id;
     });
+    for (const member of history.currentRosters || []) {
+      if (String(member.driver_id) !== id || (options.seasonId && String(member.season_id) !== String(options.seasonId))) continue;
+      const team = member.team_name || 'Ohne Team', car = member.car_name || '', seasonId = String(member.season_id);
+      const key = `${seasonId}::${team}::${car}`;
+      if (!teamMap.has(key)) teamMap.set(key, { team, car, starts: 0, seasonId, seasonName: history.seasonsById.get(seasonId)?.name || '—', firstRaceId: null, lastRaceId: null });
+    }
 
     const recent = [...actualEntries]
       .sort((left, right) => raceSortValue(left.race, history.seasonsById) - raceSortValue(right.race, history.seasonsById))

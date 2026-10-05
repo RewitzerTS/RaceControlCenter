@@ -21,16 +21,17 @@ type ChallengeProjection = Pick<
   Database['public']['Tables']['driver_challenges']['Row'],
   'challenge_code' | 'progress' | 'status'
 >;
-type UpcomingRace = Pick<
+export type UpcomingRace = Pick<
   Database['public']['Tables']['races']['Row'],
-  'grand_prix_name' | 'id' | 'race_date' | 'race_start_at' | 'race_time'
+  'grand_prix_name' | 'id' | 'race_date' | 'race_start_at' | 'race_time' | 'season_id' | 'round_number' | 'circuit_name'
 >;
 type SeasonRow = Pick<
   Database['public']['Tables']['seasons']['Row'],
-  'archived_at' | 'id' | 'is_active' | 'name'
+  'archived_at' | 'id' | 'is_active' | 'name' | 'game_key'
 >;
 
 export interface DriverSeasonSummary {
+  gameKey?: string;
   archivedAt: string | null;
   id: string;
   name: string;
@@ -68,6 +69,7 @@ export interface DriverHomeSnapshot {
   career: CareerStats | null;
   challenges: DriverChallenge[];
   nextRace: UpcomingRace | null;
+  nextRaceDay?: UpcomingRace[];
   progression: Progression | null;
   wallet: Wallet | null;
 }
@@ -157,11 +159,15 @@ const EMPTY_SNAPSHOT: DriverHomeSnapshot = {
 async function loadSnapshot(
   client: LeagueSupabaseClient,
   driverIdentityId: string,
+  leagueSlug: string,
 ): Promise<DriverHomeSnapshot> {
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const league = await client.from('leagues').select('id').eq('slug', leagueSlug).single();
+  if (league.error) throw league.error;
   const seasons = await client
     .from('seasons')
-    .select('archived_at, id, is_active, name');
+    .select('archived_at, id, is_active, name, game_key').eq('league_id', league.data.id);
   if (seasons.error) throw seasons.error;
   const seasonRows = (seasons.data ?? []) as SeasonRow[];
   const activeSeasonRow = seasonRows.find((season) => season.is_active) ?? null;
@@ -203,14 +209,14 @@ async function loadSnapshot(
     activeSeasonRow
       ? client
           .from('races')
-          .select('grand_prix_name, id, race_date, race_start_at, race_time')
+          .select('grand_prix_name, id, race_date, race_start_at, race_time, season_id, round_number, circuit_name')
           .eq('season_id', activeSeasonRow.id)
           .eq('status', 'upcoming')
           .gte('race_date', today)
           .order('race_date')
-          .limit(1)
-          .maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
+          .order('round_number')
+          .limit(500)
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   const responses = [
@@ -263,6 +269,7 @@ async function loadSnapshot(
 
   return {
     activeSeason: activeSeasonRow ? {
+      gameKey: activeSeasonRow.game_key,
       archivedAt: activeSeasonRow.archived_at,
       id: activeSeasonRow.id,
       name: activeSeasonRow.name,
@@ -278,7 +285,8 @@ async function loadSnapshot(
     } : null,
     career: career.data,
     challenges,
-    nextRace: nextRace.data,
+    nextRace: nextRaceDay(nextRace.data ?? [])[0] ?? null,
+    nextRaceDay: nextRaceDay(nextRace.data ?? []),
     progression: progression.data,
     wallet: wallet.data,
   };
@@ -287,6 +295,7 @@ async function loadSnapshot(
 export function useDriverHome(
   client: LeagueSupabaseClient,
   driverIdentityId: string | null,
+  leagueSlug: string,
 ) {
   const [snapshot, setSnapshot] = useState<DriverHomeSnapshot>(EMPTY_SNAPSHOT);
   const [loading, setLoading] = useState(Boolean(driverIdentityId));
@@ -321,11 +330,12 @@ export function useDriverHome(
       return () => { active = false; };
     }
 
-    setLoading(loadedIdentity.current !== driverIdentityId);
-    void loadSnapshot(client, driverIdentityId)
+    const contextKey = `${leagueSlug}:${driverIdentityId}`;
+    setLoading(loadedIdentity.current !== contextKey);
+    void loadSnapshot(client, driverIdentityId, leagueSlug)
       .then((nextSnapshot) => {
         if (active) {
-          loadedIdentity.current = driverIdentityId;
+          loadedIdentity.current = contextKey;
           setSnapshot(nextSnapshot);
         }
       })
@@ -337,7 +347,17 @@ export function useDriverHome(
       });
 
     return () => { active = false; };
-  }, [client, driverIdentityId, reloadKey]);
+  }, [client, driverIdentityId, leagueSlug, reloadKey]);
 
   return { error, loading, reload, snapshot };
+}
+
+/** Keep the complete next scheduled day, including later rounds with the same date. */
+export function nextRaceDay(races: UpcomingRace[]): UpcomingRace[] {
+  const ordered = races.filter((race) => race.race_date).slice().sort((a, b) =>
+    (a.race_date ?? '').slice(0, 10).localeCompare((b.race_date ?? '').slice(0, 10))
+    || (a.race_start_at ?? `${a.race_date}T${a.race_time || '00:00'}`).localeCompare(b.race_start_at ?? `${b.race_date}T${b.race_time || '00:00'}`)
+    || a.round_number - b.round_number);
+  const day = ordered[0]?.race_date?.slice(0, 10);
+  return day ? ordered.filter((race) => race.race_date?.slice(0, 10) === day) : [];
 }

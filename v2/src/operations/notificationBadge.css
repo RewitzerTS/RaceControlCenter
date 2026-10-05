@@ -1,0 +1,2 @@
+.mobile-header-notifications, .topbar-icon-link { position: relative; }
+.notification-count { position: absolute; top: -4px; right: -4px; display: grid; place-items: center; min-width: 20px; height: 20px; padding-inline: 4px; box-sizing: border-box; border-radius: 12px; color: #fff; background: #6c35cb; font-size: 11px; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; border: 2px solid #10151e; pointer-events: none; }

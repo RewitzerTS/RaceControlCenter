@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import type { Database } from '../types/database';
 import { currentResults, fastestLapDriver, type PublishedResult, type ResultsAssignment, type ResultsDriver, type ResultsRace } from './resultsData';
+import type { ChampionshipMember } from './standingsData';
 
 type Tables = Database['public']['Tables'];
 export type HistorySeason = Pick<Tables['seasons']['Row'], 'id' | 'name' | 'start_date' | 'created_at' | 'is_active'> & Partial<Pick<Tables['seasons']['Row'], 'game_key' | 'game_label' | 'archived_at'>>;
@@ -9,7 +10,7 @@ export type HistoryRace = ResultsRace & Pick<Tables['races']['Row'], 'circuit_na
 export type HistoryResult = PublishedResult & Pick<Tables['race_results']['Row'], 'grid_position' | 'race_time'> & Partial<Pick<Tables['race_results']['Row'], 'race_time_ms'>>;
 export type HistoryAssignment = ResultsAssignment & { season_id: string };
 type HistoryDatabase = Omit<Database, 'public'> & { public: Omit<Database['public'], 'Tables'> & { Tables: Tables & { season_driver_assignments: { Row: HistoryAssignment; Insert: never; Update: never; Relationships: [] } } } };
-export interface HistoryData { leagueId: string; seasons: HistorySeason[]; drivers: ResultsDriver[]; races: HistoryRace[]; results: HistoryResult[]; assignments: HistoryAssignment[]; profileNumbers: Record<string, number> }
+export interface HistoryData { leagueId: string; seasons: HistorySeason[]; drivers: ResultsDriver[]; races: HistoryRace[]; results: HistoryResult[]; assignments: HistoryAssignment[]; profileNumbers: Record<string, number>; currentRosters?: (ChampionshipMember & { season_id: string })[] }
 
 // Every query has a stable order and explicit pagination. Never show partial career totals.
 export async function readHistoryPages<T>(query: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>, signal: AbortSignal): Promise<T[]> {
@@ -51,6 +52,17 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
     results.push(...await readHistoryPages((from, to) => client.from('race_results').select('id,race_id,result_version_id,driver_id,points_owner_driver_id,awarded_points,participation_status,fastest_lap_time_ms,fastest_lap_ms,fastest_lap_time,points_car_name,car_name_snapshot,finish_position,points_team_name,grid_position,race_time,race_time_ms').in('race_id', chunk.map((race) => race.id)).in('result_version_id', chunk.map((race) => race.current_result_version_id!)).order('race_id').order('id').range(from, to).abortSignal(signal), signal));
   }
   const valid = currentResults(races, results) as HistoryResult[];
+  const currentRosters: NonNullable<HistoryData['currentRosters']> = [];
+  if (userId) {
+    const historical = await readHistoryPages((from, to) => client.rpc('get_league_team_history').order('season_id').order('driver_id').order('effective_round_number').order('created_at').range(from, to).abortSignal(signal), signal);
+    assignments.push(...historical.filter((entry) => selectedSeasons.some((season) => season.id === entry.season_id)));
+    for (const season of selectedSeasons.filter((entry) => entry.is_active)) {
+      const rosterResponse = await client.rpc('get_season_championship_roster', { p_season_id: season.id }).abortSignal(signal);
+      signal.throwIfAborted();
+      if (rosterResponse.error || !Array.isArray(rosterResponse.data)) throw rosterResponse.error || new Error('Current roster unavailable');
+      currentRosters.push(...rosterResponse.data.map((entry) => ({ ...entry, season_id: season.id })));
+    }
+  }
   const profileNumbers: Record<string, number> = {};
   if (userId) {
     // Optional own profile number must not hide otherwise available racing history.
@@ -63,7 +75,7 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
       if (!links.error && number != null && Number.isInteger(number) && number >= 0 && number <= 99) for (const link of links.data) if (drivers.some((driver) => driver.id === link.driver_id)) profileNumbers[link.driver_id] = number;
     }
   }
-  return { leagueId, seasons, drivers, races, results: valid, assignments, profileNumbers };
+  return { leagueId, seasons, drivers, races, results: valid, assignments, profileNumbers, currentRosters };
 }
 
 export const position = (value: unknown): number | null => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null;
@@ -83,7 +95,7 @@ export function historySnapshot(data: HistoryData, driverId: string, race: Histo
   const assignment = data.assignments.filter((row) => row.driver_id === driverId && row.season_id === race.season_id && (row.effective_round_number ?? 0) <= race.round_number).sort((a, b) => (a.effective_round_number ?? 0) - (b.effective_round_number ?? 0) || a.created_at.localeCompare(b.created_at)).at(-1);
   const published = data.results.find((row) => row.race_id === race.id && row.driver_id === driverId);
   // Published car snapshots preserve mid-season vehicle changes and historical races.
-  return { ...driver, display_name: driver?.display_name || '—', car_name: published?.car_name_snapshot || assignment?.car_name || driver?.car_name || '', league_team: assignment?.team_name || (published && owner(published) === driverId ? published.points_team_name : '') || driver?.league_team || '' };
+  return { ...driver, display_name: driver?.display_name || '—', car_name: published?.car_name_snapshot ?? assignment?.car_name ?? '', league_team: (published && owner(published) === driverId ? published.points_team_name : null) ?? assignment?.team_name ?? '', teamKnown: (published && owner(published) === driverId && published.points_team_name != null) || assignment?.team_name != null };
 }
 export function driverEntries(data: HistoryData, driverId: string, seasonId = '') {
   return completedHistory(data, seasonId).flatMap((race) => { const row = data.results.find((item) => item.race_id === race.id && item.driver_id === driverId); return row ? [{ race, row }] : []; });
@@ -100,8 +112,14 @@ export function driverStats(data: HistoryData, driverId: string, seasonId = '') 
   const gain = (row: HistoryResult) => { const start = position(row.grid_position), finish = position(row.finish_position); return start != null && finish != null ? start - finish : null; };
   const dnfs = entries.filter(({ row }) => position(row.finish_position) == null).length;
   const tracks = [...new Set(entries.map(({ race }) => race.circuit_name || race.grand_prix_name))].map((name) => { const selected = entries.filter(({ race }) => (race.circuit_name || race.grand_prix_name) === name); return { name, ...metrics(selected, data), points: selected.reduce((sum, { row }) => sum + (owner(row) === driverId ? points(row) : 0), 0) }; }).sort((a, b) => b.wins - a.wins || b.podiums - a.podiums || b.points - a.points || a.name.localeCompare(b.name)).slice(0, 8);
-  const teams = new Map<string, { team: string; car: string; starts: number }>();
-  entries.forEach(({ race }) => { const snapshot = historySnapshot(data, driverId, race); const team = snapshot.league_team || snapshot.car_name || '—', car = snapshot.car_name; const key = `${team}::${car}`; const value = teams.get(key) || { team, car, starts: 0 }; value.starts++; teams.set(key, value); });
+  const teams = new Map<string, { team: string; car: string; starts: number; seasonId: string; seasonName: string; known: boolean }>();
+  const addTeam = (season: string, team: string, car: string, known: boolean, starts: number) => {
+    const key = `${season}::${team}::${car}`;
+    const value = teams.get(key) || { team, car, starts: 0, seasonId: season, seasonName: data.seasons.find((s) => s.id === season)?.name || '—', known };
+    value.starts += starts; teams.set(key, value);
+  };
+  entries.forEach(({ race }) => { const snapshot = historySnapshot(data, driverId, race); addTeam(race.season_id, snapshot.league_team, snapshot.car_name, snapshot.teamKnown, 1); });
+  for (const member of data.currentRosters ?? []) if (member.driver_id === driverId && (!seasonId || member.season_id === seasonId)) addTeam(member.season_id, member.team_name || '', member.car_name || '', true, 0);
   const seasons = [...new Set(races.map((race) => race.season_id))].map((id) => ({ seasonId: id, seasonName: data.seasons.find((season) => season.id === id)?.name || '—', ...metrics(entries.filter(({ race }) => race.season_id === id), data), points: owned.filter((row) => data.races.find((race) => race.id === row.race_id)?.season_id === id).reduce((sum, row) => sum + points(row), 0) })).filter((value) => value.starts || value.points).reverse();
   return { ...metrics(entries, data), points: owned.reduce((sum, row) => sum + points(row), 0), dnfs, avgStart: average(entries.map(({ row }) => position(row.grid_position))), avgFinish: average(entries.map(({ row }) => position(row.finish_position))), positionsGained: entries.reduce((sum, { row }) => sum + (gain(row) ?? 0), 0), finishRate: entries.length ? (entries.length - dnfs) / entries.length : null, recent: entries.slice(-5).reverse().map((entry) => ({ ...entry, gain: gain(entry.row), points: owner(entry.row) === driverId ? points(entry.row) : 0 })), seasons, tracks, teams: [...teams.values()], snapshot: entries.length ? historySnapshot(data, driverId, entries.at(-1)!.race) : data.drivers.find((driver) => driver.id === driverId) };
 }

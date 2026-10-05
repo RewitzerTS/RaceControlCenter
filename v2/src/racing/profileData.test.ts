@@ -33,7 +33,10 @@ describe('native racing profile calculations', () => {
     }
   });
   it('retains team totals, car history and driver statistics', () => {
-    const data = fixture(), old = legacy(data);
+    const data = fixture();
+    // The substitute's own historical team must be recorded, not inferred from today's profile.
+    data.assignments = [{ driver_id: 'd0', season_id: 's2', team_name: 'Team', car_name: 'Car', created_at: '2026-01-01' }];
+    const old = legacy(data);
     for (const scope of ['', 's1', 's2']) {
       const expected = old.api.RCCTeamStats.calculateTeamStats('Team', old.history, { seasonId: scope });
       const actual = teamStats(data, 'Team', scope);

@@ -228,7 +228,7 @@
     }
     host.innerHTML = stats.teamHistory.map((team) => {
       const logo = window.createTeamLogoBadge?.(team.car || team.team, { size: 'large', label: team.car || team.team }) || '';
-      return `<div class="driver-team-item"><div><strong>${esc(team.team)}</strong><small>${esc(team.car || 'Fahrzeug nicht hinterlegt')} · ${team.starts} Starts</small></div><div class="driver-team-item__logo">${logo}</div></div>`;
+      return `<div class="driver-team-item"><div><strong>${esc(team.seasonName || '—')} · ${esc(team.team)}</strong><small>${esc(team.car || 'Fahrzeug nicht hinterlegt')} · ${team.starts} Starts</small></div><div class="driver-team-item__logo">${logo}</div></div>`;
     }).join('');
   }
 
