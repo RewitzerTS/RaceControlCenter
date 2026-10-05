@@ -41,9 +41,9 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
       <p className="race-day-date">{race.race_date ? formatDate(race.race_date) : t('home.dateTbd')}
         {(race.race_start_at || race.race_time) && <span> · {race.race_start_at ? formatTime(race.race_start_at) : race.race_time?.slice(0, 5)}</span>}
       </p>
-      <NavLink className="race-day-open" to={racingHref('/racing/races/detail', league, { season: race.season_id, round: race.round_number })}>
+      {track && <NavLink className="race-day-open" to={racingHref('/racing/tracks/profile', league, { season: race.season_id, track: track.key })}>
         {t('raceDay.open')}<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6" /></svg>
-      </NavLink>
+      </NavLink>}
       {track?.trackMapFile && <figure className="race-day-map">
         <figcaption>{t('raceDay.layout')}<span>{fact?.lengthKm}</span></figcaption>
         <img src={`/v1-assets/trackmaps/${track.trackMapFile}`} alt={track.circuitName} />

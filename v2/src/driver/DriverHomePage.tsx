@@ -135,14 +135,13 @@ export function DriverHomePage() {
         </span>
       </section>
 
-      <RaceDayCarousel key={`${leagueSlug}:${snapshot.nextRace?.race_date}`} races={snapshot.nextRaceDay ?? []} league={leagueSlug} gameKey={snapshot.activeSeason?.gameKey} />
       <section className="dashboard-hero v2-driver-dashboard" aria-labelledby="driver-hero-title">
         <article className="hero-main">
           <div className="hero-topline">
             <p className="hero-kicker">{hero.kicker}</p>
           </div>
           <h1 id="driver-hero-title">{t('home.greeting', { name: displayName })}</h1>
-          {!snapshot.nextRaceDay?.length && <div className="next-race-showcase">
+          {snapshot.nextRaceDay?.length ? <RaceDayCarousel key={`${leagueSlug}:${snapshot.nextRace?.race_date}`} races={snapshot.nextRaceDay} league={leagueSlug} gameKey={snapshot.activeSeason?.gameKey} /> : <div className="next-race-showcase">
             <span className="section-label">{seasonCompleted ? t('home.seasonStatus') : t('home.nextRace')}</span>
             <strong>{seasonCompleted ? t('home.noActiveSeason') : snapshot.nextRace?.grand_prix_name ?? t('home.noRaceScheduled')}</strong>
             <small>{seasonCompleted

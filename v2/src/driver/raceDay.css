@@ -1,35 +1,35 @@
-.race-day { position: relative; isolation: isolate; overflow: hidden; border-radius: 16px; background: #070e17; color: #f8fbff; margin-block: 24px; touch-action: pan-y; }
+.race-day { position: relative; isolation: isolate; overflow: hidden; container-type: inline-size; min-width: 0; border-radius: 12px; background: #070e17; color: #f8fbff; margin-block: 16px 20px; touch-action: pan-y; }
 .race-day-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
-.race-day::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(3,10,18,.94), rgba(3,10,18,.5) 57%, rgba(3,10,18,.22)), linear-gradient(0deg, #070e17, transparent 48%); }
-.race-day-content { padding: clamp(20px, 4vw, 48px); padding-bottom: 12px; min-height: 510px; }
+.race-day::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(3,10,18,.94), rgba(3,10,18,.55)), linear-gradient(0deg, #070e17, transparent 65%); }
+.race-day-content { display: grid; grid-template-columns: minmax(0,1fr) 120px; gap: 8px 16px; padding: 16px 16px 8px; }
 @font-face { font-family: RaceDayDisplay; src: url('/assets/fonts/special-gothic-expanded-one.ttf') format('truetype'); font-weight: 400; font-display: swap; }
-.race-day h2 { color: #fff; margin: 0; max-width: 100%; font-family: RaceDayDisplay, sans-serif; font-weight: 400; font-size: clamp(2.25rem, 7.5vw, 6rem); line-height: 1.08; letter-spacing: -.025em; text-transform: uppercase; overflow-wrap: anywhere; text-wrap: balance; }
-.race-day h2 span { color: #9885ff; }
-.race-day-circuit { margin: 14px 0 22px; color: #e4eaf4; }
-.race-day-date { margin: 0 0 24px; font-size: clamp(1.15rem, 2.6vw, 1.8rem); font-weight: 700; font-variant-numeric: tabular-nums; }
-.race-day-open { display: flex; justify-content: space-between; align-items: center; gap: 32px; width: fit-content; min-height: 48px; padding: 12px 20px; background: #00d7d2; color: #032023; border-radius: 6px; font-weight: 700; text-decoration: none; }
-.race-day-open:hover { background: #52ece7; }
-.race-day svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; }
-.race-day-map { width: min(100%, 272px); margin: 22px 0 0; padding: 12px; border: 1px solid #536175; background: rgba(4,13,23,.93); border-radius: 8px; }
-.race-day-map figcaption { display: flex; justify-content: space-between; gap: 12px; font-size: .85rem; }
-.race-day-map img { display: block; height: 130px; width: 100%; object-fit: contain; }
-.race-day-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 12px clamp(20px,4vw,48px) 20px; }
-.race-day-controls { display: flex; align-items: center; gap: 12px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
-.race-day-controls button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #758299; border-radius: 50%; background: #101c2c; color: white; cursor: pointer; }
-.race-day-credit { color: #dde5ef; text-align: right; font-size: .75rem; background: #070e17; padding: 4px 7px; max-width: 50%; }
+.race-day h2 { grid-column: 1/-1; color: #fff; margin: 0; max-width: 100%; font-family: RaceDayDisplay, sans-serif; font-weight: 400; font-size: clamp(1.3rem, 6cqi, 2rem); line-height: 1.15; letter-spacing: -.025em; text-transform: uppercase; overflow-wrap: anywhere; text-wrap: balance; }
+.race-day-circuit { grid-column: 1/-1; margin: 0 0 4px; color: #e4eaf4; font-size: .875rem; overflow-wrap: anywhere; }
+.race-day-date { grid-column: 1; align-self: end; margin: 0; font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.race-day-date span { display: inline-block; }
+.race-day-open { grid-column: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; width: fit-content; max-width: 100%; min-height: 44px; padding: 8px 12px; background-color: var(--brand-primary); background-image: var(--brand-action-gradient, var(--brand-gradient)); color: var(--brand-on-primary); border-radius: 8px; font-size: .875rem; font-weight: 700; text-decoration: none; overflow-wrap: anywhere; }
+.race-day-open:hover { filter: brightness(1.08); }
+.race-day svg { flex: 0 0 20px; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.race-day-map { grid-column: 2; grid-row: 3/5; align-self: center; min-width: 0; margin: 0; }
+.race-day-map figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; font-size: .75rem; }
+.race-day-map img { display: block; height: 64px; width: 100%; object-fit: contain; }
+.race-day-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 4px 16px 12px; }
+.race-day-controls { display: flex; align-items: center; gap: 8px; font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.race-day-controls button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--brand-primary); border-radius: 50%; background: var(--brand-surface); color: var(--text); cursor: pointer; }
+.race-day-credit { color: #dde5ef; text-align: right; font-size: .6875rem; background: #070e17; padding: 4px; overflow-wrap: anywhere; }
 .race-day-credit a { color: inherit; text-underline-offset: 3px; }
-.race-day-races { display: flex; overflow-x: auto; background: #0a1421; border-top: 1px solid #526078; }
-.race-day-races button { flex: 1 0 auto; min-height: 56px; padding: 12px 22px; border: 0; border-radius: 0; background: transparent; color: #d5deeb; cursor: pointer; font: inherit; text-align: left; }
-.race-day-races button span { margin-right: 10px; font-variant-numeric: tabular-nums; }
-.race-day-races button[aria-pressed="true"] { color: #5cece7; background: #122a34; box-shadow: inset 0 -2px #5cece7; }
-.race-day button:hover { background-color: #24364c; }
-.race-day :focus-visible, .race-day:focus-visible { outline: 3px solid #5cece7; outline-offset: -3px; }
-@media (max-width: 600px) {
- .race-day-content { min-height: 400px; }
- .race-day-photo { object-position: 62% center; }
- .race-day::before { background: linear-gradient(90deg, rgba(3,10,18,.92), rgba(3,10,18,.55)), linear-gradient(0deg,#070e17,transparent); }
- .race-day-footer { flex-wrap: wrap; gap: 12px; }
- .race-day-credit { max-width: 100%; text-align: left; }
- .race-day-map { width: 220px; }
- .race-day-map img { height: 100px; }
+.race-day-races { display: flex; max-width: 100%; overflow-x: auto; background: var(--brand-surface); scrollbar-color: var(--brand-primary) var(--brand-surface); }
+.race-day-races button { flex: 1 0 auto; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text); cursor: pointer; font: inherit; font-size: .8125rem; text-align: left; }
+.race-day-races button span { margin-right: 8px; font-variant-numeric: tabular-nums; }
+.race-day-races button[aria-pressed="true"], .race-day-controls button:hover { color: var(--brand-on-primary); background: var(--brand-primary); }
+.race-day-races button:hover { text-decoration: underline; text-underline-offset: 3px; }
+.race-day :focus-visible, .race-day:focus-visible { outline: 3px solid var(--brand-accent); outline-offset: -3px; }
+@container (max-width: 340px) {
+ .race-day-content { grid-template-columns: minmax(0,1fr) 80px; gap: 8px; padding: 12px 12px 8px; }
+ .race-day-open { grid-column: 1/-1; }
+ .race-day-map { grid-row: 3; }
+ .race-day-map figcaption { font-size: .6875rem; }
+ .race-day-map img { height: 48px; }
+ .race-day-footer { padding-inline: 12px; }
+ .race-day-credit { text-align: left; }
 }

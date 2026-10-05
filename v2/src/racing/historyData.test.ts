@@ -28,6 +28,18 @@ function legacy(data: HistoryData) {
   return { api: context.window, history };
 }
 describe('native track and record parity', () => {
+  it('opens a scheduled circuit with zero statistics without borrowing earlier season results', () => {
+    const data = fixture();
+    data.races = data.races.map((race) => race.season_id === 's2' ? { ...race, status: 'upcoming', current_result_version_id: null } : race);
+    data.results = data.results.filter((row) => data.races.find((race) => race.id === row.race_id)?.season_id === 's1');
+    const stats = trackStats(data, 'japan', 's2')!;
+    expect(stats.meta.track?.key).toBe('japan');
+    expect(stats.races).toBe(0); expect(stats.starts).toBe(0); expect(stats.bestLap).toBeNull();
+    expect(stats.records).toEqual([]); expect(stats.history).toEqual([]);
+    expect(listHistoryTracks(data, 's2')).toEqual([]);
+    expect(trackStats(data, 'japan', 'missing')).toBeNull();
+    expect(trackStats(data, 'japan', 's1')?.races).toBe(2);
+  });
   it.each(['', 's1', 's2'])('preserves track records and leaders for %s', (season) => {
     const data = fixture(), old = legacy(data), expected = old.api.RCCTrackStats.calculateTrackStats('japan', old.history, { seasonId: season }), actual = trackStats(data, 'japan', season)!;
     for (const key of ['races', 'starts', 'uniqueDrivers'] as const) expect(actual[key]).toEqual(expected[key]);

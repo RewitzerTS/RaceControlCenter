@@ -2,7 +2,7 @@ export const raceDayMessages = {
   "de": {
     "raceDay.title": "Nächster Renntag",
     "raceDay.carousel": "Renn-Slider",
-    "raceDay.open": "Rennen öffnen",
+    "raceDay.open": "Streckenprofil",
     "raceDay.layout": "Streckenschema",
     "raceDay.previous": "Vorheriges Rennen",
     "raceDay.next": "Nächstes Rennen",
@@ -19,7 +19,7 @@ export const raceDayMessages = {
   "en": {
     "raceDay.title": "Next race day",
     "raceDay.carousel": "Race carousel",
-    "raceDay.open": "Open race",
+    "raceDay.open": "Track profile",
     "raceDay.layout": "Circuit layout",
     "raceDay.previous": "Previous race",
     "raceDay.next": "Next race",
@@ -36,7 +36,7 @@ export const raceDayMessages = {
   "es": {
     "raceDay.title": "Próxima jornada",
     "raceDay.carousel": "Carrusel de carreras",
-    "raceDay.open": "Abrir carrera",
+    "raceDay.open": "Perfil del circuito",
     "raceDay.layout": "Trazado del circuito",
     "raceDay.previous": "Carrera anterior",
     "raceDay.next": "Siguiente carrera",
@@ -53,7 +53,7 @@ export const raceDayMessages = {
   "fr": {
     "raceDay.title": "Prochaine journée",
     "raceDay.carousel": "Carrousel de courses",
-    "raceDay.open": "Ouvrir la course",
+    "raceDay.open": "Profil du circuit",
     "raceDay.layout": "Tracé du circuit",
     "raceDay.previous": "Course précédente",
     "raceDay.next": "Course suivante",

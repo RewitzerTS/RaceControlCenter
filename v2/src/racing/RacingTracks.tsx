@@ -24,6 +24,8 @@ export function RacingTracks({ profile = false }: { profile?: boolean }) {
   const tracks = data && validSeason ? listHistoryTracks(data, season) : [];
   const key = params.get('track') || tracks[0]?.key || '';
   const stats = data && profile && validSeason ? trackStats(data, key, season) : null;
+  // Keep the selected scheduled circuit available without adding unrun races to history totals.
+  if (stats && !tracks.some((track) => track.key === stats.meta.key)) tracks.push(stats.meta);
   const info = stats ? trackFacts(stats.meta) : null;
   const totals = data && !profile ? tracks.map((meta) => trackStats(data, meta.key, season)!).reduce((sum, value) => ({ races: sum.races + value.races, starts: sum.starts + value.starts, laps: sum.laps + Number(Boolean(value.bestLap)) }), { races: 0, starts: 0, laps: 0 }) : null;
   return <ProfileFrame view={view} title={profile ? h.trackProfile : h.tracks} kind={profile ? 'track-profile' : 'tracks'}>{data && <>

@@ -29,7 +29,11 @@ interface Lap { ms: number; text: string; race: HistoryRace; driverId: string; n
 interface TrackDriver { driverId: string; name: string; starts: number; wins: number; podiums: number; poles: number; fastestLaps: number; points: number; bestFinish: number | null; bestLap: Lap | null }
 export function trackStats(data: HistoryData, key: string, season = '') {
   const races = completedHistory(data, season).filter((race) => trackMeta(race, data).key === key);
-  if (!races.length) return null;
+  // A scheduled circuit already has a useful profile before its first result.
+  // Only completed races contribute to statistics; never borrow another season.
+  const profileRace = races.at(-1) ?? data.races.find((race) => (!season || race.season_id === season)
+    && race.status === 'upcoming' && trackMeta(race, data).key === key);
+  if (!profileRace) return null;
   const drivers = new Map<string, TrackDriver>(); let starts = 0; let bestLap: Lap | null = null;
   const history = races.map((race) => {
     const rows = data.results.filter((row) => row.race_id === race.id), fastest = fastestLapDriver(rows);
@@ -54,5 +58,5 @@ export function trackStats(data: HistoryData, key: string, season = '') {
   });
   const records = [...drivers.values()].sort((a, b) => b.wins - a.wins || b.podiums - a.podiums || b.points - a.points || a.name.localeCompare(b.name, 'de'));
   const leader = (field: 'wins' | 'podiums' | 'poles' | 'fastestLaps' | 'points' | 'starts', tie: 'wins' | 'points') => [...records].sort((a, b) => b[field] - a[field] || b[tie] - a[tie])[0] || null;
-  return { meta: trackMeta(races.at(-1)!, data), races: races.length, starts, uniqueDrivers: drivers.size, bestLap: bestLap as Lap | null, records, history: history.reverse(), leaders: { wins: leader('wins', 'points'), podiums: leader('podiums', 'wins'), poles: leader('poles', 'wins'), fastestLaps: leader('fastestLaps', 'wins'), points: leader('points', 'wins'), starts: leader('starts', 'points') } };
+  return { meta: trackMeta(profileRace, data), races: races.length, starts, uniqueDrivers: drivers.size, bestLap: bestLap as Lap | null, records, history: history.reverse(), leaders: { wins: leader('wins', 'points'), podiums: leader('podiums', 'wins'), poles: leader('poles', 'wins'), fastestLaps: leader('fastestLaps', 'wins'), points: leader('points', 'wins'), starts: leader('starts', 'points') } };
 }
