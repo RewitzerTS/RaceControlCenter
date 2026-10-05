@@ -1,5 +1,6 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture as f } from './public-fixture';
+import venues from '../src/driver/venueMedia.json' with { type: 'json' };
 
 async function fixture(context: BrowserContext, count = 3) {
  await installPublicFixture(context);
@@ -42,6 +43,9 @@ test('compact next-day carousel exposes all races and track links; bell updates 
  const carousel=page.locator('.race-day');
  await expect(carousel).toContainText('Rennen 1 von 3');
  await expect(carousel.locator('h2')).toHaveText('Monaco GP');
+ await expect(carousel.locator('.race-day-photo')).toHaveAttribute('src','/assets/race-art/20261006/monaco-blue-hour-v1.webp');
+ await expect(carousel.locator('.race-day-credit')).toHaveText('RaceVora · KI-generierte Illustration');
+ await expect(carousel.locator('.race-day-credit a')).toHaveCount(0);
  await expect(carousel.locator('.race-day-photo')).toHaveJSProperty('complete',true);
  await expect(carousel.locator('.race-day-photo')).not.toHaveJSProperty('naturalWidth',0);
  await expect(carousel.locator('.race-day-map img')).not.toHaveJSProperty('naturalWidth',0);
@@ -59,6 +63,9 @@ test('compact next-day carousel exposes all races and track links; bell updates 
  if(process.env.RACEVORA_CAPTURE_UI==='1') await page.screenshot({path:`../.impeccable/review/screenshots/home-compact-${info.project.name}.png`,fullPage:true});
  await carousel.getByRole('button',{name:'Nächstes Rennen',exact:true}).click();
  await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ await expect(carousel.locator('.race-day-photo')).toHaveAttribute('src','/assets/race-art/20261006/japan-v1.webp');
+ await expect(carousel.locator('.race-day-photo')).not.toHaveJSProperty('naturalWidth',0);
+ if(process.env.RACEVORA_CAPTURE_UI==='1') await page.screenshot({path:`../.impeccable/review/screenshots/home-art-day-${info.project.name}.png`,fullPage:true});
  await expect(carousel.locator('.race-day-open')).toHaveAttribute('href',/track=japan/);
  await carousel.focus(); await page.keyboard.press('ArrowRight');
  await expect(carousel.locator('h2')).toHaveText('Great Britain GP');
@@ -128,4 +135,14 @@ test('single-race and empty-day states do not display misleading switch controls
  await context.route('**/rest/v1/races?**',route=>route.fulfill({json:[]}));
  await page.reload(); await expect(page.locator('#driver-hero-title')).toBeVisible();
  await expect(page.locator('.race-day')).toHaveCount(0);
+});
+
+test('every generated venue asset is delivered as WebP rather than an HTML fallback', async ({request}) => {
+ for(const venue of venues) {
+  const response=await request.get(venue.src);
+  expect(response.ok()).toBe(true);
+  expect(response.headers()['content-type']).toContain('image/webp');
+  const bytes=await response.body();
+  expect(bytes.toString('ascii',8,12)).toBe('WEBP');
+ }
 });

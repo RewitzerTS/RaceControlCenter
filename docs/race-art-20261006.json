@@ -1,0 +1,239 @@
+{
+  "method": "Built-in image_gen",
+  "created": "2026-10-06",
+  "description": "User-approved AI-generated illustrative destination art, not documentary photography or exact geography. Original PNGs retained in local output/track-art-20261006. WebP quality 85, original 1672x941 dimensions, no crop. Existing licensed photographs are preserved but no longer referenced by the home carousel.",
+  "assets": [
+    {
+      "keys": [
+        "monaco"
+      ],
+      "src": "/assets/race-art/20261006/monaco-blue-hour-v1.webp",
+      "generated": true,
+      "original": "monaco-blue-hour-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora motorsport destination artwork, standalone landscape background for a compact race card. Create one single wide cinematic image, approximately 16:9, no montage. Premium photographic/editorial aesthetic, believable natural textures and restrained film grain, deep midnight blue shadows with subtle cyan and violet tones and warm practical lights, NOT cyberpunk, NOT generic futuristic neon. Strong location identity, tasteful drama, no text, no watermark, no logos, no UI, no cars required. Main subject concentrated in the middle and right, left side quieter and naturally dark for later live HTML title overlay, but do not draw any gradient panel or type. Keep subject recognizable in a central mobile crop. It is an artistic generated scene, not a purported documentary photograph. Port Hercule in Monaco during blue hour, photographed from a plausible elevated land viewpoint across the yacht-filled harbor towards the densely terraced Monaco hillside. Crisp moored yachts, deep blue calm water, restrained golden lights on real-looking waterfront buildings, violet-blue twilight sky. Coherent continuous quays, boats only in water, roads only on land. No invented floating buildings or roads into water, no fantasy skyline, no mountains in the harbor. Refined intimate Mediterranean atmosphere, luminous but not oversaturated."
+    },
+    {
+      "keys": [
+        "miami"
+      ],
+      "src": "/assets/race-art/20261006/miami-stadium-v1.webp",
+      "generated": true,
+      "original": "miami-stadium-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora motorsport destination artwork, standalone landscape background for a compact race card. Create one single wide cinematic image, approximately 16:9, no montage. Premium photographic/editorial aesthetic, believable natural textures and restrained film grain, deep midnight blue shadows with subtle cyan and violet tones and warm practical lights, NOT cyberpunk, NOT generic futuristic neon. Strong location identity, tasteful drama, no text, no watermark, no logos, no UI, no cars required. Main subject concentrated in the middle and right, left side quieter and naturally dark for later live HTML title overlay, but do not draw any gradient panel or type. Keep subject recognizable in a central mobile crop. It is an artistic generated scene, not a purported documentary photograph. Miami Gardens at blue hour: Hard Rock Stadium as the unmistakable architectural hero, broad rectangular white canopy roof around the open stadium bowl, recognizable four tall corner support masts. View from slightly elevated exterior with palms framing foreground and a subtle glimpse of motorsport barriers on dry paved foreground, restrained turquoise accent illumination and dusk lavender sky. Lush subtropical setting, believable architecture and scale. Stadium is inland: NO ocean, NO marina, NO beach beside the stadium. No readable sponsorship signs. No invented circuit map."
+    },
+    {
+      "keys": [
+        "united-states"
+      ],
+      "src": "/assets/race-art/20261006/texas-longhorns-v1.webp",
+      "generated": true,
+      "original": "texas-longhorns-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora motorsport destination artwork, standalone landscape background for a compact race card. Create one single wide cinematic image, approximately 16:9, no montage. Premium photographic/editorial aesthetic, believable natural textures and restrained film grain, deep midnight blue shadows with subtle cyan and violet tones and warm practical lights, NOT cyberpunk, NOT generic futuristic neon. Strong location identity, tasteful drama, no text, no watermark, no logos, no UI, no cars required. Main subject concentrated in the middle and right, left side quieter and naturally dark for later live HTML title overlay, but do not draw any gradient panel or type. Keep subject recognizable in a central mobile crop. It is an artistic generated scene, not a purported documentary photograph. Texas Hill Country near Austin at dusk, a real-looking adult ranch cowboy in a worn hat leaning calmly on a timber fence, and two healthy Texas longhorn bulls in the pasture on the other side, naturally proportioned horns and legs, dry grass, live oak silhouettes, spacious land and a low blue-violet sky with last warm horizon light. Distinct authentic Central Texas setting rather than Arizona: NO desert mesas, NO giant cactus, NO Monument Valley. Cinematic documentary-inspired environmental portrait, cowboy mid-right and longhorns center-right, left foreground quiet and shaded. No fighting, no animal distress, no bull riding, no costume caricature."
+    },
+    {
+      "keys": [
+        "belgium"
+      ],
+      "src": "/assets/race-art/20261006/spa-night-v1.webp",
+      "generated": true,
+      "original": "spa-night-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora motorsport destination artwork, standalone landscape background for a compact race card. Create one single wide cinematic image, approximately 16:9, no montage. Premium photographic/editorial aesthetic, believable natural textures and restrained film grain, deep midnight blue shadows with subtle cyan and violet tones and warm practical lights, NOT cyberpunk, NOT generic futuristic neon. Strong location identity, tasteful drama, no text, no watermark, no logos, no UI, no cars required. Main subject concentrated in the middle and right, left side quieter and naturally dark for later live HTML title overlay, but do not draw any gradient panel or type. Keep subject recognizable in a central mobile crop. It is an artistic generated scene, not a purported documentary photograph. Belgium, Spa-Francorchamps Eau Rouge and Raidillon rising steeply through dark Ardennes forest at night. View from the lower approach looking uphill: track sweeps left through bottom compression then climbs sharply right and crests left, with recognizable red-and-yellow curbing and realistic fencing, gravel run-off and forest. Atmospheric art interpretation with a few practical white floodlights gently illuminating the asphalt and forest edge, faint mist in the treetops, dark indigo sky, restrained wet surface highlights. Emphasize dramatic elevation not a flat generic bend. NO neon-colored track, NO glowing floating ribbon, NO random crossing roads, no cars or branded signs."
+    },
+    {
+      "keys": [
+        "australia"
+      ],
+      "src": "/assets/race-art/20261006/australia-v1.webp",
+      "generated": true,
+      "original": "australia-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Melbourne Australia: Albert Park Lake on a crisp sunny late morning, calm blue water and small sailboats, reeds and eucalyptus in the foreground, Melbourne city skyline clearly across the lake in the distance, natural Australian parkland. Bright daytime, turquoise lake, sunlit buildings, rich shaded foliage at left. No Sydney opera house or harbour bridge, no tropical jungle."
+    },
+    {
+      "keys": [
+        "china"
+      ],
+      "src": "/assets/race-art/20261006/china-v1.webp",
+      "generated": true,
+      "original": "china-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Shanghai China at night, refined view across the Huangpu river towards the recognizable Pudong skyline: Oriental Pearl Tower, Shanghai Tower and bottle-opener-shaped World Financial Center distinguishable. Restrained architectural lights reflected in deep blue water, a real-looking riverboat, subtle atmospheric haze. Not Hong Kong, not futuristic invented towers. Elegant cinematic nocturne with rich detail."
+    },
+    {
+      "keys": [
+        "japan"
+      ],
+      "src": "/assets/race-art/20261006/japan-v1.webp",
+      "generated": true,
+      "original": "japan-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Suzuka Japan on a beautiful clear spring afternoon: the recognizable red-and-white Suzuka circuit Ferris wheel as principal focal point, glimpses of real-looking circuit barriers and grandstand low in the scene, cherry blossoms gently framing one side, blue sky, soft Japanese spring daylight. Restrained pink petals, blue shadows, real materials. No Mount Fuji in the background (wrong location), no Tokyo skyline, no invented track map."
+    },
+    {
+      "keys": [
+        "bahrain"
+      ],
+      "src": "/assets/race-art/20261006/bahrain-v1.webp",
+      "generated": true,
+      "original": "bahrain-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Sakhir Bahrain at late golden hour entering twilight: desert motorsport architecture inspired by the recognizable multi-tier circular Bahrain International Circuit tower, slim floodlight poles and flat warm sand desert stretching away. Tower mid-right glowing with restrained practical lights, dust haze over desert, burnished copper sunset horizon and cool blue sky. No giant mountains, no Dubai skyscrapers, no pyramids."
+    },
+    {
+      "keys": [
+        "saudi-arabia"
+      ],
+      "src": "/assets/race-art/20261006/saudi-arabia-v1.webp",
+      "generated": true,
+      "original": "saudi-arabia-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Jeddah Saudi Arabia, Red Sea Corniche at blue hour, the waterfront promenade with pale stone paving, palm trees, dark turquoise sea and the elegant Al-Rahma floating mosque on its real-looking concrete over-water supports as the principal landmark. Refined pale domed mosque, soft practical illumination, realistic coastal perspective and coherent waterline. No Dubai landmarks, no imaginary sea roads, no fantasy metropolis."
+    },
+    {
+      "keys": [
+        "imola"
+      ],
+      "src": "/assets/race-art/20261006/imola-v1.webp",
+      "generated": true,
+      "original": "imola-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Imola Italy on a quiet sunny afternoon: the Rocca Sforzesca di Imola fortress, distinctive red-brick square walls and robust round corner towers, mature green trees and foreground cobbled or gravel path with soft tree shadows. Warm Emilia-Romagna sunlight, blue sky, beautiful weathered brick texture. Intimate genuine Italian town scale, not a fantasy castle or Tuscan hill village."
+    },
+    {
+      "keys": [
+        "canada"
+      ],
+      "src": "/assets/race-art/20261006/canada-v1.webp",
+      "generated": true,
+      "original": "canada-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Montreal Quebec on a clear summer afternoon: view across the Saint Lawrence river from a wooded island shore towards the recognizable Jacques Cartier steel cantilever bridge, Montreal buildings in the distance and a subtle hint of the Biosphere geodesic dome in the park context if spatially plausible; prioritize bridge and river over combining landmarks. Natural vivid blue water, deciduous trees, dynamic cloud sky, crisp northern daylight. No Rocky Mountains, no Toronto CN Tower."
+    },
+    {
+      "keys": [
+        "spain",
+        "catalonia"
+      ],
+      "src": "/assets/race-art/20261006/barcelona-v1.webp",
+      "generated": true,
+      "original": "barcelona-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Barcelona Catalunya on a bright Mediterranean afternoon: architectural detail of the Sagrada Familia basilica rising above a believable Eixample urban scene, recognizable sculptural spires and warm stone, shaded foreground street trees, blue sky with a few clouds. Architectural travel photography without tourists close up. Not a generic church, no beach beside the basilica, no fake words or signage. Show an impression of the landmark without claiming exact construction status."
+    },
+    {
+      "keys": [
+        "austria"
+      ],
+      "src": "/assets/race-art/20261006/austria-v1.webp",
+      "generated": true,
+      "original": "austria-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Spielberg Styrian Austria: rolling green foothills and forested ridges surrounding a real-looking Red Bull Ring setting, the iconic huge steel bull sculpture with its broad curved steel arch as visual focal point mid-right, mown grass and subtle circuit fencing below. Crisp sunny Alpine summer day, dramatic fair-weather clouds, deep green and blue, authentic Austrian rural scale. Not snowy Swiss high mountains, no logos or writing on the sculpture."
+    },
+    {
+      "keys": [
+        "great-britain"
+      ],
+      "src": "/assets/race-art/20261006/great-britain-v1.webp",
+      "generated": true,
+      "original": "great-britain-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Silverstone England on a bright breezy afternoon: the recognizable angular Silverstone Wing pit complex viewed obliquely across a small stretch of empty racing tarmac, strong sawtooth metallic roof planes, expansive English sky with broken sunlit clouds. Real asphalt and subtle red-white curbing, motorsport setting without cars, no readable signage or sponsors. Quiet slightly shaded left foreground and sunlit building center-right, crisp editorial architecture image."
+    },
+    {
+      "keys": [
+        "hungary"
+      ],
+      "src": "/assets/race-art/20261006/hungary-v1.webp",
+      "generated": true,
+      "original": "hungary-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Budapest Hungary at blue hour: Hungarian Parliament building with its distinctive central dome and neo-Gothic river facade, viewed from across the Danube. Warm practical architectural lighting, deep blue river with restrained reflections, violet-blue evening sky, a small river vessel for scale. Coherent symmetrical facade, real Budapest mood, no invented skyscrapers or mountains."
+    },
+    {
+      "keys": [
+        "netherlands"
+      ],
+      "src": "/assets/race-art/20261006/netherlands-v1.webp",
+      "generated": true,
+      "original": "netherlands-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Zandvoort Netherlands in fresh late-afternoon daylight: coastal sand dunes with marram grass, a wooden dune boardwalk foreground leading towards the North Sea, distant low beach pavilions, broad windy sky with luminous clouds. Optionally a subtle glimpse of circuit fencing behind dunes but do not draw a fake track. Dutch coastal identity, muted sand and rich blue-green sea, natural atmosphere, no tropical palms or dramatic cliffs."
+    },
+    {
+      "keys": [
+        "madrid"
+      ],
+      "src": "/assets/race-art/20261006/madrid-v1.webp",
+      "generated": true,
+      "original": "madrid-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Madrid Spain, sunny late morning: the recognizable Palacio de Cibeles with ornate pale stone towers behind the Cibeles fountain, viewed at a sensible street angle. Brilliant Madrid blue sky, pale warm stone, soft fountain spray, shaded leafy foreground at left. Believable Madrid urban scale and authentic architecture, not Barcelona, no Gaudi towers, no invented race circuit."
+    },
+    {
+      "keys": [
+        "italy"
+      ],
+      "src": "/assets/race-art/20261006/italy-v1.webp",
+      "generated": true,
+      "original": "italy-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Monza Italy: evocative low oblique view of the historic steep concrete banking at the Autodromo Nazionale Monza in the green royal park, weathered concrete rising dramatically to the right, trees and dappled bright afternoon sunlight. Quiet historical motorsport atmosphere, carefully believable banking surface and guardrail, no impossible road twist, no cars, no sponsors. Blue-green forest shadows and warm natural highlights."
+    },
+    {
+      "keys": [
+        "azerbaijan"
+      ],
+      "src": "/assets/race-art/20261006/azerbaijan-v1.webp",
+      "generated": true,
+      "original": "azerbaijan-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Baku Azerbaijan at dusk: the atmospheric stone medieval city walls and round tower of Icherisheher at street level, pale sandstone lit warmly, cobblestones in foreground and recognizable curved Flame Towers in the distant modern skyline. The ancient/modern contrast is the main idea; plausible spatial relation, not all landmarks crammed together. Deep cobalt twilight and warm lamps, no desert dunes or Dubai skyline."
+    },
+    {
+      "keys": [
+        "singapore"
+      ],
+      "src": "/assets/race-art/20261006/singapore-v1.webp",
+      "generated": true,
+      "original": "singapore-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Singapore Marina Bay at night: recognizable Marina Bay Sands three towers supporting one continuous roof deck, ArtScience Museum lotus form near the water when plausible, viewed across the bay with refined illuminated skyline and dark blue water. Tropical evening haze, restrained warm and cool practical lights, spectacular but believable geometry, no fantasy towers, no added text or laser spectacle."
+    },
+    {
+      "keys": [
+        "mexico"
+      ],
+      "src": "/assets/race-art/20261006/mexico-v1.webp",
+      "generated": true,
+      "original": "mexico-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Mexico City on a sunlit afternoon: Palacio de Bellas Artes as main subject, white marble facade and distinctive orange-gold tiled central dome, green jacaranda foliage and subtle purple flowers framing the foreground, coherent historic city streets beyond. Photographic architectural travel image, blue sky, strong light and shaded left edge. Not a desert cowboy landscape, no giant sombreros, no invented race track."
+    },
+    {
+      "keys": [
+        "brazil"
+      ],
+      "src": "/assets/race-art/20261006/brazil-v1.webp",
+      "generated": true,
+      "original": "brazil-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. São Paulo Brazil in late-afternoon daylight: real-looking Interlagos motorsport atmosphere, an oblique view across a flowing low stretch of empty asphalt and green-yellow-white curbing toward densely layered São Paulo urban apartment blocks and a distant reservoir. Gentle rolling terrain, lush grass, warm humid city light and rich blue clouds. Not Rio: no Christ statue, Sugarloaf or tropical beachfront. Circuit-inspired scene without pretending an exact track map."
+    },
+    {
+      "keys": [
+        "las-vegas"
+      ],
+      "src": "/assets/race-art/20261006/las-vegas-v1.webp",
+      "generated": true,
+      "original": "las-vegas-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Las Vegas Nevada at night: street-level cinematic view along the Strip toward the recognizable Bellagio lake and hotel with a restrained fountain show, the Paris Las Vegas Eiffel replica visible in plausible background relation. Warm casino lights, deep navy sky, subtle reflections, grounded luxury editorial aesthetic. No readable advertising text, no giant floating signs, no impossible landmark mashup."
+    },
+    {
+      "keys": [
+        "qatar"
+      ],
+      "src": "/assets/race-art/20261006/qatar-v1.webp",
+      "generated": true,
+      "original": "qatar-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Qatar Lusail at sunset: graceful low desert dunes and pale limestone foreground leading toward a distant modern Lusail skyline with the distinctive curved crossed Katara Towers as the main landmark. The towers recognizable and geographically plausible, warm apricot horizon fading into violet-blue evening, faint coastal haze, quiet sense of scale. No Dubai Burj Khalifa, no camels in traffic, no fantasy skyscrapers."
+    },
+    {
+      "keys": [
+        "abu-dhabi"
+      ],
+      "src": "/assets/race-art/20261006/abu-dhabi-v1.webp",
+      "generated": true,
+      "original": "abu-dhabi-v1.png",
+      "prompt": "Use case: photorealistic-natural. Asset type: original RaceVora destination artwork for a compact race-card background. Single wide cinematic landscape, 16:9, NOT a collage, no frames. Match the approved series: premium editorial travel photography aesthetic, real physical materials and architecture, subtle film grain, dimensional natural light, rich restrained blue shadows, touches of turquoise/violet in ambient light where plausible, warm highlights. NO cyberpunk, NO generic neon, NO painterly brushwork, NO plastic CGI. Art interpretation grounded in the actual destination, not a documentary record. Main landmark predominantly center/right; naturally calmer shaded left foreground for later HTML labels, no artificial black panel or typography. Preserve interesting detail in central mobile crop. No text, no watermarks, no logos, no slogans, no maps, no UI, no racing cars necessary. Physically coherent perspective, water/roads/buildings separate, geographically plausible vegetation. Abu Dhabi Yas Island at blue hour: the recognizable Yas Marina hotel with its curved flowing illuminated lattice shell spanning above the circuit, adjacent moored yachts and still marina water, restrained violet architectural lights with teal water and warm cabin lights. Distinct curved grid shell, believable supports and continuous roads only on land, no roads terminating in water. Premium travel architectural scene, no sponsorship text, no excessive neon."
+    }
+  ],
+  "corrections": [
+    {
+      "key": "madrid",
+      "prompt": "Edit the supplied Madrid destination artwork. Remove only the tiny spurious white pseudo-signature/text at the extreme bottom-left corner and seamlessly reconstruct the underlying dark foliage/paving. Keep every other aspect exactly unchanged: all architecture, fountain, people, lighting, framing, colors, dimensions, composition and detail. No new text, no watermark, no other alterations."
+    }
+  ]
+}

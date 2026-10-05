@@ -1,5 +1,6 @@
 export const raceDayMessages = {
   "de": {
+    "raceDay.artCredit": "RaceVora · KI-generierte Illustration",
     "raceDay.title": "Nächster Renntag",
     "raceDay.carousel": "Renn-Slider",
     "raceDay.open": "Streckenprofil",
@@ -17,6 +18,7 @@ export const raceDayMessages = {
     "notification.levelUp.body": "Du hast Level {level} erreicht."
   },
   "en": {
+    "raceDay.artCredit": "RaceVora · AI-generated illustration",
     "raceDay.title": "Next race day",
     "raceDay.carousel": "Race carousel",
     "raceDay.open": "Track profile",
@@ -34,6 +36,7 @@ export const raceDayMessages = {
     "notification.levelUp.body": "You reached level {level}."
   },
   "es": {
+    "raceDay.artCredit": "RaceVora · Ilustración generada con IA",
     "raceDay.title": "Próxima jornada",
     "raceDay.carousel": "Carrusel de carreras",
     "raceDay.open": "Perfil del circuito",
@@ -51,6 +54,7 @@ export const raceDayMessages = {
     "notification.levelUp.body": "Has alcanzado el nivel {level}."
   },
   "fr": {
+    "raceDay.artCredit": "RaceVora · Illustration générée par IA",
     "raceDay.title": "Prochaine journée",
     "raceDay.carousel": "Carrousel de courses",
     "raceDay.open": "Profil du circuit",

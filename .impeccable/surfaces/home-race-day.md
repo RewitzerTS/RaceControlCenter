@@ -1,5 +1,13 @@
 # Home race day and notification badge
 
+## 2026-10-06 approved artwork replacement
+
+The owner explicitly approved a generated photographic-style destination series and requested Production publication (correcting an initial Staging request). This supersedes this brief's earlier real-photograph-only constraint for the home race carousel only. Layout, controls, circuit diagrams, personal themes and race data are unchanged.
+
+All 26 catalogue keys now map to 25 original generated destination illustrations, with Spain/Catalonia sharing Barcelona. Twelve images depict daylight; the remaining scenes use evening, blue hour or night. Files are versioned under `v2/public/assets/race-art/20261006/`, WebP quality 85 at the original 1672x941 resolution without cropping. The original PNGs remain in local `output/track-art-20261006/`. `docs/race-art-20261006.json` records prompts, generation method and the Madrid text-artifact correction. Prior licensed photos and their files are preserved; their attribution is not reused for generated imagery.
+
+The carousel displays a localized AI-illustration label in DE/EN/ES/FR. The narrow artwork-only visual review is **ship**: desktop, 390px mobile, and 768px tablet captures retain compact sizing and readable text over night and day scenes. Tests additionally cover 320px overflow, themed controls, all 25 asset responses, race switching and profile navigation. Five targeted unit tests, 12 browser tests, TypeScript and the translation contract passed. The Impeccable detector returned no findings for the changed UI targets. This is Chromium emulation, not physical iPhone Safari testing. Full release-gate execution and deployment are recorded separately in the delivery response; this note does not claim a completed deployment.
+
 Scope: extend Home's upcoming-race region and the existing bell; do not redesign the global shell. Operate mode. The user's Monaco example supplies photo-led composition, large race title, date/time, track schematic and open-race action. Existing career actions and theme preferences remain available.
 
 ## Direction contract

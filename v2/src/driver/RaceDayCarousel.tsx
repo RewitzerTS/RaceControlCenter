@@ -55,7 +55,7 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
         <span role="status" aria-live="polite">{t('raceDay.position', { current: index + 1, total: races.length })}</span>
         {races.length > 1 && <button type="button" aria-label={t('raceDay.next')} onClick={() => change(1)}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6" /></svg></button>}
       </div>
-      {media && <small className="race-day-credit"><a href={media.source} target="_blank" rel="noreferrer">{media.author}</a> · <a href={media.licenseUrl} target="_blank" rel="noreferrer">{media.license}</a></small>}
+      {media && failedImage !== media.src && <small className="race-day-credit">{t('raceDay.artCredit')}</small>}
     </footer>
     {races.length > 1 && <nav className="race-day-races" aria-label={t('raceDay.choose')}>{races.map((entry, i) =>
       <button key={entry.id} type="button" aria-pressed={i === index} onClick={() => setSelectedId(entry.id)}><span>{i + 1}</span>{entry.grand_prix_name}</button>

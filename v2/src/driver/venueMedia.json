@@ -1,328 +1,178 @@
 [
   {
     "keys": [
-      "australia"
+      "monaco"
     ],
-    "src": "/assets/dispatch/venues/australia.jpg",
-    "author": "Bob T",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Aerial_perspective_of_Albert_Park_Lake.jpg",
-    "year": "2017",
-    "geographic": true,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "china"
-    ],
-    "src": "/assets/dispatch/venues/china.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Shanghai_International_Circuit,_April_7,_2018_SkySat.jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "japan"
-    ],
-    "src": "/assets/dispatch/venues/japan.jpg",
-    "author": "Tokumeigakarinoaoshima",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Suzuka_Circuit_Final_Corner.jpg",
-    "year": "2020",
-    "geographic": false,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "bahrain"
-    ],
-    "src": "/assets/dispatch/venues/bahrain.jpg",
-    "author": "Derek Morrison from Kuwait, Kuwait",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Bahrain_Panorama_Trn2-3.jpg",
-    "year": "2010",
-    "geographic": false,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "saudi-arabia"
-    ],
-    "src": "/assets/dispatch/venues/saudi-arabia.jpg",
-    "author": "Tahir mq",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Jeddah_Corniche_37.jpg",
-    "year": "2019",
-    "geographic": true,
-    "panorama": false
+    "src": "/assets/race-art/20261006/monaco-blue-hour-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "miami"
     ],
-    "src": "/assets/dispatch/venues/miami.jpg",
-    "author": "USACJack",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Start_of_the_Porsche_Sprint_Challenge_North_America_at_the_F1_Miami_GP_-_2022.jpg",
-    "year": "2022",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/miami-stadium-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "united-states"
+    ],
+    "src": "/assets/race-art/20261006/texas-longhorns-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "belgium"
+    ],
+    "src": "/assets/race-art/20261006/spa-night-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "australia"
+    ],
+    "src": "/assets/race-art/20261006/australia-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "china"
+    ],
+    "src": "/assets/race-art/20261006/china-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "japan"
+    ],
+    "src": "/assets/race-art/20261006/japan-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "bahrain"
+    ],
+    "src": "/assets/race-art/20261006/bahrain-v1.webp",
+    "generated": true
+  },
+  {
+    "keys": [
+      "saudi-arabia"
+    ],
+    "src": "/assets/race-art/20261006/saudi-arabia-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "imola"
     ],
-    "src": "/assets/dispatch/venues/imola.jpg",
-    "author": "by Grantuking",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:WTCC08_Dino_ed_Enzo_Ferrari_Circuit_Imola.jpg",
-    "year": "2008",
-    "geographic": false,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "monaco"
-    ],
-    "src": "/assets/atlas/monaco-bay.jpg",
-    "author": "Herry Lawford",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Monte_Carlo_Bay_night.jpg",
-    "year": "2004",
-    "geographic": true,
-    "panorama": false
+    "src": "/assets/race-art/20261006/imola-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "canada"
     ],
-    "src": "/assets/dispatch/venues/canada.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Circuit_Gilles-Villeneuve,_May_29,_2018_SkySat.jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/canada-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "spain",
       "catalonia"
     ],
-    "src": "/assets/dispatch/venues/barcelona.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Circuit_de_Barcelona-Catalunya,_April_19,_2018_SkySat_(cropped).jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/barcelona-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "austria"
     ],
-    "src": "/assets/dispatch/venues/austria.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Red_Bull_Ring,_April_18,_2018_SkySat.jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/austria-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "great-britain"
     ],
-    "src": "/assets/dispatch/venues/great-britain.jpg",
-    "author": "Chris",
-    "license": "CC BY-SA 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Silverstone_Circuit_with_Brackley_Hatch_behind,_aerial_2017,_geograph_5436763_by_Chris.jpg",
-    "year": "2017",
-    "geographic": false,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "belgium"
-    ],
-    "src": "/assets/dispatch/venues/belgium.jpg",
-    "author": "Nathanael Majoros",
-    "license": "CC BY-SA 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Spa-Francorchamps_overview.jpg",
-    "year": "2008",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/great-britain-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "hungary"
     ],
-    "src": "/assets/dispatch/venues/hungary.jpg",
-    "author": "Bjoertvedt",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Pest_county_Mogyor%C3%B3d_Hungariring_raceway_IMG_0210.JPG",
-    "year": "2015",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/hungary-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "netherlands"
     ],
-    "src": "/assets/dispatch/venues/netherlands.jpg",
-    "author": "dronepicr",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Aerial_view_of_Motorsport_race_track_Circuit_Zandvoort_Formula_one_(40889997713).jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/netherlands-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "madrid"
     ],
-    "src": "/assets/dispatch/venues/madrid.jpg",
-    "author": "Zarateman",
-    "license": "CC0",
-    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-    "source": "https://commons.wikimedia.org/wiki/File:Madrid_-_Campo_de_las_Naciones,_Feria_de_Madrid_(IFEMA)_01.JPG",
-    "year": "2016",
-    "geographic": true,
-    "panorama": false
+    "src": "/assets/race-art/20261006/madrid-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "italy"
     ],
-    "src": "/assets/dispatch/venues/italy.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Autodromo_Nazionale_Monza,_April_22,_2018_SkySat_(cropped).jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/italy-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "azerbaijan"
     ],
-    "src": "/assets/dispatch/venues/azerbaijan.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Baku_City_Circuit,_April_9,_2018_SkySat.jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/azerbaijan-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "singapore"
     ],
-    "src": "/assets/dispatch/venues/singapore.jpg",
-    "author": "Benh LIEU SONG (Flickr)",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Singapore_Marina_Bay_Dusk_2018-02-27.jpg",
-    "year": "2018",
-    "geographic": true,
-    "panorama": false
-  },
-  {
-    "keys": [
-      "united-states"
-    ],
-    "src": "/assets/dispatch/venues/united-states.jpg",
-    "author": "Spheroidite",
-    "license": "CC0",
-    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-    "source": "https://commons.wikimedia.org/wiki/File:Circuit_of_the_Americas_aerial_view_from_WN4430.jpg",
-    "year": "2024",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/singapore-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "mexico"
     ],
-    "src": "/assets/dispatch/venues/mexico.jpg",
-    "author": "Planet Labs, Inc.",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Aut%C3%B3dromo_Hermanos_Rodr%C3%ADguez,_June_4,_2018_SkySat_(cropped).jpg",
-    "year": "2018",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/mexico-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "brazil"
     ],
-    "src": "/assets/dispatch/venues/brazil.jpg",
-    "author": "ProtoplasmaKid",
-    "license": "CC BY-SA 4.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Vista_a%C3%A9rea_del_Aut%C3%B3dromo_Jos%C3%A9_Carlos_Pace_01.jpg",
-    "year": "2025",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/brazil-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "las-vegas"
     ],
-    "src": "/assets/dispatch/venues/las-vegas.jpg",
-    "author": "Matthew Field, http://www.photography.mattfield.com",
-    "license": "CC BY 2.5",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
-    "source": "https://commons.wikimedia.org/wiki/File:Las_Vegas_Strip_panorama.jpg",
-    "year": "2007",
-    "geographic": true,
-    "panorama": true
+    "src": "/assets/race-art/20261006/las-vegas-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "qatar"
     ],
-    "src": "/assets/dispatch/venues/qatar.jpg",
-    "author": "Trinidade",
-    "license": "CC BY-SA 3.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Grand_Stand.JPG",
-    "year": "2013",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/qatar-v1.webp",
+    "generated": true
   },
   {
     "keys": [
       "abu-dhabi"
     ],
-    "src": "/assets/dispatch/venues/abu-dhabi.jpg",
-    "author": "Cesar I. Martins",
-    "license": "CC BY 2.0",
-    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-    "source": "https://commons.wikimedia.org/wiki/File:Sunset_at_Yas_Marina_circuit_-_Abu_Dhabi_2014.jpg",
-    "year": "2014",
-    "geographic": false,
-    "panorama": false
+    "src": "/assets/race-art/20261006/abu-dhabi-v1.webp",
+    "generated": true
   }
 ]
