@@ -18,7 +18,7 @@ export type StewardCase = {
   current_decision_version: number | null;
 };
 
-export type StewardRace = { id: string; season_id: string; grand_prix_name: string; round_number: number; race_date: string | null; current_result_version_id: string | null; is_active_season: boolean };
+export type StewardRace = { id: string; season_id: string; grand_prix_name: string; round_number: number; race_date: string | null; race_time: string | null; race_start_at: string | null; status: string; current_result_version_id: string | null; is_active_season: boolean };
 export type StewardDriver = { id: string; display_name: string; number: number | null };
 export type StewardEvidence = { id: string; evidence_kind: string; description: string; uri: string | null; is_public: boolean; submitted_at: string };
 export type StewardVote = { id: string; vote_version: number; outcome: string; reasoning: string; conflict_disclosed: boolean; cast_at: string; steward_user_id: string };
@@ -59,8 +59,19 @@ export function stewardDetailCounts(detail: StewardCaseDetail | null): StewardDe
   };
 }
 
-export function activeStewardRaces(snapshot: StewardWorkspaceSnapshot): StewardRace[] {
-  return snapshot.races.filter((race) => race.is_active_season);
+export function activeStewardRaces(snapshot: StewardWorkspaceSnapshot, now = Date.now()): StewardRace[] {
+  return snapshot.races.filter((race) => {
+    if (!race.is_active_season || ['cancelled', 'postponed'].includes(race.status)) return false;
+    if (race.current_result_version_id || race.status === 'completed') return true;
+    if (race.status !== 'upcoming') return false;
+    // A report must not depend on result publication. Prefer the stored absolute
+    // start; legacy date/time values follow the calendar's local-time semantics.
+    const start = race.race_start_at || (race.race_date
+      ? race.race_date.includes('T') ? race.race_date : `${race.race_date}T${race.race_time || '00:00'}`
+      : '');
+    const timestamp = Date.parse(start);
+    return Number.isFinite(timestamp) && timestamp <= now;
+  }).sort((a, b) => a.round_number - b.round_number);
 }
 
 function throwIfError(error: { message: string } | null) {
@@ -68,17 +79,34 @@ function throwIfError(error: { message: string } | null) {
 }
 
 export async function loadStewardWorkspace(client: LeagueSupabaseClient): Promise<StewardWorkspaceSnapshot> {
-  const activeSeason = await client.from('seasons').select('id').eq('is_active', true).limit(1).maybeSingle();
+  const activeSeason = await client.from('seasons').select('id').eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
   throwIfError(activeSeason.error);
-  const [cases, races, drivers] = await Promise.all([
+  const [cases, drivers] = await Promise.all([
     client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version').order('created_at', { ascending: false }).limit(25),
-    client.from('races').select('id,season_id,grand_prix_name,round_number,race_date,current_result_version_id').not('current_result_version_id', 'is', null).order('round_number', { ascending: false }).limit(100),
     client.from('drivers').select('id,display_name,number').eq('is_active', true).order('display_name').limit(500),
   ]);
-  throwIfError(cases.error); throwIfError(races.error); throwIfError(drivers.error);
+  throwIfError(cases.error); throwIfError(drivers.error);
+  const columns = 'id,season_id,grand_prix_name,round_number,race_date,race_time,race_start_at,status,current_result_version_id' as const;
+  const activeRaces: Omit<StewardRace, 'is_active_season'>[] = [];
+  if (activeSeason.data) {
+    for (let page = 0; ; page++) {
+      if (page === 20) throw new Error('Steward race pagination limit reached');
+      const races = await client.from('races').select(columns).eq('season_id', activeSeason.data.id)
+        .order('round_number').order('id').range(page * 500, page * 500 + 499);
+      throwIfError(races.error);
+      activeRaces.push(...races.data ?? []);
+      if ((races.data?.length ?? 0) < 500) break;
+    }
+  }
+  // Retain race labels for old cases without letting archive rounds displace
+  // active-season races in a globally limited, descending query.
+  const missingIds = [...new Set((cases.data ?? []).map((item) => item.race_id))]
+    .filter((id) => !activeRaces.some((race) => race.id === id));
+  const caseRaces = missingIds.length ? await client.from('races').select(columns).in('id', missingIds) : { data: [], error: null };
+  throwIfError(caseRaces.error);
   return {
     cases: cases.data ?? [],
-    races: (races.data ?? []).map((race) => ({ ...race, is_active_season: race.season_id === activeSeason.data?.id })),
+    races: [...activeRaces, ...caseRaces.data ?? []].map((race) => ({ ...race, is_active_season: race.season_id === activeSeason.data?.id })),
     drivers: drivers.data ?? [],
   };
 }
