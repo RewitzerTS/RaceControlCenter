@@ -1,0 +1,20 @@
+.simple-steward .steward-heading p { max-width: 70ch; }
+.simple-steward .simple-steward-form { margin-block: 1.5rem; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.simple-steward-form label { font-size: .875rem; }
+.simple-steward-form input:not([type="checkbox"]), .simple-steward-form select, .simple-steward-form textarea { font-size: 1rem; }
+.simple-steward-form label, .simple-steward-form input, .simple-steward-form select, .simple-steward-form textarea { min-width: 0; max-width: 100%; }
+.simple-steward-form textarea { min-height: 8rem; resize: vertical; }
+.simple-steward-form .check-label { display: flex; align-items: flex-start; gap: .75rem; }
+.simple-steward-form .check-label input { flex: 0 0 auto; width: 1.25rem; height: 1.25rem; margin-top: .2rem; }
+.simple-steward-submit { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+.simple-steward-submit button { min-height: 44px; white-space: normal; }
+.simple-steward-history { margin-block: 1.5rem; }
+.simple-steward-history summary { cursor: pointer; padding-block: .75rem; }
+.simple-decision { padding-block: 1rem; border-top: 1px solid var(--line, rgba(255,255,255,.12)); }
+.simple-decision p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.simple-steward .case-facts { grid-template-columns: repeat(auto-fit,minmax(min(100%,10rem),1fr)); }
+@media (max-width: 680px) {
+  .simple-steward .simple-steward-form { grid-template-columns: minmax(0,1fr); }
+  .simple-steward .simple-steward-form .span-two { grid-column: 1; }
+  .simple-steward-submit { align-items: stretch; flex-direction: column; }
+}

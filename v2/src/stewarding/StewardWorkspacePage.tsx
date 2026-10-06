@@ -1,198 +1,146 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, EmptyState } from '../components/AppState';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
-import {
-  addStewardEvidence,
-  activeStewardRaces,
-  castStewardVote,
-  createStewardCase,
-  finalizeStewardDecision,
-  loadStewardCaseDetail,
-  loadStewardWorkspace,
-  stewardDetailCounts,
-  type StewardCaseDetail,
-  type StewardWorkspaceSnapshot,
-} from './stewardWorkspace';
+import { activeStewardRaces, createStewardCase, loadStewardCaseDetail, loadStewardWorkspace,
+  nextStewardRace, recordStewardDecision, type SimplePenaltyType, type SimpleStewardInput,
+  type StewardCase, type StewardCaseDetail, type StewardPenalty, type StewardWorkspaceSnapshot } from './stewardWorkspace';
+import { simpleStewardMessages } from './simpleStewardMessages';
+import './simpleSteward.css';
 
-const EMPTY_SNAPSHOT: StewardWorkspaceSnapshot = { cases: [], races: [], drivers: [] };
+const EMPTY: StewardWorkspaceSnapshot = { cases: [], races: [], drivers: [] };
 
-function StatusPill({ value }: { value: string }) {
-  const { t } = useI18n();
-  const key = `steward.status.${value}` as Parameters<typeof t>[0];
-  return <span className={`case-status case-status--${value}`}>{t(key)}</span>;
+export function PenaltyLabel({ penalty }: { penalty: StewardPenalty }) {
+  const { language, formatNumber } = useI18n(), c = simpleStewardMessages[language];
+  const label = c[penalty.penalty_type as SimplePenaltyType] || penalty.penalty_type;
+  return <span>{label}{penalty.time_delta_ms != null ? ` · ${penalty.time_delta_ms > 0 ? '+' : '−'}${formatNumber(Math.abs(penalty.time_delta_ms) / 1000)} s` : penalty.grid_positions ? ` · ${penalty.grid_positions}` : ''}{['time_penalty','time_credit'].includes(penalty.penalty_type) && <><br /><small>{penalty.applied_result_version_id ? c.applied : c.pending}</small></>}</span>;
 }
 
 export function StewardWorkspacePage() {
-  const { t, formatDate } = useI18n();
-  const { client } = useLeague();
-  const { role, loading: roleLoading } = useRole();
+  const { t, language, formatDate } = useI18n(), c = simpleStewardMessages[language];
+  const { client } = useLeague(), { role, loading: roleLoading } = useRole();
   const flags = useFeatureFlags();
   const permitted = role === 'steward' || role === 'league_admin' || role === 'platform_owner';
-  const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [detail, setDetail] = useState<StewardCaseDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
-
+  const [snapshot, setSnapshot] = useState(EMPTY), [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<StewardCaseDetail | null>(null), [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null), [showCreate, setShowCreate] = useState(false);
+  const selected = snapshot.cases.find((item) => item.id === selectedId);
   const refresh = useCallback(async () => {
-    if (!flags.stewardWorkspace) { setLoading(false); return; }
-    setLoading(true); setError(null);
-    try {
-      const next = await loadStewardWorkspace(client);
-      setSnapshot(next);
-      setSelectedId((current) => current && next.cases.some((item) => item.id === current) ? current : next.cases[0]?.id ?? null);
-    } catch { setError(t('steward.loadError')); }
+    setLoading(true);
+    try { const value = await loadStewardWorkspace(client); setSnapshot(value); setSelectedId((id) => value.cases.some((item) => item.id === id) ? id : value.cases[0]?.id ?? null); }
+    catch { setError(t('steward.loadError')); }
     finally { setLoading(false); }
-  }, [client, flags.stewardWorkspace, t]);
-
-  useEffect(() => { void refresh(); }, [refresh]);
+  }, [client, t]);
+  useEffect(() => { if (flags.stewardWorkspace) void refresh(); }, [flags.stewardWorkspace, refresh]);
   useEffect(() => {
-    if (!selectedId) { setDetail(null); setDetailLoading(false); return; }
-    let active = true;
-    setDetail(null);
-    setDetailLoading(true);
-    void loadStewardCaseDetail(client, selectedId)
-      .then((value) => { if (active) setDetail(value); })
-      .catch(() => { if (active) setError(t('steward.loadError')); })
-      .finally(() => { if (active) setDetailLoading(false); });
+    let active = true; setDetail(null);
+    if (selectedId) void loadStewardCaseDetail(client, selectedId).then((value) => { if (active) setDetail(value); })
+      .catch(() => { if (active) setError(t('steward.loadError')); });
     return () => { active = false; };
-  }, [client, selectedId, t]);
+  }, [client, selectedId, snapshot, t]);
 
-  const selectedCase = snapshot.cases.find((item) => item.id === selectedId) ?? null;
-  const drivers = useMemo(() => new Map(snapshot.drivers.map((driver) => [driver.id, driver])), [snapshot.drivers]);
-  const races = useMemo(() => new Map(snapshot.races.map((race) => [race.id, race])), [snapshot.races]);
-  const counts = useMemo(() => ({
-    open: snapshot.cases.filter((item) => item.status === 'under_review').length,
-    appealed: snapshot.cases.filter((item) => item.status === 'appealed').length,
-    closed: snapshot.cases.filter((item) => item.status === 'closed').length,
-  }), [snapshot.cases]);
-  const detailCounts = useMemo(() => stewardDetailCounts(detail), [detail]);
-
-  async function runAction(action: () => Promise<unknown>, message: string, selectNewest = false) {
+  async function submit(input: SimpleStewardInput, key: string, draft: boolean) {
+    if (busy) return false;
     setBusy(true); setError(null); setNotice(null);
-    const actionCaseId = selectedId;
     try {
-      await action();
-      const [nextSnapshot, nextDetail] = await Promise.all([
-        loadStewardWorkspace(client),
-        actionCaseId ? loadStewardCaseDetail(client, actionCaseId) : Promise.resolve(null),
-      ]);
-      setSnapshot(nextSnapshot);
-      setSelectedId((current) => selectNewest ? nextSnapshot.cases[0]?.id ?? null : current && nextSnapshot.cases.some((item) => item.id === current) ? current : nextSnapshot.cases[0]?.id ?? null);
-      if (selectNewest) setDetail(null);
-      else if (actionCaseId) setDetail(nextDetail);
-      setNotice(message);
-      return true;
-    }
-    catch (cause) {
+      if (draft) await createStewardCase(client, { raceId: input.raceId, reportedDriverId: input.reporterId,
+        accusedDriverId: input.accusedId, title: input.title, description: input.reasoning, ruleCode: 'Stewardentscheidung', ruleVersion: '1', idempotencyKey: key });
+      else await recordStewardDecision(client, input, key);
+      setShowCreate(false); setNotice(draft ? t('steward.caseCreated') : c.published);
+      await refresh(); return true;
+    } catch (cause) {
       const message = cause instanceof Error ? cause.message : '';
-      setError(message === 'At least one steward vote is required.' ? t('steward.voteRequired') : message || t('steward.actionError'));
+      setError(/negative/.test(message) ? c.negativeTime : /race time|race times|classified result/.test(message) ? c.badTime
+        : /next scheduled/.test(message) ? c.noNext : /Publish the race result/.test(message) ? c.noResult
+        : /two different/.test(message) ? c.sameDriver : c.actionError);
       return false;
-    }
-    finally { setBusy(false); }
+    } finally { setBusy(false); }
   }
-
-  if (roleLoading) return <AppState copy="Berechtigungen und Steward-Fälle werden geprüft." title={t('pending')} tone="loading" />;
-  if (!flags.stewardWorkspace) {
-    return <AppState copy={t('steward.deniedCopy')} title={t('steward.deniedTitle')} tone="denied" />;
-  }
-
-  return (
-    <main className="steward-workspace" id="main-content">
-      <header className="steward-heading">
-        <div><p className="section-label">{t('steward.eyebrow')}</p><h1>{t('steward.title')}</h1><p>{t('steward.copy')}</p></div>
-        {permitted && <button className="primary-action action-button" type="button" onClick={() => setShowCreate((value) => !value)}>{showCreate ? t('steward.cancel') : t('steward.newCase')}</button>}
-      </header>
-
-      <section className="case-metrics" aria-label={t('steward.metrics')}>
-        <div><strong>{counts.open}</strong><span>{t('steward.open')}</span></div>
-        <div><strong>{counts.appealed}</strong><span>{t('steward.appealed')}</span></div>
-        <div><strong>{counts.closed}</strong><span>{t('steward.closed')}</span></div>
-        <div><strong>{snapshot.cases.length}</strong><span>{t('steward.latest')}</span></div>
+  if (roleLoading) return <AppState title={t('pending')} tone="loading" />;
+  if (!flags.stewardWorkspace) return <AppState copy={t('steward.deniedCopy')} title={t('steward.deniedTitle')} tone="denied" />;
+  return <main className="steward-workspace simple-steward" id="main-content">
+    <header className="steward-heading"><div><h1>{t('steward.title')}</h1><p>{c.intro}</p></div>
+      {permitted && <button className="primary-action action-button" disabled={busy} onClick={() => setShowCreate(!showCreate)} type="button">{showCreate ? t('steward.cancel') : t('steward.newCase')}</button>}
+    </header>
+    {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
+    {notice && <p className="workspace-message" role="status">{notice}</p>}
+    {permitted && showCreate && <DecisionForm key="new" snapshot={snapshot} busy={busy} onSubmit={submit} />}
+    <div className={selected && !showCreate ? 'case-layout' : 'case-layout case-layout--queue-only'}>
+      <section className="case-queue" aria-label={t('steward.queue')}>
+        <div className="case-section-title"><span>{t('steward.queue')}</span><small>{t('steward.pagination')}</small></div>
+        {loading ? <p role="status">{t('pending')}</p> : snapshot.cases.length === 0 ? <EmptyState title={t('steward.empty')} copy={c.intro} /> : snapshot.cases.map((item) => <button key={item.id} type="button" className={item.id === selectedId ? 'case-row case-row--active' : 'case-row'} disabled={busy} onClick={() => { setSelectedId(item.id); setShowCreate(false); }}>
+          <span><strong>{item.case_number}</strong><span className={`case-status case-status--${item.status}`}>{t(`steward.status.${item.status}` as Parameters<typeof t>[0])}</span></span>
+          <b>{item.title}</b><small>{snapshot.races.find((r) => r.id === item.race_id)?.grand_prix_name} · {formatDate(item.created_at)}</small>
+        </button>)}
       </section>
-
-      {permitted && showCreate && <CreateCaseForm snapshot={snapshot} busy={busy} onSubmit={(input) => void runAction(() => createStewardCase(client, input), t('steward.caseCreated'), true).then((saved) => { if (saved) setShowCreate(false); })} />}
-      {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
-      {notice && <p className="workspace-message" role="status">{notice}</p>}
-
-      <div className={selectedCase ? 'case-layout' : 'case-layout case-layout--queue-only'}>
-        <section className="case-queue" aria-label={t('steward.queue')}>
-          <div className="case-section-title"><span>{t('steward.queue')}</span><small>{t('steward.pagination')}</small></div>
-          {loading ? <p aria-live="polite" role="status">{t('pending')}</p> : snapshot.cases.length === 0 ? <EmptyState action={permitted ? <button className="text-action" onClick={() => setShowCreate(true)} type="button">{t('steward.newCase')}</button> : undefined} copy={t('steward.empty')} title="Keine Steward-Fälle" /> : snapshot.cases.map((item) => (
-            <button key={item.id} type="button" className={item.id === selectedId ? 'case-row case-row--active' : 'case-row'} onClick={() => setSelectedId(item.id)}>
-              <span><strong>{item.case_number}</strong><StatusPill value={item.status} /></span>
-              <b>{item.title}</b>
-              <small>{races.get(item.race_id)?.grand_prix_name ?? t('steward.race')} · {formatDate(item.created_at)}</small>
-            </button>
-          ))}
-        </section>
-
-        {selectedCase && <section className="case-detail" aria-live="polite">
-          <>
-            <header className="case-detail-heading">
-              <div><span>{selectedCase.case_number}</span><h2>{selectedCase.title}</h2></div><StatusPill value={selectedCase.status} />
-            </header>
-            <dl className="case-facts">
-              <div><dt>{t('steward.race')}</dt><dd>{races.get(selectedCase.race_id)?.grand_prix_name ?? '—'}</dd></div>
-              <div><dt>{t('steward.accused')}</dt><dd>{drivers.get(selectedCase.accused_driver_id)?.display_name ?? '—'}</dd></div>
-              <div><dt>{t('steward.rule')}</dt><dd>{selectedCase.rule_code} · {selectedCase.rule_version}</dd></div>
-            </dl>
-            <p className="case-description">{selectedCase.description}</p>
-
-            <div className="case-timeline" aria-busy={detailLoading}>
-              <DetailBlock title={t('steward.evidence')} count={detailCounts?.evidence ?? null}>{detail?.evidence.map((item) => <article key={item.id}><strong>{item.evidence_kind}</strong><p>{item.description}</p>{item.uri && <a href={item.uri} rel="noreferrer" target="_blank">{t('steward.openEvidence')}</a>}</article>)}</DetailBlock>
-              <DetailBlock title={t('steward.votes')} count={detailCounts?.votes ?? null}>{detail?.votes.map((item) => <article key={item.id}><strong>{item.outcome} · v{item.vote_version}</strong>{item.conflict_disclosed && <em>{t('steward.conflict')}</em>}<p>{item.reasoning}</p></article>)}</DetailBlock>
-              <DetailBlock title={t('steward.decisions')} count={detailCounts?.decisions ?? null}>{detail?.decisions.map((item) => <article key={item.id}><strong>v{item.version_number} · {item.outcome}</strong><p>{item.reasoning}</p><small>{item.rule_code} · {item.rule_version}</small>{item.result_revision && <div className="result-revision-reference"><span>{t('steward.resultRevision')}</span><strong>V{item.result_revision.resultVersion}</strong><small>{item.result_revision.isCurrent ? t('steward.currentOfficialResult') : t('steward.supersededResult')}</small></div>}{detail.penalties.filter((penalty) => penalty.decision_version_id === item.id).map((penalty) => <p className="penalty-line" key={penalty.id}>{penalty.penalty_type} · {penalty.reason}</p>)}</article>)}</DetailBlock>
-              <DetailBlock title={t('steward.appeals')} count={detailCounts?.appeals ?? null}>{detail?.appeals.map((item) => <article key={item.id}><strong>{item.status}</strong><p>{item.reason}</p></article>)}</DetailBlock>
-            </div>
-
-            {permitted && selectedCase.status === 'under_review' && <div className="steward-actions">
-              <EvidenceForm busy={busy} onSubmit={(input) => runAction(() => addStewardEvidence(client, { ...input, caseId: selectedCase.id }), t('steward.evidenceAdded'))} />
-              <VoteForm busy={busy} onSubmit={(input) => runAction(() => castStewardVote(client, { ...input, caseId: selectedCase.id }), t('steward.voteSaved'))} />
-              <DecisionForm busy={busy} accusedDriverId={selectedCase.accused_driver_id} ruleCode={selectedCase.rule_code} ruleVersion={selectedCase.rule_version} onSubmit={(input) => runAction(() => finalizeStewardDecision(client, { ...input, caseId: selectedCase.id }), t('steward.decisionFinalized'))} />
-            </div>}
-          </>
-        </section>}
-      </div>
-    </main>
-  );
+      {selected && !showCreate && <section className="case-detail">
+        <h2>{selected.title}</h2>
+        <dl className="case-facts">{[[t('steward.race'), snapshot.races.find((r) => r.id === selected.race_id)?.grand_prix_name],
+          [c.reporter, snapshot.drivers.find((d) => d.id === selected.reported_driver_id)?.display_name],
+          [c.accused, snapshot.drivers.find((d) => d.id === selected.accused_driver_id)?.display_name]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl>
+        <p className="case-description">{selected.description}</p>
+        {!detail ? <p role="status">{t('pending')}</p> : <>
+          {detail.decisions.map((decision) => <section className="simple-decision" key={decision.id}>
+            <h3>{c.decision} · {formatDate(decision.finalized_at)}</h3><p>{decision.reasoning}</p>
+            {decision.outcome === 'no_action' && <strong>{c.no_action}</strong>}
+            {detail.penalties.filter((p) => p.decision_version_id === decision.id).map((penalty) => <p key={penalty.id}><strong><PenaltyLabel penalty={penalty} /></strong>{penalty.target_race_id && <><br />{c.target}: {snapshot.races.find((r) => r.id === penalty.target_race_id)?.grand_prix_name || '—'}<br />{c.gridHint}</>}</p>)}
+          </section>)}
+          {(detail.evidence.length > 0 || detail.votes.length > 0 || detail.appeals.length > 0) && <details className="simple-steward-history"><summary>{c.history}</summary>
+            {detail.evidence.map((e) => <p key={e.id}>{e.description}{e.uri && /^https?:\/\//i.test(e.uri) && <> · <a href={e.uri} target="_blank" rel="noreferrer">{t('steward.openEvidence')}</a></>}</p>)}
+            {detail.votes.map((v) => <p key={v.id}>{v.reasoning}</p>)}{detail.appeals.map((a) => <p key={a.id}>{a.reason}</p>)}
+          </details>}
+          {permitted && selected.status === 'under_review' && (selected.reported_driver_id
+            ? <DecisionForm key={selected.id} existing={selected} snapshot={snapshot} busy={busy} onSubmit={submit} />
+            : <p role="status">{c.oldReporter}</p>)}
+        </>}
+      </section>}
+    </div>
+  </main>;
 }
 
-function DetailBlock({ title, count, children }: { title: string; count: number | null; children: React.ReactNode }) {
-  return <section><h3>{title}<span aria-live="polite">{count ?? '…'}</span></h3><div>{children}</div></section>;
-}
-
-function CreateCaseForm({ snapshot, busy, onSubmit }: { snapshot: StewardWorkspaceSnapshot; busy: boolean; onSubmit: (input: Parameters<typeof createStewardCase>[1]) => void }) {
-  const { t } = useI18n();
-  const availableRaces = activeStewardRaces(snapshot);
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); const data = new FormData(event.currentTarget);
-    onSubmit({ raceId: String(data.get('race')), reportedDriverId: String(data.get('reporter')) || null, accusedDriverId: String(data.get('accused')), title: String(data.get('title')), description: String(data.get('description')), ruleCode: String(data.get('ruleCode')), ruleVersion: String(data.get('ruleVersion')) });
+function DecisionForm({ snapshot, existing, busy, onSubmit }: { snapshot: StewardWorkspaceSnapshot; existing?: StewardCase; busy: boolean;
+  onSubmit: (input: SimpleStewardInput, key: string, draft: boolean) => Promise<boolean> }) {
+  const { t, language } = useI18n(), c = simpleStewardMessages[language];
+  const races = existing ? snapshot.races.filter((r) => r.id === existing.race_id) : activeStewardRaces(snapshot);
+  const [raceId,setRaceId] = useState(existing?.race_id || races[0]?.id || '');
+  const [kind,setKind] = useState<SimplePenaltyType>('time_penalty');
+  const [localError,setLocalError] = useState<string | null>(null);
+  const pending = useRef(false), retry = useRef<{ payload: string; key: string } | null>(null);
+  const race = snapshot.races.find((r) => r.id === raceId), next = nextStewardRace(snapshot.races,raceId);
+  const needsTime = kind === 'time_penalty' || kind === 'time_credit';
+  const canPublish = Boolean(race && (kind !== 'grid_penalty' || next));
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); if (pending.current) return;
+    const form = event.currentTarget, data = new FormData(form);
+    const draft = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'draft';
+    const input: SimpleStewardInput = { raceId, reporterId: existing?.reported_driver_id || String(data.get('reporter')),
+      accusedId: existing?.accused_driver_id || String(data.get('accused')), title: existing?.title || String(data.get('title')),
+      reasoning: String(data.get('reasoning')), penaltyType: kind, amount: kind === 'no_action' ? null : Number(data.get('amount')),
+      targetRaceId: kind === 'grid_penalty' ? next?.id || null : null, caseId: existing?.id || null };
+    if (input.reporterId === input.accusedId) { setLocalError(c.sameDriver); return; }
+    if (!draft && (!canPublish || data.get('confirmed') !== 'on')) { setLocalError(!canPublish ? c.noNext : c.confirmRequired); form.querySelector<HTMLInputElement>('[name="confirmed"]')?.focus(); return; }
+    setLocalError(null); const payload = JSON.stringify({ input,draft });
+    if (retry.current?.payload !== payload) retry.current = { payload,key:crypto.randomUUID() };
+    pending.current = true;
+    try { if (await onSubmit(input,retry.current.key,draft)) retry.current = null; } finally { pending.current = false; }
   }
-  return <form className="steward-form steward-form--create" onSubmit={submit}><h2>{t('steward.newCase')}</h2><label>{t('steward.race')}<select name="race" required>{availableRaces.map((race) => <option value={race.id} key={race.id}>{race.round_number}. {race.grand_prix_name}</option>)}</select></label><label>{t('steward.accused')}<select name="accused" required>{snapshot.drivers.map((driver) => <option value={driver.id} key={driver.id}>{driver.display_name}</option>)}</select></label><label>{t('steward.reporter')}<select name="reporter"><option value="">—</option>{snapshot.drivers.map((driver) => <option value={driver.id} key={driver.id}>{driver.display_name}</option>)}</select></label><label>{t('steward.caseTitle')}<input name="title" minLength={4} maxLength={140} required /></label><label className="span-two">{t('steward.description')}<textarea name="description" minLength={10} maxLength={4000} required /></label><label>{t('steward.ruleCode')}<input name="ruleCode" required /></label><label>{t('steward.ruleVersion')}<input name="ruleVersion" required /></label><button className="primary-action action-button" disabled={busy || !availableRaces.length} type="submit">{t('steward.create')}</button></form>;
-}
-
-function EvidenceForm({ busy, onSubmit }: { busy: boolean; onSubmit: (input: { kind: string; uri: string; description: string; isPublic: boolean }) => void }) {
-  const { t } = useI18n();
-  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); onSubmit({ kind: String(data.get('kind')), uri: String(data.get('uri')), description: String(data.get('description')), isPublic: data.get('public') === 'on' }); event.currentTarget.reset(); }
-  return <form className="steward-form" onSubmit={submit}><h3>{t('steward.addEvidence')}</h3><label>{t('steward.kind')}<select name="kind"><option value="video">Video</option><option value="image">Bild</option><option value="telemetry">Telemetry</option><option value="statement">Statement</option><option value="document">Document</option></select></label><label>{t('steward.link')}<input name="uri" type="url" /></label><label>{t('steward.description')}<textarea name="description" minLength={3} required /></label><label className="check-label"><input name="public" type="checkbox" />{t('steward.publicEvidence')}</label><button className="text-action" disabled={busy}>{t('steward.save')}</button></form>;
-}
-
-function VoteForm({ busy, onSubmit }: { busy: boolean; onSubmit: (input: { outcome: string; reasoning: string; conflict: boolean }) => void }) {
-  const { t } = useI18n();
-  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); onSubmit({ outcome: String(data.get('outcome')), reasoning: String(data.get('reasoning')), conflict: data.get('conflict') === 'on' }); }
-  return <form className="steward-form" onSubmit={submit}><h3>{t('steward.castVote')}</h3><label>{t('steward.outcome')}<select name="outcome"><option value="no_action">No action</option><option value="warning">Warning</option><option value="penalty">Penalty</option><option value="dismissed">Dismissed</option></select></label><label>{t('steward.reasoning')}<textarea name="reasoning" minLength={5} required /></label><label className="check-label"><input name="conflict" type="checkbox" />{t('steward.conflictCheck')}</label><button className="text-action" disabled={busy}>{t('steward.vote')}</button></form>;
-}
-
-function DecisionForm({ busy, accusedDriverId, ruleCode, ruleVersion, onSubmit }: { busy: boolean; accusedDriverId: string; ruleCode: string; ruleVersion: string; onSubmit: (input: Omit<Parameters<typeof finalizeStewardDecision>[1], 'caseId'>) => void }) {
-  const { t } = useI18n();
-  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); const data = new FormData(event.currentTarget); const outcome = String(data.get('outcome')); const penaltyType = String(data.get('penaltyType')); const amount = Number(data.get('amount')); const penalties = outcome === 'penalty' ? [{ driver_id: accusedDriverId, penalty_type: penaltyType, ...(penaltyType === 'time_penalty' ? { time_delta_ms: amount * 1000 } : {}), ...(penaltyType === 'points_penalty' ? { points_delta: -Math.abs(amount) } : {}), reason: String(data.get('penaltyReason')) }] : []; onSubmit({ outcome, reasoning: String(data.get('reasoning')), ruleCode, ruleVersion, penalties }); }
-  return <form className="steward-form steward-form--decision" onSubmit={submit}><h3>{t('steward.finalDecision')}</h3><label>{t('steward.outcome')}<select name="outcome"><option value="no_action">No action</option><option value="warning">Warning</option><option value="penalty">Penalty</option><option value="dismissed">Dismissed</option></select></label><label>{t('steward.penaltyType')}<select name="penaltyType"><option value="time_penalty">Time penalty</option><option value="points_penalty">Points penalty</option><option value="warning">Warning</option><option value="disqualification">Disqualification</option></select></label><label>{t('steward.amount')}<input name="amount" min="0" step="0.01" type="number" defaultValue="5" /></label><label>{t('steward.penaltyReason')}<input name="penaltyReason" minLength={3} defaultValue={ruleCode} /></label><label className="span-two">{t('steward.reasoning')}<textarea name="reasoning" minLength={10} required /></label><p className="decision-warning span-two">{t('steward.finalWarning')}</p><button className="primary-action action-button" disabled={busy} type="submit">{t('steward.finalize')}</button></form>;
+  return <form className="steward-form steward-form--create simple-steward-form" onSubmit={submit}>
+    <h2 className="span-two">{existing ? c.open : t('steward.newCase')}</h2>
+    {!existing && <><label className="span-two">{t('steward.race')}<select name="race" value={raceId} onChange={(e) => setRaceId(e.target.value)} required>{races.map((r) => <option key={r.id} value={r.id}>{r.round_number}. {r.grand_prix_name}</option>)}</select></label>
+      <label>{c.reporter}<select name="reporter" defaultValue="" required><option value="" disabled>{c.choose}</option>{snapshot.drivers.map((d) => <option key={d.id} value={d.id}>{d.display_name}</option>)}</select></label>
+      <label>{c.accused}<select name="accused" defaultValue="" required><option value="" disabled>{c.choose}</option>{snapshot.drivers.map((d) => <option key={d.id} value={d.id}>{d.display_name}</option>)}</select></label>
+      <label className="span-two">{t('steward.caseTitle')}<input name="title" minLength={4} maxLength={140} required /></label></>}
+    <label>{c.decision}<select name="penaltyType" value={kind} onChange={(e) => setKind(e.target.value as SimplePenaltyType)}>{(['time_penalty','time_credit','grid_penalty','no_action'] as const).map((k) => <option key={k} value={k}>{c[k]}</option>)}</select></label>
+    {kind !== 'no_action' && <label>{kind === 'grid_penalty' ? c.places : c.seconds}<input key={kind} name="amount" type="number" min={kind === 'grid_penalty' ? 1 : 0.001} max={kind === 'grid_penalty' ? 99 : 3600} step={kind === 'grid_penalty' ? 1 : 0.001} defaultValue={5} required /></label>}
+    {kind === 'grid_penalty' && <p className="span-two" role="status">{next ? <><strong>{c.target}: {next.round_number}. {next.grand_prix_name}</strong><br />{c.gridHint}</> : c.noNext}</p>}
+    {needsTime && <p className="span-two" role="status">{race?.current_result_version_id ? c.timeHint : c.noResult}</p>}
+    <label className="span-two">{c.reasoning}<textarea name="reasoning" minLength={10} maxLength={4000} required /></label>
+    <label className="check-label span-two"><input name="confirmed" type="checkbox" />{c.confirm}</label>
+    {localError && <p className="span-two" role="alert">{localError}</p>}
+    <div className="simple-steward-submit span-two"><button className="primary-action action-button" type="submit" disabled={busy || !canPublish}>{c.publish}</button>
+      {!existing && <button className="text-action" type="submit" value="draft" disabled={busy || !raceId}>{c.draft}</button>}</div>
+  </form>;
 }

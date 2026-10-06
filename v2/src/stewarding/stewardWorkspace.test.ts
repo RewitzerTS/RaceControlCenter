@@ -1,11 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
-import { activeStewardRaces, createStewardCase, finalizeStewardDecision, loadStewardWorkspace, stewardDetailCounts, type StewardRace } from './stewardWorkspace';
+import { activeStewardRaces, createStewardCase, finalizeStewardDecision, loadStewardWorkspace, stewardDetailCounts, nextStewardRace, recordStewardDecision, type StewardRace } from './stewardWorkspace';
 
 const race: StewardRace = { id: 'race-1', season_id: 'season-2', grand_prix_name: 'Japan GP', round_number: 1, race_date: '2026-10-05', race_time: '20:00', race_start_at: '2026-10-05T18:00:00Z', status: 'upcoming', current_result_version_id: null, is_active_season: true };
 
 describe('steward workspace commands', () => {
+  it('targets the immediate next scheduled race, including the second race that evening', () => {
+    const next = { ...race,id:'next',round_number:2,race_start_at:'2026-10-05T19:00:00Z' };
+    expect(nextStewardRace([race,next],race.id,Date.parse('2026-10-05T18:45Z'))?.id).toBe('next');
+    expect(nextStewardRace([race,next,{...next,id:'later',round_number:3,race_start_at:'2026-10-12T18:00Z'}],race.id,Date.parse('2026-10-06T18:00Z'))).toBeNull();
+    expect(nextStewardRace([race,{...next,status:'cancelled'}],race.id,0)).toBeNull();
+    expect(nextStewardRace([race,{...next,current_result_version_id:'v1'}],race.id,0)).toBeNull();
+  });
+  it('sends one decision with a stable retry key and no fabricated steward vote', async () => {
+    const rpc = vi.fn().mockResolvedValue({data:{id:'decision'},error:null});
+    const input = {raceId:'race',reporterId:'reporter',accusedId:'accused',title:'Incident',reasoning:'Reviewed externally',penaltyType:'time_credit' as const,amount:5,targetRaceId:null,caseId:null};
+    await recordStewardDecision({rpc} as never,input,'stable-test-key');
+    expect(rpc).toHaveBeenCalledExactlyOnceWith('record_steward_decision',expect.objectContaining({p_idempotency_key:'stable-test-key',p_reported_driver_id:'reporter',p_penalty_type:'time_credit',p_amount:5}));
+  });
   it('derives every visible detail counter from the freshly loaded detail', () => {
     expect(stewardDetailCounts(null)).toBeNull();
     expect(stewardDetailCounts({

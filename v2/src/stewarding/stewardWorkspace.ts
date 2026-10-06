@@ -22,8 +22,8 @@ export type StewardRace = { id: string; season_id: string; grand_prix_name: stri
 export type StewardDriver = { id: string; display_name: string; number: number | null };
 export type StewardEvidence = { id: string; evidence_kind: string; description: string; uri: string | null; is_public: boolean; submitted_at: string };
 export type StewardVote = { id: string; vote_version: number; outcome: string; reasoning: string; conflict_disclosed: boolean; cast_at: string; steward_user_id: string };
-export type StewardDecision = { id: string; version_number: number; outcome: string; reasoning: string; rule_code: string; rule_version: string; finalized_at: string; result_version_id: string; result_revision: ResultRevision | null };
-export type StewardPenalty = { id: string; decision_version_id: string; penalty_type: string; time_delta_ms: number | null; points_delta: number | null; reason: string };
+export type StewardDecision = { id: string; version_number: number; outcome: string; reasoning: string; rule_code: string; rule_version: string; finalized_at: string; result_version_id: string | null; result_revision: ResultRevision | null };
+export type StewardPenalty = { id: string; decision_version_id: string; penalty_type: string; time_delta_ms: number | null; points_delta: number | null; reason: string; grid_positions?: number | null; target_race_id?: string | null; applied_result_version_id?: string | null };
 export type StewardAppeal = { id: string; reason: string; status: string; submitted_at: string };
 
 export interface StewardWorkspaceSnapshot {
@@ -121,23 +121,51 @@ export async function loadStewardCaseDetail(client: LeagueSupabaseClient, caseId
   throwIfError(evidence.error); throwIfError(votes.error); throwIfError(decisions.error); throwIfError(appeals.error);
   const decisionIds = (decisions.data ?? []).map((decision) => decision.id);
   const penalties = decisionIds.length
-    ? await client.from('steward_penalties').select('id,decision_version_id,penalty_type,time_delta_ms,points_delta,reason').in('decision_version_id', decisionIds)
+    ? await client.from('steward_penalties').select('id,decision_version_id,penalty_type,time_delta_ms,points_delta,reason,grid_positions,target_race_id').in('decision_version_id', decisionIds)
     : { data: [], error: null };
   throwIfError(penalties.error);
-  const revisions = await loadResultRevisions(client, (decisions.data ?? []).map((decision) => decision.result_version_id));
-  const enrichedDecisions = (decisions.data ?? []).map((decision) => ({ ...decision, result_revision: revisions.get(decision.result_version_id) ?? null }));
-  return { evidence: evidence.data ?? [], votes: votes.data ?? [], decisions: enrichedDecisions, penalties: penalties.data ?? [], appeals: appeals.data ?? [] };
+  const revisions = await loadResultRevisions(client, (decisions.data ?? []).flatMap((decision) => decision.result_version_id ? [decision.result_version_id] : []));
+  const enrichedDecisions = (decisions.data ?? []).map((decision) => ({ ...decision, result_revision: decision.result_version_id ? revisions.get(decision.result_version_id) ?? null : null }));
+  const applications = penalties.data?.length ? await client.from('steward_penalty_applications').select('penalty_id,result_version_id').in('penalty_id', penalties.data.map((p) => p.id)) : { data: [], error: null };
+  throwIfError(applications.error);
+  return { evidence: evidence.data ?? [], votes: votes.data ?? [], decisions: enrichedDecisions,
+    penalties: (penalties.data ?? []).map((p) => ({ ...p, applied_result_version_id: applications.data?.find((a) => a.penalty_id === p.id)?.result_version_id ?? null })), appeals: appeals.data ?? [] };
+}
+
+export type SimplePenaltyType = 'time_penalty' | 'time_credit' | 'grid_penalty' | 'no_action';
+export type SimpleStewardInput = {
+  raceId: string; reporterId: string; accusedId: string; title: string; reasoning: string;
+  penaltyType: SimplePenaltyType; amount: number | null; targetRaceId: string | null; caseId: string | null;
+};
+
+export function nextStewardRace(races: StewardRace[], raceId: string, now = Date.now()): StewardRace | null {
+  const race = races.find((item) => item.id === raceId);
+  if (!race) return null;
+  const next = races.filter((item) => item.season_id === race.season_id && item.round_number > race.round_number
+    && !['cancelled', 'postponed'].includes(item.status)).sort((a, b) => a.round_number - b.round_number)[0];
+  if (!next || next.status === 'completed' || next.current_result_version_id) return null;
+  const start = next.race_start_at || (next.race_date ? `${next.race_date}T${next.race_time || '00:00'}` : '');
+  return Date.parse(start) > now ? next : null;
+}
+
+export async function recordStewardDecision(client: LeagueSupabaseClient, input: SimpleStewardInput, idempotencyKey: string) {
+  const response = await client.rpc('record_steward_decision', {
+    p_race_id: input.raceId, p_reported_driver_id: input.reporterId, p_accused_driver_id: input.accusedId,
+    p_title: input.title, p_reasoning: input.reasoning, p_penalty_type: input.penaltyType, p_amount: input.amount,
+    p_target_race_id: input.targetRaceId, p_case_id: input.caseId, p_idempotency_key: idempotencyKey,
+  });
+  throwIfError(response.error); return response.data;
 }
 
 export async function createStewardCase(client: LeagueSupabaseClient, input: {
   raceId: string; reportedDriverId: string | null; accusedDriverId: string; title: string;
-  description: string; ruleCode: string; ruleVersion: string;
+  description: string; ruleCode: string; ruleVersion: string; idempotencyKey?: string;
 }) {
   const response = await client.rpc('create_steward_case', {
     p_race_id: input.raceId, p_reported_driver_id: input.reportedDriverId as string,
     p_accused_driver_id: input.accusedDriverId, p_title: input.title,
     p_description: input.description, p_rule_code: input.ruleCode,
-    p_rule_version: input.ruleVersion, p_idempotency_key: crypto.randomUUID(),
+    p_rule_version: input.ruleVersion, p_idempotency_key: input.idempotencyKey ?? crypto.randomUUID(),
   });
   throwIfError(response.error); return response.data;
 }

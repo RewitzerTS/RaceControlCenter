@@ -2,6 +2,7 @@ export type PublishedResultReceipt = {
   id: string;
   race_id: string;
   status: 'active';
+  source_version_id?: string;
 };
 
 function normalizedLeagueSlug(value: string): string {

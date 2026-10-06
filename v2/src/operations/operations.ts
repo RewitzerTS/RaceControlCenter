@@ -403,7 +403,7 @@ export async function publishLeagueResultDraft(
   const response = await client.rpc('publish_league_result_draft', { p_result_version_id: versionId });
   if (response.error) throw response.error;
   const receipt = object(response.data) as unknown as PublishedResultReceipt;
-  if (receipt.id !== versionId || !receipt.race_id || receipt.status !== 'active') {
+  if (!receipt.id || (receipt.id !== versionId && receipt.source_version_id !== versionId) || !receipt.race_id || receipt.status !== 'active') {
     throw new Error('Die Ergebnisfreigabe wurde nicht vollständig bestätigt. Bitte lade den Entwurf neu.');
   }
   invalidatePublishedResultCaches(leagueSlug);

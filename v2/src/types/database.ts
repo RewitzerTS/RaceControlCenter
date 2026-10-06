@@ -2207,7 +2207,7 @@ export type Database = {
           idempotency_key: string
           outcome: string
           reasoning: string
-          result_version_id: string
+          result_version_id: string | null
           rule_code: string
           rule_version: string
           version_number: number
@@ -2220,7 +2220,7 @@ export type Database = {
           idempotency_key: string
           outcome: string
           reasoning: string
-          result_version_id: string
+          result_version_id?: string | null
           rule_code: string
           rule_version: string
           version_number: number
@@ -2233,7 +2233,7 @@ export type Database = {
           idempotency_key?: string
           outcome?: string
           reasoning?: string
-          result_version_id?: string
+          result_version_id?: string | null
           rule_code?: string
           rule_version?: string
           version_number?: number
@@ -2299,8 +2299,16 @@ export type Database = {
           },
         ]
       }
+      steward_penalty_applications: {
+        Row: { penalty_id: string; result_version_id: string; applied_at: string }
+        Insert: { penalty_id: string; result_version_id: string; applied_at?: string }
+        Update: { penalty_id?: string; result_version_id?: string; applied_at?: string }
+        Relationships: []
+      }
       steward_penalties: {
         Row: {
+          grid_positions: number | null
+          target_race_id: string | null
           created_at: string
           decision_version_id: string
           driver_id: string
@@ -2311,6 +2319,8 @@ export type Database = {
           time_delta_ms: number | null
         }
         Insert: {
+          grid_positions?: number | null
+          target_race_id?: string | null
           created_at?: string
           decision_version_id: string
           driver_id: string
@@ -2321,6 +2331,8 @@ export type Database = {
           time_delta_ms?: number | null
         }
         Update: {
+          grid_positions?: number | null
+          target_race_id?: string | null
           created_at?: string
           decision_version_id?: string
           driver_id?: string
@@ -2712,6 +2724,12 @@ export type Database = {
           p_summary: Json
         }
         Returns: string
+      }
+      record_steward_decision: {
+        Args: { p_race_id: string; p_reported_driver_id: string; p_accused_driver_id: string;
+          p_title: string; p_reasoning: string; p_penalty_type: string; p_amount: number | null;
+          p_target_race_id: string | null; p_case_id: string | null; p_idempotency_key: string }
+        Returns: Json
       }
       finalize_steward_decision: {
         Args: {
