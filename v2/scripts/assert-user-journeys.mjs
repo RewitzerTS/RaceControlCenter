@@ -6,6 +6,9 @@ const shell = fs.readFileSync(path.join(root, 'src/components/AppShell.tsx'), 'u
 const journeys = fs.readFileSync(path.join(root, 'src/journeys/userJourneys.ts'), 'utf8');
 const driver = fs.readFileSync(path.join(root, 'src/driver/DriverHomePage.tsx'), 'utf8');
 const steward = fs.readFileSync(path.join(root, 'src/stewarding/StewardWorkspacePage.tsx'), 'utf8');
+const stewardCommands = fs.readFileSync(path.join(root, 'src/stewarding/stewardWorkspace.ts'), 'utf8');
+const stewardBrowser = fs.readFileSync(path.join(root, 'e2e/steward-race-selection.spec.ts'), 'utf8');
+const stewardRegression = fs.readFileSync(path.join(root, 'supabase/tests/simplified-steward-decisions.sql'), 'utf8');
 const demo = fs.readFileSync(path.join(root, 'src/demo/DemoE2EPage.tsx'), 'utf8');
 const regression = fs.readFileSync(path.join(root, 'supabase/tests/phase-23-user-journeys.sql'), 'utf8');
 
@@ -14,7 +17,9 @@ const requirements = [
   [shell.includes('canSteward') && shell.includes('canAdmin') && shell.includes('canOwner'), 'explicit role route gates'],
   [shell.includes('<Navigate replace to="/" />') && shell.includes('<Navigate replace to="/admin" />'), 'safe route fallbacks'],
   [driver.includes('home.signedOutTitle') && driver.includes('home.errorTitle'), 'signed-out and driver failure states'],
-  [steward.includes('createStewardCase') && steward.includes('finalizeStewardDecision'), 'Steward create-to-decision flow'],
+  [steward.includes('createStewardCase') && steward.includes('recordStewardDecision') && stewardCommands.includes("rpc('record_steward_decision'") && stewardCommands.includes('p_idempotency_key: idempotencyKey'), 'Steward create-to-decision flow with retry protection'],
+  [stewardBrowser.includes('time_penalty') && stewardBrowser.includes('time_credit') && stewardBrowser.includes('grid_penalty') && stewardBrowser.includes('pending and applied decisions'), 'direct and deferred Steward browser journeys'],
+  [stewardRegression.includes('Publication replay was not idempotent') && stewardRegression.includes('Incomplete publication left partial effects') && stewardRegression.includes('regular driver finalized a sanction') && stewardRegression.includes('rollback;'), 'atomic deferred publication, denial and rollback regression'],
   [demo.includes('demo-isolation') && demo.includes('to="/stewarding"') && demo.includes('to="/admin/graphics"'), 'cross-workspace Demo journey'],
   [regression.includes("public.current_app_role() <> 'platform_owner'") && regression.includes('get_demo_full_e2e_snapshot') && regression.includes('get_social_graphics_workspace'), 'owner server journey'],
   [regression.includes('Non-owner entered owner journey') && regression.includes('rollback;'), 'denial and rollback regression'],

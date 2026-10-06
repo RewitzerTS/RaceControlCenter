@@ -140,4 +140,3 @@ end $$;
 reset role;
 select 'simplified steward regression passed' as result;
 rollback;
-select count(*) as leftover_fixture_leagues from public.leagues where id in ('f7610000-0000-4000-8000-000000000001','f7610000-0000-4000-8000-000000000002');
