@@ -2831,6 +2831,7 @@ export type Database = {
       rename_league_team: { Args: { p_car_name?: string; p_current_name: string; p_new_name: string }; Returns: Json }
       create_league_result_draft: { Args: { p_change_reason: string; p_race_id: string; p_rows: Json }; Returns: Json }
       publish_league_result_draft: { Args: { p_result_version_id: string }; Returns: Json }
+      discard_league_result_draft: { Args: { p_result_version_id: string }; Returns: Json }
       set_platform_feature_flag: {
         Args: { p_enabled: boolean; p_flag_key: string }
         Returns: Json

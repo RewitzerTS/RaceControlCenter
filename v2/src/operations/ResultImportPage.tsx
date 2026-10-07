@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useDraftRecovery } from '../components/useDraftRecovery';
@@ -9,6 +9,7 @@ import { useRole } from '../roles/RoleProvider';
 import { analyzeRaceResultImages, prepareRaceResultImages } from './imageResultImport';
 import {
   createLeagueResultDraft,
+  discardLeagueResultDraft,
   loadConfigurationWorkspace,
   loadDriverAdminWorkspace,
   loadRaceAdminWorkspace,
@@ -29,6 +30,8 @@ import { useOperationsCopy } from './operationsCopy';
 import { DEFAULT_RESULT_POINTS, type ResultScoringRules } from './resultScoring';
 import { useI18n } from '../i18n/I18nProvider';
 import { rosterError } from './rosterCopy';
+import { resultRecoveryCopy, resultRecoveryError } from './resultDraftRecovery';
+import './resultDraftRecovery.css';
 
 export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, raceId: string): ResultScoringRules {
   const race = workspace?.races.find((item) => item.id === raceId);
@@ -62,6 +65,11 @@ export function ResultImportPage() {
   const [messageTone, setMessageTone] = useState<'error' | 'success'>('error');
   const [importProgress, setImportProgress] = useState('');
   const [workspaceError, setWorkspaceError] = useState('');
+  const [discardId, setDiscardId] = useState('');
+  const [releaseMessage, setReleaseMessage] = useState('');
+  const [releaseTone, setReleaseTone] = useState<'error' | 'success'>('error');
+  const releaseLock = useRef(false);
+  const recovery = resultRecoveryCopy(language);
 
   const reload = useCallback(async () => {
     setWorkspaceError('');
@@ -156,17 +164,37 @@ export function ResultImportPage() {
   }
 
   async function publish(id: string) {
+    if (releaseLock.current || busy) return;
+    releaseLock.current = true;
     setBusy(id);
-    setMessage('');
-    setMessageTone('error');
+    setReleaseMessage('');
+    setReleaseTone('error');
     try {
       await publishLeagueResultDraft(client, id, leagueSlug);
       await reload();
-      setMessage(copy('import.published'));
-      setMessageTone('success');
+      setReleaseMessage(copy('import.published'));
+      setReleaseTone('success');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : copy('import.publishError'));
+      setReleaseMessage(resultRecoveryError(error, language, 'publish'));
     } finally {
+      releaseLock.current = false;
+      setBusy('');
+    }
+  }
+
+  async function discard(id: string) {
+    if (releaseLock.current || busy) return;
+    releaseLock.current = true;
+    setBusy(id); setReleaseMessage(''); setReleaseTone('error');
+    try {
+      await discardLeagueResultDraft(client, id);
+      setConfig((current) => current ? { ...current, result_drafts: current.result_drafts.filter((item) => item.id !== id) } : current);
+      setDiscardId('');
+      setReleaseMessage(recovery.done); setReleaseTone('success');
+    } catch (error) {
+      setReleaseMessage(resultRecoveryError(error, language, 'discard'));
+    } finally {
+      releaseLock.current = false;
       setBusy('');
     }
   }
@@ -204,6 +232,16 @@ export function ResultImportPage() {
       {reviewError && <p className="inline-error" id="result-save-blocker" role="status">{reviewError}{reviewRows.some((row) => !row.driverId) && <>: {reviewRows.filter((row) => !row.driverId).map((row) => row.rawDriver).join(', ')}</>}</p>}
       <div className="admin-form-actions result-import-save-actions"><button aria-describedby={reviewError ? 'result-save-blocker' : undefined} className="primary-action" disabled={busy !== '' || !raceId || !saveReady} onClick={() => void create()} type="button">{copy('import.saveDraft')}</button><small>{copy('import.officialUnchanged')}</small></div>
     </section>
-    <section className="admin-data-panel"><div className="admin-panel-heading"><div><p className="section-label">{copy('import.release')}</p><h2>{copy('import.reviewedDrafts')}</h2></div><strong>{config.result_drafts.length}</strong></div>{config.result_drafts.length ? <div className="workflow-list">{config.result_drafts.map((draft) => <article key={draft.id}><div><h3>{draft.race_name} · V{draft.version_number}</h3><p>{draft.change_reason}</p><small>{copy('import.rows', { count: draft.row_count, status: draft.status })}</small></div><button className="primary-action" disabled={busy !== ''} onClick={() => void publish(draft.id)} type="button">{copy('import.publishNow')}</button></article>)}</div> : <EmptyState copy={copy('import.noDraftsCopy')} title={copy('import.noDraftsTitle')} />}</section>
+    <section className="admin-data-panel result-draft-release" aria-labelledby="result-draft-heading">
+      <div className="admin-panel-heading"><h2 id="result-draft-heading">{copy('import.reviewedDrafts')}</h2><strong>{config.result_drafts.length}</strong></div>
+      {releaseMessage && <p className={releaseTone === 'success' ? 'inline-success' : 'inline-error'} role={releaseTone === 'success' ? 'status' : 'alert'}>{releaseMessage}</p>}
+      {config.result_drafts.length ? <div className="workflow-list">{config.result_drafts.map((item) => <article key={item.id}>
+        <div><h3>{item.race_name} · V{item.version_number}</h3><p>{item.change_reason}</p><small>{copy('import.rows', { count: item.row_count, status: item.status })}</small></div>
+        {discardId === item.id ? <div className="result-draft-confirm" role="group" aria-label={recovery.confirm}>
+          <strong>{recovery.confirm}</strong><p>{recovery.consequence}</p>
+          <div className="result-draft-actions"><button className="text-action" disabled={busy !== ''} onClick={() => setDiscardId('')} type="button">{recovery.cancel}</button><button className="text-action danger" disabled={busy !== ''} onClick={() => void discard(item.id)} type="button">{recovery.discard}</button></div>
+        </div> : <div className="result-draft-actions"><button className="primary-action" disabled={busy !== '' || item.status !== 'validated'} onClick={() => void publish(item.id)} type="button">{copy('import.publishNow')}</button><button className="text-action" disabled={busy !== ''} onClick={() => { setDiscardId(item.id); setReleaseMessage(''); }} type="button">{recovery.discard}</button></div>}
+      </article>)}</div> : <EmptyState copy={copy('import.noDraftsCopy')} title={copy('import.noDraftsTitle')} />}
+    </section>
   </main>;
 }

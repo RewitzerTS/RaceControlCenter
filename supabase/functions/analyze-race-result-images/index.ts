@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { corsHeaders as supabaseCorsHeaders } from "npm:@supabase/supabase-js@2.112.3/cors";
+import { lapTimePattern, raceTimePattern, timeInstructions, normalizeAnalysisTimes } from "./result-times.ts";
 
 const corsHeaders = {
   ...supabaseCorsHeaders,
@@ -38,8 +39,8 @@ const schema = {
           team: { type: ["string", "null"] },
           grid_position: { type: ["integer", "null"] },
           pit_stops: { type: ["integer", "null"] },
-          fastest_lap: { type: ["string", "null"] },
-          race_time: { type: ["string", "null"] },
+          fastest_lap: { type: ["string", "null"], pattern: lapTimePattern },
+          race_time: { type: ["string", "null"], pattern: raceTimePattern },
           confidence: { type: "number" }
         },
         required: ["position", "driver", "team", "grid_position", "pit_stops", "fastest_lap", "race_time", "confidence"]
@@ -167,10 +168,7 @@ Deno.serve(async (req: Request) => {
       "Wenn ein Teamname visuell über mehrere Textfragmente oder Zeilen umbricht, die Fragmente zum Teamnamen zusammenführen. Grid-/Stopps-Zahlen dabei strikt getrennt lassen.",
       "Wenn der Teamname nicht sichtbar oder nicht sicher lesbar ist, team = null statt einen Teamnamen zu erfinden.",
       "position = Zielposition; grid_position = Startposition; pit_stops = Boxenstopps. Diese Zahlen niemals an Fahrer- oder Teamnamen anhängen.",
-      "fastest_lap ist eine echte Rundenzeit: falls sichtbar immer als mm:ss,mmm ausgeben. Dezimalpunkt in Komma umwandeln. Wenn keine schnellste Runde sichtbar ist, null ausgeben.",
-      "race_time ist entweder eine Zeit/ein Zeitabstand ODER sichtbarer Rennstatus. Zeiten immer als mm:ss,mmm ausgeben; Dezimalpunkt in Komma umwandeln; einstellige Minuten auf zwei Stellen auffüllen; Stunden in Gesamtminuten umrechnen, z.B. 1:02:03.456 -> 62:03,456.",
-      "Bei sichtbaren Zeitabständen Vorzeichen beibehalten und ebenfalls mm:ss,mmm verwenden, z.B. +5.123 -> +00:05,123.",
-      "Wenn im race_time-Feld statt einer Zeit ein Status steht, diesen Status übernehmen, z.B. DNF, DNS, DSQ, DNQ, RET oder + 1 Runde / + 2 Runden. Solchen Text NICHT in eine Zeit umwandeln.",
+      timeInstructions,
       "Mehrere Screenshots können überlappende Teile derselben Tabelle zeigen: Duplikate zusammenführen.",
       "Prüfe vor der Ausgabe jede Zeile nochmals spaltenweise: Fahrer enthält keine Grid-Zahl; Team enthält keine Grid-/Stopps-Zahl; Grid und Stopps sind eigenständige Integer.",
       "confidence zwischen 0 und 1. Unsicherheiten zusätzlich in warnings nennen.",
@@ -226,7 +224,7 @@ Deno.serve(async (req: Request) => {
       .find((item: any) => item?.type === "output_text")?.text || raw?.output_text || "";
     if (!outputText) throw new Error("Die KI hat keine auswertbaren Ergebnisdaten zurückgegeben.");
 
-    return json(JSON.parse(outputText));
+    return json(normalizeAnalysisTimes(JSON.parse(outputText)));
   } catch (error) {
     console.error(JSON.stringify({
       event: "race_image_analysis_error",

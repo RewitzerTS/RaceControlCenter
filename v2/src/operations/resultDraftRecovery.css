@@ -1,0 +1,11 @@
+.result-draft-release .workflow-list > article { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+.result-draft-release .workflow-list > article > div { min-width: 0; }
+.result-draft-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.result-draft-actions button { min-height: 44px; white-space: normal; overflow-wrap: anywhere; }
+.result-draft-confirm { grid-column: 1 / -1; display: grid; gap: .75rem; padding-block: .5rem; }
+.result-draft-release .result-draft-confirm p { max-width: 65ch; font-size: 1rem; line-height: 1.5; }
+.result-draft-release h3 { overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .result-draft-release .workflow-list > article { grid-template-columns: minmax(0, 1fr); }
+  .result-draft-actions { flex-direction: column; align-items: stretch; }
+}

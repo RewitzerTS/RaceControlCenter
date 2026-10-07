@@ -410,6 +410,14 @@ export async function publishLeagueResultDraft(
   return receipt;
 }
 
+export async function discardLeagueResultDraft(client: LeagueSupabaseClient, versionId: string) {
+  const response = await client.rpc('discard_league_result_draft', { p_result_version_id: versionId });
+  if (response.error) throw response.error;
+  const receipt = object(response.data);
+  if (receipt.id !== versionId || receipt.status !== 'discarded' || !receipt.race_id) throw new Error('Draft withdrawal was not confirmed.');
+  return receipt;
+}
+
 export async function upsertLeagueDriver(client: LeagueSupabaseClient, input: LeagueDriverInput) {
   const response = await client.rpc('upsert_league_driver', {
     p_display_name: input.displayName,
