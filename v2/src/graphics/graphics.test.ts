@@ -30,6 +30,24 @@ const workspace: GraphicsWorkspace = {
 };
 
 describe('Social Graphics model', () => {
+  it.each([20, 22])('exports all %i championship drivers in two consecutive ranking pages', (count) => {
+    const data = { ...workspace, season: { id: 'season-15', name: 'Season 15' }, driver_standings: Array.from({ length: count }, (_, i) => ({ position: i + 1, driver: `Pilot ${i + 1}`, points: count - i, wins: 0 })) };
+    const model = buildGraphicModel(data, 'driver_standings', labels);
+    const pages = paginateGraphicModel(model, 11);
+    expect(pages.map((page) => page.model.rows.length)).toEqual([count / 2, count / 2]);
+    expect(pages.flatMap((page) => page.model.rows.map((row) => Number(row.rank)))).toEqual(Array.from({ length: count }, (_, i) => i + 1));
+    expect(model.subtitle).toBe('Season 15');
+    expect(model.source).not.toHaveProperty('result');
+    expect(JSON.stringify(model)).not.toContain('Belgian');
+  });
+  it.each([10, 11])('preserves every team in a %i-team championship', (count) => {
+    const data = { ...workspace, season: { id: 's15', name: 'Season 15' }, team_standings: Array.from({ length: count }, (_, i) => ({ position: i + 1, team: `Team ${i + 1}`, points: count - i, wins: 0 })) };
+    const model = buildGraphicModel(data, 'team_standings', labels);
+    expect(model.rows).toHaveLength(count);
+    expect(model.rows.at(-1)?.primary).toBe(`Team ${count}`);
+    expect(model.subtitle).toBe('Season 15');
+    expect(model.source).not.toHaveProperty('result');
+  });
   it('derives the watermark fallback from the active league name', () => {
     expect(leagueInitials('RummelRacer')).toBe('RUM');
     expect(leagueInitials('Race Union Munich')).toBe('RUM');

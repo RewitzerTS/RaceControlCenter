@@ -7,7 +7,7 @@ import { completedHistory, type HistoryData } from './profileData';
 import { fastestLapDriver } from './resultsData';
 import { calendarTrack } from './calendarData';
 import { trackStats, listHistoryTracks, lapMilliseconds, formatLap, trackMeta, trackFacts } from './trackData';
-import { calculateRecords, championTotals, normalizeChampions, loadHistoricChampions } from './recordData';
+import { calculateRecords, championTotals, normalizeChampions, loadHistoricChampions, completedSeasonChampions } from './recordData';
 import { normalizeRules, loadRules } from './RacingRules';
 import { historyMessages } from './historyMessages';
 import facts from './trackFacts.json';
@@ -82,6 +82,18 @@ describe('native track and record parity', () => {
   });
 });
 describe('rules and confirmed historical data', () => {
+  it('adds only completed published seasons and never substitutes current team names for lost history', () => {
+    const data = fixture(); data.seasons[0].archived_at = '2026-09-28'; data.seasons[0].name = 'Season 14';
+    const champions = completedSeasonChampions(data);
+    expect(champions).toHaveLength(1);
+    expect(champions[0]).toMatchObject({ season_name: '14', driver_champion: 'Driver 0', constructor_champion: 'Team', team_history_incomplete: false });
+    data.results = data.results.map((row) => ({ ...row, points_team_name: null }));
+    const incomplete = completedSeasonChampions(data)[0];
+    expect(incomplete).toMatchObject({ driver_champion: 'Driver 0', driver_champion_team: '', constructor_champion: '', team_history_incomplete: true });
+    expect(championTotals([incomplete]).teams).toEqual([]);
+    data.races[0].current_result_version_id = null;
+    expect(completedSeasonChampions(data)).toEqual([]);
+  });
   it('preserves configured FAQ text, explicit false and zero without rendering markup', () => {
     const data = normalizeRules({ rules: { fastest_lap_point: false, ai_strength: 0 }, faqs: [{ question: '<b>Q</b>', answer: 'A\nB' }, { question: '', answer: 'invalid' }] });
     expect(data.rules.fastest_lap_point).toBe('false'); expect(data.rules.ai_strength).toBe('0'); expect(data.faqs).toEqual([{ question: '<b>Q</b>', answer: 'A\nB' }]);

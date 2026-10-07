@@ -15,7 +15,9 @@ describe('driver graphics', () => {
     for (const kind of ['race_result', 'driver_standings'] as const) {
       const model = buildDriverGraphic(fixture(), kind, 'season', 'race', 'd0', 'RCC', driverGraphicCopy.en)!;
       expect(model.rows).toHaveLength(22);
-      expect(paginateGraphicModel(model, 10).flatMap((page) => page.model.rows)).toEqual(model.rows);
+      const pages = paginateGraphicModel(model, 11);
+      expect(pages.map((page) => page.model.rows.length)).toEqual([11, 11]);
+      expect(pages.flatMap((page) => page.model.rows)).toEqual(model.rows);
     }
   });
   it('ignores superseded results and other seasons', () => {

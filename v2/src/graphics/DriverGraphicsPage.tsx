@@ -59,7 +59,7 @@ export function DriverGraphicsPage() {
   const races = data?.races.filter((race) => race.season_id === seasonId && race.current_result_version_id).sort((a, b) => b.round_number - a.round_number) || [];
   const selectedRace = races.find((race) => race.id === raceId)?.id || races[0]?.id || '';
   const model = useMemo(() => data ? buildDriverGraphic(data, kind, seasonId, selectedRace, loaded?.own || '', branding.name, copy) : null, [data, kind, seasonId, selectedRace, loaded?.own, branding.name, copy]);
-  const pages = useMemo(() => model ? paginateGraphicModel(model, 10) : [], [model]);
+  const pages = useMemo(() => model ? paginateGraphicModel(model, 11) : [], [model]);
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   useEffect(() => { setPageIndex(0); setExportState('idle'); }, [model, format]);
   useEffect(() => {

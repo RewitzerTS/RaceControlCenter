@@ -39,7 +39,7 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
   const assignments: HistoryAssignment[] = [];
   const roster = client as unknown as SupabaseClient<HistoryDatabase>;
   // Race details only need their selected season; an invalid ID never falls back.
-  const selectedSeasons = raceSeason === 'active' ? seasons.filter((season) => season.is_active).slice(-1) : raceSeason ? seasons.filter((season) => season.id === raceSeason) : seasons;
+  const selectedSeasons = raceSeason === 'archived' ? seasons.filter((season) => !season.is_active && season.archived_at) : raceSeason === 'active' ? seasons.filter((season) => season.is_active).slice(-1) : raceSeason ? seasons.filter((season) => season.id === raceSeason) : seasons;
   for (let offset = 0; offset < selectedSeasons.length; offset += 40) {
     const ids = selectedSeasons.slice(offset, offset + 40).map((season) => season.id);
     races.push(...await readHistoryPages((from, to) => client.from('races').select('id,season_id,round_number,grand_prix_name,country_code,status,current_result_version_id,circuit_name,race_date,race_start_at,race_time,weather').in('season_id', ids).order('id').range(from, to).abortSignal(signal), signal));

@@ -205,8 +205,11 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   ]);
   const nativeRpc = client.rpc.bind(client);
 
-  client.rpc = async (fn, args, options) => {
-    if (authenticatedOnlyBooleanRpcs.has(String(fn || ''))) {
+  client.rpc = (fn, args, options) => {
+    // Preserve the native PostgREST builder (order/range/abortSignal) for data RPCs.
+    // An async wrapper turns that builder into a plain Promise before callers can filter it.
+    if (!authenticatedOnlyBooleanRpcs.has(String(fn || ''))) return nativeRpc(fn, args, options);
+    return (async () => {
       try {
         const { data, error } = await client.auth.getSession();
         if (error) return { data: null, error };
@@ -214,8 +217,8 @@ window.supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       } catch (error) {
         return { data: null, error };
       }
-    }
-    return nativeRpc(fn, args, options);
+      return nativeRpc(fn, args, options);
+    })();
   };
 
   client.__rccAuthenticatedRoleRpcGuard = true;

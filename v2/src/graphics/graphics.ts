@@ -46,6 +46,7 @@ export type GraphicRender = {
 };
 export type GraphicsWorkspace = {
   league: { id: string; name: string; slug: string };
+  season?: { id: string; name: string } | null;
   latest_result: GraphicsResult | null;
   driver_labels?: GraphicDriverLabels[];
   driver_standings: StandingRow[];
@@ -271,12 +272,12 @@ export function buildGraphicModel(
     return { type, eyebrow: labels.winner, title: winner ? graphicDriverLabel(workspace, winner, driverLabelMode, labels.noData) : labels.noData, subtitle: result?.race_name ?? '', hero: winner?.team, rows: [], footer, resultVersionId, source: { type, league: workspace.league, result: result ? { ...result, rows: undefined, winner } : null } as unknown as Record<string, Json> };
   }
   if (type === 'driver_standings') {
-    const rows = workspace.driver_standings.slice(0, 10).map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: graphicDriverLabel(workspace, row, driverLabelMode, labels.noData), secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
-    return { type, eyebrow: labels.driverStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, circuit: result.circuit, country_code: result.country_code, race_date: result.race_date, round: result.round } : null, rows: workspace.driver_standings } as unknown as Record<string, Json> };
+    const rows = workspace.driver_standings.map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: graphicDriverLabel(workspace, row, driverLabelMode, labels.noData), secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
+    return { type, eyebrow: labels.driverStandings, title: workspace.league.name, subtitle: workspace.season?.name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, season: workspace.season ?? null, rows: workspace.driver_standings } as unknown as Record<string, Json> };
   }
   if (type === 'team_standings') {
-    const rows = workspace.team_standings.slice(0, 10).map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: row.team ?? labels.noData, secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
-    return { type, eyebrow: labels.teamStandings, title: workspace.league.name, subtitle: result?.race_name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, result: result ? { id: result.id, version: result.version, race_name: result.race_name, circuit: result.circuit, country_code: result.country_code, race_date: result.race_date, round: result.round } : null, rows: workspace.team_standings } as unknown as Record<string, Json> };
+    const rows = workspace.team_standings.map((row) => ({ rank: String(row.position).padStart(2, '0'), primary: row.team ?? labels.noData, secondary: `${row.wins} ${labels.wins}`, value: points(row.points, labels.points) }));
+    return { type, eyebrow: labels.teamStandings, title: workspace.league.name, subtitle: workspace.season?.name ?? '', rows, footer: labels.official, resultVersionId, source: { type, league: workspace.league, season: workspace.season ?? null, rows: workspace.team_standings } as unknown as Record<string, Json> };
   }
   const achievement = workspace.latest_achievement;
   return { type, eyebrow: labels.achievement, title: achievement ? graphicDriverLabel(workspace, achievement, driverLabelMode, labels.noData) : labels.noData, subtitle: achievement?.code.replaceAll('_', ' ') ?? '', hero: achievement ? String(achievement.value) : undefined, rows: [], footer: labels.official, resultVersionId, source: { type, league: workspace.league, achievement } as unknown as Record<string, Json> };
@@ -319,12 +320,12 @@ export async function digestGraphicSource(model: GraphicModel, format: GraphicFo
 }
 
 export function graphicFilename(workspace: GraphicsWorkspace, type: GraphicType, format: GraphicFormat, pageNumber = 1, pageCount = 1) {
-  const version = workspace.latest_result?.version ? `-v${workspace.latest_result.version}` : '';
+  const version = ['race_result', 'podium', 'winner'].includes(type) && workspace.latest_result?.version ? `-v${workspace.latest_result.version}` : '';
   const page = pageCount > 1 ? `-${String(pageNumber).padStart(2, '0')}` : '';
   return `racevora-${workspace.league.slug}-${type}-${format}${version}${page}.png`;
 }
 
 export function graphicArchiveFilename(workspace: GraphicsWorkspace, type: GraphicType, format: GraphicFormat) {
-  const resultVersion = workspace.latest_result ? `-v${workspace.latest_result.version}` : '';
+  const resultVersion = ['race_result', 'podium', 'winner'].includes(type) && workspace.latest_result ? `-v${workspace.latest_result.version}` : '';
   return `racevora-${workspace.league.slug}-${type}-${format}${resultVersion}.zip`;
 }

@@ -1,10 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
+import { useAuth } from '../auth/AuthProvider';
 import { useI18n } from '../i18n/I18nProvider';
 import { ProfileFrame, ProfileImage, ProfileTable, RaceLink, StatList, useRacingHistory, type HistoryView } from './ProfileShared';
 import { HistoryDriverLink, HistoryPeriod } from './RacingTracks';
-import { calculateRecords, championTotals, loadHistoricChampions, type Champion } from './recordData';
+import { calculateRecords, championTotals, loadHallOfFame, type Champion } from './recordData';
 import { historyMessages } from './historyMessages';
 import { profileMessages } from './profileMessages';
 import { racingHref } from './calendarData';
@@ -53,16 +54,17 @@ export function RacingArchive() {
 
 function ChampionCard({ entry, language }: { entry: Champion; language: ReturnType<typeof useI18n>['language'] }) {
   const h = historyMessages[language], c = profileMessages[language];
-  return <div className="history-champions"><div><ProfileImage src="/v1-assets/images/hof-driver-champion.svg" alt="" fallback={null} /><p>{h.driverChampion}</p><h3>{entry.driver_champion}</h3><p>{h.championTeam}: {entry.driver_champion_team || c.noTeam}</p></div><div><ProfileImage src="/v1-assets/images/hof-constructor-champion.svg" alt="" fallback={null} /><p>{h.teamChampion}</p><h3>{entry.constructor_champion}</h3><p>{h.lineup}: {entry.constructor_champion_lineup || '—'}</p></div></div>;
+  return <div className="history-champions"><div><ProfileImage src="/v1-assets/images/hof-driver-champion.svg" alt="" fallback={null} /><p>{h.driverChampion}</p><h3>{entry.driver_champion}</h3><p>{h.championTeam}: {entry.driver_champion_team || (entry.team_history_incomplete ? '—' : c.noTeam)}</p></div><div><ProfileImage src="/v1-assets/images/hof-constructor-champion.svg" alt="" fallback={null} /><p>{h.teamChampion}</p><h3>{entry.constructor_champion || '—'}</h3>{entry.team_history_incomplete ? <p>{h.missingTeamHistory}</p> : <p>{h.lineup}: {entry.constructor_champion_lineup || '—'}</p>}</div></div>;
 }
 export function RacingHallOfFame() {
-  const { leagueSlug } = useLeague(), { language, formatNumber: n } = useI18n(), h = historyMessages[language], c = profileMessages[language];
+  const { client, leagueSlug } = useLeague(), { user, loading } = useAuth(), { language, formatNumber: n } = useI18n(), h = historyMessages[language], c = profileMessages[language];
+  const userId = user?.id || '';
   const [records, setRecords] = useState<Champion[] | null>(null), [error, setError] = useState(false), [retry, setRetry] = useState(0), [celebrating, setCelebrating] = useState(false);
-  useEffect(() => { const abort = new AbortController(); setRecords(null); setError(false); void loadHistoricChampions(leagueSlug, abort.signal).then((value) => { if (!abort.signal.aborted) setRecords(value); }).catch(() => { if (!abort.signal.aborted) setError(true); }); return () => abort.abort(); }, [leagueSlug, retry]);
+  useEffect(() => { const abort = new AbortController(); setRecords(null); setError(false); if (!loading) void loadHallOfFame(client, leagueSlug, userId, abort.signal).then((value) => { if (!abort.signal.aborted) setRecords(value); }).catch(() => { if (!abort.signal.aborted) setError(true); }); return () => abort.abort(); }, [client, leagueSlug, userId, loading, retry]);
   useEffect(() => { if (!celebrating) return; const timer = window.setTimeout(() => setCelebrating(false), 5000); return () => window.clearTimeout(timer); }, [celebrating]);
   const current = records?.[0], totals = championTotals(records || []);
   return <section className="native-racing native-profile" data-native-racing="hall-of-fame" aria-labelledby="hall-title"><h1 id="hall-title">{h.hall}</h1>{error ? <div role="alert"><p>{h.hallError}</p><button type="button" onClick={() => setRetry((n) => n + 1)}>{c.retry}</button></div> : !records ? <p role="status">{c.loading}</p> : !current ? <p role="status">{h.emptyHall}</p> : <>
-    <p>{h.historicSource} · {n(records.length)} {c.seasonName}</p><section className="profile-section"><h2>{h.currentChampions} · {c.seasonName} {current.season_name}</h2><ChampionCard entry={current} language={language} /><button type="button" disabled={celebrating} onClick={() => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setCelebrating(true); }}>{h.celebrate}</button></section>
+    <p>{h.championHistory} · {n(records.length)} {c.seasonName}</p><section className="profile-section"><h2>{h.currentChampions} · {c.seasonName} {current.season_name}</h2><ChampionCard entry={current} language={language} /><button type="button" disabled={celebrating} onClick={() => { if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) setCelebrating(true); }}>{h.celebrate}</button></section>
     {celebrating && <div className="history-celebration" aria-hidden="true">{Array.from({ length: 42 }, (_, i) => <i key={i} style={{ left: `${(i * 31) % 100}%`, animationDelay: `${(i % 7) * .2}s` }} />)}</div>}
     <section className="profile-section"><h2>{h.championHistory}</h2>{records.slice(1, 4).map((entry) => <section key={entry.season_name}><h3>{c.seasonName} {entry.season_name}</h3><ChampionCard entry={entry} language={language} /></section>)}{records.length > 4 && <details><summary>{h.archived} · {records.length - 4}</summary>{records.slice(4).map((entry) => <section key={entry.season_name}><h3>{c.seasonName} {entry.season_name}</h3><ChampionCard entry={entry} language={language} /></section>)}</details>}</section>
     <div className="profile-columns"><section className="profile-section"><h2>{h.peopleTotals}</h2><ol className="profile-list">{totals.people.map((entry) => <li key={entry.name}><strong>{entry.name}</strong><p>{h.driverChampion}: {n(entry.driver)} · {h.teamChampion}: {n(entry.constructor)}</p></li>)}</ol></section><section className="profile-section"><h2>{h.teamTotals}</h2><ol className="profile-list">{totals.teams.map((entry) => <li key={entry.name}><strong>{entry.name}</strong><p>{n(entry.total)} × {h.teamChampion}</p></li>)}</ol></section></div>

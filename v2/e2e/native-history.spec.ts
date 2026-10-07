@@ -79,6 +79,15 @@ test('hall of fame keeps the rcc archive and accessible celebration', async ({ p
   await page.getByRole('button', { name: 'Champions feiern' }).click(); await expect(page.locator('.history-celebration')).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' }); await expect(page.locator('.history-celebration')).toBeHidden();
 });
+
+test('hall of fame adds a completed season above the fixed archive', async ({ context, page }) => {
+  await context.route('**/rest/v1/seasons*', async (route) => route.fulfill({ json: [{ ...f.season, name: '14', is_active: false, archived_at: '2026-09-28' }] }));
+  await page.goto('/racing/history?view=hall-of-fame&league=rcc&demo=1');
+  await expect(page.getByRole('heading', { name: 'Amtierende Champions · Saison 14', exact: true })).toBeVisible();
+  await expect(page.locator('.history-champions').first()).toContainText(f.drivers[0].display_name);
+  await expect(page.locator('.native-profile')).toContainText('Saison 13');
+  await native(page, 'hall-of-fame');
+});
 test('invalid and empty history selections do not show unrelated results', async ({ page }) => {
   for (const path of ['tracks?season=missing', 'tracks/profile?track=missing', 'history?view=records&season=missing']) {
     await page.goto(`/racing/${path}&league=rcc&demo=1`); await expect(page.locator('.native-profile')).toContainText('Die angeforderte Auswahl'); await expect(page.locator('.profile-table-scroll tbody tr')).toHaveCount(0);

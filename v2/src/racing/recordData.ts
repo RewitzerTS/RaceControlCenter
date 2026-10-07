@@ -1,4 +1,7 @@
-import { completedHistory, driverEntries, driverStats, historySnapshot, owner, points, position, teamNames, teamStats, type HistoryData } from './profileData';
+import { completedHistory, driverEntries, driverStats, historySnapshot, loadHistory, owner, points, position, teamNames, teamStats, type HistoryData } from './profileData';
+import type { LeagueSupabaseClient } from '../lib/supabase';
+import { buildStandings } from './standingsData';
+import { currentResults } from './resultsData';
 
 export function calculateRecords(data: HistoryData, season = '') {
   const drivers = data.drivers.map((driver) => ({ driver, ...driverStats(data, driver.id, season) })).filter((stat) => stat.starts > 0);
@@ -26,7 +29,33 @@ export function calculateRecords(data: HistoryData, season = '') {
   } };
 }
 
-export interface Champion { season_name: string; driver_champion: string; driver_champion_team: string; constructor_champion: string; constructor_champion_lineup: string }
+export interface Champion { season_name: string; driver_champion: string; driver_champion_team: string; constructor_champion: string; constructor_champion_lineup: string; team_history_incomplete?: boolean; season_id?: string }
+export function completedSeasonChampions(data: HistoryData): Champion[] {
+  return data.seasons.filter((season) => !season.is_active && season.archived_at).sort((a, b) => b.archived_at!.localeCompare(a.archived_at!)).flatMap((season) => {
+    const races = data.races.filter((race) => race.season_id === season.id && race.status !== 'cancelled');
+    const results = currentResults(races, data.results);
+    // An archived but incomplete season must never crown the interim leaders.
+    if (!races.length || races.some((race) => !race.current_result_version_id || !results.some((row) => row.race_id === race.id))) return [];
+    let incomplete = false;
+    const historicalResults = results.map((row) => {
+      const snapshot = historySnapshot(data, owner(row), races.find((race) => race.id === row.race_id)!);
+      if (!snapshot.teamKnown) incomplete = true;
+      return { ...row, points_team_name: snapshot.league_team };
+    });
+    const standings = buildStandings({ season, races, results: historicalResults, drivers: data.drivers.map((driver) => ({ ...driver, league_team: '' })), assignments: [], currentRoster: [...new Set(results.map(owner))].map((driver_id) => ({ driver_id, team_name: null, car_name: null })) });
+    const champion = standings.driverStandings[0];
+    if (!champion) return [];
+    const lastRace = [...races].sort((a, b) => b.round_number - a.round_number).find((race) => results.some((row) => row.race_id === race.id && owner(row) === champion.driverId))!;
+    const team = incomplete ? null : standings.teamStandings.find((entry) => entry.teamName !== 'Ohne Team');
+    const lineup = team ? [...new Set(historicalResults.filter((row) => row.points_team_name === team.teamName).map((row) => data.drivers.find((driver) => driver.id === owner(row))?.display_name).filter(Boolean))].join(' & ') : '';
+    return [{ season_id: season.id, season_name: season.name.replace(/^(?:season|saison)\s+/i, ''), driver_champion: champion.driverName, driver_champion_team: historySnapshot(data, champion.driverId, lastRace).league_team, constructor_champion: team?.teamName || '', constructor_champion_lineup: lineup, team_history_incomplete: incomplete }];
+  });
+}
+export async function loadHallOfFame(client: LeagueSupabaseClient, slug: string, userId: string, signal: AbortSignal) {
+  const [archive, history] = await Promise.all([loadHistoricChampions(slug, signal), loadHistory(client, slug, userId, signal, 'archived')]);
+  const completed = completedSeasonChampions(history);
+  return [...completed, ...archive.filter((entry) => !completed.some((current) => current.season_name === entry.season_name))];
+}
 export function normalizeChampions(value: unknown): Champion[] {
   if (!value || typeof value !== 'object' || !('history' in value) || !Array.isArray(value.history)) return [];
   return value.history.filter((item): item is Champion => item && typeof item === 'object' && ['season_name', 'driver_champion', 'driver_champion_team', 'constructor_champion', 'constructor_champion_lineup'].every((key) => typeof item[key] === 'string') && item.driver_champion.trim() && item.constructor_champion.trim()).sort((a, b) => Number(b.season_name.match(/\d+/)?.[0] || 0) - Number(a.season_name.match(/\d+/)?.[0] || 0));
@@ -43,7 +72,7 @@ export function championTotals(records: Champion[]) {
   const person = (name: string) => { if (!people.has(name)) people.set(name, { name, driver: 0, constructor: 0 }); return people.get(name)!; };
   for (const record of records) {
     person(record.driver_champion.trim()).driver++;
-    teams.set(record.constructor_champion.trim(), (teams.get(record.constructor_champion.trim()) || 0) + 1);
+    if (record.constructor_champion.trim()) teams.set(record.constructor_champion.trim(), (teams.get(record.constructor_champion.trim()) || 0) + 1);
     for (const raw of record.constructor_champion_lineup.split('&')) { const name = raw.trim().match(/^([^()]+)/)?.[1].trim(); if (name) person(name).constructor++; }
   }
   return { people: [...people.values()].sort((a, b) => (b.driver + b.constructor) - (a.driver + a.constructor) || b.driver - a.driver || a.name.localeCompare(b.name, 'de')), teams: [...teams].map(([name, total]) => ({ name, total })).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'de')) };
