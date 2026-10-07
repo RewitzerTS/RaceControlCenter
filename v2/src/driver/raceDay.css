@@ -12,7 +12,7 @@
 .race-day svg { flex: 0 0 20px; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .race-day-map { grid-column: 2; grid-row: 3/5; align-self: center; min-width: 0; margin: 0; }
 .race-day-map figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; font-size: .75rem; }
-.race-day-map img { display: block; height: 96px; width: 100%; object-fit: contain; }
+.race-day-map .themed-track-map { height: 96px; }
 .race-day-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; padding: 4px 16px 12px; }
 .race-day-controls { display: flex; align-items: center; gap: 4px; font-size: .75rem; font-variant-numeric: tabular-nums; }
 .race-day-controls > span { min-width: 36px; text-align: center; }
@@ -33,7 +33,7 @@
  .race-day-open { grid-column: 1/-1; }
  .race-day-map { grid-row: 3; }
  .race-day-map figcaption { font-size: .6875rem; }
- .race-day-map img { height: 72px; }
+ .race-day-map .themed-track-map { height: 72px; }
  .race-day-footer { padding-inline: 12px; }
  .race-day-credit { text-align: left; }
 }

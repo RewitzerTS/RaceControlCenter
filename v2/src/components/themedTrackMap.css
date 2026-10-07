@@ -1,0 +1,16 @@
+.themed-track-map { position: relative; display: block; width: 100%; min-width: 0; }
+.themed-track-map::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--brand-accent, #35e4db), var(--brand-primary, #ac80ff));
+  -webkit-mask: var(--track-map-url) center / contain no-repeat;
+  mask: var(--track-map-url) center / contain no-repeat;
+  mask-mode: alpha;
+  filter: drop-shadow(0 1px 2px #07121e);
+}
+@supports not ((mask-image: none) or (-webkit-mask-image: none)) {
+  .themed-track-map::before { display: none; }
+  .themed-track-map > img { opacity: 1 !important; }
+}

@@ -5,6 +5,7 @@ import { calendarTrack, racingHref } from '../racing/calendarData';
 import facts from '../racing/trackFacts.json';
 import type { UpcomingRace } from './driverHome';
 import venues from './venueMedia.json';
+import { ThemedTrackMap } from '../components/ThemedTrackMap';
 import './raceDay.css';
 
 export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRace[]; league: string; gameKey?: string }) {
@@ -83,7 +84,7 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
       </NavLink>}
       {track?.trackMapFile && <figure className="race-day-map">
         <figcaption>{t('raceDay.layout')}<span>{fact?.lengthKm}</span></figcaption>
-        <img src={`/v1-assets/trackmaps/${track.trackMapFile}`} alt={track.circuitName} />
+        <ThemedTrackMap key={track.trackMapFile} src={`/v1-assets/trackmaps/${track.trackMapFile}`} alt={track.circuitName} />
       </figure>}
     </div>
     <footer className="race-day-footer">

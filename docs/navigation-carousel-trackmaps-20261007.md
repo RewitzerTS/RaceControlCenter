@@ -16,6 +16,11 @@ maps with RaceVora artwork while retaining real circuit layouts.
   No generated/imagined geometry or invented sector labels.
 - Home map uses more space and thumbnail-aware line thickness; the rest of the
   dashboard layout, theme selection and business functions are unchanged.
+- Follow-up: native maps use a shared CSS-mask renderer. Personal primary/accent
+  colors (including custom logo palettes) update immediately on Home, calendar,
+  the enlarged map, track cards and profiles. Safari's prefixed mask is included.
+  A browser regression changes both theme tokens and verifies the same geometry
+  repaints, with screenshot evidence. No preferences or database writes involved.
 
 Impeccable polish/animate guidance informed consistent optical icon weight,
 preserved theme tokens, keyboard/touch operation and interruptible motion.

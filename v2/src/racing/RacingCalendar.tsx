@@ -5,6 +5,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { calendarMessages } from './calendarMessages';
 import { calendarRaceDate, calendarRaceStatus, calendarTrack, loadCalendar, loadCalendarArchive, racingHref, type CalendarData, type CalendarRace, type CalendarSeason } from './calendarData';
 import './racing.css';
+import { ThemedTrackMap } from '../components/ThemedTrackMap';
 
 type Section = 'upcoming' | 'completed' | 'archive';
 type LoadState<T> = { data: T | null; loading: boolean; error: boolean };
@@ -14,6 +15,7 @@ function savePreference(key: string, value: string) { try { sessionStorage.setIt
 
 function CalendarImage({ src, alt, fallback, ...props }: { src: string; alt: string; fallback: string; className?: string; width?: number; height?: number }) {
   const [failed, setFailed] = useState(false);
+  if (src.startsWith('/v1-assets/trackmaps/')) return <ThemedTrackMap key={src} src={src} alt={alt} fallback={fallback} className={props.className} />;
   return failed ? <span className="calendar-image-fallback">{fallback}</span> : <img {...props} src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} />;
 }
 

@@ -4,6 +4,7 @@ import { listHistoryTracks, trackFacts, trackStats, type trackMeta } from './tra
 import { historyMessages } from './historyMessages';
 import { racingHref } from './calendarData';
 import './history.css';
+import { ThemedTrackMap } from '../components/ThemedTrackMap';
 
 export function HistoryPeriod({ view }: { view: HistoryView }) {
   const h = historyMessages[view.language];
@@ -13,7 +14,7 @@ export function HistoryDriverLink({ view, id, name }: { view: HistoryView; id: s
   return <Link to={racingHref('/racing/drivers/profile', view.leagueSlug, { driver: id, ...(view.params.get('season') ? { season: view.params.get('season')! } : {}) })}>{name}</Link>;
 }
 function TrackMap({ meta, compact = false }: { meta: ReturnType<typeof trackMeta>; compact?: boolean }) {
-  return meta.track ? <ProfileImage src={`/v1-assets/trackmaps/${meta.track.trackMapFile}`} alt={meta.circuit} className={compact ? 'history-track-thumbnail' : 'profile-track-map'} fallback={meta.circuit} /> : null;
+  return meta.track ? <ThemedTrackMap key={meta.track.trackMapFile} src={`/v1-assets/trackmaps/${meta.track.trackMapFile}`} alt={meta.circuit} className={compact ? 'history-track-thumbnail' : 'profile-track-map'} fallback={meta.circuit} /> : null;
 }
 function TrackFlag({ country }: { country: string }) { return /^[a-z]{2}$/i.test(country) ? <ProfileImage src={`/v1-assets/images/flags/${country.toLowerCase()}.svg`} alt={country} className="profile-flag" fallback={country} /> : null; }
 

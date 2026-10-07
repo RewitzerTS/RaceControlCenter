@@ -17,7 +17,11 @@ Every source vertex is preserved. Longitude is corrected for latitude in a local
 geographic projection, then each circuit is rotated and uniformly scaled to a
 tight frame. No invented splines, stretched axes, AI approximations or sector
 boundaries are used. Orientation can differ from the old TV-style diagram.
-The turquoise/blue/violet gradient is RaceVora branding, not sector information.
+The standalone SVG gradient is default RaceVora branding, not sector information.
+Native Home, calendar (including its dialog), track cards and profiles use the
+SVG's alpha as a CSS mask with the live personal `--brand-accent` and
+`--brand-primary` colors. WebKit masking is included for Safari. Theme changes
+repaint immediately without reloading or altering the circuit geometry.
 These are unofficial schematic outlines, not certified surveying data.
 
 The source reflects current Albert Park, Barcelona, Singapore and Yas Marina

@@ -10,7 +10,7 @@
 .integrated-track-map header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .integrated-track-map h2 { font-size: 1.1rem; margin: 0; }
 .integrated-track-map button { min-height: 44px; padding: 8px 14px; color: var(--text); background: transparent; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
-.integrated-track-map img { display: block; width: 100%; max-height: calc(100dvh - 150px); object-fit: contain; margin-top: 16px; }
+.integrated-track-map .themed-track-map { width: 100%; max-height: calc(100dvh - 150px); overflow: hidden; margin-top: 16px; }
 @media (min-width: 1101px) {
   .main-navigation .privileged-navigation .nav-item { width: auto; min-width: 64px; height: auto; min-height: 54px; padding: 6px 8px; flex-direction: column; gap: 4px; }
   .main-navigation .privileged-navigation .nav-item > span { position: static; width: auto; padding: 0; border: 0; background: none; box-shadow: none; opacity: 1; transform: none; color: inherit; font-size: .7rem; }
