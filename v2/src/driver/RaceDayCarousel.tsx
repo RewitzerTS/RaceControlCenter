@@ -79,7 +79,7 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
     onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHovered(true); }}
     onPointerLeave={() => setHovered(false)}
     onKeyDown={(event) => {
-      if (event.target !== event.currentTarget) return;
+      if (event.target !== event.currentTarget && (!(event.target instanceof Element) || !event.target.closest('.race-day-dot'))) return;
       if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
         event.preventDefault(); change(event.key === 'ArrowRight' ? 1 : -1);
       }
@@ -110,16 +110,16 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
       </figure>}
     </div>
     <footer className="race-day-footer">
-      <div className="race-day-controls">
-        {races.length > 1 && <button type="button" aria-label={t('raceDay.previous')} onClick={() => change(-1)}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m14 6-6 6 6 6" /></svg></button>}
-        <span role="status" aria-live={rotating ? 'off' : 'polite'}><span className="race-day-accessible-count">{t('raceDay.position', { current: index + 1, total: races.length })}</span><span aria-hidden="true">{index + 1} / {races.length}</span></span>
-        {races.length > 1 && <button type="button" aria-label={t('raceDay.next')} onClick={() => change(1)}><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m10 6 6 6-6 6" /></svg></button>}
-        {races.length > 1 && !reducedMotion && <button type="button" className="race-day-playback" aria-label={t(paused ? 'raceDay.play' : 'raceDay.pause')} title={t(paused ? 'raceDay.play' : 'raceDay.pause')} onClick={() => setPaused((value) => !value)}><svg aria-hidden="true" viewBox="0 0 24 24">{paused ? <path d="m9 5 10 7-10 7Z" /> : <path d="M8 5v14M16 5v14" />}</svg></button>}
-      </div>
       {media && failedImage !== media.src && <small className="race-day-credit">{t('raceDay.artCredit')}</small>}
+      <span className="race-day-accessible-count" role="status" aria-live={rotating ? 'off' : 'polite'}>{t('raceDay.position', { current: index + 1, total: races.length })}</span>
+      {races.length > 1 && <nav className="race-day-dots" aria-label={t('raceDay.choose')}>{races.map((entry, i) => {
+        const active = i === index;
+        const label = `${t('raceDay.position', { current: i + 1, total: races.length })}: ${entry.grand_prix_name}${active && !reducedMotion ? `. ${t(paused ? 'raceDay.play' : 'raceDay.pause')}` : ''}`;
+        return <button key={entry.id} type="button" className={`race-day-dot${active && !reducedMotion ? ' race-day-playback' : ''}`} aria-pressed={active} aria-label={label} title={label} onClick={() => {
+          if (active) { if (!reducedMotion) setPaused((value) => !value); return; }
+          direction.current = i < index ? -1 : 1; setPaused(true); setSelectedId(entry.id);
+        }}><span aria-hidden="true" /></button>;
+      })}</nav>}
     </footer>
-    {races.length > 1 && <nav className="race-day-races" aria-label={t('raceDay.choose')}>{races.map((entry, i) =>
-      <button key={entry.id} type="button" aria-pressed={i === index} onClick={() => { direction.current = i < index ? -1 : 1; setPaused(true); setSelectedId(entry.id); }}><span>{i + 1}</span>{entry.grand_prix_name}</button>
-    )}</nav>}
   </section>;
 }

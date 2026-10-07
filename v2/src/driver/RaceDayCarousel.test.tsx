@@ -39,12 +39,12 @@ it('cycles every four seconds, wraps, and keeps the correct profile link', () =>
 });
 it('manual selection pauses until explicitly restarted', () => {
   draw(); visibility(true);
-  fireEvent.click(screen.getByRole('button', { name: 'Nächstes Rennen' }));
+  fireEvent.click(screen.getByRole('button', { name: /Japan GP/ }));
   advance(12000); expect(screen.getByRole('heading')).toHaveTextContent('Japan GP');
   expect(screen.getByRole('status')).toHaveAttribute('aria-live', 'polite');
-  fireEvent.click(screen.getByRole('button', { name: 'Automatischen Wechsel starten' }));
+  fireEvent.click(screen.getByRole('button', { name: /Automatischen Wechsel starten/ }));
   advance(); expect(screen.getByRole('heading')).toHaveTextContent('Great Britain GP');
-  fireEvent.click(screen.getByRole('button', { name: 'Automatischen Wechsel pausieren' }));
+  fireEvent.click(screen.getByRole('button', { name: /Automatischen Wechsel pausieren/ }));
   advance(); expect(screen.getByRole('heading')).toHaveTextContent('Great Britain GP');
 });
 it('stops while outside the viewport or in a hidden document', () => {
@@ -59,7 +59,7 @@ it('stops while outside the viewport or in a hidden document', () => {
 it('respects reduced motion, including a preference changed while running', () => {
   reduce = true; draw(); visibility(true); advance();
   expect(screen.getByRole('heading')).toHaveTextContent('Monaco GP');
-  expect(screen.queryByRole('button', { name: 'Automatischen Wechsel pausieren' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /Automatischen Wechsel pausieren/ })).not.toBeInTheDocument();
   reduce = false; act(() => motionChange()); advance();
   expect(screen.getByRole('heading')).toHaveTextContent('Japan GP');
   reduce = true; act(() => motionChange()); advance();
@@ -81,19 +81,19 @@ it('cleans up timers, tolerates a replaced race list, and omits single-race cont
 it('crossfades only on a change, cleans up old photos and honors reduced motion immediately', () => {
   const view = draw();
   expect(view.container.querySelector('.race-day-transitioning')).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Nächstes Rennen' }));
+  fireEvent.click(screen.getByRole('button', { name: /Japan GP/ }));
   expect(view.container.querySelector('.race-day-transitioning')).not.toBeNull();
   expect(view.container.querySelector('.race-day-photo-outgoing')).toHaveAttribute('src', expect.stringContaining('monaco'));
   expect(screen.getAllByRole('link', { name: 'Streckenprofil' })).toHaveLength(1);
   advance(200);
-  fireEvent.click(screen.getByRole('button', { name: 'Vorheriges Rennen' }));
+  fireEvent.click(screen.getByRole('button', { name: /Monaco GP/ }));
   expect(screen.getByRole('heading')).toHaveTextContent('Monaco GP');
   expect(view.container.querySelector('.race-day')).toHaveStyle('--race-slide-direction: -1');
   advance(420);
   expect(view.container.querySelector('.race-day-photo-outgoing')).toBeNull();
   expect(view.container.querySelector('.race-day-transitioning')).toBeNull();
   reduce = true; act(() => motionChange());
-  fireEvent.click(screen.getByRole('button', { name: 'Nächstes Rennen' }));
+  fireEvent.click(screen.getByRole('button', { name: /Japan GP/ }));
   expect(view.container.querySelector('.race-day-transitioning')).toBeNull();
   expect(screen.queryByText('Streckenschema')).not.toBeInTheDocument();
 });

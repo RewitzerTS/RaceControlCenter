@@ -44,3 +44,10 @@ link now uses the existing pill-shaped main-action style and personal colors.
 Impeccable animate guidance informed the bounded crossfade, calm controls and
 interruptible/reduced-motion behavior. Regression tests cover the intermediate
 opacity, directional change, fixed controls, cleanup and reduced-motion fallback.
+
+Latest user refinement replaces both arrow/counter controls and the labeled race
+strip with centered pagination dots inside the bottom of the image. Each race has
+one dot; selection retains the personal primary color. Invisible 44px hit areas
+preserve touch usability. Inactive dots select a race and pause; the active dot
+toggles automatic playback with an explicit accessible name and tooltip. Swipes,
+keyboard arrows, announcements and reduced-motion behavior remain available.
