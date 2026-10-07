@@ -2,21 +2,21 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
-const mocks = vi.hoisted(() => ({ create: vi.fn(), publish: vi.fn(), analyze: vi.fn(), drafts: [] as Array<Record<string, unknown>> }));
+const mocks = vi.hoisted(() => ({ client: {}, create: vi.fn(), publish: vi.fn(), analyze: vi.fn(), drafts: [] as Array<Record<string, unknown>> }));
 vi.mock('../auth/AuthProvider', () => ({ useAuth: () => ({ user: null }) }));
-vi.mock('../league/LeagueProvider', () => ({ useLeague: () => ({ client: {}, leagueSlug: 'qa' }) }));
+vi.mock('../league/LeagueProvider', () => ({ useLeague: () => ({ client: mocks.client, leagueSlug: 'qa' }) }));
 vi.mock('../roles/RoleProvider', () => ({ useRole: () => ({ role: 'league_admin' }) }));
 vi.mock('./imageResultImport', () => ({ prepareRaceResultImages: async () => [], analyzeRaceResultImages: mocks.analyze }));
 vi.mock('./operations', () => ({
   loadRaceAdminWorkspace: async () => ({ seasons: [{ id: 'season', is_active: true }], races: [{ id: 'r1', season_id: 'season', round_number: 1, grand_prix_name: 'Monaco' }, { id: 'r2', season_id: 'season', round_number: 2, grand_prix_name: 'Spa' }] }),
   loadDriverAdminWorkspace: async () => ({ drivers: [{ id: 'carlos', display_name: 'Carlos Sainz', league_team: 'Williams', is_active: true }] }),
-  loadConfigurationWorkspace: async () => ({ result_drafts: mocks.drafts }), createLeagueResultDraft: mocks.create, publishLeagueResultDraft: mocks.publish,
+  loadConfigurationWorkspace: async () => ({ result_drafts: mocks.drafts }), createLeagueResultDraft: mocks.create, publishLeagueResultDraft: mocks.publish, discardLeagueResultDraft: vi.fn(),
 }));
 import { ResultImportPage } from './ResultImportPage';
 describe('sequential image imports', () => {
   it('saves a second OCR-variant import and reports missing assignments without trapping the user', async () => {
     localStorage.setItem('racevora.locale', 'de');
-    mocks.create.mockImplementation(async () => { mocks.drafts = [{ id: 'draft', race_name: 'Monaco', version_number: 1, row_count: 1, status: 'draft' }]; });
+    mocks.create.mockImplementation(async () => { mocks.drafts = [{ id: 'draft', race_name: 'Monaco', version_number: 1, row_count: 1, status: 'validated' }]; });
     mocks.publish.mockImplementation(async () => { mocks.drafts = []; });
     const analysis = (driver: string) => ({ rows: [{ driver, position: 1, confidence: 0.5 }], warnings: ['Fahrer nicht sicher erkannt'] });
     mocks.analyze.mockResolvedValueOnce(analysis('Carlos Sainz')).mockResolvedValueOnce(analysis('Carlos Sain2')).mockResolvedValueOnce(analysis('Unknown Racer'));
