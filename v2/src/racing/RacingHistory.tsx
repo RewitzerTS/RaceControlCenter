@@ -54,7 +54,7 @@ export function RacingArchive() {
 
 function ChampionCard({ entry, language }: { entry: Champion; language: ReturnType<typeof useI18n>['language'] }) {
   const h = historyMessages[language], c = profileMessages[language];
-  return <div className="history-champions"><div><ProfileImage src="/v1-assets/images/hof-driver-champion.svg" alt="" fallback={null} /><p>{h.driverChampion}</p><h3>{entry.driver_champion}</h3><p>{h.championTeam}: {entry.driver_champion_team || (entry.team_history_incomplete ? '—' : c.noTeam)}</p></div><div><ProfileImage src="/v1-assets/images/hof-constructor-champion.svg" alt="" fallback={null} /><p>{h.teamChampion}</p><h3>{entry.constructor_champion || '—'}</h3>{entry.team_history_incomplete ? <p>{h.missingTeamHistory}</p> : <p>{h.lineup}: {entry.constructor_champion_lineup || '—'}</p>}</div></div>;
+  return <div className="history-champions"><div><ProfileImage src="/v1-assets/images/hof-driver-champion.svg" alt="" fallback={null} /><p>{h.driverChampion}</p><h3>{entry.driver_champion}</h3><p>{h.championTeam}: {entry.driver_champion_team || (entry.team_history_incomplete ? '—' : c.noTeam)}</p></div><div><ProfileImage src="/v1-assets/images/hof-constructor-champion.svg" alt="" fallback={null} /><p>{h.teamChampion}</p><h3>{entry.constructor_champion || '—'}</h3>{entry.team_history_incomplete && !entry.constructor_champion ? <p>{h.missingTeamHistory}</p> : <p>{h.lineup}: {entry.constructor_champion_lineup || '—'}</p>}</div></div>;
 }
 export function RacingHallOfFame() {
   const { client, leagueSlug } = useLeague(), { user, loading } = useAuth(), { language, formatNumber: n } = useI18n(), h = historyMessages[language], c = profileMessages[language];

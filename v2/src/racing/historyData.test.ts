@@ -7,7 +7,7 @@ import { completedHistory, type HistoryData } from './profileData';
 import { fastestLapDriver } from './resultsData';
 import { calendarTrack } from './calendarData';
 import { trackStats, listHistoryTracks, lapMilliseconds, formatLap, trackMeta, trackFacts } from './trackData';
-import { calculateRecords, championTotals, normalizeChampions, loadHistoricChampions, completedSeasonChampions } from './recordData';
+import { calculateRecords, championTotals, normalizeChampions, loadHistoricChampions, completedSeasonChampions, applyConfirmedChampions } from './recordData';
 import { normalizeRules, loadRules } from './RacingRules';
 import { historyMessages } from './historyMessages';
 import facts from './trackFacts.json';
@@ -82,6 +82,14 @@ describe('native track and record parity', () => {
   });
 });
 describe('rules and confirmed historical data', () => {
+  it('uses the owner-confirmed season 14 team title only for that exact RCC season', () => {
+    const entry = { season_id: 'd34f3fbb-4610-4f46-a448-56d3f8c649c7', season_name: '14', driver_champion: 'Mo', driver_champion_team: '', constructor_champion: '', constructor_champion_lineup: '', team_history_incomplete: true };
+    const confirmed = applyConfirmedChampions([entry], 'rcc');
+    expect(confirmed[0]).toMatchObject({ constructor_champion: 'Safety Car Specialists', constructor_champion_lineup: '', driver_champion_team: '' });
+    expect(championTotals(confirmed).teams).toEqual([{ name: 'Safety Car Specialists', total: 1 }]);
+    expect(applyConfirmedChampions([entry], 'another-league')).toEqual([entry]);
+    expect(applyConfirmedChampions([{ ...entry, season_id: 'another-season' }], 'rcc')[0].constructor_champion).toBe('');
+  });
   it('adds only completed published seasons and never substitutes current team names for lost history', () => {
     const data = fixture(); data.seasons[0].archived_at = '2026-09-28'; data.seasons[0].name = 'Season 14';
     const champions = completedSeasonChampions(data);

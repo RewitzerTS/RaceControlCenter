@@ -11,7 +11,7 @@ Scope: production bug corrections; no sporting results, points, XP, driver links
 
 ## Production historical limitation
 
-RCC season 14 has 24 published races and 451 result rows, all without `points_team_name`. The stored points identify Mo as driver champion (354 points, 5 wins). Partial independently confirmed historical team membership is not sufficient to establish the constructor champion. The application therefore shows the driver title but does not fabricate a team champion. A trustworthy historical team championship record would be needed to complete that field.
+RCC season 14 has 24 published races and 451 result rows, all without `points_team_name`. The stored points identify Mo as driver champion (354 points, 5 wins). During this repair the owner explicitly confirmed Safety Car Specialists as constructor champion. `confirmedChampions.json` fills this title only for the exact RCC season ID, without inventing a full lineup or assigning Mo to that team. No sporting data is rewritten.
 
 ## Verification
 

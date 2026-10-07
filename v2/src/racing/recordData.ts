@@ -2,6 +2,7 @@ import { completedHistory, driverEntries, driverStats, historySnapshot, loadHist
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import { buildStandings } from './standingsData';
 import { currentResults } from './resultsData';
+import confirmedChampions from './confirmedChampions.json';
 
 export function calculateRecords(data: HistoryData, season = '') {
   const drivers = data.drivers.map((driver) => ({ driver, ...driverStats(data, driver.id, season) })).filter((stat) => stat.starts > 0);
@@ -53,8 +54,15 @@ export function completedSeasonChampions(data: HistoryData): Champion[] {
 }
 export async function loadHallOfFame(client: LeagueSupabaseClient, slug: string, userId: string, signal: AbortSignal) {
   const [archive, history] = await Promise.all([loadHistoricChampions(slug, signal), loadHistory(client, slug, userId, signal, 'archived')]);
-  const completed = completedSeasonChampions(history);
+  const completed = applyConfirmedChampions(completedSeasonChampions(history), slug);
   return [...completed, ...archive.filter((entry) => !completed.some((current) => current.season_name === entry.season_name))];
+}
+export function applyConfirmedChampions(records: Champion[], slug: string): Champion[] {
+  return records.map((record) => {
+    const confirmed = confirmedChampions.find((entry) => entry.leagueSlug === slug && entry.seasonId === record.season_id);
+    // Fill a confirmed historical title, never infer a lineup or rewrite scores.
+    return confirmed && !record.constructor_champion ? { ...record, constructor_champion: confirmed.constructorChampion } : record;
+  });
 }
 export function normalizeChampions(value: unknown): Champion[] {
   if (!value || typeof value !== 'object' || !('history' in value) || !Array.isArray(value.history)) return [];
