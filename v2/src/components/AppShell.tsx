@@ -102,21 +102,21 @@ export function isMobileMoreRoute(pathname: string): boolean {
 
 function NavIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
-    home: <path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4Z" />,
-    racing: <><path d="M5 21V4" /><path d="M5 5h11l-2 4 2 4H5" /></>,
-    career: <><path d="M4 20V9" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M3 20h18" /></>,
-    vora: <><path d="m12 3 1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5Z" /><path d="m18 16 .7 2.3L21 19l-2.3.7L18 22l-.7-2.3L15 19l2.3-.7Z" /></>,
-    profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21c.7-4 3.3-6 8-6s7.3 2 8 6" /></>,
-    league: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
-    more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
-    steward: <><path d="M12 3 5 6v5c0 4.5 2.7 8 7 10 4.3-2 7-5.5 7-10V6Z" /><path d="m9 12 2 2 4-5" /></>,
-    admin: <><path d="M4 5h16v14H4Z" /><path d="M4 9h16M9 9v10" /></>,
-    owner: <><path d="m12 3 2.2 4.6 5.1.7-3.7 3.6.9 5.1-4.5-2.4L7.5 17l.9-5.1-3.7-3.6 5.1-.7Z" /></>,
-    bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" /><path d="M10 21h4" /></>,
-    logout: <><path d="M10 5H5v14h5" /><path d="M14 8l4 4-4 4" /><path d="M8 12h10" /></>,
+    home: <><path d="m3 10 9-7 9 7" /><path d="M5 9v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9" /></>,
+    racing: <><path d="M4 21V4c5-4 11 4 16 0v11c-5 4-11-4-16 0" /><path d="M4 9c5-4 11 4 16 0M9 3.5v11M15 5v11" /></>,
+    career: <><path d="M8 20H4v-8h4m0 8V5h8v15m0-10h4v10H3" /><path d="M11 9h2" /></>,
+    vora: <><circle cx="12" cy="12" r="8.5" /><path d="m8 9 4 7 4-7M16.5 4.5l3-1M19.5 3.5l1 3" /></>,
+    profile: <><circle cx="12" cy="7.5" r="3.5" /><path d="M4 20v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" /></>,
+    league: <><rect x="3.5" y="3.5" width="6" height="6" rx="1.5" /><rect x="14.5" y="3.5" width="6" height="6" rx="1.5" /><rect x="3.5" y="14.5" width="6" height="6" rx="1.5" /><rect x="14.5" y="14.5" width="6" height="6" rx="1.5" /></>,
+    more: <><circle cx="5" cy="12" r="1.25" /><circle cx="12" cy="12" r="1.25" /><circle cx="19" cy="12" r="1.25" /></>,
+    steward: <><path d="m12 3 8 3v5c0 4-3 7.5-8 10-5-2.5-8-6-8-10V6Z" /><path d="m8.5 11.5 2.5 2.5 4.5-5" /></>,
+    admin: <><path d="M4 6h3m4 0h9M4 12h9m4 0h3M4 18h3m4 0h9" /><rect x="7" y="3.5" width="4" height="5" rx="1.5" /><rect x="13" y="9.5" width="4" height="5" rx="1.5" /><rect x="7" y="15.5" width="4" height="5" rx="1.5" /></>,
+    owner: <><path d="m3 6 5 4 4-6 4 6 5-4-2 11H5ZM5 21h14" /></>,
+    bell: <><path d="M6 10a6 6 0 0 1 12 0v4l2 3H4l2-3ZM10 21h4M12 2v2" /></>,
+    logout: <><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5M10 12h11m-4-4 4 4-4 4" /></>,
   };
   return (
-    <svg aria-hidden="true" className="nav-icon" viewBox="0 0 24 24">
+    <svg aria-hidden="true" focusable="false" className="nav-icon" viewBox="0 0 24 24">
       {paths[name]}
     </svg>
   );

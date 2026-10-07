@@ -39,6 +39,7 @@ async function fixture(context: BrowserContext, count = 3) {
 
 test('compact next-day carousel exposes all races and track links; bell updates after reading', async ({page,context},info)=>{
  const {requests}=await fixture(context);
+ await page.emulateMedia({reducedMotion:'reduce'});
  await page.goto('/home?league=rcc');
  const carousel=page.locator('.race-day');
  await expect(carousel).toContainText('Rennen 1 von 3');
@@ -90,6 +91,39 @@ test('compact next-day carousel exposes all races and track links; bell updates 
  await expect(page.getByRole('link',{name:'Benachrichtigungen: 2 ungelesen',exact:true})).toBeVisible();
  const countQuery=requests.find(u=>u.pathname.endsWith('/user_notifications')&&u.searchParams.get('read_at'));
  expect(countQuery?.searchParams.get('recipient_user_id')).toBe('eq.91000000-0000-4000-8000-000000000087');
+});
+
+test('four-second rotation has working pause, hover, manual selection and reduced-motion controls',async({page,context},info)=>{
+ await fixture(context);
+ await page.goto('/home?league=rcc');
+ const carousel=page.locator('.race-day');
+ await carousel.scrollIntoViewIfNeeded();
+ await expect(carousel.getByRole('button',{name:'Automatischen Wechsel pausieren'})).toBeVisible();
+ await page.clock.install();
+ await page.mouse.move(1,1);
+ await page.clock.runFor(4000);
+ await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ await carousel.hover();
+ await page.clock.runFor(8000);
+ await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ await page.mouse.move(1,1);
+ await page.clock.runFor(4000);
+ await expect(carousel.locator('h2')).toHaveText('Great Britain GP');
+ await carousel.getByRole('button',{name:'Automatischen Wechsel pausieren'}).click();
+ await page.mouse.move(1,1); await page.clock.runFor(8000);
+ await expect(carousel.locator('h2')).toHaveText('Great Britain GP');
+ await carousel.getByRole('button',{name:'Nächstes Rennen',exact:true}).click();
+ await expect(carousel.locator('h2')).toHaveText('Monaco GP');
+ await page.mouse.move(1,1); await page.clock.runFor(4000);
+ await expect(carousel.locator('h2')).toHaveText('Monaco GP');
+ await carousel.getByRole('button',{name:'Automatischen Wechsel starten'}).click();
+ await page.mouse.move(1,1); await page.clock.runFor(4000);
+ await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await expect(carousel.locator('.race-day-playback')).toHaveCount(0);
+ await page.clock.runFor(8000);
+ await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ await page.screenshot({path:info.outputPath('home-navigation-carousel.png'),fullPage:true});
 });
 
 test('slider controls inherit personal color tokens at intermediate width',async({page,context},info)=>{
@@ -145,4 +179,22 @@ test('every generated venue asset is delivered as WebP rather than an HTML fallb
   const bytes=await response.body();
   expect(bytes.toString('ascii',8,12)).toBe('WEBP');
  }
+});
+
+test('touch controls retain 44px targets and pause and resume on a real tap',async({browser,baseURL})=>{
+ const context=await browser.newContext({baseURL,viewport:{width:390,height:844},hasTouch:true,isMobile:true,locale:'de-DE'});
+ try {
+  await fixture(context,2);
+  const page=await context.newPage(); await page.goto('/home?league=rcc');
+  const carousel=page.locator('.race-day');
+  const pause=carousel.getByRole('button',{name:'Automatischen Wechsel pausieren'});
+  await expect(pause).toBeVisible();
+  await expect(pause).toHaveCSS('width','44px'); await expect(pause).toHaveCSS('height','44px');
+  await pause.tap();
+  const play=carousel.getByRole('button',{name:'Automatischen Wechsel starten'});
+  await expect(play).toBeVisible();
+  await play.tap(); await expect(pause).toBeVisible();
+  await carousel.getByRole('button',{name:'Nächstes Rennen',exact:true}).tap();
+  await expect(play).toBeVisible(); await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ } finally { await context.close(); }
 });

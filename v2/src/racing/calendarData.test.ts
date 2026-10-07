@@ -34,7 +34,7 @@ describe('native calendar preserves existing racing data semantics', () => {
     expect(calendarRaceDate({ ...race, race_date: null })).toBeNull();
   });
   it('matches local track assets and the season game without assuming one F1 version', () => {
-    expect(calendarTrack(race)?.trackMapFile).toBe('suzuka.png');
+    expect(calendarTrack(race)?.trackMapFile).toBe('suzuka.svg');
     expect(calendarTrack({ ...race, grand_prix_name: 'Spanien GP' }, 'f1_25')?.key).toBe('spain');
     expect(calendarTrack({ ...race, grand_prix_name: 'Spanien GP' }, 'f1-26')?.key).toBe('madrid');
     expect(calendarTrack({ grand_prix_name: 'Custom race', circuit_name: 'Suzuka International Racing Course' })?.key).toBe('japan');

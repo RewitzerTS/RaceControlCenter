@@ -52,8 +52,8 @@ const calendarPage = await readFile(resolve(distRoot, 'kalender.html'), 'utf8');
 if (!calendarPage.includes('/v1-assets/js/pages/kalender.js?v=v2-calendar-next-1')) {
   throw new Error('Integrated calendar must cache-bust its updated lifecycle navigation.');
 }
-if (!calendarPage.includes('/v1-assets/js/data/tracks.js?v=v2-local-flags-1')) {
-  throw new Error('Integrated calendar must cache-bust the local country-flag source.');
+if (!calendarPage.includes('/v1-assets/js/data/tracks.js?v=rv-vector-maps-20261007')) {
+  throw new Error('Integrated calendar must cache-bust the current local flag and vector-map catalog.');
 }
 if (!calendarPage.includes('/v1-assets/js/utils.js?v=v2-no-track-info-1')
     || !calendarPage.includes('/v1-assets/js/app.js?v=v2-no-track-info-1')) {
@@ -134,6 +134,9 @@ if (manifest.start_url !== '/home' || manifest.scope !== '/' || !manifest.icons?
 
 const trackMaps = (await readdir(resolve(distRoot, 'v1-assets', 'trackmaps'))).filter((name) => /\.(png|webp|svg)$/i.test(name));
 if (trackMaps.length < 24) throw new Error(`Expected at least 24 V1 track maps, found ${trackMaps.length}.`);
+if (trackMaps.filter((name) => name.endsWith('.svg')).length !== 25 || !trackMaps.includes('madrid.svg')) {
+  throw new Error('Expected all 25 RaceVora vector maps, including a separate Madrid outline.');
+}
 
 const client = await readFile(resolve(distRoot, 'v1-assets', 'js', 'supabase-client.js'), 'utf8');
 if (client.includes(legacyProjectRef) || client.includes('7aojXjXa4nfHRiT8CrGo6tX-lqAxYQ6mCMaHLhjo1J8')) {

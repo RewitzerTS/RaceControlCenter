@@ -1,7 +1,7 @@
 [
   {
     "key": "australia",
-    "trackMapFile": "australia.png",
+    "trackMapFile": "australia.svg",
     "grandPrixName": "Australien GP",
     "circuitName": "Melbourne Grand Prix Circuit",
     "countryCode": "AU",
@@ -14,7 +14,7 @@
   },
   {
     "key": "china",
-    "trackMapFile": "shanghai.png",
+    "trackMapFile": "shanghai.svg",
     "grandPrixName": "China GP",
     "circuitName": "Shanghai International Circuit",
     "countryCode": "CN",
@@ -26,7 +26,7 @@
   },
   {
     "key": "japan",
-    "trackMapFile": "suzuka.png",
+    "trackMapFile": "suzuka.svg",
     "grandPrixName": "Japan GP",
     "circuitName": "Suzuka International Racing Course",
     "countryCode": "JP",
@@ -38,7 +38,7 @@
   },
   {
     "key": "bahrain",
-    "trackMapFile": "bahrain.png",
+    "trackMapFile": "bahrain.svg",
     "grandPrixName": "Bahrain GP",
     "circuitName": "Bahrain International Circuit",
     "countryCode": "BH",
@@ -51,7 +51,7 @@
   },
   {
     "key": "saudi-arabia",
-    "trackMapFile": "jeddah.png",
+    "trackMapFile": "jeddah.svg",
     "grandPrixName": "Saudi-Arabien GP",
     "circuitName": "Jeddah Corniche Circuit",
     "countryCode": "SA",
@@ -65,7 +65,7 @@
   },
   {
     "key": "miami",
-    "trackMapFile": "miami.png",
+    "trackMapFile": "miami.svg",
     "grandPrixName": "Miami GP",
     "circuitName": "Miami International Autodrome",
     "countryCode": "US",
@@ -76,7 +76,7 @@
   },
   {
     "key": "imola",
-    "trackMapFile": "imola.png",
+    "trackMapFile": "imola.svg",
     "grandPrixName": "Emilia-Romagna GP",
     "circuitName": "Autodromo Enzo e Dino Ferrari",
     "countryCode": "IT",
@@ -92,7 +92,7 @@
   },
   {
     "key": "monaco",
-    "trackMapFile": "monaco.png",
+    "trackMapFile": "monaco.svg",
     "grandPrixName": "Monaco GP",
     "circuitName": "Circuit de Monaco",
     "countryCode": "MC",
@@ -103,7 +103,7 @@
   },
   {
     "key": "canada",
-    "trackMapFile": "montreal.png",
+    "trackMapFile": "montreal.svg",
     "grandPrixName": "Kanada GP",
     "circuitName": "Circuit Gilles Villeneuve",
     "countryCode": "CA",
@@ -116,7 +116,7 @@
   },
   {
     "key": "spain",
-    "trackMapFile": "barcelona.png",
+    "trackMapFile": "barcelona.svg",
     "grandPrixName": "Spanien GP",
     "circuitName": "Circuit de Barcelona-Catalunya",
     "countryCode": "ES",
@@ -133,7 +133,7 @@
   },
   {
     "key": "catalonia",
-    "trackMapFile": "barcelona.png",
+    "trackMapFile": "barcelona.svg",
     "grandPrixName": "Katalonien GP",
     "circuitName": "Circuit de Barcelona-Catalunya",
     "countryCode": "ES",
@@ -151,7 +151,7 @@
   },
   {
     "key": "austria",
-    "trackMapFile": "redbullring.png",
+    "trackMapFile": "redbullring.svg",
     "grandPrixName": "Österreich GP",
     "circuitName": "Red Bull Ring",
     "countryCode": "AT",
@@ -166,7 +166,7 @@
   },
   {
     "key": "great-britain",
-    "trackMapFile": "silverstone.png",
+    "trackMapFile": "silverstone.svg",
     "grandPrixName": "Großbritannien GP",
     "circuitName": "Silverstone Circuit",
     "countryCode": "GB",
@@ -181,7 +181,7 @@
   },
   {
     "key": "belgium",
-    "trackMapFile": "spa.png",
+    "trackMapFile": "spa.svg",
     "grandPrixName": "Belgien GP",
     "circuitName": "Circuit de Spa-Francorchamps",
     "countryCode": "BE",
@@ -194,7 +194,7 @@
   },
   {
     "key": "hungary",
-    "trackMapFile": "hungaroring.png",
+    "trackMapFile": "hungaroring.svg",
     "grandPrixName": "Ungarn GP",
     "circuitName": "Hungaroring",
     "countryCode": "HU",
@@ -207,7 +207,7 @@
   },
   {
     "key": "netherlands",
-    "trackMapFile": "zandvoort.png",
+    "trackMapFile": "zandvoort.svg",
     "grandPrixName": "Niederlande GP",
     "circuitName": "Circuit Zandvoort",
     "countryCode": "NL",
@@ -221,7 +221,7 @@
   },
   {
     "key": "madrid",
-    "trackMapFile": "barcelona.png",
+    "trackMapFile": "madrid.svg",
     "grandPrixName": "Spanien GP",
     "circuitName": "Madring",
     "countryCode": "ES",
@@ -240,7 +240,7 @@
   },
   {
     "key": "italy",
-    "trackMapFile": "monza.png",
+    "trackMapFile": "monza.svg",
     "grandPrixName": "Italien GP",
     "circuitName": "Autodromo Nazionale Monza",
     "countryCode": "IT",
@@ -254,7 +254,7 @@
   },
   {
     "key": "azerbaijan",
-    "trackMapFile": "baku.png",
+    "trackMapFile": "baku.svg",
     "grandPrixName": "Aserbaidschan GP",
     "circuitName": "Baku City Circuit",
     "countryCode": "AZ",
@@ -267,7 +267,7 @@
   },
   {
     "key": "singapore",
-    "trackMapFile": "singapore.png",
+    "trackMapFile": "singapore.svg",
     "grandPrixName": "Singapur GP",
     "circuitName": "Marina Bay Street Circuit",
     "countryCode": "SG",
@@ -280,7 +280,7 @@
   },
   {
     "key": "united-states",
-    "trackMapFile": "cota.png",
+    "trackMapFile": "cota.svg",
     "grandPrixName": "USA GP",
     "circuitName": "Circuit of the Americas",
     "countryCode": "US",
@@ -294,7 +294,7 @@
   },
   {
     "key": "mexico",
-    "trackMapFile": "mexico.png",
+    "trackMapFile": "mexico.svg",
     "grandPrixName": "Mexiko GP",
     "circuitName": "Autódromo Hermanos Rodríguez",
     "countryCode": "MX",
@@ -307,7 +307,7 @@
   },
   {
     "key": "brazil",
-    "trackMapFile": "interlagos.png",
+    "trackMapFile": "interlagos.svg",
     "grandPrixName": "São Paulo GP",
     "circuitName": "Autódromo José Carlos Pace",
     "countryCode": "BR",
@@ -321,7 +321,7 @@
   },
   {
     "key": "las-vegas",
-    "trackMapFile": "vegas.png",
+    "trackMapFile": "vegas.svg",
     "grandPrixName": "Las Vegas GP",
     "circuitName": "Las Vegas Strip Circuit",
     "countryCode": "US",
@@ -333,7 +333,7 @@
   },
   {
     "key": "qatar",
-    "trackMapFile": "qatar.png",
+    "trackMapFile": "qatar.svg",
     "grandPrixName": "Katar GP",
     "circuitName": "Lusail International Circuit",
     "countryCode": "QA",
@@ -346,7 +346,7 @@
   },
   {
     "key": "abu-dhabi",
-    "trackMapFile": "abudhabi.png",
+    "trackMapFile": "abudhabi.svg",
     "grandPrixName": "Abu Dhabi GP",
     "circuitName": "Yas Marina Circuit",
     "countryCode": "AE",

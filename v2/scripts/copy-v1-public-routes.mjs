@@ -90,7 +90,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/utils.js', '/v1-assets/js/utils.js?v=v2-no-track-info-1')
     .replaceAll('/v1-assets/js/app.js', '/v1-assets/js/app.js?v=v2-no-track-info-1')
     .replaceAll('/v1-assets/js/pages/kalender.js', '/v1-assets/js/pages/kalender.js?v=v2-calendar-next-1')
-    .replaceAll('/v1-assets/js/data/tracks.js', '/v1-assets/js/data/tracks.js?v=v2-local-flags-1')
+    .replaceAll('/v1-assets/js/data/tracks.js', '/v1-assets/js/data/tracks.js?v=rv-vector-maps-20261007')
     .replaceAll('/v1-assets/js/pages/track-hub.js', '/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')
     .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-6')
     .replaceAll('/v1-assets/js/services/rcc-result-data-compat.js', '/v1-assets/js/services/rcc-result-data-compat.js?v=v2-fastest-lap-rule-1')
