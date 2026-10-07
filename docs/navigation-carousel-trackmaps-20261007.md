@@ -30,3 +30,17 @@ Checks: TypeScript, six fake-timer unit cases, source-vertex and catalog checks,
 desktop/mobile carousel E2E, explicit touch E2E, all SVG responses, map dialog
 close/focus restoration, and one batched visual comparison of all map outlines.
 Use the existing complete deploy-safe gate for publication; no database changes.
+
+## Follow-up: quieter slide transitions
+
+The next picture crossfades over the previous picture in 420ms. Only the race
+content enters with a 14px directional movement over 320ms; controls remain fixed.
+The next picture is warmed when the carousel is visible. Previous pictures and
+timers are cleaned up after rapid selection, preference changes and unmounting.
+Reduced-motion users receive an immediate manual change without movement.
+The four-second cycle and pause behavior stay unchanged. The redundant
+“Streckenschema” caption is removed while the distance remains; the track-profile
+link now uses the existing pill-shaped main-action style and personal colors.
+Impeccable animate guidance informed the bounded crossfade, calm controls and
+interruptible/reduced-motion behavior. Regression tests cover the intermediate
+opacity, directional change, fixed controls, cleanup and reduced-motion fallback.

@@ -146,6 +146,36 @@ test('slider controls inherit personal color tokens at intermediate width',async
  if(process.env.RACEVORA_CAPTURE_UI==='1'&&info.project.name==='desktop') await page.screenshot({path:'../.impeccable/review/screenshots/home-compact-tablet.png',fullPage:true});
 });
 
+test('slides crossfade with a small directional move, fixed controls and a reduced-motion fallback',async({page,context},info)=>{
+ await fixture(context); await page.goto('/home?league=rcc');
+ const carousel=page.locator('.race-day');
+ const next=carousel.getByRole('button',{name:'Nächstes Rennen',exact:true});
+ await expect(carousel.locator('h2')).toHaveText('Monaco GP');
+ await expect(carousel).not.toContainText('Streckenschema');
+ await expect(carousel.locator('.race-day-map figcaption')).toContainText('3,337');
+ await expect(carousel.locator('.race-day-open')).toHaveCSS('border-radius','999px');
+ const before=await next.boundingBox();
+ await next.click();
+ await expect(carousel.locator('h2')).toHaveText('Japan GP');
+ const animations=await carousel.evaluate(el=>el.getAnimations({subtree:true}).filter(a=>a instanceof CSSAnimation).map(a=>{a.pause();a.currentTime=140;return (a as CSSAnimation).animationName;}));
+ expect(animations).toContain('race-photo-crossfade'); expect(animations).toContain('race-content-arrive');
+ const opacity=await carousel.locator('.race-day-photo').evaluate(el=>Number(getComputedStyle(el).opacity));
+ expect(opacity).toBeGreaterThan(0);expect(opacity).toBeLessThan(1);
+ await expect(carousel.locator('.race-day-photo-outgoing')).toHaveAttribute('aria-hidden','true');
+ expect((await next.boundingBox())!.y).toBeCloseTo(before!.y,0);
+ await expect(next).toBeFocused();
+ await carousel.screenshot({path:info.outputPath('slide-crossfade-midpoint.png'),animations:'allow'});
+ await carousel.evaluate(el=>el.getAnimations({subtree:true}).forEach(a=>a.finish()));
+ await expect(carousel.locator('.race-day-photo-outgoing')).toHaveCount(0);
+ await carousel.getByRole('button',{name:'Vorheriges Rennen',exact:true}).click();
+ await expect(carousel).toHaveCSS('--race-slide-direction','-1');
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await expect(carousel.locator('.race-day-photo-outgoing')).toHaveCount(0);
+ await next.click();
+ await expect(carousel.locator('.race-day-content')).toHaveCSS('animation-name','none');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
 test('unmapped circuit omits a misleading profile link and long names wrap',async({page,context})=>{
  await fixture(context);
  const name='Ein sehr langer individueller Rennname ohne Eintrag im Streckenkatalog';

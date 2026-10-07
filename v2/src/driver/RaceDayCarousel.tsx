@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useI18n } from '../i18n/I18nProvider';
 import { calendarTrack, racingHref } from '../racing/calendarData';
@@ -20,7 +20,29 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
   const start = useRef<{ x: number; y: number } | null>(null);
   const index = Math.max(0, races.findIndex((race) => race.id === selectedId));
   const race = races[index];
+  const track = race ? calendarTrack(race, gameKey) : undefined;
+  const media = venues.find((venue) => venue.keys.includes(track?.key ?? ''));
+  const slideKey = `${league}:${race?.id ?? ''}`;
+  const lastSlide = useRef({ key: slideKey, photo: media?.src });
+  const direction = useRef(1);
+  const [transition, setTransition] = useState<{ to: string; photo?: string } | null>(null);
   const [failedImage, setFailedImage] = useState<string | null>(null);
+  useLayoutEffect(() => {
+    const previous = lastSlide.current;
+    lastSlide.current = { key: slideKey, photo: media?.src };
+    if (reducedMotion || previous.key === slideKey) { setTransition(null); return; }
+    setTransition({ to: slideKey, photo: previous.photo });
+    const timer = window.setTimeout(() => setTransition(null), 420);
+    return () => window.clearTimeout(timer);
+  }, [slideKey, media?.src, reducedMotion]);
+  // Warm only the next picture so an automatic crossfade does not reveal an
+  // undecoded image. Browsers reuse the normal image cache; no animation library.
+  useEffect(() => {
+    if (!race || races.length < 2 || !visible) return;
+    const nextTrack = calendarTrack(races[(index + 1) % races.length], gameKey);
+    const nextMedia = venues.find((venue) => venue.keys.includes(nextTrack?.key ?? ''));
+    if (nextMedia) { const image = new Image(); image.src = nextMedia.src; }
+  }, [races, index, gameKey, visible, Boolean(race)]);
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const updateMotion = () => setReducedMotion(preference.matches);
@@ -43,16 +65,15 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
   const rotating = races.length > 1 && !paused && !hovered && !hidden && !reducedMotion && visible;
   useEffect(() => {
     if (!rotating) return;
-    const timer = window.setTimeout(() => setSelectedId(races[(index + 1) % races.length].id), 4000);
+    const timer = window.setTimeout(() => { direction.current = 1; setSelectedId(races[(index + 1) % races.length].id); }, 4000);
     return () => window.clearTimeout(timer);
   }, [rotating, index, races]);
   if (!race) return null;
-  const track = calendarTrack(race, gameKey);
-  const media = venues.find((venue) => venue.keys.includes(track?.key ?? ''));
   const fact = facts.find((entry) => entry.id === track?.key);
-  const change = (offset: number) => { setPaused(true); setSelectedId(races[(index + offset + races.length) % races.length].id); };
+  const change = (offset: number) => { direction.current = Math.sign(offset); setPaused(true); setSelectedId(races[(index + offset + races.length) % races.length].id); };
+  const animating = transition?.to === slideKey && !reducedMotion;
   const name = race.grand_prix_name.replace(/\s+GP$/i, '');
-  return <section ref={container} className="race-day" aria-label={t('raceDay.title')} aria-roledescription={t('raceDay.carousel')}
+  return <section ref={container} className={`race-day${animating ? ' race-day-transitioning' : ''}`} style={{ '--race-slide-direction': direction.current } as CSSProperties} aria-label={t('raceDay.title')} aria-roledescription={t('raceDay.carousel')}
     tabIndex={0}
     onFocusCapture={(event) => { if (!(event.target instanceof Element) || !event.target.closest('.race-day-playback')) setPaused(true); }}
     onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHovered(true); }}
@@ -72,8 +93,9 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
       start.current = null;
       if (from && Math.abs(touch.clientX - from.x) > 55 && Math.abs(touch.clientX - from.x) > Math.abs(touch.clientY - from.y) * 1.5) change(touch.clientX < from.x ? 1 : -1);
     }}>
-    {media && failedImage !== media.src && <img className="race-day-photo" src={media.src} alt="" fetchPriority="high" onError={() => setFailedImage(media.src)} />}
-    <div className="race-day-content">
+    {animating && transition.photo && transition.photo !== failedImage && <img className="race-day-photo-outgoing" src={transition.photo} alt="" aria-hidden="true" />}
+    {media && failedImage !== media.src && <img key={media.src} className="race-day-photo" src={media.src} alt="" fetchPriority="high" onError={() => setFailedImage(media.src)} />}
+    <div key={slideKey} className="race-day-content">
       <h2>{name}{/\s+GP$/i.test(race.grand_prix_name) && <span> GP</span>}</h2>
       <p className="race-day-circuit">{race.circuit_name || track?.circuitName}</p>
       <p className="race-day-date">{race.race_date ? formatDate(race.race_date) : t('home.dateTbd')}
@@ -83,7 +105,7 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
         {t('raceDay.open')}<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6" /></svg>
       </NavLink>}
       {track?.trackMapFile && <figure className="race-day-map">
-        <figcaption>{t('raceDay.layout')}<span>{fact?.lengthKm}</span></figcaption>
+        <figcaption><span>{fact?.lengthKm}</span></figcaption>
         <ThemedTrackMap key={track.trackMapFile} src={`/v1-assets/trackmaps/${track.trackMapFile}`} alt={track.circuitName} />
       </figure>}
     </div>
@@ -97,7 +119,7 @@ export function RaceDayCarousel({ races, league, gameKey }: { races: UpcomingRac
       {media && failedImage !== media.src && <small className="race-day-credit">{t('raceDay.artCredit')}</small>}
     </footer>
     {races.length > 1 && <nav className="race-day-races" aria-label={t('raceDay.choose')}>{races.map((entry, i) =>
-      <button key={entry.id} type="button" aria-pressed={i === index} onClick={() => { setPaused(true); setSelectedId(entry.id); }}><span>{i + 1}</span>{entry.grand_prix_name}</button>
+      <button key={entry.id} type="button" aria-pressed={i === index} onClick={() => { direction.current = i < index ? -1 : 1; setPaused(true); setSelectedId(entry.id); }}><span>{i + 1}</span>{entry.grand_prix_name}</button>
     )}</nav>}
   </section>;
 }
