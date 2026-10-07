@@ -8,6 +8,8 @@ Time penalties and credits carry seconds. Without a published result the interfa
 
 Form: two columns on desktop, one on mobile, explicit labels, 16px entry text, 44px actions, one primary action, inline error/status feedback. Palette, controls and fonts inherit the existing product. No new imagery or ornamental assets. Existing global styling is not replaced.
 
+October 7 extension: reporting and accused driver may be identical, including a request to review an in-game time penalty. An inline delete confirmation states the sporting consequences, requires a reason, offers cancel first, retains input on failure, and removes the case after confirmed success. Deletion is an audited withdrawal; historical evidence is retained internally. The scoped extension inherits the same palette and 44px actions and does not redesign the shell.
+
 Verification: transactional Staging SQL covers direct and deferred changes, combined credit/penalty, retry idempotence, missing-time rollback, fastest-lap bonus boundary, cross-league rejection and driver-role rejection. Synthetic fixtures are rolled back. Browser coverage uses intercepted data on desktop and mobile. Physical iPhone Safari is not tested. Deployment status is reported separately.
 
 Visual finish: **ship** for this scoped form simplification. Desktop/mobile screenshots were reviewed in one batch, then confirmed after one consolidated adjustment (two-column desktop fields and readable mobile input sizing). Fixed header/footer positions in full-page screenshots are browser-capture artifacts, not extra page sections. The scoped Impeccable detector returned no findings. Existing global editorial heading, floating helpers and navigation remain outside this change.

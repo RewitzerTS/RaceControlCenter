@@ -2120,6 +2120,7 @@ export type Database = {
           created_at: string
           created_by: string
           current_decision_version: number | null
+          deleted_at: string | null
           description: string
           id: string
           idempotency_key: string
@@ -2138,6 +2139,7 @@ export type Database = {
           created_at?: string
           created_by: string
           current_decision_version?: number | null
+          deleted_at?: string | null
           description: string
           id?: string
           idempotency_key: string
@@ -2156,6 +2158,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           current_decision_version?: number | null
+          deleted_at?: string | null
           description?: string
           id?: string
           idempotency_key?: string
@@ -2724,6 +2727,10 @@ export type Database = {
           p_summary: Json
         }
         Returns: string
+      }
+      delete_steward_case: {
+        Args: { p_case_id: string; p_reason: string; p_expected_decision_version: number | null; p_expected_result_version_id: string | null }
+        Returns: Json
       }
       record_steward_decision: {
         Args: { p_race_id: string; p_reported_driver_id: string; p_accused_driver_id: string;

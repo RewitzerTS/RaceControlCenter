@@ -13,6 +13,11 @@
 .simple-decision { padding-block: 1rem; border-top: 1px solid var(--line, rgba(255,255,255,.12)); }
 .simple-decision p { white-space: pre-wrap; overflow-wrap: anywhere; }
 .simple-steward .case-facts { grid-template-columns: repeat(auto-fit,minmax(min(100%,10rem),1fr)); }
+.steward-delete { margin-block: 1.5rem; }
+.steward-delete form { display: grid; gap: 1rem; max-width: 65ch; }
+.steward-delete label { display: grid; gap: .5rem; }
+.steward-delete textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 6rem; padding: .75rem; border: 1px solid var(--control-border, var(--line-strong)); border-radius: 10px; color: var(--brand-text); background: var(--control-background, var(--brand-surface)); font: inherit; font-size: 1rem; resize: vertical; }
+.steward-delete button { min-height: 44px; white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 680px) {
   .simple-steward .simple-steward-form { grid-template-columns: minmax(0,1fr); }
   .simple-steward .simple-steward-form .span-two { grid-column: 1; }

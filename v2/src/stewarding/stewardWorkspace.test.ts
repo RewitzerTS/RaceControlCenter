@@ -1,11 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
-import { activeStewardRaces, createStewardCase, finalizeStewardDecision, loadStewardWorkspace, stewardDetailCounts, nextStewardRace, recordStewardDecision, type StewardRace } from './stewardWorkspace';
+import { activeStewardRaces, createStewardCase, deleteStewardCase, finalizeStewardDecision, loadStewardWorkspace, stewardDetailCounts, nextStewardRace, recordStewardDecision, type StewardRace } from './stewardWorkspace';
 
 const race: StewardRace = { id: 'race-1', season_id: 'season-2', grand_prix_name: 'Japan GP', round_number: 1, race_date: '2026-10-05', race_time: '20:00', race_start_at: '2026-10-05T18:00:00Z', status: 'upcoming', current_result_version_id: null, is_active_season: true };
 
 describe('steward workspace commands', () => {
+  it('deletes through a guarded RPC with the displayed case and result versions', async () => {
+    const rpc = vi.fn().mockResolvedValue({data:{id:'case',deleted:true},error:null});
+    await deleteStewardCase({rpc} as never,'case','Incorrect time credit',1,'result');
+    expect(rpc).toHaveBeenCalledExactlyOnceWith('delete_steward_case',{p_case_id:'case',p_reason:'Incorrect time credit',p_expected_decision_version:1,p_expected_result_version_id:'result'});
+    rpc.mockResolvedValue({data:null,error:{message:'Case or result changed. Reload before deleting.'}});
+    await expect(deleteStewardCase({rpc} as never,'case','Incorrect time credit',1,'old')).rejects.toThrow('Reload');
+  });
   it('targets the immediate next scheduled race, including the second race that evening', () => {
     const next = { ...race,id:'next',round_number:2,race_start_at:'2026-10-05T19:00:00Z' };
     expect(nextStewardRace([race,next],race.id,Date.parse('2026-10-05T18:45Z'))?.id).toBe('next');

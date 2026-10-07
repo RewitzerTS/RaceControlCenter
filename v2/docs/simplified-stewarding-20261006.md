@@ -1,5 +1,17 @@
 # Simplified steward workflow — Staging validation
 
+## October 7 extension: self-reports and deletion
+
+The initial October 6 release was promoted to Production as commit `6e42891`. The scope statement below describes its earlier Staging validation, not the current deployment status.
+
+The October 7 migration permits the reporting and accused driver to be the same league driver. Deletion is an audited withdrawal: immutable decisions, evidence and application receipts are preserved privately while deleted cases and their child records disappear through the existing RLS helpers. Pending corrections are excluded at publication, incoming grid penalties disappear, and applied time corrections are inverted against the current result, producing a new validated result version and normal downstream result events. Browser UI asks for confirmation and a reason; stewards, league admins and verified owners use the existing server capability checks.
+
+The server locks race then case, compares the displayed decision/result versions, and returns the same deletion receipt on retry. Manual/imported time-delta inconsistencies or disconnected result histories block automatic inversion rather than guessing. Historical disqualification/points-only penalties require separately reviewed correction; no such penalty rows existed in Production during preflight. Previously served in-game grid changes cannot be physically undone by RaceVora; the confirmation makes the league's responsibility explicit.
+
+`steward-self-reports-and-withdrawal.sql` covers self-reported credit, open/closed case deletion, penalty and credit inversion, retaining unrelated corrections, fastest-lap bonus boundaries, deferred publication followed by deletion, ignoring deleted pending corrections, grid removal, stale state, retry idempotency, cross-league and driver denial, and rollback of incompatible history. All fixtures roll back. The 20 scoped browser tests use intercepted data on desktop and mobile; they do not write real cases. No physical Safari test is claimed.
+
+Advisor review: the signed-in SECURITY DEFINER facade is intentional, with auth, tenant and capability checks in the inaccessible private implementation. No anonymous RPC execution, browser table writes or access to private deletion receipts is granted. RLS without a policy on the private receipt table is intentional default-deny. Unrelated pre-existing advisor findings are outside this release. References: [RPC advisor](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [default-deny RLS](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
+
 Scope: Staging `nfvwarlowjqphytqqtxz` only. Production is unchanged. Five migrations dated 20261006 add signed time corrections, grid penalties, an authorized RPC boundary, pending-application receipts and hiding of consumed validated imports. Apply all five together when promoting; do not deploy the frontend alone to a database missing them.
 
 ## Semantics

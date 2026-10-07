@@ -157,6 +157,14 @@ export async function recordStewardDecision(client: LeagueSupabaseClient, input:
   throwIfError(response.error); return response.data;
 }
 
+export async function deleteStewardCase(client: LeagueSupabaseClient, caseId: string, reason: string, decisionVersion: number | null, resultVersionId: string | null) {
+  const response = await client.rpc('delete_steward_case', {
+    p_case_id: caseId, p_reason: reason, p_expected_decision_version: decisionVersion,
+    p_expected_result_version_id: resultVersionId,
+  });
+  throwIfError(response.error); return response.data;
+}
+
 export async function createStewardCase(client: LeagueSupabaseClient, input: {
   raceId: string; reportedDriverId: string | null; accusedDriverId: string; title: string;
   description: string; ruleCode: string; ruleVersion: string; idempotencyKey?: string;
