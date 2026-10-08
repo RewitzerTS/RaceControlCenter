@@ -76,7 +76,6 @@ export function DriverHomePage() {
             ? formatDate(snapshot.latestArchivedSeason.archivedAt, { dateStyle: 'long' })
             : t('home.dateTbd'),
         }),
-        kicker: t('home.hero.seasonCompleteKicker'),
         title: t('home.hero.seasonCompleteTitle', {
           season: snapshot.latestArchivedSeason?.name ?? t('home.season'),
         }),
@@ -88,7 +87,6 @@ export function DriverHomePage() {
         copy: t('home.hero.resultCopy', {
           date: career?.last_race_date ? formatDate(career.last_race_date) : t('home.dateTbd'),
         }),
-        kicker: t('home.hero.resultKicker'),
         title: t('home.hero.resultTitle'),
         to: `/racing/results?league=${encodeURIComponent(leagueSlug)}`,
       }
@@ -100,14 +98,12 @@ export function DriverHomePage() {
               ? formatDate(snapshot.nextRace.race_date, { dateStyle: 'long' })
               : t('home.dateTbd'),
           }),
-          kicker: t('home.hero.raceKicker'),
           title: snapshot.nextRace?.grand_prix_name ?? t('home.hero.raceTitle'),
           to: '/racing',
         }
       : {
           action: t('home.hero.careerAction'),
           copy: t('home.hero.careerCopy'),
-          kicker: t('home.hero.careerKicker'),
           title: t('home.hero.careerTitle'),
           to: '/career',
         };
@@ -137,9 +133,6 @@ export function DriverHomePage() {
 
       <section className="dashboard-hero v2-driver-dashboard" aria-labelledby="driver-hero-title">
         <article className="hero-main">
-          <div className="hero-topline">
-            <p className="hero-kicker">{hero.kicker}</p>
-          </div>
           <h1 id="driver-hero-title">{t('home.greeting', { name: displayName })}</h1>
           {snapshot.nextRaceDay?.length ? <RaceDayCarousel key={`${leagueSlug}:${snapshot.nextRace?.race_date}`} races={snapshot.nextRaceDay} league={leagueSlug} gameKey={snapshot.activeSeason?.gameKey} /> : <div className="next-race-showcase">
             <span className="section-label">{seasonCompleted ? t('home.seasonStatus') : t('home.nextRace')}</span>

@@ -51,6 +51,7 @@ test('compact next-day carousel exposes all races and track links; bell updates 
  await expect(carousel.locator('.race-day-photo')).not.toHaveJSProperty('naturalWidth',0);
  await expect(carousel.locator('.race-day-map img')).not.toHaveJSProperty('naturalWidth',0);
  await expect(page.locator('.hero-main > .race-day')).toBeVisible();
+ await expect(page.locator('.hero-main > .hero-topline')).toHaveCount(0);
  await expect(carousel.getByRole('link',{name:'Streckenprofil',exact:true})).toHaveAttribute('href',`/racing/tracks/profile?league=rcc&season=${f.season.id}&track=monaco`);
  const bounds=await carousel.boundingBox();
  expect(bounds?.height).toBeLessThan(400);
@@ -96,6 +97,30 @@ test('compact next-day carousel exposes all races and track links; bell updates 
  await expect(page.getByRole('link',{name:'Benachrichtigungen: 2 ungelesen',exact:true})).toBeVisible();
  const countQuery=requests.find(u=>u.pathname.endsWith('/user_notifications')&&u.searchParams.get('read_at'));
  expect(countQuery?.searchParams.get('recipient_user_id')).toBe('eq.91000000-0000-4000-8000-000000000087');
+});
+
+test('varied challenges are readable on Home and Career without the redundant hero label',async({page,context},info)=>{
+ await fixture(context);
+ const metrics=['top_ten','top_five','positions_gained','gain_three','comeback_top_ten','hold_position'];
+ const labels=['Top-10-Zieleinläufe','Top-5-Zieleinläufe','Gewonnene Plätze (Start → Ziel)','Rennen mit mindestens 3 gewonnenen Plätzen','Von außerhalb der Top 10 in die Top 10','Zielplatz mindestens so gut wie Startplatz'];
+ let batch=0;
+ await context.route('**/rest/v1/challenge_definitions*',route=>route.fulfill({json:metrics.slice(batch*3,batch*3+3).map((metric,i)=>({code:metric,metric,target_value:1,reward_vc:100+i*50,sort_order:i+1,active_from:'2026-01-01T00:00:00Z',active_until:'2099-01-01T00:00:00Z'}))}));
+ for(batch=0;batch<2;batch++) {
+  for(const route of ['/home','/career']) {
+   await page.goto(route+'?league=rcc');
+   const panel=page.locator('.challenge-panel');
+   for(const label of labels.slice(batch*3,batch*3+3)) await expect(panel).toContainText(label);
+   await expect(panel.locator('.challenge-list > li')).toHaveCount(3);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   if(route==='/home') {
+    await expect(page.locator('.hero-topline')).toHaveCount(0);
+    if(batch===1) {
+     await page.locator('.hero-main').screenshot({path:info.outputPath('home-without-kicker.png')});
+     await panel.screenshot({path:info.outputPath('varied-challenges.png')});
+    }
+   }
+  }
+ }
 });
 
 test('four-second rotation has working pause, hover, manual selection and reduced-motion controls',async({page,context},info)=>{

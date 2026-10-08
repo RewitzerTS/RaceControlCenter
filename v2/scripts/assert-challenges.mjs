@@ -62,6 +62,17 @@ for (const evidence of [
 if (!/begin;[\s\S]*rollback;\s*$/i.test(regression)) {
   violations.push('Phase 12 fixtures are not transactionally rolled back');
 }
+const varietyName = (await readdir(resolve(root, 'supabase/migrations'))).find((name) => name.endsWith('_varied_weekly_challenges.sql'));
+if (!varietyName) throw new Error('Varied weekly Challenge migration is missing.');
+const variety = await readFile(resolve(root, 'supabase/migrations', varietyName), 'utf8');
+const varietyTests = await readFile(resolve(root, 'supabase/tests/varied-weekly-challenges.sql'), 'utf8');
+for (const contract of ['weekly_challenge_plan', 'variety_start_cycle', 'variety_offset', 'active_from>now()', 'settle_weekly_challenge']) {
+  if (!variety.includes(contract)) violations.push(`missing weekly variety contract: ${contract}`);
+}
+for (const metric of ['top_ten','top_five','positions_gained','gain_three','comeback_top_ten','hold_position']) {
+  if (!variety.includes(`when '${metric}'`) || !varietyTests.includes(`challenge_contribution('${metric}'`)) violations.push(`missing varied metric or regression: ${metric}`);
+}
+if (!/begin;[\s\S]*rollback;\s*$/i.test(varietyTests)) violations.push('Variety regression must roll back');
 if (violations.length) {
   console.error(`V2 Challenges check failed:\n${violations.map((item) => `- ${item}`).join('\n')}`);
   process.exit(1);
