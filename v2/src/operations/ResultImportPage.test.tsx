@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../i18n/I18nProvider';
@@ -71,7 +71,7 @@ describe('ResultImportPage', () => {
     fireEvent.click(screen.getByRole('button',{name:'Abbrechen'}));
     fireEvent.click(screen.getByRole('button',{name:'Entwurf verwerfen'}));
     fireEvent.click(screen.getByRole('button',{name:'Entwurf verwerfen'}));
-    expect(await screen.findByRole('alert')).toHaveTextContent('bleibt erhalten');
+    await waitFor(() => expect(document.querySelector('.result-draft-release [role="alert"]')).toHaveTextContent('bleibt erhalten'));
     fireEvent.click(screen.getByRole('button',{name:'Entwurf verwerfen'}));
     expect(await screen.findByText('Entwurf verworfen. Du kannst die Bilder erneut auswählen und importieren.')).toBeTruthy();
     expect(screen.queryByText('Japan GP · V1')).toBeNull();
@@ -83,7 +83,7 @@ describe('ResultImportPage', () => {
     publishLeagueResultDraft.mockRejectedValue({message:'Complete the race times before applying a time correction.'});
     render(<I18nProvider><MemoryRouter><ResultImportPage /></MemoryRouter></I18nProvider>);
     fireEvent.click(await screen.findByRole('button',{name:'Jetzt offiziell freigeben'}));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Steward-Zeitkorrektur');
+    await waitFor(() => expect(document.querySelector('.result-draft-release [role="alert"]')).toHaveTextContent('Steward-Zeitkorrektur'));
     expect(screen.getByText('Japan GP · V1')).toBeTruthy();
     expect(screen.getByRole('button',{name:'Entwurf verwerfen'})).not.toBeDisabled();
   });

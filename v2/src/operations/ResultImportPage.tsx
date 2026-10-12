@@ -32,6 +32,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { rosterError } from './rosterCopy';
 import { resultRecoveryCopy, resultRecoveryError } from './resultDraftRecovery';
 import './resultDraftRecovery.css';
+import { DraftChampionshipPreview } from './DraftChampionshipPreview';
 
 export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, raceId: string): ResultScoringRules {
   const race = workspace?.races.find((item) => item.id === raceId);
@@ -243,5 +244,6 @@ export function ResultImportPage() {
         </div> : <div className="result-draft-actions"><button className="primary-action" disabled={busy !== '' || item.status !== 'validated'} onClick={() => void publish(item.id)} type="button">{copy('import.publishNow')}</button><button className="text-action" disabled={busy !== ''} onClick={() => { setDiscardId(item.id); setReleaseMessage(''); }} type="button">{recovery.discard}</button></div>}
       </article>)}</div> : <EmptyState copy={copy('import.noDraftsCopy')} title={copy('import.noDraftsTitle')} />}
     </section>
+    <DraftChampionshipPreview key={leagueSlug} client={client} drafts={config.result_drafts} language={language}/>
   </main>;
 }

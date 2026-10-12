@@ -1,0 +1,22 @@
+.draft-championship { min-width: 0; }
+.draft-championship-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.draft-championship-heading h2 { margin: 0; }
+.draft-championship-heading button { min-height: 44px; white-space: normal; }
+.draft-championship-note { max-width: 72ch; line-height: 1.5; }
+.draft-championship-select { display: grid; gap: .5rem; max-width: 32rem; margin-block: 1rem; }
+.draft-championship-select select { min-width: 0; width: 100%; min-height: 44px; }
+.draft-championship-context { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; margin-block: 1.5rem .75rem; overflow-wrap: anywhere; }
+.draft-championship-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.draft-championship-table th, .draft-championship-table td { padding: .75rem .5rem; border-bottom: 1px solid var(--line); text-align: end; vertical-align: middle; overflow-wrap: anywhere; }
+.draft-championship-table th:first-child, .draft-championship-table td:first-child { width: 3rem; text-align: start; }
+.draft-championship-table th:nth-child(2) { width: 48%; text-align: start; }
+.draft-championship-table tbody th { font-weight: 600; }
+.draft-championship-table tbody th small { display: block; font-weight: 400; color: color-mix(in srgb, var(--brand-text) 75%, transparent); margin-top: .25rem; }
+.draft-championship-table thead { font-size: .875rem; }
+.draft-championship :is(button, select):focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+@media (max-width: 640px) {
+  .draft-championship-table th, .draft-championship-table td { padding-inline: .25rem; }
+  .draft-championship-table th:first-child, .draft-championship-table td:first-child { width: 2rem; }
+  .draft-championship-table th:nth-child(2) { width: 40%; }
+  .draft-championship-table thead { font-size: .75rem; }
+}
