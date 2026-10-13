@@ -2790,6 +2790,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: string
       }
+      mark_all_notifications_read: { Args: never; Returns: string }
       matches_requested_league: {
         Args: { p_league_id: string }
         Returns: boolean

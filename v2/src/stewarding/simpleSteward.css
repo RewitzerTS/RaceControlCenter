@@ -1,4 +1,13 @@
 .simple-steward .steward-heading p { max-width: 70ch; }
+.case-queue-filter { display: grid; gap: .5rem; padding: 1rem; border-bottom: 1px solid var(--line); min-width: 0; }
+.case-queue-filter label { font-weight: 700; font-size: .875rem; }
+.case-queue-filter select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: .65rem; border: 1px solid var(--control-border, var(--line-strong)); border-radius: 10px; background: var(--control-background, var(--brand-surface)); color: var(--brand-text); font: inherit; }
+.case-queue-filter select:focus-visible { outline: 2px solid var(--brand-accent); outline-offset: 3px; }
+.case-queue-filter select:disabled { opacity: .6; }
+.case-queue-feedback { padding: 1rem; }
+.case-queue-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .75rem 1rem; border-top: 1px solid var(--line); }
+.case-queue-pages button { min-height: 44px; }
+.case-queue-pages span { font-size: .875rem; font-variant-numeric: tabular-nums; }
 .simple-steward .simple-steward-form { margin-block: 1.5rem; grid-template-columns: repeat(2, minmax(0,1fr)); }
 .simple-steward-form label { font-size: .875rem; }
 .simple-steward-form input:not([type="checkbox"]), .simple-steward-form select, .simple-steward-form textarea { font-size: 1rem; }

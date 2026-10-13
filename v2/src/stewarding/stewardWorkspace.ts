@@ -30,6 +30,7 @@ export interface StewardWorkspaceSnapshot {
   cases: StewardCase[];
   races: StewardRace[];
   drivers: StewardDriver[];
+  hasMoreCases?: boolean;
 }
 
 export interface StewardCaseDetail {
@@ -78,35 +79,34 @@ function throwIfError(error: { message: string } | null) {
   if (error) throw new Error(error.message);
 }
 
-export async function loadStewardWorkspace(client: LeagueSupabaseClient): Promise<StewardWorkspaceSnapshot> {
+export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId = '', page = 0): Promise<StewardWorkspaceSnapshot> {
+  if (!Number.isSafeInteger(page) || page < 0) throw new Error('Invalid case page');
   const activeSeason = await client.from('seasons').select('id').eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
   throwIfError(activeSeason.error);
+  let caseQuery = client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version');
+  if (raceId) caseQuery = caseQuery.eq('race_id', raceId);
   const [cases, drivers] = await Promise.all([
-    client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version').order('created_at', { ascending: false }).limit(25),
+    caseQuery.order('created_at', { ascending: false }).order('id').range(page * 25, page * 25 + 25),
     client.from('drivers').select('id,display_name,number').eq('is_active', true).order('display_name').limit(500),
   ]);
   throwIfError(cases.error); throwIfError(drivers.error);
   const columns = 'id,season_id,grand_prix_name,round_number,race_date,race_time,race_start_at,status,current_result_version_id' as const;
-  const activeRaces: Omit<StewardRace, 'is_active_season'>[] = [];
-  if (activeSeason.data) {
+  const allRaces: Omit<StewardRace, 'is_active_season'>[] = [];
+  // Filter choices must include archive races whose cases are beyond page one.
+  {
     for (let page = 0; ; page++) {
       if (page === 20) throw new Error('Steward race pagination limit reached');
-      const races = await client.from('races').select(columns).eq('season_id', activeSeason.data.id)
-        .order('round_number').order('id').range(page * 500, page * 500 + 499);
+      const races = await client.from('races').select(columns)
+        .order('race_date', { ascending: false, nullsFirst: false }).order('round_number').order('id').range(page * 500, page * 500 + 499);
       throwIfError(races.error);
-      activeRaces.push(...races.data ?? []);
+      allRaces.push(...races.data ?? []);
       if ((races.data?.length ?? 0) < 500) break;
     }
   }
-  // Retain race labels for old cases without letting archive rounds displace
-  // active-season races in a globally limited, descending query.
-  const missingIds = [...new Set((cases.data ?? []).map((item) => item.race_id))]
-    .filter((id) => !activeRaces.some((race) => race.id === id));
-  const caseRaces = missingIds.length ? await client.from('races').select(columns).in('id', missingIds) : { data: [], error: null };
-  throwIfError(caseRaces.error);
   return {
-    cases: cases.data ?? [],
-    races: [...activeRaces, ...caseRaces.data ?? []].map((race) => ({ ...race, is_active_season: race.season_id === activeSeason.data?.id })),
+    cases: (cases.data ?? []).slice(0, 25),
+    hasMoreCases: (cases.data?.length ?? 0) > 25,
+    races: allRaces.map((race) => ({ ...race, is_active_season: race.season_id === activeSeason.data?.id })),
     drivers: drivers.data ?? [],
   };
 }

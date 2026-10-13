@@ -1,5 +1,7 @@
 export const simpleStewardMessages = {
   de: {
+    filterRace: 'Nach Rennen filtern', allRaces: 'Alle Rennen', noRaceCases: 'Für dieses Rennen sind keine Fälle vorhanden. Wähle ein anderes Rennen oder „Alle Rennen“.',
+    pages: 'Fallseiten', previous: 'Zurück', next: 'Weiter', page: 'Seite',
     retry: 'Erneut laden',
     confirmRequired: 'Bitte bestätige vor der Veröffentlichung die geprüfte Entscheidung.',
     intro: 'Besprecht den Vorfall außerhalb von RaceVora. Tragt hier die Entscheidung und ihre Begründung ein.',
@@ -27,6 +29,8 @@ export const simpleStewardMessages = {
     actionError: 'Die Entscheidung konnte nicht gespeichert werden. Bitte Angaben prüfen und erneut versuchen.',
   },
   en: {
+    filterRace: 'Filter by race', allRaces: 'All races', noRaceCases: 'There are no cases for this race. Choose another race or All races.',
+    pages: 'Case pages', previous: 'Previous', next: 'Next', page: 'Page',
     retry: 'Retry',
     confirmRequired: 'Please confirm that you have checked the decision before publishing.',
     intro: 'Discuss the incident outside RaceVora. Record the decision and reasoning here.',
@@ -53,6 +57,8 @@ export const simpleStewardMessages = {
     negativeTime: 'The time credit would produce a negative race time.', actionError: 'The decision could not be saved. Check the details and try again.',
   },
   es: {
+    filterRace: 'Filtrar por carrera', allRaces: 'Todas las carreras', noRaceCases: 'No hay casos para esta carrera. Elige otra carrera o Todas las carreras.',
+    pages: 'Páginas de casos', previous: 'Anterior', next: 'Siguiente', page: 'Página',
     retry: 'Reintentar',
     confirmRequired: 'Confirma que has revisado la decisión antes de publicarla.',
     intro: 'Debatid el incidente fuera de RaceVora. Registrad aquí la decisión y su justificación.',
@@ -79,6 +85,8 @@ export const simpleStewardMessages = {
     negativeTime: 'La bonificación daría un tiempo negativo.', actionError: 'No se pudo guardar la decisión. Revisa los datos e inténtalo de nuevo.',
   },
   fr: {
+    filterRace: 'Filtrer par course', allRaces: 'Toutes les courses', noRaceCases: 'Aucun dossier pour cette course. Choisissez une autre course ou Toutes les courses.',
+    pages: 'Pages des dossiers', previous: 'Précédent', next: 'Suivant', page: 'Page',
     retry: 'Réessayer',
     confirmRequired: 'Confirmez avoir vérifié la décision avant de la publier.',
     intro: 'Discutez de l’incident en dehors de RaceVora. Enregistrez ici la décision et sa justification.',

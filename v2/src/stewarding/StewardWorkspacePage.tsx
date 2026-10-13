@@ -19,6 +19,11 @@ export function PenaltyLabel({ penalty }: { penalty: StewardPenalty }) {
 }
 
 export function StewardWorkspacePage() {
+  const { leagueSlug } = useLeague();
+  return <StewardWorkspace key={leagueSlug} />;
+}
+
+function StewardWorkspace() {
   const { t, language, formatDate } = useI18n(), c = simpleStewardMessages[language];
   const { client } = useLeague(), { role, loading: roleLoading } = useRole();
   const flags = useFeatureFlags();
@@ -28,15 +33,28 @@ export function StewardWorkspacePage() {
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null), [showCreate, setShowCreate] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [raceFilter, setRaceFilter] = useState(''), [page, setPage] = useState(0);
+  const [loadError, setLoadError] = useState(false);
+  const requestSequence = useRef(0);
   const deleting = useRef(false);
   const selected = snapshot.cases.find((item) => item.id === selectedId);
   const refresh = useCallback(async () => {
-    setLoading(true);
-    try { const value = await loadStewardWorkspace(client); setSnapshot(value); setSelectedId((id) => value.cases.some((item) => item.id === id) ? id : value.cases[0]?.id ?? null); }
-    catch { setError(t('steward.loadError')); }
-    finally { setLoading(false); }
-  }, [client, t]);
-  useEffect(() => { if (flags.stewardWorkspace) void refresh(); }, [flags.stewardWorkspace, refresh]);
+    const request = ++requestSequence.current;
+    setLoading(true); setLoadError(false);
+    try {
+      const value = await loadStewardWorkspace(client, raceFilter, page);
+      if (request !== requestSequence.current) return;
+      if (page > 0 && value.cases.length === 0) { setPage(page - 1); return; }
+      setSnapshot(value); setSelectedId((id) => value.cases.some((item) => item.id === id) ? id : value.cases[0]?.id ?? null);
+    }
+    catch { if (request === requestSequence.current) { setLoadError(true); setSelectedId(null); setSnapshot((value) => ({ ...value, cases: [], hasMoreCases: false })); } }
+    finally { if (request === requestSequence.current) setLoading(false); }
+  }, [client, raceFilter, page]);
+  useEffect(() => { if (flags.stewardWorkspace) void refresh(); return () => { requestSequence.current++; }; }, [flags.stewardWorkspace, refresh]);
+  function changeQueue(raceId: string, nextPage: number) {
+    requestSequence.current++; setLoading(true); setSelectedId(null); setDetail(null); setDeleteId(null);
+    setRaceFilter(raceId); setPage(nextPage);
+  }
   useEffect(() => {
     let active = true; setDetail(null);
     if (selectedId) void loadStewardCaseDetail(client, selectedId).then((value) => { if (active) setDetail(value); })
@@ -86,15 +104,26 @@ export function StewardWorkspacePage() {
     {error && <p className="workspace-message workspace-message--error" role="alert">{error}</p>}
     {notice && <p className="workspace-message" role="status">{notice}</p>}
     {permitted && showCreate && <DecisionForm key="new" snapshot={snapshot} busy={busy} onSubmit={submit} />}
-    <div className={selected && !showCreate ? 'case-layout' : 'case-layout case-layout--queue-only'}>
+    <div className={selected && !showCreate && !loading ? 'case-layout' : 'case-layout case-layout--queue-only'}>
       <section className="case-queue" aria-label={t('steward.queue')}>
         <div className="case-section-title"><span>{t('steward.queue')}</span><small>{t('steward.pagination')}</small></div>
-        {loading ? <p role="status">{t('pending')}</p> : snapshot.cases.length === 0 ? <EmptyState title={t('steward.empty')} copy={c.intro} /> : snapshot.cases.map((item) => <button key={item.id} type="button" className={item.id === selectedId ? 'case-row case-row--active' : 'case-row'} disabled={busy} onClick={() => { setSelectedId(item.id); setShowCreate(false); }}>
+        <div className="case-queue-filter"><label htmlFor="steward-race-filter">{c.filterRace}</label>
+          <select id="steward-race-filter" value={raceFilter} disabled={busy} onChange={(event) => changeQueue(event.target.value, 0)}>
+            <option value="">{c.allRaces}</option>
+            {snapshot.races.map((race) => <option key={race.id} value={race.id}>{race.round_number}. {race.grand_prix_name}{race.race_date ? ` · ${formatDate(race.race_date)}` : ''}</option>)}
+          </select>
+        </div>
+        {loading ? <p className="case-queue-feedback" role="status">{t('pending')}</p> : loadError ? <div className="case-queue-feedback"><p role="alert">{t('steward.loadError')}</p><button className="text-action" type="button" onClick={() => void refresh()}>{c.retry}</button></div> : snapshot.cases.length === 0 ? <EmptyState title={t('steward.empty')} copy={raceFilter ? c.noRaceCases : c.intro} /> : snapshot.cases.map((item) => <button key={item.id} type="button" className={item.id === selectedId ? 'case-row case-row--active' : 'case-row'} disabled={busy} onClick={() => { setSelectedId(item.id); setShowCreate(false); }}>
           <span><strong>{item.case_number}</strong><span className={`case-status case-status--${item.status}`}>{t(`steward.status.${item.status}` as Parameters<typeof t>[0])}</span></span>
           <b>{item.title}</b><small>{snapshot.races.find((r) => r.id === item.race_id)?.grand_prix_name} · {formatDate(item.created_at)}</small>
         </button>)}
+        {!loadError && (page > 0 || snapshot.hasMoreCases) && <nav className="case-queue-pages" aria-label={c.pages}>
+          <button className="text-action" type="button" disabled={busy || loading || page === 0} onClick={() => changeQueue(raceFilter, page - 1)}>{c.previous}</button>
+          <span>{c.page} {page + 1}</span>
+          <button className="text-action" type="button" disabled={busy || loading || !snapshot.hasMoreCases} onClick={() => changeQueue(raceFilter, page + 1)}>{c.next}</button>
+        </nav>}
       </section>
-      {selected && !showCreate && <section className="case-detail">
+      {selected && !showCreate && !loading && <section className="case-detail">
         <h2>{selected.title}</h2>
         <dl className="case-facts">{[[t('steward.race'), snapshot.races.find((r) => r.id === selected.race_id)?.grand_prix_name],
           [c.reporter, snapshot.drivers.find((d) => d.id === selected.reported_driver_id)?.display_name],

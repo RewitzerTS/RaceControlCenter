@@ -89,16 +89,16 @@ describe('steward workspace commands', () => {
       const table = url.pathname.split('/').pop();
       const data = table === 'seasons' ? { id: 'season-2' }
         : table === 'steward_cases' ? [{ id: 'old-case', race_id: 'old-race' }]
-        : table === 'races' ? url.searchParams.has('season_id') ? [race] : [{ ...race, id: 'old-race', season_id: 'season-1' }]
+        : table === 'races' ? [race, { ...race, id: 'old-race', season_id: 'season-1' }]
         : [];
       return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } } });
     const snapshot = await loadStewardWorkspace(client);
     const queries = urls.filter((url) => url.pathname.endsWith('/races'));
-    expect(queries[0].searchParams.get('season_id')).toBe('eq.season-2');
+    expect(queries[0].searchParams.has('season_id')).toBe(false);
     expect(queries[0].searchParams.has('current_result_version_id')).toBe(false);
     expect(queries[0].searchParams.get('offset')).toBe('0');
-    expect(queries[1].searchParams.get('id')).toBe('in.(old-race)');
+    expect(queries).toHaveLength(1);
     expect(snapshot.races.map((item) => [item.id, item.is_active_season])).toEqual([['race-1', true], ['old-race', false]]);
   });
 
@@ -133,13 +133,31 @@ describe('steward workspace commands', () => {
     await expect(loadStewardWorkspace(client)).rejects.toThrow('Temporary read failure');
   });
 
-  it('does not offer archive races when there is no active season', async () => {
+  it('keeps race filters queryable even when there is no active season', async () => {
     const urls: URL[] = [];
     const client = createClient<Database>('https://steward-empty.supabase.co', 'test', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: async (input) => {
       const url = new URL(String(input)); urls.push(url);
       return new Response(JSON.stringify(url.pathname.endsWith('/seasons') ? null : []), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } } });
     expect((await loadStewardWorkspace(client)).races).toEqual([]);
-    expect(urls.some((url) => url.pathname.endsWith('/races'))).toBe(false);
+    expect(urls.some((url) => url.pathname.endsWith('/races'))).toBe(true);
+  });
+
+  it('filters cases before pagination and keeps a lookahead row out of the displayed page', async () => {
+    const urls: URL[] = [];
+    const client = createClient<Database>('https://steward-filter.supabase.co', 'test', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: async (input) => {
+      const url = new URL(String(input)); urls.push(url);
+      const data = url.pathname.endsWith('/seasons') ? null : url.pathname.endsWith('/steward_cases') ? Array.from({ length: 26 }, (_, i) => ({ id: `case-${i}`, race_id: 'old-race' })) : [];
+      return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
+    } } });
+    const result = await loadStewardWorkspace(client, 'old-race', 2);
+    const query = urls.find((url) => url.pathname.endsWith('/steward_cases'))!;
+    expect(query.searchParams.get('race_id')).toBe('eq.old-race');
+    expect(query.searchParams.get('offset')).toBe('50');
+    expect(query.searchParams.get('limit')).toBe('26');
+    expect(query.searchParams.get('order')).toBe('created_at.desc,id.asc');
+    expect(result.cases).toHaveLength(25);
+    expect(result.hasMoreCases).toBe(true);
+    await expect(loadStewardWorkspace(client, '', -1)).rejects.toThrow('Invalid case page');
   });
 });

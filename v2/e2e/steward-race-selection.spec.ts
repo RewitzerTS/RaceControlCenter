@@ -28,7 +28,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
     if (table === 'seasons') return route.fulfill({ json: (request.headers().accept || '').includes('vnd.pgrst.object') ? f.season : [f.season] });
     if (table === 'steward_cases') return route.fulfill({ json: [] });
     if (table === 'races') {
-      const rows = url.searchParams.has('current_result_version_id') ? [] : url.searchParams.get('season_id') === `eq.${f.season.id}` ? races : [];
+      const rows = url.searchParams.has('current_result_version_id') ? [] : races;
       return route.fulfill({ json: rows });
     }
     if (table === 'create_steward_case') {

@@ -231,6 +231,13 @@ export async function markInboxItemRead(client: LeagueSupabaseClient, id: string
   if (response.error) throw response.error;
 }
 
+export async function markAllInboxRead(client: LeagueSupabaseClient): Promise<string> {
+  const response = await client.rpc('mark_all_notifications_read');
+  if (response.error) throw response.error;
+  if (typeof response.data !== 'string' || !Number.isFinite(Date.parse(response.data))) throw new Error('Invalid read confirmation');
+  return response.data;
+}
+
 export async function loadMemberAdminWorkspace(client: LeagueSupabaseClient): Promise<MemberAdminWorkspace> {
   const response = await client.rpc('get_league_member_admin_workspace');
   if (response.error) throw response.error;

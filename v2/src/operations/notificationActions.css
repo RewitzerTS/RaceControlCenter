@@ -1,0 +1,2 @@
+.notification-page .operations-header { flex-wrap: wrap; gap: 1rem; }
+.notification-page .notification-mark-all { max-width: 100%; min-height: 44px; white-space: normal; overflow-wrap: anywhere; }
