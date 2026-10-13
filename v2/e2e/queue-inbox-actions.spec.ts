@@ -23,7 +23,7 @@ async function signedIn(context: BrowserContext) {
   });
 }
 
-test('race queue filters the server, pages older cases, clears stale details and retries', async ({ page, context }, info) => {
+test('race queue excludes previous seasons, filters before paging, clears stale details and retries', async ({ page, context }, info) => {
   await signedIn(context);
   const races = [f.race, { ...f.race, id: 'italy', round_number: 2, grand_prix_name: 'Italien GP' }, { ...f.race, id: 'archive', season_id: 'old-season', grand_prix_name: 'Großbritannien GP · Historisches Rennen', race_date: '2025-07-01' }, { ...f.race, id: 'empty', round_number: 4, grand_prix_name: 'Leeres Rennen' }];
   const cases = Array.from({ length: 28 }, (_, i) => ({ id: `case-${i}`, race_id: i === 27 ? 'archive' : i === 26 ? f.race.id : 'italy', case_number: `RV-${i}`, title: `Fall ${i}: Berührung nach dem Start`, description: 'Synthetische Testdaten, keine echte Entscheidung.', status: 'closed', created_at: '2026-10-13T12:00:00Z', reported_driver_id: f.drivers[0].id, accused_driver_id: f.drivers[1].id, current_decision_version: null }));
@@ -31,11 +31,13 @@ test('race queue filters the server, pages older cases, clears stale details and
   let release: (() => void) | undefined;
   await context.route('https://*.supabase.co/rest/v1/**', async route => {
     const url = new URL(route.request().url()), name = url.pathname.split('/').pop();
-    if (name === 'races') return route.fulfill({ json: races });
+    if (name === 'races') return route.fulfill({ json: races.filter(race => !url.searchParams.has('season_id') || `eq.${race.season_id}` === url.searchParams.get('season_id')) });
     if (name === 'steward_cases') {
       const filter = url.searchParams.get('race_id')?.slice(3);
       if (fail) return route.fulfill({ status: 503, json: { message: 'Synthetic outage' } });
-      const rows = filter ? cases.filter(c => c.race_id === filter) : cases;
+      expect(url.searchParams.get('select')).toContain('races!inner(season_id)');
+      expect(url.searchParams.get('races.season_id')).toBe(`eq.${f.season.id}`);
+      const rows = cases.filter(c => (!filter || c.race_id === filter) && races.some(race => race.id === c.race_id && `eq.${race.season_id}` === url.searchParams.get('races.season_id')));
       if (delay && filter === f.race.id) { delay = false; await new Promise<void>(resolve => { release = resolve; }); }
       const start = Number(url.searchParams.get('offset') || 0), limit = Number(url.searchParams.get('limit') || 25);
       return route.fulfill({ json: rows.slice(start, start + limit) });
@@ -45,9 +47,13 @@ test('race queue filters the server, pages older cases, clears stale details and
   await page.goto('/stewarding?league=rcc');
   const filter = page.getByLabel('Nach Rennen filtern');
   await expect(page.locator('.case-row')).toHaveCount(25);
-  await filter.selectOption('archive');
+  await expect(filter.locator('option[value="archive"]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Weiter', exact: true }).click();
+  await expect(page.locator('.case-row')).toHaveCount(2);
+  await expect(page.locator('.case-row').filter({ hasText: 'Fall 27:' })).toHaveCount(0);
+  await filter.selectOption(f.race.id);
   await expect(page.locator('.case-row')).toHaveCount(1);
-  await expect(page.locator('.case-detail h2')).toContainText('Fall 27');
+  await expect(page.locator('.case-detail h2')).toContainText('Fall 26');
   await filter.selectOption('italy');
   await page.getByRole('button', { name: 'Weiter', exact: true }).click();
   await expect(page.locator('.case-row')).toHaveCount(1);
@@ -66,15 +72,15 @@ test('race queue filters the server, pages older cases, clears stale details and
   delay = true;
   await filter.selectOption(f.race.id);
   await expect.poll(() => Boolean(release)).toBe(true);
-  await filter.selectOption('archive');
-  await expect(page.locator('.case-detail h2')).toContainText('Fall 27');
+  await filter.selectOption('italy');
+  await expect(page.locator('.case-detail h2')).toContainText('Fall 0:');
   release!();
-  await expect(filter).toHaveValue('archive');
-  await expect(page.locator('.case-detail h2')).toContainText('Fall 27');
+  await expect(filter).toHaveValue('italy');
+  await expect(page.locator('.case-detail h2')).toContainText('Fall 0:');
   await filter.selectOption('');
   await expect(page.locator('.case-row')).toHaveCount(25);
-  await filter.selectOption('archive');
-  await expect(page.locator('.case-detail h2')).toContainText('Fall 27');
+  await filter.selectOption(f.race.id);
+  await expect(page.locator('.case-detail h2')).toContainText('Fall 26');
   await page.evaluate(() => { (document.activeElement as HTMLElement)?.blur(); window.scrollTo(0, 0); });
   await page.screenshot({ path: info.outputPath('steward-filter.png'), fullPage: true });
   if (info.project.name === 'desktop') {

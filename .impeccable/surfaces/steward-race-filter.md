@@ -8,7 +8,7 @@ THESIS: Find the cases belonging to a race without scanning the entire queue. Fi
 
 OWN-WORLD: Inherit Production theme tokens, native selects, typography and existing case list. No new imagery or visual identity.
 
-STORY: Default to all races. Select a round and date, inspect its cases, page through older matches or return to all races. Failed loads offer retry without displaying a stale case under a new filter.
+STORY: Default to all races in the active season. Select a round and date, inspect its cases, page through matches or return to all races of that season. Previous-season races and cases are excluded; no active season shows an empty queue. Failed loads offer retry without displaying a stale case under a new filter.
 
 FIRST VIEWPORT: A labelled full-width race selector sits immediately below the queue title, above its records. Compact previous/next controls appear only when pagination is needed. Desktop split pane and mobile stacked queue remain intact.
 

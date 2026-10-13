@@ -83,7 +83,11 @@ export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId 
   if (!Number.isSafeInteger(page) || page < 0) throw new Error('Invalid case page');
   const activeSeason = await client.from('seasons').select('id').eq('is_active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
   throwIfError(activeSeason.error);
-  let caseQuery = client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version');
+  // No active season means no current queue; never fall back to archived cases.
+  if (!activeSeason.data) return { cases: [], races: [], drivers: [], hasMoreCases: false };
+  const seasonId = activeSeason.data.id;
+  let caseQuery = client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version,races!inner(season_id)')
+    .eq('races.season_id', seasonId);
   if (raceId) caseQuery = caseQuery.eq('race_id', raceId);
   const [cases, drivers] = await Promise.all([
     caseQuery.order('created_at', { ascending: false }).order('id').range(page * 25, page * 25 + 25),
@@ -92,11 +96,11 @@ export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId 
   throwIfError(cases.error); throwIfError(drivers.error);
   const columns = 'id,season_id,grand_prix_name,round_number,race_date,race_time,race_start_at,status,current_result_version_id' as const;
   const allRaces: Omit<StewardRace, 'is_active_season'>[] = [];
-  // Filter choices must include archive races whose cases are beyond page one.
+  // Both the queue (before pagination) and filter choices share the active season.
   {
     for (let page = 0; ; page++) {
       if (page === 20) throw new Error('Steward race pagination limit reached');
-      const races = await client.from('races').select(columns)
+      const races = await client.from('races').select(columns).eq('season_id', seasonId)
         .order('race_date', { ascending: false, nullsFirst: false }).order('round_number').order('id').range(page * 500, page * 500 + 499);
       throwIfError(races.error);
       allRaces.push(...races.data ?? []);

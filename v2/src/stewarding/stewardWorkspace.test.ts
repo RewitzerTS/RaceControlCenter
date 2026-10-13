@@ -82,24 +82,32 @@ describe('steward workspace commands', () => {
     expect(activeStewardRaces({ cases: [], drivers: [], races }, new Date('2026-10-06T12:00').getTime()).map((item) => item.id)).toEqual(['completed', 'published', 'legacy']);
   });
 
-  it('loads the active season without a publication filter and retains old case race labels', async () => {
+  it('restricts races and cases to the active season before pagination, without requiring publication', async () => {
     const urls: URL[] = [];
     const client = createClient<Database>('https://steward-test.supabase.co', 'test', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: async (input) => {
       const url = new URL(String(input)); urls.push(url);
       const table = url.pathname.split('/').pop();
       const data = table === 'seasons' ? { id: 'season-2' }
-        : table === 'steward_cases' ? [{ id: 'old-case', race_id: 'old-race' }]
-        : table === 'races' ? [race, { ...race, id: 'old-race', season_id: 'season-1' }]
+        : table === 'steward_cases' ? url.searchParams.get('race_id') === 'eq.old-race' ? [] : [{ id: 'active-case', race_id: race.id }]
+        : table === 'races' ? [race]
         : [];
       return new Response(JSON.stringify(data), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } } });
     const snapshot = await loadStewardWorkspace(client);
     const queries = urls.filter((url) => url.pathname.endsWith('/races'));
-    expect(queries[0].searchParams.has('season_id')).toBe(false);
+    expect(queries[0].searchParams.get('season_id')).toBe('eq.season-2');
     expect(queries[0].searchParams.has('current_result_version_id')).toBe(false);
     expect(queries[0].searchParams.get('offset')).toBe('0');
     expect(queries).toHaveLength(1);
-    expect(snapshot.races.map((item) => [item.id, item.is_active_season])).toEqual([['race-1', true], ['old-race', false]]);
+    expect(snapshot.races.map((item) => [item.id, item.is_active_season])).toEqual([['race-1', true]]);
+    const caseQuery = urls.find((url) => url.pathname.endsWith('/steward_cases'))!;
+    expect(caseQuery.searchParams.get('select')).toContain('races!inner(season_id)');
+    expect(caseQuery.searchParams.get('races.season_id')).toBe('eq.season-2');
+    expect(caseQuery.searchParams.get('limit')).toBe('26');
+    expect((await loadStewardWorkspace(client, 'old-race')).cases).toEqual([]);
+    const oldRaceQuery = urls.filter((url) => url.pathname.endsWith('/steward_cases')).at(-1)!;
+    expect(oldRaceQuery.searchParams.get('race_id')).toBe('eq.old-race');
+    expect(oldRaceQuery.searchParams.get('races.season_id')).toBe('eq.season-2');
   });
 
   it('sends structured penalties to the atomic finalization RPC', async () => {
@@ -133,26 +141,27 @@ describe('steward workspace commands', () => {
     await expect(loadStewardWorkspace(client)).rejects.toThrow('Temporary read failure');
   });
 
-  it('keeps race filters queryable even when there is no active season', async () => {
+  it('returns an empty queue without reading archived races or cases when no season is active', async () => {
     const urls: URL[] = [];
     const client = createClient<Database>('https://steward-empty.supabase.co', 'test', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: async (input) => {
       const url = new URL(String(input)); urls.push(url);
       return new Response(JSON.stringify(url.pathname.endsWith('/seasons') ? null : []), { status: 200, headers: { 'Content-Type': 'application/json' } });
     } } });
-    expect((await loadStewardWorkspace(client)).races).toEqual([]);
-    expect(urls.some((url) => url.pathname.endsWith('/races'))).toBe(true);
+    expect(await loadStewardWorkspace(client, 'old-race')).toEqual({ cases: [], races: [], drivers: [], hasMoreCases: false });
+    expect(urls.map(url => url.pathname.split('/').pop())).toEqual(['seasons']);
   });
 
   it('filters cases before pagination and keeps a lookahead row out of the displayed page', async () => {
     const urls: URL[] = [];
     const client = createClient<Database>('https://steward-filter.supabase.co', 'test', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: async (input) => {
       const url = new URL(String(input)); urls.push(url);
-      const data = url.pathname.endsWith('/seasons') ? null : url.pathname.endsWith('/steward_cases') ? Array.from({ length: 26 }, (_, i) => ({ id: `case-${i}`, race_id: 'old-race' })) : [];
+      const data = url.pathname.endsWith('/seasons') ? { id: 'season-2' } : url.pathname.endsWith('/steward_cases') ? Array.from({ length: 26 }, (_, i) => ({ id: `case-${i}`, race_id: race.id })) : [];
       return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
     } } });
-    const result = await loadStewardWorkspace(client, 'old-race', 2);
+    const result = await loadStewardWorkspace(client, race.id, 2);
     const query = urls.find((url) => url.pathname.endsWith('/steward_cases'))!;
-    expect(query.searchParams.get('race_id')).toBe('eq.old-race');
+    expect(query.searchParams.get('race_id')).toBe('eq.race-1');
+    expect(query.searchParams.get('races.season_id')).toBe('eq.season-2');
     expect(query.searchParams.get('offset')).toBe('50');
     expect(query.searchParams.get('limit')).toBe('26');
     expect(query.searchParams.get('order')).toBe('created_at.desc,id.asc');

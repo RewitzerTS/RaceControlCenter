@@ -4,7 +4,8 @@ Scope: Production UI extension, explicitly requested by the owner. No sporting d
 
 ## Steward queue
 
-- Default All races; native labelled race selector includes round and date and archive races.
+- Default All races within the active season; native labelled race selector includes round and date. Previous seasons are excluded from both options and cases, without deleting historical data.
+- Queue reads join `races!inner(season_id)` and filter the active season before pagination, independently of an optional race ID. Race options have the same season filter. No active season returns an empty workspace, never the archive.
 - The race ID is a server-side equality filter, applied before stable created_at/id ordering and 25-row pagination. A 26th lookahead row controls Next without displaying duplicate rows.
 - Existing tenant client and RLS remain authoritative. Race metadata is paginated rather than limited to races appearing in the first case page.
 - Filter changes reset the page and selected detail; request sequence guards prevent a slow prior response from overriding a later selection. League changes remount the workspace. Load errors expose retry, not stale cases.
@@ -21,7 +22,7 @@ Scope: Production UI extension, explicitly requested by the owner. No sporting d
 
 - Unit tests exercise filtered/paged query shape, lookahead, existing race eligibility and bulk RPC contract.
 - Transactional Staging SQL fixture rolls back two synthetic users and 64 notifications. It tests more than 50 unread messages, recipient isolation, old read timestamps, future notifications, repeat calls, anonymous privilege and missing authentication. Passed before Production rollout.
-- Browser fixtures cover pagination, archived races, empty matches, failure/retry, out-of-order responses, bulk-read retry, bell update and reload persistence on desktop/mobile. No real user notifications are marked during tests.
+- Browser fixtures cover pagination, exclusion of archived races and their cases, empty matches, failure/retry, out-of-order responses, bulk-read retry, bell update and reload persistence on desktop/mobile. No real user notifications are marked during tests.
 - Database advisor flags authenticated SECURITY DEFINER execution by design; explicit actor checks and rollback tests cover this boundary. [Advisor explanation](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable). Existing unrelated advisory: [leaked password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
 
 UI extends the incumbent Production system. No new rasters or global visual changes. Release receipt is reported separately after the mandatory full deployment gate and live build verification.
