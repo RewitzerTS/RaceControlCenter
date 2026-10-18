@@ -1,11 +1,32 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/database';
-import { activeStewardRaces, createStewardCase, deleteStewardCase, finalizeStewardDecision, loadStewardWorkspace, stewardDetailCounts, nextStewardRace, recordStewardDecision, type StewardRace } from './stewardWorkspace';
+import { activeStewardRaces, createStewardCase, deleteStewardCase, finalizeStewardDecision, loadStewardWorkspace, stewardDetailCounts, nextStewardRace, recordStewardDecision, saveStewardGroupCase, stewardParticipantIds, type StewardRace } from './stewardWorkspace';
 
 const race: StewardRace = { id: 'race-1', season_id: 'season-2', grand_prix_name: 'Japan GP', round_number: 1, race_date: '2026-10-05', race_time: '20:00', race_start_at: '2026-10-05T18:00:00Z', status: 'upcoming', current_result_version_id: null, is_active_season: true };
 
 describe('steward workspace commands', () => {
+  it('reads grouped participants and falls back to untouched historical cases', () => {
+    const item = { reported_driver_id: 'legacy-reporter', accused_driver_id: 'legacy-accused' };
+    expect(stewardParticipantIds(item, 'reporter')).toEqual(['legacy-reporter']);
+    expect(stewardParticipantIds({ ...item, reported_driver_id: null }, 'reporter')).toEqual([]);
+    expect(stewardParticipantIds({ ...item, steward_case_participants: [
+      { driver_id: 'a', role: 'reporter' }, { driver_id: 'b', role: 'reporter' }, { driver_id: 'a', role: 'accused' },
+    ] }, 'reporter')).toEqual(['a', 'b']);
+  });
+  it('saves all participants and exactly one outcome per accused in one guarded request', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: { id: 'case' }, error: null });
+    const input = { raceId: 'race', reporterIds: ['a', 'b'], accusedIds: ['b', 'c'], title: 'Incident', description: 'A multi-driver incident', caseId: null,
+      decisions: [{ driver_id: 'b', penalty_type: 'time_credit', amount: 5, target_race_id: null, reasoning: 'Credit reviewed externally.' },
+        { driver_id: 'c', penalty_type: 'no_action', amount: null, target_race_id: null, reasoning: 'No further action required.' }] };
+    await saveStewardGroupCase({ rpc } as never, input, 'stable-group-key', false);
+    expect(rpc).toHaveBeenCalledExactlyOnceWith('save_steward_group_case', { p_race_id: 'race', p_reporter_ids: ['a', 'b'], p_accused_ids: ['b', 'c'],
+      p_title: 'Incident', p_description: 'A multi-driver incident', p_case_id: null, p_decisions: input.decisions, p_draft: false, p_idempotency_key: 'stable-group-key' });
+    await saveStewardGroupCase({ rpc } as never, input, 'draft-group-key', true);
+    expect(rpc).toHaveBeenLastCalledWith('save_steward_group_case', expect.objectContaining({ p_draft: true, p_decisions: [], p_reporter_ids: ['a', 'b'] }));
+    rpc.mockResolvedValue({ data: null, error: { message: 'Rejected group' } });
+    await expect(saveStewardGroupCase({ rpc } as never, input, 'retry', false)).rejects.toThrow('Rejected group');
+  });
   it('deletes through a guarded RPC with the displayed case and result versions', async () => {
     const rpc = vi.fn().mockResolvedValue({data:{id:'case',deleted:true},error:null});
     await deleteStewardCase({rpc} as never,'case','Incorrect time credit',1,'result');

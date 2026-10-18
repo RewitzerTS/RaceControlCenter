@@ -3,6 +3,7 @@ import type { LeagueSupabaseClient } from '../lib/supabase';
 import { loadResultRevisions, type ResultRevision } from '../results/resultRevisions';
 
 export type StewardCase = {
+  steward_case_participants?: { driver_id: string; role: string }[];
   id: string;
   race_id: string;
   case_number: string;
@@ -22,8 +23,9 @@ export type StewardRace = { id: string; season_id: string; grand_prix_name: stri
 export type StewardDriver = { id: string; display_name: string; number: number | null };
 export type StewardEvidence = { id: string; evidence_kind: string; description: string; uri: string | null; is_public: boolean; submitted_at: string };
 export type StewardVote = { id: string; vote_version: number; outcome: string; reasoning: string; conflict_disclosed: boolean; cast_at: string; steward_user_id: string };
-export type StewardDecision = { id: string; version_number: number; outcome: string; reasoning: string; rule_code: string; rule_version: string; finalized_at: string; result_version_id: string | null; result_revision: ResultRevision | null };
-export type StewardPenalty = { id: string; decision_version_id: string; penalty_type: string; time_delta_ms: number | null; points_delta: number | null; reason: string; grid_positions?: number | null; target_race_id?: string | null; applied_result_version_id?: string | null };
+export type DriverStewardDecision = { driver_id: string; penalty_type: string; amount: number | null; target_race_id: string | null; reasoning: string };
+export type StewardDecision = { id: string; version_number: number; outcome: string; reasoning: string; rule_code: string; rule_version: string; finalized_at: string; result_version_id: string | null; result_revision: ResultRevision | null; steward_driver_decisions?: DriverStewardDecision[] };
+export type StewardPenalty = { id: string; decision_version_id: string; driver_id?: string; penalty_type: string; time_delta_ms: number | null; points_delta: number | null; reason: string; grid_positions?: number | null; target_race_id?: string | null; applied_result_version_id?: string | null };
 export type StewardAppeal = { id: string; reason: string; status: string; submitted_at: string };
 
 export interface StewardWorkspaceSnapshot {
@@ -86,7 +88,7 @@ export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId 
   // No active season means no current queue; never fall back to archived cases.
   if (!activeSeason.data) return { cases: [], races: [], drivers: [], hasMoreCases: false };
   const seasonId = activeSeason.data.id;
-  let caseQuery = client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version,races!inner(season_id)')
+  let caseQuery = client.from('steward_cases').select('id,race_id,case_number,status,title,description,accused_driver_id,reported_driver_id,rule_code,rule_version,created_at,closed_at,current_decision_version,steward_case_participants(driver_id,role),races!inner(season_id)')
     .eq('races.season_id', seasonId);
   if (raceId) caseQuery = caseQuery.eq('race_id', raceId);
   const [cases, drivers] = await Promise.all([
@@ -119,13 +121,13 @@ export async function loadStewardCaseDetail(client: LeagueSupabaseClient, caseId
   const [evidence, votes, decisions, appeals] = await Promise.all([
     client.from('steward_evidence').select('id,evidence_kind,description,uri,is_public,submitted_at').eq('case_id', caseId).order('submitted_at'),
     client.from('steward_votes').select('id,vote_version,outcome,reasoning,conflict_disclosed,cast_at,steward_user_id').eq('case_id', caseId).order('cast_at', { ascending: false }),
-    client.from('steward_decision_versions').select('id,version_number,outcome,reasoning,rule_code,rule_version,finalized_at,result_version_id').eq('case_id', caseId).order('version_number', { ascending: false }),
+    client.from('steward_decision_versions').select('id,version_number,outcome,reasoning,rule_code,rule_version,finalized_at,result_version_id,steward_driver_decisions(driver_id,penalty_type,amount,target_race_id,reasoning)').eq('case_id', caseId).order('version_number', { ascending: false }),
     client.from('steward_appeals').select('id,reason,status,submitted_at').eq('case_id', caseId).order('submitted_at', { ascending: false }),
   ]);
   throwIfError(evidence.error); throwIfError(votes.error); throwIfError(decisions.error); throwIfError(appeals.error);
   const decisionIds = (decisions.data ?? []).map((decision) => decision.id);
   const penalties = decisionIds.length
-    ? await client.from('steward_penalties').select('id,decision_version_id,penalty_type,time_delta_ms,points_delta,reason,grid_positions,target_race_id').in('decision_version_id', decisionIds)
+    ? await client.from('steward_penalties').select('id,decision_version_id,driver_id,penalty_type,time_delta_ms,points_delta,reason,grid_positions,target_race_id').in('decision_version_id', decisionIds)
     : { data: [], error: null };
   throwIfError(penalties.error);
   const revisions = await loadResultRevisions(client, (decisions.data ?? []).flatMap((decision) => decision.result_version_id ? [decision.result_version_id] : []));
@@ -137,6 +139,23 @@ export async function loadStewardCaseDetail(client: LeagueSupabaseClient, caseId
 }
 
 export type SimplePenaltyType = 'time_penalty' | 'time_credit' | 'grid_penalty' | 'no_action';
+export function stewardParticipantIds(item: Pick<StewardCase, 'steward_case_participants' | 'reported_driver_id' | 'accused_driver_id'>, role: 'reporter' | 'accused'): string[] {
+  const ids = item.steward_case_participants?.filter((p) => p.role === role).map((p) => p.driver_id);
+  const legacy = role === 'reporter' ? item.reported_driver_id : item.accused_driver_id;
+  return ids?.length ? [...new Set(ids)] : legacy ? [legacy] : [];
+}
+export type GroupStewardInput = {
+  raceId: string; reporterIds: string[]; accusedIds: string[]; title: string; description: string;
+  decisions: DriverStewardDecision[]; caseId: string | null;
+};
+export async function saveStewardGroupCase(client: LeagueSupabaseClient, input: GroupStewardInput, idempotencyKey: string, draft: boolean) {
+  const response = await client.rpc('save_steward_group_case', {
+    p_race_id: input.raceId, p_reporter_ids: input.reporterIds, p_accused_ids: input.accusedIds,
+    p_title: input.title, p_description: input.description, p_decisions: draft ? [] : input.decisions,
+    p_draft: draft, p_case_id: input.caseId, p_idempotency_key: idempotencyKey,
+  });
+  throwIfError(response.error); return response.data;
+}
 export type SimpleStewardInput = {
   raceId: string; reporterId: string; accusedId: string; title: string; reasoning: string;
   penaltyType: SimplePenaltyType; amount: number | null; targetRaceId: string | null; caseId: string | null;

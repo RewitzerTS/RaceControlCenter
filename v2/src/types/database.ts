@@ -2112,6 +2112,25 @@ export type Database = {
           },
         ]
       }
+      steward_case_participants: {
+        Row: { case_id: string; driver_id: string; role: string }
+        Insert: { case_id: string; driver_id: string; role: string }
+        Update: { case_id?: string; driver_id?: string; role?: string }
+        Relationships: [
+          { foreignKeyName: "steward_case_participants_case_id_fkey"; columns: ["case_id"]; isOneToOne: false; referencedRelation: "steward_cases"; referencedColumns: ["id"] },
+          { foreignKeyName: "steward_case_participants_driver_id_fkey"; columns: ["driver_id"]; isOneToOne: false; referencedRelation: "drivers"; referencedColumns: ["id"] },
+        ]
+      }
+      steward_driver_decisions: {
+        Row: { decision_version_id: string; driver_id: string; penalty_type: string; amount: number | null; target_race_id: string | null; reasoning: string }
+        Insert: { decision_version_id: string; driver_id: string; penalty_type: string; amount?: number | null; target_race_id?: string | null; reasoning: string }
+        Update: { decision_version_id?: string; driver_id?: string; penalty_type?: string; amount?: number | null; target_race_id?: string | null; reasoning?: string }
+        Relationships: [
+          { foreignKeyName: "steward_driver_decisions_decision_version_id_fkey"; columns: ["decision_version_id"]; isOneToOne: false; referencedRelation: "steward_decision_versions"; referencedColumns: ["id"] },
+          { foreignKeyName: "steward_driver_decisions_driver_id_fkey"; columns: ["driver_id"]; isOneToOne: false; referencedRelation: "drivers"; referencedColumns: ["id"] },
+          { foreignKeyName: "steward_driver_decisions_target_race_id_fkey"; columns: ["target_race_id"]; isOneToOne: false; referencedRelation: "races"; referencedColumns: ["id"] },
+        ]
+      }
       steward_cases: {
         Row: {
           accused_driver_id: string
@@ -2730,6 +2749,11 @@ export type Database = {
       }
       delete_steward_case: {
         Args: { p_case_id: string; p_reason: string; p_expected_decision_version: number | null; p_expected_result_version_id: string | null }
+        Returns: Json
+      }
+      save_steward_group_case: {
+        Args: { p_race_id: string; p_reporter_ids: string[]; p_accused_ids: string[]; p_title: string; p_description: string;
+          p_decisions: Json; p_draft: boolean; p_case_id: string | null; p_idempotency_key: string }
         Returns: Json
       }
       record_steward_decision: {

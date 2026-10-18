@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture as f } from './public-fixture';
 
-for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','retry','self_credit','self_draft'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
+for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','retry','self_credit','self_draft','group','group_draft'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
   await installPublicFixture(context);
   const user = { id: '91000000-0000-4000-8000-000000000091', email: 'steward@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: { onboarding_complete: true, display_name: 'Test Steward' } };
   const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -17,6 +17,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
     { ...f.race, id: 'cancelled', round_number: 4, status: 'cancelled' },
   ];
   const submitted: Record<string, unknown>[] = [];
+  let savedCase: Record<string, unknown> | null = null;
   await context.route('https://*.supabase.co/**', async (route) => {
     const request = route.request(), url = new URL(request.url()), table = url.pathname.split('/').pop();
     if (table === 'user') return route.fulfill({ json: user });
@@ -26,18 +27,22 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
     if (table === 'driver_identities') return route.fulfill({ json: { id: user.id, status: 'active', profile_number: 91 } });
     if (table === 'driver_identity_links') return route.fulfill({ json: [] });
     if (table === 'seasons') return route.fulfill({ json: (request.headers().accept || '').includes('vnd.pgrst.object') ? f.season : [f.season] });
-    if (table === 'steward_cases') return route.fulfill({ json: [] });
+    if (table === 'steward_cases') return route.fulfill({ json: savedCase ? [savedCase] : [] });
+    if (table === 'steward_decision_versions' && mode === 'group_draft') return route.fulfill({ json: savedCase?.status === 'closed' ? [{ id:'decision-1',case_id:'case-1',version_number:1,outcome:'penalty',reasoning:savedCase.description,finalized_at:'2026-10-06T12:00:00Z',result_version_id:null,steward_driver_decisions:submitted.at(-1)?.p_decisions }] : [] });
     if (table === 'races') {
       const rows = url.searchParams.has('current_result_version_id') ? [] : races;
       return route.fulfill({ json: rows });
     }
-    if (table === 'create_steward_case') {
+    if (table === 'save_steward_group_case') {
       submitted.push(request.postDataJSON());
-      return route.fulfill({ json: { id: 'case-1', case_number: 'TEST-1', status: 'under_review' } });
-    }
-    if (table === 'record_steward_decision') {
-      submitted.push(request.postDataJSON());
-      if (mode === 'retry' && submitted.length === 1) return route.fulfill({ status: 503, json: { message: 'Synthetic response interruption' } });
+      if (mode === 'group_draft') {
+        const payload = request.postDataJSON();
+        savedCase = { id:'case-1',race_id:payload.p_race_id,title:payload.p_title,description:payload.p_description,
+          reported_driver_id:payload.p_reporter_ids[0],accused_driver_id:payload.p_accused_ids[0],case_number:'TEST-GROUP',
+          status:payload.p_draft ? 'under_review' : 'closed',created_at:'2026-10-06T12:00:00Z',current_decision_version:payload.p_draft ? null : 1,
+          steward_case_participants:[...payload.p_reporter_ids.map((driver_id: string) => ({driver_id,role:'reporter'})),...payload.p_accused_ids.map((driver_id: string) => ({driver_id,role:'accused'}))] };
+      }
+      if ((mode === 'retry' || mode === 'group') && submitted.length === 1) return route.fulfill({ status: 503, json: { message: 'Synthetic response interruption' } });
       return route.fulfill({ json: { id:'decision-1',case_id:'case-1',result_version_id:null } });
     }
     if (url.pathname.includes('/rpc/')) return route.fulfill({ json: [] });
@@ -56,12 +61,74 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
   await form.locator('[name="reasoning"]').fill('Dieser vollständig simulierte Test legt keinen echten Steward-Fall an.');
   await expect(form.locator('[name="ruleCode"]')).toHaveCount(0);
   await expect(page.getByText('Stimme abgeben', { exact:true })).toHaveCount(0);
+  if (mode === 'group' || mode === 'group_draft') {
+    const participants = form.locator('.steward-participants');
+    await participants.nth(0).getByRole('button', { name: 'Fahrer hinzufügen' }).click();
+    await form.locator('[name="reporter-1"]').selectOption(f.drivers[0].id);
+    await participants.nth(1).getByRole('button', { name: 'Fahrer hinzufügen' }).click();
+    await expect(form.locator('[name="accused-1"] option').filter({ hasText: f.drivers[0].display_name })).toBeDisabled();
+    await form.locator('[name="accused-1"]').selectOption(f.drivers[1].id);
+    if (mode === 'group_draft') {
+      // Open cases retain participants/incident, without requiring any decision yet.
+      await form.getByRole('button', { name: 'Als offenen Fall speichern' }).click();
+      await expect(form.getByRole('heading', { name: 'Offenen Fall abschließen' })).toBeVisible();
+      await expect(form.locator('[name="reasoning"]')).toHaveValue('Dieser vollständig simulierte Test legt keinen echten Steward-Fall an.');
+      await expect(form.locator('.steward-participants').first()).toContainText(f.drivers[0].display_name);
+      await expect(form.locator('.steward-participants').first()).toContainText(f.drivers[1].display_name);
+      expect(submitted[0].p_draft).toBe(true);
+      expect(submitted[0].p_decisions).toEqual([]);
+    }
+    const rows = form.locator('.steward-driver-decision');
+    await rows.nth(0).getByRole('combobox', { name: 'Entscheidung', exact: true }).selectOption('time_credit');
+    await rows.nth(0).getByLabel('Sekunden').fill('10');
+    await rows.nth(0).getByLabel('Begründung für diesen Fahrer').fill('Die Spielstrafe war unberechtigt; zehn Sekunden werden gutgeschrieben.');
+    await rows.nth(1).getByRole('combobox', { name: 'Entscheidung', exact: true }).selectOption('no_action');
+    await rows.nth(1).getByLabel('Begründung für diesen Fahrer').fill('Das Ausweichmanöver war angemessen. Keine weitere Maßnahme.');
+    await form.locator('[name="confirmed"]').check();
+    await page.evaluate(() => { (document.activeElement as HTMLElement)?.blur(); window.scrollTo(0, 0); });
+    await form.getByRole('button', { name: 'Entscheidung veröffentlichen' }).click();
+    if (mode === 'group') {
+      const error = form.getByRole('alert');
+      await expect(error).toContainText('nicht gespeichert');
+      await expect(error).toBeInViewport();
+      await expect(rows.nth(0).getByLabel('Sekunden')).toHaveValue('10');
+      await expect(rows.nth(1).getByLabel('Begründung für diesen Fahrer')).toHaveValue('Das Ausweichmanöver war angemessen. Keine weitere Maßnahme.');
+      await page.screenshot({ path: `../.impeccable/review/steward-group-error-${testInfo.project.name}.png`, animations: 'disabled' });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.screenshot({ path: `../.impeccable/review/steward-group-${testInfo.project.name}.png`, fullPage: true, animations: 'disabled' });
+      if (testInfo.project.name === 'desktop') {
+        await page.setViewportSize({ width: 1235, height: 884 });
+        await page.screenshot({ path: '../.impeccable/review/steward-group-user-1235.png', fullPage: true, animations: 'disabled' });
+        await page.setViewportSize({ width: 1280, height: 900 });
+      }
+      await form.getByRole('button', { name: 'Entscheidung veröffentlichen' }).click();
+      expect(submitted[0]).toEqual(submitted[1]);
+    }
+    await expect(form).toHaveCount(0);
+    expect(submitted).toHaveLength(2);
+    expect(submitted[0].p_reporter_ids).toEqual([f.drivers[1].id, f.drivers[0].id]);
+    expect(submitted[0].p_accused_ids).toEqual([f.drivers[0].id, f.drivers[1].id]);
+    expect(submitted.at(-1)?.p_decisions).toEqual([
+      expect.objectContaining({ driver_id: f.drivers[0].id, penalty_type: 'time_credit', amount: 10 }),
+      expect.objectContaining({ driver_id: f.drivers[1].id, penalty_type: 'no_action', amount: null }),
+    ]);
+    if (mode === 'group_draft') {
+      expect(submitted.at(-1)?.p_case_id).toBe('case-1');
+      const outcomes = page.locator('.case-detail .steward-driver-outcome');
+      await expect(outcomes).toHaveCount(2);
+      await expect(outcomes.nth(0)).toContainText('Zeitgutschrift');
+      await expect(outcomes.nth(1)).toContainText('Keine Strafe');
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    return;
+  }
   if (mode === 'draft' || mode === 'self_draft') await form.getByRole('button', { name: 'Als offenen Fall speichern' }).click();
   else {
-    await form.locator('[name="penaltyType"]').selectOption(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
+    await form.locator('[name^="penaltyType-"]').selectOption(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
     if (mode === 'grid_penalty') await expect(form).toContainText('3.');
     if (mode.startsWith('time_')) await expect(form).toContainText('vorgemerkt');
-    if (mode !== 'no_action') await form.locator('[name="amount"]').fill(mode === 'self_credit' ? '10' : '5');
+    if (mode !== 'no_action') await form.locator('[name^="amount-"]').fill(mode === 'self_credit' ? '10' : '5');
+    await form.locator('[name^="reason-"]').fill('Die Entscheidung wurde gemeinsam geprüft und begründet.');
     await form.locator('[name="confirmed"]').check();
     if (mode === 'time_penalty') {
       await page.evaluate(() => { (document.activeElement as HTMLElement)?.blur(); window.scrollTo(0,0); });
@@ -77,11 +144,13 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
   await expect(form).toHaveCount(0);
   expect(submitted).toHaveLength(mode === 'retry' ? 2 : 1);
   expect(submitted[0].p_race_id).toBe('race-2');
-  expect(submitted[0].p_accused_driver_id).toBe(f.drivers[0].id);
-  expect(submitted[0].p_reported_driver_id).toBe(f.drivers[mode.startsWith('self_') ? 0 : 1].id);
+  expect(submitted[0].p_accused_ids).toEqual([f.drivers[0].id]);
+  expect(submitted[0].p_reporter_ids).toEqual([f.drivers[mode.startsWith('self_') ? 0 : 1].id]);
   if (mode !== 'draft' && mode !== 'self_draft') {
-    expect(submitted[0].p_penalty_type).toBe(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
-    expect(submitted[0].p_target_race_id).toBe(mode === 'grid_penalty' ? 'future' : null);
+    const decisions = submitted[0].p_decisions as Record<string, unknown>[];
+    expect(decisions).toHaveLength(1);
+    expect(decisions[0].penalty_type).toBe(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
+    expect(decisions[0].target_race_id).toBe(mode === 'grid_penalty' ? 'future' : null);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
@@ -142,16 +211,19 @@ test('case deletion confirms effects, preserves failed input, and removes the ca
 test('race shows pending and applied decisions plus incoming grid penalties', async ({ page, context }) => {
   await installPublicFixture(context);
   await context.route('**/rest/v1/steward_cases?**', route => route.fulfill({ json: [
-    { id:'pending',title:'Pending time decision',description:'Incident',reported_driver_id:f.drivers[1].id,accused_driver_id:f.drivers[0].id,status:'closed' },
+    { id:'pending',title:'Pending time decision',description:'Incident',reported_driver_id:f.drivers[1].id,accused_driver_id:f.drivers[0].id,status:'closed',
+      steward_case_participants: [{ driver_id:f.drivers[1].id,role:'reporter' },{ driver_id:f.drivers[0].id,role:'reporter' },{ driver_id:f.drivers[0].id,role:'accused' },{ driver_id:f.drivers[1].id,role:'accused' }] },
     { id:'applied',title:'Applied time decision',description:'Incident',reported_driver_id:f.drivers[0].id,accused_driver_id:f.drivers[1].id,status:'closed' },
   ] }));
   await context.route('**/rest/v1/steward_decision_versions?**', route => route.fulfill({ json: [
-    { id:'decision-1',case_id:'pending',outcome:'penalty',reasoning:'Vorgemerkte Entscheidung aus externer Besprechung.' },
+    { id:'decision-1',case_id:'pending',outcome:'penalty',reasoning:'Vorgemerkte Entscheidung aus externer Besprechung.',
+      steward_driver_decisions: [{ driver_id:f.drivers[0].id,penalty_type:'time_penalty',amount:5,target_race_id:null,reasoning:'Fahrer eins verursacht den Unfall.' },
+        { driver_id:f.drivers[1].id,penalty_type:'no_action',amount:null,target_race_id:null,reasoning:'Fahrer zwei hat angemessen reagiert.' }] },
     { id:'decision-2',case_id:'applied',outcome:'penalty',reasoning:'Bereits angewendete Entscheidung.' },
   ] }));
   await context.route('**/rest/v1/steward_penalties?**', route => route.fulfill({ json: new URL(route.request().url()).searchParams.has('target_race_id')
     ? [{id:'grid',driver_id:f.drivers[0].id,grid_positions:3,reason:'Drei Startplätze zurück.'}]
-    : [{id:'penalty-1',decision_version_id:'decision-1',penalty_type:'time_penalty',time_delta_ms:5000},
+    : [{id:'penalty-1',driver_id:f.drivers[0].id,decision_version_id:'decision-1',penalty_type:'time_penalty',time_delta_ms:5000},
        {id:'penalty-2',decision_version_id:'decision-2',penalty_type:'time_credit',time_delta_ms:-3000}] }));
   await context.route('**/rest/v1/steward_penalty_applications?**', route => route.fulfill({json:[{penalty_id:'penalty-2',result_version_id:f.race.current_result_version_id}]}));
   await page.goto(`/racing/races/detail?league=rcc&demo=1&round=1&season=${f.season.id}`);
@@ -162,6 +234,9 @@ test('race shows pending and applied decisions plus incoming grid penalties', as
   await expect(panel).toContainText('Im Ergebnis angewendet');
   await expect(panel).toContainText('Zeitstrafe · +5 s');
   await expect(panel).toContainText('Zeitgutschrift · −3 s');
-  await expect(panel).toContainText('Einreichender Fahrer: Test Driver 2');
+  await expect(panel).toContainText('Einreichende Fahrer: Test Driver 2, Test Driver 1');
+  await expect(panel.locator('.steward-driver-outcome').nth(0)).toContainText('Test Driver 1');
+  await expect(panel.locator('.steward-driver-outcome').nth(1)).toContainText('Test Driver 2');
+  await expect(panel.locator('.steward-driver-outcome').nth(1)).toContainText('Keine Strafe');
   expect(await page.evaluate(() => document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

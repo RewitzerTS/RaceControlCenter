@@ -1,5 +1,9 @@
 export const simpleStewardMessages = {
   de: {
+    reporters: 'Einreichende Fahrer', accusedDrivers: 'Beschuldigte Fahrer', addDriver: 'Fahrer hinzufügen', removeDriver: 'Entfernen',
+    incident: 'Vorfall beschreiben', driverReason: 'Begründung für diesen Fahrer', individualDecisions: 'Entscheidungen je Fahrer',
+    oneDecision: 'Pro beschuldigtem Fahrer genau eine Entscheidung. Auch „Keine Strafe“ braucht eine Begründung.',
+    selectParticipants: 'Bitte mindestens einen einreichenden und einen beschuldigten Fahrer auswählen und den Vorfall beschreiben.',
     filterRace: 'Nach Rennen filtern', allRaces: 'Alle Rennen', noRaceCases: 'Für dieses Rennen sind keine Fälle vorhanden. Wähle ein anderes Rennen oder „Alle Rennen“.',
     pages: 'Fallseiten', previous: 'Zurück', next: 'Weiter', page: 'Seite',
     retry: 'Erneut laden',
@@ -29,6 +33,10 @@ export const simpleStewardMessages = {
     actionError: 'Die Entscheidung konnte nicht gespeichert werden. Bitte Angaben prüfen und erneut versuchen.',
   },
   en: {
+    reporters: 'Reporting drivers', accusedDrivers: 'Accused drivers', addDriver: 'Add driver', removeDriver: 'Remove',
+    incident: 'Describe the incident', driverReason: 'Reason for this driver', individualDecisions: 'Decisions by driver',
+    oneDecision: 'Exactly one decision per accused driver. No penalty also requires a reason.',
+    selectParticipants: 'Select at least one reporting and one accused driver and describe the incident.',
     filterRace: 'Filter by race', allRaces: 'All races', noRaceCases: 'There are no cases for this race. Choose another race or All races.',
     pages: 'Case pages', previous: 'Previous', next: 'Next', page: 'Page',
     retry: 'Retry',
@@ -57,6 +65,10 @@ export const simpleStewardMessages = {
     negativeTime: 'The time credit would produce a negative race time.', actionError: 'The decision could not be saved. Check the details and try again.',
   },
   es: {
+    reporters: 'Pilotos denunciantes', accusedDrivers: 'Pilotos acusados', addDriver: 'Añadir piloto', removeDriver: 'Quitar',
+    incident: 'Descripción del incidente', driverReason: 'Justificación para este piloto', individualDecisions: 'Decisiones por piloto',
+    oneDecision: 'Una sola decisión por piloto acusado. Sin sanción también requiere justificación.',
+    selectParticipants: 'Selecciona al menos un denunciante y un acusado y describe el incidente.',
     filterRace: 'Filtrar por carrera', allRaces: 'Todas las carreras', noRaceCases: 'No hay casos para esta carrera. Elige otra carrera o Todas las carreras.',
     pages: 'Páginas de casos', previous: 'Anterior', next: 'Siguiente', page: 'Página',
     retry: 'Reintentar',
@@ -85,6 +97,10 @@ export const simpleStewardMessages = {
     negativeTime: 'La bonificación daría un tiempo negativo.', actionError: 'No se pudo guardar la decisión. Revisa los datos e inténtalo de nuevo.',
   },
   fr: {
+    reporters: 'Pilotes déclarants', accusedDrivers: 'Pilotes mis en cause', addDriver: 'Ajouter un pilote', removeDriver: 'Retirer',
+    incident: 'Décrire l’incident', driverReason: 'Justification pour ce pilote', individualDecisions: 'Décisions par pilote',
+    oneDecision: 'Une seule décision par pilote mis en cause. L’absence de sanction doit aussi être justifiée.',
+    selectParticipants: 'Choisissez au moins un pilote déclarant et un pilote mis en cause, puis décrivez l’incident.',
     filterRace: 'Filtrer par course', allRaces: 'Toutes les courses', noRaceCases: 'Aucun dossier pour cette course. Choisissez une autre course ou Toutes les courses.',
     pages: 'Pages des dossiers', previous: 'Précédent', next: 'Suivant', page: 'Page',
     retry: 'Réessayer',

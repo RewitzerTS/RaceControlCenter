@@ -6,6 +6,7 @@ const shell = fs.readFileSync(path.join(root, 'src/components/AppShell.tsx'), 'u
 const journeys = fs.readFileSync(path.join(root, 'src/journeys/userJourneys.ts'), 'utf8');
 const driver = fs.readFileSync(path.join(root, 'src/driver/DriverHomePage.tsx'), 'utf8');
 const steward = fs.readFileSync(path.join(root, 'src/stewarding/StewardWorkspacePage.tsx'), 'utf8');
+const stewardForm = fs.readFileSync(path.join(root, 'src/stewarding/GroupDecisionForm.tsx'), 'utf8');
 const stewardCommands = fs.readFileSync(path.join(root, 'src/stewarding/stewardWorkspace.ts'), 'utf8');
 const stewardBrowser = fs.readFileSync(path.join(root, 'e2e/steward-race-selection.spec.ts'), 'utf8');
 const stewardRegression = fs.readFileSync(path.join(root, 'supabase/tests/simplified-steward-decisions.sql'), 'utf8');
@@ -17,7 +18,8 @@ const requirements = [
   [shell.includes('canSteward') && shell.includes('canAdmin') && shell.includes('canOwner'), 'explicit role route gates'],
   [shell.includes('<Navigate replace to="/" />') && shell.includes('<Navigate replace to="/admin" />'), 'safe route fallbacks'],
   [driver.includes('home.signedOutTitle') && driver.includes('home.errorTitle'), 'signed-out and driver failure states'],
-  [steward.includes('createStewardCase') && steward.includes('recordStewardDecision') && stewardCommands.includes("rpc('record_steward_decision'") && stewardCommands.includes('p_idempotency_key: idempotencyKey'), 'Steward create-to-decision flow with retry protection'],
+  [steward.includes('GroupDecisionForm') && steward.includes('saveStewardGroupCase') && stewardCommands.includes("rpc('save_steward_group_case'") && stewardCommands.includes('p_idempotency_key: idempotencyKey') && stewardForm.includes('retry.current?.payload !== payload') && stewardForm.includes('onSubmit(input, retry.current.key, draft)'), 'Steward group create-to-decision flow with retry protection'],
+  [stewardBrowser.includes("'group_draft'") && stewardBrowser.includes('p_reporter_ids') && stewardBrowser.includes('p_accused_ids') && stewardBrowser.includes('expect(submitted[0]).toEqual(submitted[1])') && stewardBrowser.includes('await expect(outcomes).toHaveCount(2)'), 'multi-driver draft, independent decisions and exact-payload retry browser journeys'],
   [stewardBrowser.includes('time_penalty') && stewardBrowser.includes('time_credit') && stewardBrowser.includes('grid_penalty') && stewardBrowser.includes('pending and applied decisions'), 'direct and deferred Steward browser journeys'],
   [stewardRegression.includes('Publication replay was not idempotent') && stewardRegression.includes('Incomplete publication left partial effects') && stewardRegression.includes('regular driver finalized a sanction') && stewardRegression.includes('rollback;'), 'atomic deferred publication, denial and rollback regression'],
   [demo.includes('demo-isolation') && demo.includes('to="/stewarding"') && demo.includes('to="/admin/graphics"'), 'cross-workspace Demo journey'],

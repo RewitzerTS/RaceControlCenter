@@ -9,7 +9,7 @@ import { calendarRaceDate, calendarTrack, racingHref } from './calendarData';
 import { RaceStewardDecisions } from '../stewarding/RaceStewardDecisions';
 
 type Tables = Database['public']['Tables'];
-type Steward = Pick<Tables['steward_cases']['Row'], 'id' | 'title' | 'description' | 'reported_driver_id' | 'accused_driver_id' | 'status' | 'rule_code' | 'rule_version'>;
+type Steward = Pick<Tables['steward_cases']['Row'], 'id' | 'title' | 'description' | 'reported_driver_id' | 'accused_driver_id' | 'status' | 'rule_code' | 'rule_version'> & { steward_case_participants?: { driver_id: string; role: string }[] };
 type Extras = { raceId: string; stewards: Steward[] | null };
 export function formatRaceDuration(milliseconds: number | null | undefined) {
   if (milliseconds == null || !Number.isFinite(milliseconds) || milliseconds < 0) return '—';
@@ -34,7 +34,7 @@ export function RacingRaceDetail() {
     const controller = new AbortController();
     setExtras(null);
     if (raceId) void Promise.allSettled([
-      readHistoryPages((from, to) => client.from('steward_cases').select('id,title,description,reported_driver_id,accused_driver_id,status,rule_code,rule_version').eq('league_id', leagueId).eq('race_id', raceId).order('created_at', { ascending: false }).order('id').range(from, to).abortSignal(controller.signal), controller.signal),
+      readHistoryPages((from, to) => client.from('steward_cases').select('id,title,description,reported_driver_id,accused_driver_id,status,rule_code,rule_version,steward_case_participants(driver_id,role)').eq('league_id', leagueId).eq('race_id', raceId).order('created_at', { ascending: false }).order('id').range(from, to).abortSignal(controller.signal), controller.signal),
     ]).then(([stewards]) => { if (!controller.signal.aborted) setExtras({ raceId, stewards: stewards.status === 'fulfilled' ? stewards.value : null }); });
     return () => controller.abort();
   }, [client, raceId, leagueId, retry]);
@@ -47,7 +47,7 @@ export function RacingRaceDetail() {
   const metadata = extras?.raceId === raceId ? extras : null;
   return <ProfileFrame view={view} title={race?.grand_prix_name || c.raceTitle} kind="race-detail">{data && <><p><Link to={racingHref('/racing/calendar', view.leagueSlug, race ? { round: race.round_number, season: race.season_id } : {})}>{c.calendar}</Link></p>{!race ? <p role="status">{c.missing}</p> : <>
     <div className="race-detail-panels"><section className="profile-section"><h2>{c.raceTitle}</h2><div className="profile-race-summary">{/^[a-z]{2}$/i.test(race.country_code || track?.countryCode || '') && <ProfileImage src={`/v1-assets/images/flags/${(race.country_code || track!.countryCode).toLowerCase()}.svg`} alt={race.country_code || track?.countryCode || ''} className="profile-flag" fallback={race.country_code} />}<dl>{[[c.round, String(race.round_number)], [c.seasonName, data.seasons.find((season) => season.id === race.season_id)?.name || '—'], [c.date, date ? view.formatDate(date) + (startAt && Number.isFinite(startAt.getTime()) ? ` · ${view.formatTime(date)}` : race.race_time ? ` · ${race.race_time}` : '') : '—'], [c.circuit, race.circuit_name || track?.circuitName || '—'], [c.weather, weather[race.weather || ''] || race.weather || c.unknown], [c.status, status[race.status] || race.status]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></section>
-    <section className="profile-section"><h2>{c.stewards}</h2>{!metadata ? <p role="status">{c.loading}</p> : metadata.stewards == null ? <div role="alert"><p>{c.stewardError}</p><button type="button" onClick={() => setRetry((n) => n + 1)}>{c.retry}</button></div> : <RaceStewardDecisions raceId={raceId} cases={metadata.stewards} drivers={data.drivers} />}</section>
+    <section className="profile-section"><h2>{c.stewards}</h2>{!metadata ? <p role="status">{c.loading}</p> : metadata.stewards == null ? <div role="alert"><p>{c.stewardError}</p><button type="button" onClick={() => setRetry((n) => n + 1)}>{c.retry}</button></div> : <RaceStewardDecisions raceId={raceId} cases={metadata.stewards} drivers={data.drivers} races={data.races} />}</section>
     </div>
     <section className="profile-section"><h2>{c.results}</h2><ProfileTable view={view} headings={[c.position, c.driver, c.team, c.start, c.finish, c.lapTime, c.raceTime, c.points, c.status]}>{rows.length ? rows.map((row) => { const snapshot = historySnapshot(data, row.driver_id, race); const fl = row.driver_id === fastest; return <tr key={row.id}><td>{position(row.finish_position) ?? '—'}</td><td><Link to={racingHref('/racing/drivers/profile', view.leagueSlug, { driver: row.driver_id, season: race.season_id })}>{snapshot.display_name}</Link></td><td>{snapshot.league_team || c.noTeam}</td><td>{position(row.grid_position) ?? '—'}</td><td>{position(row.finish_position) ?? '—'}</td><td className={fl ? 'profile-fastest' : undefined}>{lapTime(row)}{fl && <span className="profile-badge" title={c.fastestLaps}>FL</span>}</td><td>{row.race_time || formatRaceDuration(row.race_time_ms)}</td><td className={fl ? 'profile-fastest' : undefined}><strong>{view.formatNumber(points(row))}</strong></td><td>{row.participation_status?.trim().toUpperCase() || '—'}</td></tr>; }) : <tr><td colSpan={9}>{c.noPublication}</td></tr>}</ProfileTable></section>
   </>}</>}</ProfileFrame>;

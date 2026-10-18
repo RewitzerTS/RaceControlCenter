@@ -13,6 +13,17 @@
 .simple-steward-form input:not([type="checkbox"]), .simple-steward-form select, .simple-steward-form textarea { font-size: 1rem; }
 .simple-steward-form label, .simple-steward-form input, .simple-steward-form select, .simple-steward-form textarea { min-width: 0; max-width: 100%; }
 .simple-steward-form textarea { min-height: 8rem; resize: vertical; }
+.steward-participants, .steward-driver-decision { min-width: 0; margin: 0; padding: 1rem; border: 1px solid var(--line); border-radius: 12px; }
+.steward-participants legend, .steward-driver-decision legend { padding-inline: .4rem; font-weight: 700; max-width: 100%; overflow-wrap: anywhere; }
+.steward-participant-row { display: flex; gap: .5rem; align-items: center; margin-block: .5rem; }
+.steward-participant-row select { flex: 1; width: 0; }
+.steward-participant-row button { flex-shrink: 0; }
+.steward-participants button { min-height: 44px; }
+.steward-decision-fields { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
+.steward-driver-decision p { margin-bottom: 0; font-size: .875rem; line-height: 1.6; }
+.steward-driver-decision textarea { min-height: 6rem; }
+.steward-driver-outcome { padding-block: 1rem; border-top: 1px solid var(--line); }
+.steward-driver-outcome h4 { margin: 0 0 .5rem; overflow-wrap: anywhere; }
 .simple-steward-form .check-label { display: flex; align-items: flex-start; gap: .75rem; }
 .simple-steward-form .check-label input { flex: 0 0 auto; width: 1.25rem; height: 1.25rem; margin-top: .2rem; }
 .simple-steward-submit { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
@@ -28,6 +39,7 @@
 .steward-delete textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 6rem; padding: .75rem; border: 1px solid var(--control-border, var(--line-strong)); border-radius: 10px; color: var(--brand-text); background: var(--control-background, var(--brand-surface)); font: inherit; font-size: 1rem; resize: vertical; }
 .steward-delete button { min-height: 44px; white-space: normal; overflow-wrap: anywhere; }
 @media (max-width: 680px) {
+  .steward-decision-fields { grid-template-columns: minmax(0,1fr); }
   .simple-steward .simple-steward-form { grid-template-columns: minmax(0,1fr); }
   .simple-steward .simple-steward-form .span-two { grid-column: 1; }
   .simple-steward-submit { align-items: stretch; flex-direction: column; }

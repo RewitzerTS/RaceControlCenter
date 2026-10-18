@@ -1,5 +1,28 @@
 # Simplified steward workflow — Staging validation
 
+## October 18 extension: multiple drivers per case
+
+Production promotion approved by the owner after the hosted Staging handoff. The identical migration was applied to Production (`znnkwjogtvzwfkwnmawp`) as ledger version `20261018211337`. All seven affected function definitions match Staging. Before/after fingerprints of the 8 existing cases, 35 result versions and 590 result rows are identical. RLS is enabled on all three new tables; anonymous RPC execution, direct authenticated table writes and direct private-helper execution remain denied. No synthetic cases were created in Production. The same intentional advisor notices described below were reviewed; existing unrelated warnings were not changed. The frontend release must still complete the mandatory safe-deployment gate and hosted asset checks.
+
+Staging release record:
+
+Current scope: database migration `20261018200212_multi_driver_steward_cases.sql` applied only to Staging (`nfvwarlowjqphytqqtxz`), with explicit owner approval. Following separate owner approval, the matching frontend was published to `racevora-v2-staging` on October 18 as Worker version `0b63dc06-76b0-48bc-8f21-88fff93024c0`. Production is unchanged. This Staging candidate includes the uncommitted feature changes on baseline `fb50403dd6a35484c5c3b009a6757b9d18d2d59f`; the build metadata's baseline commit is not a claim that these changes have been committed or pushed.
+
+A case has one or more reporters and accused drivers. The same driver may appear in both roles, but cannot be duplicated within a role. Each accused driver has exactly one decision and an individual reason: time penalty, time credit, grid penalty, or no action. An open case stores participants and incident only; decisions are entered when closing it. Existing singleton cases remain readable without a backfill.
+
+`save_steward_group_case` locks and authorizes the race, validates league membership and the active season, binds retries to their exact payload, and stores every individual outcome atomically. Multiple immediate time adjustments produce one corrected result version. Existing deferred-publication and withdrawal paths apply/reverse the affected drivers together; unrelated penalties survive withdrawal. Old single-driver finalizers cannot partially close a new group case. Participant access, appeals and decision notification recipients include additional drivers.
+
+Validation on October 18:
+
+- `multi-driver-steward-cases.sql` passed on Staging as two isolated BEGIN/ROLLBACK batches (mixed direct decisions and deferred/authorization checks). Covers exactly-one decision, self-reporting, foreign-driver and tenant denial, atomic failure, exact retry, open-case closure, no-action, combined times/order/fastest-lap points, grid target, exactly-once publication, and complete withdrawal preserving an unrelated penalty.
+- `multi-driver-steward-access.sql` passed with full rollback: the second reporter can read the open case, receives the decision notification, and can appeal; another tenant cannot read participants. Only the synthetic event is processed, never a global notification worker.
+- Post-test counts match the preflight: 2 existing cases, 9 result versions and 19 result rows. No synthetic users/leagues, participant rows or individual decisions remain.
+- 15 scoped unit tests, TypeScript check, Staging build and the Steward contract passed. 28 intercepted browser checks passed on desktop and mobile, including draft/reopen, independent outcomes, retries, old cases and current-season queue filtering. No physical Safari test is claimed.
+- Full safe-deployment gate passed: 496 unit tests, all contracts, Staging build and 189 browser tests; one duplicate WebKit run was intentionally skipped in the mobile project (the explicit touch-WebKit test passed in the desktop project). The user-journey source contract was updated from the retired single-driver page flow to require the grouped command, payload-bound retry and grouped draft/readback browser assertions; no checks were bypassed.
+- Post-deployment checks: `/stewarding` returned HTTP 200; the environment metadata points only to Staging. SHA-256 hashes of the main JS, CSS, runtime chunks and `StewardWorkspacePage-VMznufQQ.js` match the local tested build. Four additional intercepted group/group-draft checks passed against the hosted Staging site on desktop and mobile without real database writes. A clean signed-out browser correctly redirects the protected route to Home; missing league branding emits a 406 warning in that unselected-league context, without preventing the sign-in fallback. No Production deployment or Git push was performed.
+
+The new public RPC deliberately uses the established authenticated SECURITY DEFINER facade, with tenant and capability checks inside the inaccessible private helper. The private retry table intentionally has default-deny RLS and no client grants. The advisor's [SECURITY DEFINER notice](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) and [private-table RLS notice](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) were reviewed against these guards and rollback authorization tests. Unrelated existing notices (including leaked-password protection) were not changed.
+
 ## October 7 extension: self-reports and deletion
 
 The initial October 6 release was promoted to Production as commit `6e42891`. The scope statement below describes its earlier Staging validation, not the current deployment status.
