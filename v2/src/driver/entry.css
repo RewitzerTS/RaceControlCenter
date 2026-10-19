@@ -1,0 +1,37 @@
+.entry-page { --primary: var(--brand-primary); --accent: var(--brand-accent); --text-on-primary: var(--brand-on-primary); --border: var(--line); width: min(100%, 54rem); margin-inline: auto; padding: clamp(1rem, 4vw, 3rem); }
+.entry-heading h1 { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.08; text-wrap: balance; }
+.entry-page p { max-width: 66ch; line-height: 1.6; }
+.entry-identity { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .5rem; padding-block: 1rem; border-block: 1px solid var(--border); margin-block: 1.25rem; }
+.entry-identity strong { justify-self: end; font-size: 1.25rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.entry-identity small { grid-column: 1 / -1; line-height: 1.5; }
+.entry-steps { display: flex; gap: clamp(.5rem, 3vw, 2rem); list-style: none; padding: 0; margin: 0 0 1.5rem; }
+.entry-steps li { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; flex: 1; font-weight: 600; }
+.entry-steps li span { display: grid; place-items: center; width: 2rem; height: 2rem; border: 1px solid currentColor; border-radius: 50%; }
+.entry-steps [aria-current="step"] span { background: var(--primary); color: var(--text-on-primary); border-color: transparent; }
+.entry-body h2 { margin-block: 0 1rem; text-wrap: balance; }
+.entry-fields, .entry-themes { border: 0; padding: 0; margin: 1.5rem 0; min-width: 0; display: grid; gap: 1rem; }
+.entry-fields label, .entry-code { display: grid; gap: .5rem; font-weight: 600; }
+.entry-fields input, .entry-code input { width: 100%; min-width: 0; min-height: 48px; font-size: 1rem; }
+.entry-code { max-width: 22rem; margin-block: 1.5rem 1rem; }
+.entry-code input { font-variant-numeric: tabular-nums; letter-spacing: .15em; }
+.entry-themes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.entry-themes legend { margin-bottom: .75rem; }
+.entry-theme { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; padding: 1rem; border: 1px solid var(--border); border-radius: 12px; min-height: 64px; cursor: pointer; }
+.entry-theme:has(input:checked) { border-color: var(--accent); background: var(--surface); }
+.entry-theme input { width: 1.1rem; height: 1.1rem; accent-color: var(--accent); }
+.entry-theme .theme-swatches { display: flex; gap: .15rem; }
+.entry-theme .theme-swatches i { width: 1rem; height: 1rem; border-radius: 50%; }
+.entry-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-block: 2rem 1rem; }
+.entry-later { margin-top: 2rem; }
+.entry-requests { margin-top: 2rem; }
+.entry-requests summary { min-height: 44px; cursor: pointer; padding-block: .75rem; }
+.entry-page button, .entry-page a { min-height: 44px; white-space: normal; overflow-wrap: anywhere; }
+.entry-page :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.entry-page input { caret-color: var(--accent); }
+.entry-page ::selection { background: var(--primary); color: var(--text-on-primary); }
+.entry-page .gamertag-aliases { margin-block: 1.5rem; }
+@media (max-width: 420px) {
+  .entry-themes { grid-template-columns: 1fr; }
+  .entry-steps li { font-size: .85rem; flex-direction: column; align-items: flex-start; }
+  .entry-actions > * { flex: 1 1 auto; }
+}

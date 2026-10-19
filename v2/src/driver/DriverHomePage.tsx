@@ -10,6 +10,7 @@ import { useDriverIdentity } from './DriverIdentityProvider';
 import { highestAchievementTiers, levelProgress, selectDriverHero, useDriverHome } from './driverHome';
 import { LevelGauge } from './LevelGauge';
 import { RaceDayCarousel } from './RaceDayCarousel';
+import { EntryHome } from './EntryHome';
 
 export function DriverHomePage() {
   const { loading: authLoading, user } = useAuth();
@@ -17,7 +18,7 @@ export function DriverHomePage() {
   const { client, leagueSlug } = useLeague();
   const { role } = useRole();
   const { formatDate, formatNumber, formatTime, plural, t } = useI18n();
-  const { error, loading, reload, snapshot } = useDriverHome(client, identity?.id ?? null, leagueSlug);
+  const { error, loading, reload, snapshot } = useDriverHome(client, role && identity?.linkedDriverCount ? identity.id : null, leagueSlug);
 
   if (authLoading || identityLoading) {
     return <AppState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} tone="loading" />;
@@ -31,19 +32,13 @@ export function DriverHomePage() {
       />
     );
   }
-  if (identityError || !identity || identity.status !== 'active') {
+  if (identityError) {
+    return <AppState title={t('home.errorTitle')} copy={t('home.errorCopy')} tone="error" action={<button className="text-action" type="button" onClick={() => window.location.reload()}>{t('home.retry')}</button>} />;
+  }
+  if (!identity || identity.status !== 'active') {
     return <AppState title={t('home.identityTitle')} copy={t('home.identityCopy')} tone="info" />;
   }
-  if (identity.linkedDriverCount === 0) {
-    return (
-      <AppState
-        title={t('career.linkTitle')}
-        copy={t('career.linkCopy')}
-        tone="empty"
-        action={<NavLink className="primary-action" to="/profile">{t('route.profileTitle')}</NavLink>}
-      />
-    );
-  }
+  if (!role || identity.linkedDriverCount === 0) return <EntryHome member={Boolean(role)} />;
   if (loading) {
     return <AppState title={t('home.loadingTitle')} copy={t('home.loadingCopy')} tone="loading" />;
   }

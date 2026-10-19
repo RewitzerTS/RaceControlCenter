@@ -26,8 +26,9 @@ if (!shell.includes("to=\"/profile\"") || !shell.includes('topbar-profile-link')
 if (shell.includes('nav-item--public') || shell.includes("t('nav.league')")) {
   violations.push('retired standalone public league navigation is still visible');
 }
-if (!shell.includes('<Route path="/home" element={leagueRoute(<DriverHomePage />)} />')) {
-  violations.push('all permitted roles do not start in the Driver Experience');
+if (!shell.includes('<Route path="/home" element={accessLoading ? routeLoading : user && roleError ? leagueAccessError : <DriverHomePage />} />')
+  || !home.includes('<EntryHome member={Boolean(role)} />')) {
+  violations.push('Home must preserve access errors and offer the identity-first entry without requiring league membership');
 }
 for (const route of [
   '<Route path="/racing/*" element={leagueRoute(<RacingPage />)} />',

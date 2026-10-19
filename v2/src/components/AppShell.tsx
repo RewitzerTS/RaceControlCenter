@@ -360,7 +360,6 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
   const canCreateGraphics = canAdmin && features.socialGraphics;
   const accessLoading = authLoading || roleLoading;
   const embeddedAccess = location.pathname === '/login' && new URLSearchParams(location.search).get('embed') === '1';
-  const onboardingRequired = user?.user_metadata?.onboarding_complete === false;
   const onboardingJustCompleted = Boolean(
     location.state
     && typeof location.state === 'object'
@@ -428,10 +427,6 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
       window.removeEventListener('resize', updateScrollProgress);
     };
   }, [location.pathname, location.search]);
-
-  if (!authLoading && onboardingRequired && location.pathname !== '/onboarding') {
-    return <Navigate replace to="/onboarding" />;
-  }
 
   return (
     <div className={embeddedAccess ? 'app-shell app-shell--embedded-access' : 'app-shell'}>
@@ -528,7 +523,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
         <Routes key={leagueSlug}>
           <Route path="/" element={<Navigate replace to="/home" />} />
-          <Route path="/home" element={leagueRoute(<DriverHomePage />)} />
+          <Route path="/home" element={accessLoading ? routeLoading : user && roleError ? leagueAccessError : <DriverHomePage />} />
           <Route path="/racing" element={leagueRoute(<Navigate replace to={{ pathname: '/racing/calendar', search: location.search, hash: location.hash }} />)} />
           <Route path="/racing/*" element={leagueRoute(<RacingPage />)} />
           <Route path="/career" element={leagueRoute(<Suspense fallback={routeLoading}><CareerPage /></Suspense>)} />

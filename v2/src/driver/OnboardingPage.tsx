@@ -1,132 +1,123 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
+import { resolvePersonalTheme, THEME_PRESETS } from '../league/leagueBranding';
+import { GamertagAliasesEditor } from './GamertagAliasesEditor';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
-
-type OnboardingResult = {
-  league_name?: string;
-  request_status?: 'already_member' | 'not_requested' | 'pending';
-};
-
-function resultObject(value: unknown): OnboardingResult {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as OnboardingResult : {};
-}
+import { advanceEntry, loadEntry, requestEntryLeague, saveEntryProfile, type EntryState } from './entry';
+import { entryCopy } from './entryCopy';
+import './entry.css';
 
 export function OnboardingPage() {
-  const navigate = useNavigate();
-  const { completeOnboarding, loading: authLoading, user } = useAuth();
+  const { loading, user } = useAuth();
   const { t } = useI18n();
+  if (loading) return <AppState title={t('pending')} copy="" tone="loading" />;
+  if (!user) return <Navigate replace to="/login?mode=signin" />;
+  return <EntryFlow key={user.id} />;
+}
+
+function EntryFlow() {
+  const navigate = useNavigate();
+  const { user, updateThemePreset } = useAuth();
   const { client } = useLeague();
-  const [step, setStep] = useState(() => user?.user_metadata?.onboarding_complete === true ? 2 : 1);
-  const [displayName, setDisplayName] = useState(() => String(user?.user_metadata?.display_name ?? ''));
-  const [gamertag, setGamertag] = useState(() => String(user?.user_metadata?.gamertag ?? ''));
-  const [realName, setRealName] = useState(() => String(user?.user_metadata?.real_name ?? ''));
-  const [nationalityCode, setNationalityCode] = useState(() => String(user?.user_metadata?.nationality_code ?? ''));
-  const [leagueIdentifier, setLeagueIdentifier] = useState('');
+  const { language, t } = useI18n();
+  const c = entryCopy[language];
+  const [entry, setEntry] = useState<EntryState | null>(null);
+  const [step, setStep] = useState(1);
+  const [name, setName] = useState('');
+  const [tag, setTag] = useState('');
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [requestRefreshKey, setRequestRefreshKey] = useState(0);
+  const [retry, setRetry] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [themeSaved, setThemeSaved] = useState(false);
+  const [request, setRequest] = useState<{ league_name: string; request_status: string } | null>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const saving = useRef(false);
+  const selectedTheme = resolvePersonalTheme(user?.user_metadata);
 
-  if (authLoading) return <AppState copy="Dein Konto und der aktuelle Einrichtungsstand werden geladen." title={t('pending')} tone="loading" />;
-  if (!user) return <Navigate replace to="/login?mode=signin" />;
+  useEffect(() => {
+    let active = true;
+    setLoading(true); setError('');
+    void loadEntry(client).then(data => {
+      if (!active) return;
+      setEntry(data); setStep(data.step);
+      setName(data.display_name ?? ''); setTag(data.gamertag ?? '');
+    }).catch(() => { if (active) setError(c.error); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [client, retry, c.error]);
 
-  function continueToLeague(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError('');
-    if (displayName.trim().length < 2 || gamertag.trim().length < 2) {
-      setError(t('onboarding.profileError'));
-      return;
-    }
-    setStep(2);
-  }
+  useEffect(() => { if (entry) heading.current?.focus(); }, [step, Boolean(entry)]);
 
-  async function finish(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setBusy(true);
-    setError('');
-    const profile = {
-      displayName: displayName.trim(),
-      gamertag: gamertag.trim(),
-      realName: realName.trim(),
-      nationalityCode: nationalityCode.trim().toUpperCase(),
-    };
-    try {
-      const response = await client.rpc('complete_driver_onboarding_with_code', {
-        p_display_name: profile.displayName,
-        p_gamertag: profile.gamertag,
-        p_real_name: profile.realName,
-        p_nationality_code: profile.nationalityCode,
-        p_league_identifier: leagueIdentifier.trim(),
-      });
-      if (response.error) throw response.error;
-      await completeOnboarding(profile);
-      const result = resultObject(response.data);
-      setRequestRefreshKey((value) => value + 1);
-      navigate('/home', {
-        replace: true,
-        state: {
-          onboardingComplete: true,
-          leagueName: result.league_name ?? '',
-          requestStatus: result.request_status ?? 'not_requested',
-        },
-      });
-    } catch (reason) {
+  async function run(action: () => Promise<void>) {
+    if (saving.current) return;
+    saving.current = true; setBusy(true); setError('');
+    try { await action(); }
+    catch (reason) {
       const message = reason && typeof reason === 'object' && 'message' in reason ? String(reason.message) : '';
-      setError(message.includes('League ID') ? t('onboarding.leagueNotFound') : t('onboarding.submitError'));
-      setBusy(false);
-    }
+      setError(message.includes('ENTRY_CODE') ? c.codeError : c.error);
+    } finally { saving.current = false; setBusy(false); }
   }
 
-  return (
-    <main className="onboarding-page" id="main-content">
-      <section className="onboarding-card" aria-labelledby="onboarding-title">
-        <header className="onboarding-header">
-          <div>
-            <p className="section-label">{t('onboarding.kicker')}</p>
-            <h1 id="onboarding-title">{t('onboarding.title')}</h1>
-            <p>{t('onboarding.copy')}</p>
-          </div>
-          <span className="onboarding-progress" aria-label={t('onboarding.progress', { step })}>{step}/2</span>
-        </header>
-        <ol className="onboarding-steps" aria-label={t('onboarding.steps')}>
-          <li aria-current={step === 1 ? 'step' : undefined} className={step >= 1 ? 'is-active' : ''}><span>1</span>{t('onboarding.profileStep')}</li>
-          <li aria-current={step === 2 ? 'step' : undefined} className={step >= 2 ? 'is-active' : ''}><span>2</span>{t('onboarding.leagueStep')}</li>
-        </ol>
+  async function leave(to: string) {
+    await advanceEntry(client, 3, true);
+    // A refresh failure must not present the committed server save as a failed write.
+    await client.auth.refreshSession().catch(() => undefined);
+    navigate(to);
+  }
 
-        {step === 1 ? (
-          <form className="onboarding-form" onSubmit={continueToLeague}>
-            <div className="onboarding-section-heading"><h2>{t('onboarding.profileTitle')}</h2><p>{t('onboarding.profileCopy')}</p></div>
-            <aside className="onboarding-number-note"><span aria-hidden="true">#</span><p>{t('onboarding.numberCopy')}</p></aside>
-            <div className="onboarding-fields">
-              <label><span>{t('onboarding.displayName')}</span><input autoComplete="nickname" maxLength={60} minLength={2} onChange={(event) => setDisplayName(event.target.value)} required value={displayName} /><small>{t('onboarding.displayNameHint')}</small></label>
-              <label><span>{t('onboarding.gamertag')}</span><input autoComplete="off" maxLength={60} minLength={2} onChange={(event) => setGamertag(event.target.value)} required value={gamertag} /><small>{t('onboarding.gamertagHint')}</small></label>
-              <label><span>{t('onboarding.realName')}</span><input autoComplete="name" maxLength={100} onChange={(event) => setRealName(event.target.value)} value={realName} /><small>{t('onboarding.optional')}</small></label>
-              <label><span>{t('onboarding.country')}</span><input aria-describedby="country-code-hint" autoCapitalize="characters" maxLength={2} onChange={(event) => setNationalityCode(event.target.value.replace(/[^a-z]/gi, '').slice(0, 2).toUpperCase())} pattern="[A-Za-z]{2}" placeholder="DE" value={nationalityCode} /><small id="country-code-hint">{t('onboarding.countryHint')}</small></label>
-            </div>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <div className="onboarding-actions"><button className="primary-action" type="submit">{t('onboarding.continue')}</button></div>
-          </form>
-        ) : (
-          <form className="onboarding-form" onSubmit={(event) => void finish(event)}>
-            <div className="onboarding-section-heading"><h2>{t('onboarding.leagueTitle')}</h2><p>{t('onboarding.leagueCopy')}</p></div>
-            <label className="onboarding-league-field"><span>{t('onboarding.leagueId')}</span><input autoComplete="off" maxLength={80} onChange={(event) => setLeagueIdentifier(event.target.value)} placeholder={t('onboarding.leaguePlaceholder')} value={leagueIdentifier} /><small>{t('onboarding.leagueHint')}</small></label>
-            <aside className="onboarding-approval-note"><span aria-hidden="true">✓</span><div><strong>{t('onboarding.approvalTitle')}</strong><p>{t('onboarding.approvalCopy')}</p></div></aside>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <div className="onboarding-actions onboarding-actions--split"><button className="text-action" disabled={busy} onClick={() => { setError(''); setStep(1); }} type="button">{t('onboarding.back')}</button><button className="primary-action" disabled={busy} type="submit">{busy ? t('onboarding.saving') : leagueIdentifier.trim() ? t('onboarding.requestJoin') : t('onboarding.finishWithoutLeague')}</button></div>
-          </form>
-        )}
-      </section>
-      <section className="onboarding-card onboarding-request-history" aria-labelledby="onboarding-request-history-title">
-        <header>
-          <p className="section-label">{t('joinRequests.kicker')}</p>
-          <h2 id="onboarding-request-history-title">{t('joinRequests.title')}</h2>
-          <p>{t('joinRequests.intro')}</p>
-        </header>
-        <LeagueJoinRequestStatusList refreshKey={requestRefreshKey} />
-      </section>
-    </main>
-  );
+  if (loading) return <AppState title={t('pending')} copy="" tone="loading" />;
+  if (!entry) return <AppState title={c.identityError} copy={error} tone="error" action={<button className="text-action" onClick={() => setRetry(value => value + 1)} type="button">{c.retry}</button>} />;
+
+  return <main className="entry-page" id="main-content">
+    <header className="entry-heading"><h1>{c.title}</h1><p>{c.intro}</p></header>
+    <div className="entry-identity"><span>{c.id}</span><strong>{entry.racevora_id}</strong><small>{c.idHint}</small></div>
+    <ol className="entry-steps" aria-label={t('onboarding.steps')}>
+      {c.steps.map((label, index) => <li key={index} aria-current={step === index + 1 ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}
+    </ol>
+    <section className="entry-body" aria-busy={busy}>
+      <h2 ref={heading} tabIndex={-1}>{step === 1 ? c.profile : step === 2 ? c.style : c.league}</h2>
+      {step === 1 && <form onSubmit={event => { event.preventDefault(); void run(async () => {
+        const saved = await saveEntryProfile(client, name, tag); setEntry(saved); setStep(2);
+      }); }}>
+        <fieldset disabled={busy} className="entry-fields">
+          <label>{c.name}<input autoComplete="nickname" minLength={2} maxLength={60} required value={name} onChange={event => setName(event.target.value)} /></label>
+          <label>{c.tag}<input autoComplete="off" autoCapitalize="none" spellCheck={false} minLength={2} maxLength={60} required value={tag} onChange={event => setTag(event.target.value)} /></label>
+        </fieldset>
+        <p>{c.profileHint}</p>
+        <button disabled={busy} className="primary-action" type="submit">{busy ? c.saving : c.continue}</button>
+      </form>}
+      {step === 2 && <>
+        <p>{c.styleHint}</p>
+        <fieldset disabled={busy} className="entry-themes"><legend>{t('profile.themeTitle')}</legend>
+          {THEME_PRESETS.slice(0, 4).map(theme => <label key={theme.id} className="entry-theme">
+            <input type="radio" name="entry-theme" checked={selectedTheme.id === theme.id} onChange={() => void run(async () => { await updateThemePreset(theme.id); setThemeSaved(true); })} />
+            <span className="theme-swatches" aria-hidden="true">{[theme.primary, theme.secondary, theme.accent].map((color, index) => <i key={index} style={{ background: color }} />)}</span><span>{theme.name}</span>
+          </label>)}
+          {!THEME_PRESETS.slice(0, 4).some(theme => theme.id === selectedTheme.id) && <p>{t('profile.themeTitle')}: {selectedTheme.name}</p>}
+        </fieldset>
+        {themeSaved && <p role="status">{c.saved}</p>}
+        <GamertagAliasesEditor />
+        <div className="entry-actions"><button className="text-action" disabled={busy} type="button" onClick={() => { setError(''); setStep(1); }}>{c.back}</button><button className="primary-action" disabled={busy} type="button" onClick={() => void run(async () => { setEntry(await advanceEntry(client, 3)); setStep(3); })}>{c.next}</button></div>
+      </>}
+      {step === 3 && <>
+        <p>{c.leagueHint}</p>
+        {!entry.profile_complete ? <button className="primary-action" type="button" onClick={() => setStep(1)}>{c.setup}</button> : <form onSubmit={event => { event.preventDefault(); void run(async () => { setRequest(await requestEntryLeague(client, code)); }); }}>
+          <label className="entry-code">{c.code}<input inputMode="numeric" autoComplete="off" pattern="[0-9]{5}" minLength={5} maxLength={5} required value={code} disabled={busy} onChange={event => { setCode(event.target.value.replace(/\D/g, '')); setRequest(null); }} /></label>
+          <button className="primary-action" type="submit" disabled={busy || Boolean(request)}>{busy ? c.saving : c.join}</button>
+          <p className="entry-hint">{c.approval}</p>
+        </form>}
+        {request && <div role="status"><p>{request.request_status === 'already_member' ? c.member : c.sent} <strong>{request.league_name}</strong>.</p><button className="primary-action" type="button" disabled={busy} onClick={() => void run(() => leave('/home'))}>{c.home}</button></div>}
+        <div className="entry-actions"><button className="text-action" disabled={busy} type="button" onClick={() => { setError(''); setStep(2); }}>{c.back}</button><button className="text-action" disabled={busy} type="button" onClick={() => void run(() => leave('/leagues/new'))}>{c.create}</button></div>
+        <details className="entry-requests"><summary>{c.requests}</summary><LeagueJoinRequestStatusList refreshKey={request ? 1 : 0} /></details>
+      </>}
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <button className="entry-later text-action" disabled={busy} onClick={() => void run(() => leave('/home'))} type="button">{step === 3 ? c.explore : c.later}</button>
+    </section>
+  </main>;
 }

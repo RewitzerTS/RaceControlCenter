@@ -1100,6 +1100,8 @@ export type Database = {
       }
       driver_identities: {
         Row: {
+          racevora_number: number
+          entry_step: number
           created_at: string
           display_name: string | null
           gamertag: string | null
@@ -2666,6 +2668,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_my_entry_state: { Args: Record<PropertyKey, never>; Returns: Json }
+      save_my_entry_profile: { Args: { p_display_name: string; p_gamertag: string }; Returns: Json }
+      advance_my_entry: { Args: { p_step: number; p_finish?: boolean }; Returns: Json }
+      request_my_entry_league: { Args: { p_code: string }; Returns: Json }
+      get_join_request_driver_candidates: { Args: { p_request_id: string }; Returns: Json }
+      review_league_join_request_explicit: { Args: { p_request_id: string; p_decision: string; p_driver_id?: string; p_create_driver?: boolean; p_admin_note?: string }; Returns: Json }
       get_driver_gamertags: { Args: { p_driver_id?: string }; Returns: Json }
       add_driver_gamertag: { Args: { p_alias: string; p_platform?: string; p_driver_id?: string }; Returns: Json }
       remove_driver_gamertag: { Args: { p_alias_id: string; p_driver_id?: string }; Returns: Json }

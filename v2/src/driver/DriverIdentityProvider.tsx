@@ -1,11 +1,13 @@
 import type { User } from '@supabase/supabase-js';
 import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { loadEntry } from './entry';
 
 interface DriverIdentitySummary {
   driverId: string | null;
   id: string;
   profileNumber: number;
+  racevoraId?: string;
   status: string;
   linkedDriverCount: number;
 }
@@ -23,14 +25,19 @@ async function resolveDriverIdentity(
   leagueSlug: string,
   userId: User['id'],
 ): Promise<DriverIdentitySummary | null> {
-  const identityResponse = await client
+  let identityResponse = await client
     .from('driver_identities')
-    .select('id, profile_number, status')
+    .select('id, profile_number, racevora_number, status')
     .eq('user_id', userId)
     .maybeSingle();
 
   if (identityResponse.error) throw identityResponse.error;
-  if (!identityResponse.data) return null;
+  if (!identityResponse.data) {
+    await loadEntry(client);
+    identityResponse = await client.from('driver_identities').select('id, profile_number, racevora_number, status').eq('user_id', userId).maybeSingle();
+    if (identityResponse.error) throw identityResponse.error;
+    if (!identityResponse.data) throw new Error('Identity provisioning could not be verified.');
+  }
 
   const leagueResponse = await client
     .from('leagues')
@@ -45,6 +52,7 @@ async function resolveDriverIdentity(
       driverId: null,
       id: identityResponse.data.id,
       profileNumber: identityResponse.data.profile_number,
+      racevoraId: identityResponse.data.racevora_number ? `RV-${identityResponse.data.racevora_number}` : undefined,
       status: identityResponse.data.status,
       linkedDriverCount: 0,
     };
@@ -63,6 +71,7 @@ async function resolveDriverIdentity(
     driverId: links[0]?.driver_id ?? null,
     id: identityResponse.data.id,
     profileNumber: identityResponse.data.profile_number,
+    racevoraId: identityResponse.data.racevora_number ? `RV-${identityResponse.data.racevora_number}` : undefined,
     status: identityResponse.data.status,
     linkedDriverCount: links.length,
   };

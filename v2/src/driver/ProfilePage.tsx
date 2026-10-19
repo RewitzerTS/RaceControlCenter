@@ -25,6 +25,7 @@ import { ProfileGamertagEditor } from './ProfileGamertagEditor';
 import { GamertagAliasesEditor } from './GamertagAliasesEditor';
 import { ProfileLogoTheme } from './ProfileLogoTheme';
 import { useLeague } from '../league/LeagueProvider';
+import { entryCopy } from './entryCopy';
 
 const CUSTOM_THEME_FIELDS = [
   ['primary', 'profile.themePrimary'],
@@ -168,6 +169,7 @@ export function ProfilePage() {
           <h1>{displayName || user.email?.split('@')[0] || t('home.defaultDriver')}</h1>
           <p className="hero-subcopy">{t('route.profileCopy')}</p>
           <dl className="profile-facts">
+            {identity?.racevoraId && <div><dt>{entryCopy[language].id}</dt><dd>{identity.racevoraId}</dd></div>}
             <div><dt>{t('beta.email')}</dt><dd>{user.email ?? t('notConfirmed')}</dd></div>
             <div><dt>{t('profile.number')}</dt><dd className="profile-number">#{identity?.profileNumber ?? '–'}</dd></div>
             <div><dt>{t('profile.identity')}</dt><dd>{identity?.status === 'active' ? t('identityActive') : t('noIdentity')}</dd></div>

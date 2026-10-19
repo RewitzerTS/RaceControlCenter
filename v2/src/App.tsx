@@ -63,11 +63,13 @@ function AuthorizedExperience({ environment }: { environment: Parameters<typeof 
     pathname: location.pathname,
     search: location.search,
   });
+  const personalEntry = Boolean(user) && (location.pathname === '/onboarding'
+    || location.pathname === '/profile' || (location.pathname === '/home' && !roleLoading && !role));
 
   useEffect(() => {
     applyLeagueBranding(resolveExperienceBranding(branding, user?.user_metadata,
-      useStandardBranding || !user, !roleLoading && !role));
-  }, [branding, useStandardBranding, user, roleLoading, role]);
+      (useStandardBranding && !personalEntry) || !user, !roleLoading && !role));
+  }, [branding, useStandardBranding, personalEntry, user, roleLoading, role]);
 
   return <AppShell environment={environment} />;
 }

@@ -27,7 +27,7 @@ export function authErrorFeedbackKey(mode: AccessMode, error: unknown): MessageK
 }
 
 export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironment }) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { captcha, loading: authLoading, requestPasswordRecovery, signIn, signUp, user } = useAuth();
   const { t } = useI18n();
   const requestedMode = searchParams.get('mode');
@@ -37,6 +37,11 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const [feedback, setFeedback] = useState<Feedback>(null);
+
+  useEffect(() => {
+    setMode(requestedMode === 'signup' ? 'sign-up' : requestedMode === 'recovery' ? 'recovery' : 'sign-in');
+    setFeedback(null);
+  }, [requestedMode]);
 
   useEffect(() => {
     if (!embedded || authLoading || !user || window.parent === window) return;
@@ -55,7 +60,7 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
         </main>
       );
     }
-    return <Navigate replace to="/home" />;
+    return <Navigate replace to={user.user_metadata?.onboarding_complete === false ? '/onboarding' : '/home'} />;
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -102,6 +107,9 @@ export function BetaAccessPage({ appEnvironment }: { appEnvironment: AppEnvironm
   function changeMode(nextMode: AccessMode) {
     setFeedback(null);
     setMode(nextMode);
+    const next = new URLSearchParams(searchParams);
+    next.set('mode', nextMode === 'sign-up' ? 'signup' : nextMode === 'recovery' ? 'recovery' : 'signin');
+    setSearchParams(next, { replace: true });
     setCaptchaReset((current) => current + 1);
   }
 

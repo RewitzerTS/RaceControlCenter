@@ -9,7 +9,7 @@ function Probe() {
   return <span data-testid="identity-state">{loading ? 'loading' : `${identity?.id ?? 'none'}:${identity?.driverId ?? 'unlinked'}`}</span>;
 }
 
-function createClient() {
+function createClient(missingInitially = false) {
   const identityResult = {
     data: { id: 'identity-1', profile_number: 27, status: 'active' },
     error: null,
@@ -22,10 +22,12 @@ function createClient() {
     'league-rcc': { data: [{ driver_id: 'driver-rcc' }], error: null },
     'league-rummelracer': { data: [{ driver_id: 'driver-rummelracer' }], error: null },
   };
+  let identityReads = 0;
+  const rpc = vi.fn().mockResolvedValue({ data: { identity_id: 'identity-1', racevora_id: 'RV-100001', step: 1, profile_complete: false }, error: null });
   const from = vi.fn((table: string) => ({
     select: vi.fn(() => {
       if (table === 'driver_identities') {
-        return { eq: vi.fn(() => ({ maybeSingle: vi.fn().mockResolvedValue(identityResult) })) };
+        return { eq: vi.fn(() => ({ maybeSingle: vi.fn().mockImplementation(async () => (++identityReads === 1 && missingInitially) ? { data: null, error: null } : identityResult) })) };
       }
       if (table === 'leagues') {
         return {
@@ -41,11 +43,19 @@ function createClient() {
       };
     }),
   }));
-  return { client: { from } as unknown as LeagueSupabaseClient, from };
+  return { client: { from, rpc } as unknown as LeagueSupabaseClient, from, rpc };
 }
 
 describe('DriverIdentityProvider', () => {
   afterEach(cleanup);
+
+  it('provisions a missing identity once and reads the verified record again', async () => {
+    const { client, rpc } = createClient(true);
+    render(<DriverIdentityProvider client={client} leagueSlug="rcc" user={{ id: 'new-user' } as User}><Probe /></DriverIdentityProvider>);
+    await act(async () => {});
+    expect(rpc).toHaveBeenCalledExactlyOnceWith('get_my_entry_state');
+    expect(screen.getByTestId('identity-state')).toHaveTextContent('identity-1:driver-rcc');
+  });
 
   it('keeps the resolved identity when the same signed-in user object is refreshed', async () => {
     const { client, from } = createClient();
