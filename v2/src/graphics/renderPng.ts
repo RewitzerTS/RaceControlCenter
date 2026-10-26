@@ -81,7 +81,7 @@ export function readGraphicTheme(root: Element = document.documentElement): Grap
   const surface = themeColor(style, '--brand-surface', DEFAULT_PRESET.surface);
   const secondary = themeColor(style, '--brand-secondary', DEFAULT_PRESET.secondary);
   const text = themeColor(style, '--brand-text', DEFAULT_PRESET.text);
-  return {
+  const theme: GraphicTheme = {
     background,
     surface,
     surfaceAlt: mixGraphicColors(surface, secondary, 0.16),
@@ -93,6 +93,17 @@ export function readGraphicTheme(root: Element = document.documentElement): Grap
     line: mixGraphicColors(surface, text, 0.2),
     onPrimary: themeColor(style, '--brand-on-primary', DEFAULT_PRESET.textOnPrimary),
   };
+  // The default action purple is too dark for small text in exported graphics.
+  // Match the actual palette (not a possibly stale theme ID), preserving custom colors.
+  const standardPalette = theme.background === DEFAULT_PRESET.background
+    && theme.surface === DEFAULT_PRESET.surface && theme.primary === DEFAULT_PRESET.primary
+    && theme.secondary === DEFAULT_PRESET.secondary && theme.accent === DEFAULT_PRESET.accent
+    && theme.text === DEFAULT_PRESET.text && theme.onPrimary === DEFAULT_PRESET.textOnPrimary;
+  if (standardPalette) {
+    theme.primary = mixGraphicColors(theme.accent, theme.text, 0.2);
+    theme.onPrimary = theme.background;
+  }
+  return theme;
 }
 
 const TEMPLATE_THEME_VARIABLES: Record<string, keyof GraphicTheme> = {

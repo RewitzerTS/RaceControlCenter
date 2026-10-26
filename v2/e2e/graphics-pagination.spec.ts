@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { installPublicFixture, publicRacingFixture as f } from './public-fixture';
 
 for (const count of [20, 22]) test(`season graphics export all ${count} drivers in two PNGs`, async ({ context, page }, info) => {
@@ -46,6 +46,19 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
   expect(bytes.toString('latin1')).toContain('-02.png');
   expect(renders[0].p_source_payload.rows).toHaveLength(count);
   expect(renders[0].p_source_payload).not.toHaveProperty('result');
+  expect(renders[0].p_source_payload.presentation.theme.primary).toBe('#56a5b8');
+  expect(await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
+    const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height).data;
+    let turquoise = 0;
+    for (let i = 0; i < pixels.length; i += 4) {
+      if (pixels[i] === 86 && pixels[i + 1] === 165 && pixels[i + 2] === 184 && pixels[i + 3] === 255) turquoise++;
+    }
+    return turquoise;
+  })).toBeGreaterThan(100);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  if (count === 22) await page.locator('.graphics-preview-panel').screenshot({ path: info.outputPath('standings-page-2.png') });
+  if (count === 22) {
+    await page.locator('.graphics-preview-panel').screenshot({ path: info.outputPath('standings-page-2.png') });
+    const png = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL('image/png').split(',')[1]);
+    await writeFile(info.outputPath('turquoise-standings.png'), Buffer.from(png, 'base64'));
+  }
 });
