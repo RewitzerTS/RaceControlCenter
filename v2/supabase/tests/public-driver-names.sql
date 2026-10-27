@@ -94,5 +94,5 @@ begin
     union all select 'career',md5(string_agg(to_jsonb(t)::text,'|' order by to_jsonb(t)::text)) from public.driver_career_stats t
   ) current using(label) where old.digest is distinct from current.digest),'Results, XP, credits and career unchanged';
 end; $$;
+select 'public driver names: all assertions passed; rolling back synthetic writes' as result;
 rollback;
-select 'public driver names: all assertions passed; synthetic writes rolled back' as result;
