@@ -1,5 +1,10 @@
 export const simpleStewardMessages = {
   de: {
+    dismissed: 'Abgelehnt', editCase: 'Fall bearbeiten', correct: 'Korrektur veröffentlichen', correctionReason: 'Grund für die Korrektur',
+    correctionHint: 'Die neue Entscheidung ersetzt die bisherige. Zeitkorrekturen, Platzierungen und Punkte werden neu berechnet. Rennen und Beteiligte bleiben gleich.',
+    corrected: 'Korrektur veröffentlicht und Auswirkungen aktualisiert.', previousDecisions: 'Frühere Entscheidungen', currentDecision: 'Aktuelle Entscheidung',
+    correctionStale: 'Fall oder Ergebnis wurden inzwischen geändert. Lade den aktuellen Stand neu und prüfe die Korrektur erneut.',
+    correctionHistory: 'Der Ergebnisverlauf erlaubt keine sichere Korrektur. Bitte die zwischenzeitlichen Ergebnisänderungen prüfen. Es wurde nichts geändert.',
     reporters: 'Einreichende Fahrer', accusedDrivers: 'Beschuldigte Fahrer', addDriver: 'Fahrer hinzufügen', removeDriver: 'Entfernen',
     incident: 'Vorfall beschreiben', driverReason: 'Begründung für diesen Fahrer', individualDecisions: 'Entscheidungen je Fahrer',
     oneDecision: 'Pro beschuldigtem Fahrer genau eine Entscheidung. Auch „Keine Strafe“ braucht eine Begründung.',
@@ -33,6 +38,11 @@ export const simpleStewardMessages = {
     actionError: 'Die Entscheidung konnte nicht gespeichert werden. Bitte Angaben prüfen und erneut versuchen.',
   },
   en: {
+    dismissed: 'Rejected', editCase: 'Edit case', correct: 'Publish correction', correctionReason: 'Reason for correction',
+    correctionHint: 'The new decision replaces the previous one. Time adjustments, positions and points are recalculated. Race and participants stay the same.',
+    corrected: 'Correction published and effects updated.', previousDecisions: 'Previous decisions', currentDecision: 'Current decision',
+    correctionStale: 'The case or result has changed. Reload and review the correction again.',
+    correctionHistory: 'The result history does not allow a safe correction. Review intervening changes. Nothing was changed.',
     reporters: 'Reporting drivers', accusedDrivers: 'Accused drivers', addDriver: 'Add driver', removeDriver: 'Remove',
     incident: 'Describe the incident', driverReason: 'Reason for this driver', individualDecisions: 'Decisions by driver',
     oneDecision: 'Exactly one decision per accused driver. No penalty also requires a reason.',
@@ -65,6 +75,11 @@ export const simpleStewardMessages = {
     negativeTime: 'The time credit would produce a negative race time.', actionError: 'The decision could not be saved. Check the details and try again.',
   },
   es: {
+    dismissed: 'Rechazado', editCase: 'Editar caso', correct: 'Publicar corrección', correctionReason: 'Motivo de la corrección',
+    correctionHint: 'La nueva decisión sustituye a la anterior. Se recalculan tiempos, posiciones y puntos. La carrera y los participantes no cambian.',
+    corrected: 'Corrección publicada y efectos actualizados.', previousDecisions: 'Decisiones anteriores', currentDecision: 'Decisión actual',
+    correctionStale: 'El caso o resultado ha cambiado. Recarga y revisa de nuevo la corrección.',
+    correctionHistory: 'El historial no permite una corrección segura. Revisa los cambios intermedios. No se ha modificado nada.',
     reporters: 'Pilotos denunciantes', accusedDrivers: 'Pilotos acusados', addDriver: 'Añadir piloto', removeDriver: 'Quitar',
     incident: 'Descripción del incidente', driverReason: 'Justificación para este piloto', individualDecisions: 'Decisiones por piloto',
     oneDecision: 'Una sola decisión por piloto acusado. Sin sanción también requiere justificación.',
@@ -97,6 +112,11 @@ export const simpleStewardMessages = {
     negativeTime: 'La bonificación daría un tiempo negativo.', actionError: 'No se pudo guardar la decisión. Revisa los datos e inténtalo de nuevo.',
   },
   fr: {
+    dismissed: 'Rejeté', editCase: 'Modifier le dossier', correct: 'Publier la correction', correctionReason: 'Motif de la correction',
+    correctionHint: 'La nouvelle décision remplace la précédente. Les temps, positions et points sont recalculés. La course et les participants restent identiques.',
+    corrected: 'Correction publiée et effets actualisés.', previousDecisions: 'Décisions précédentes', currentDecision: 'Décision actuelle',
+    correctionStale: 'Le dossier ou le résultat a changé. Rechargez et vérifiez à nouveau la correction.',
+    correctionHistory: 'L’historique ne permet pas une correction sûre. Vérifiez les changements intermédiaires. Rien n’a été modifié.',
     reporters: 'Pilotes déclarants', accusedDrivers: 'Pilotes mis en cause', addDriver: 'Ajouter un pilote', removeDriver: 'Retirer',
     incident: 'Décrire l’incident', driverReason: 'Justification pour ce pilote', individualDecisions: 'Décisions par pilote',
     oneDecision: 'Une seule décision par pilote mis en cause. L’absence de sanction doit aussi être justifiée.',

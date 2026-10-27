@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture as f, confirmedNameFixture } from './public-fixture';
 
-for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','retry','self_credit','self_draft','group','group_draft'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
+for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','dismissed','retry','self_credit','self_draft','group','group_draft'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
   await installPublicFixture(context);
   const user = { id: '91000000-0000-4000-8000-000000000091', email: 'steward@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: { onboarding_complete: true, display_name: 'Test Steward' } };
   const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -128,7 +128,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
     await form.locator('[name^="penaltyType-"]').selectOption(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
     if (mode === 'grid_penalty') await expect(form).toContainText('3.');
     if (mode.startsWith('time_')) await expect(form).toContainText('vorgemerkt');
-    if (mode !== 'no_action') await form.locator('[name^="amount-"]').fill(mode === 'self_credit' ? '10' : '5');
+    if (!['no_action', 'dismissed'].includes(mode)) await form.locator('[name^="amount-"]').fill(mode === 'self_credit' ? '10' : '5');
     await form.locator('[name^="reason-"]').fill('Die Entscheidung wurde gemeinsam geprüft und begründet.');
     await form.locator('[name="confirmed"]').check();
     if (mode === 'time_penalty') {
@@ -212,6 +212,7 @@ test('case deletion confirms effects, preserves failed input, and removes the ca
 
 test('race shows pending and applied decisions plus incoming grid penalties', async ({ page, context }) => {
   await installPublicFixture(context);
+  await context.route('**/rest/v1/rpc/get_incoming_steward_grid_penalties', route => route.fulfill({ json: [{id:'grid',driver_id:f.drivers[0].id,grid_positions:3,reason:'Drei Startplätze zurück.'}] }));
   await context.route('**/rest/v1/steward_cases?**', route => route.fulfill({ json: [
     { id:'pending',title:'Pending time decision',description:'Incident',reported_driver_id:f.drivers[1].id,accused_driver_id:f.drivers[0].id,status:'closed',
       steward_case_participants: [{ driver_id:f.drivers[1].id,role:'reporter' },{ driver_id:f.drivers[0].id,role:'reporter' },{ driver_id:f.drivers[0].id,role:'accused' },{ driver_id:f.drivers[1].id,role:'accused' }] },

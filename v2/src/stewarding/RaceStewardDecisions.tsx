@@ -18,7 +18,7 @@ export function RaceStewardDecisions({ raceId, cases, drivers, races }: { raceId
     async function load() {
       const [decisions,incoming] = await Promise.all([
         cases.length ? client.from('steward_decision_versions').select('id,case_id,outcome,reasoning,steward_driver_decisions(driver_id,penalty_type,amount,target_race_id,reasoning)').in('case_id',cases.map((item) => item.id)).order('version_number',{ ascending:false }) : { data:[],error:null },
-        client.from('steward_penalties').select('id,driver_id,grid_positions,reason').eq('target_race_id',raceId).eq('penalty_type','grid_penalty'),
+        client.rpc('get_incoming_steward_grid_penalties', { p_race_id: raceId }),
       ]);
       if (decisions.error || incoming.error) throw decisions.error || incoming.error;
       const penalties = decisions.data?.length ? await client.from('steward_penalties').select('id,decision_version_id,driver_id,penalty_type,time_delta_ms,points_delta,reason,grid_positions,target_race_id').in('decision_version_id',decisions.data.map((d) => d.id)) : { data:[],error:null };
@@ -42,6 +42,7 @@ export function RaceStewardDecisions({ raceId, cases, drivers, races }: { raceId
         {!decision && <p>{t(`steward.status.${item.status}` as Parameters<typeof t>[0])}</p>}
         {decision?.steward_driver_decisions?.length ? <DriverDecisionList outcomes={decision.steward_driver_decisions} penalties={data.penalties.filter((p) => p.decision_version_id === decision.id)} drivers={drivers} races={races} /> : <>
           {decision?.outcome==='no_action' && <strong>{c.no_action}</strong>}
+          {decision?.outcome==='dismissed' && <strong>{c.dismissed}</strong>}
           {data.penalties.filter((p) => p.decision_version_id===decision?.id).map((p) => <p key={p.id}><strong>{c[p.penalty_type as keyof typeof c] || p.penalty_type}{p.time_delta_ms != null ? ` · ${p.time_delta_ms>0?'+':'−'}${formatNumber(Math.abs(p.time_delta_ms)/1000)} s` : p.grid_positions ? ` · ${p.grid_positions} ${c.places}` : ''}</strong>
             {p.time_delta_ms != null && <><br />{p.applied_result_version_id ? c.applied : c.pending}</>}</p>)}
         </>}

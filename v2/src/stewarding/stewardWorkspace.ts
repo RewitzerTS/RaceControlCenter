@@ -138,7 +138,8 @@ export async function loadStewardCaseDetail(client: LeagueSupabaseClient, caseId
     penalties: (penalties.data ?? []).map((p) => ({ ...p, applied_result_version_id: applications.data?.find((a) => a.penalty_id === p.id)?.result_version_id ?? null })), appeals: appeals.data ?? [] };
 }
 
-export type SimplePenaltyType = 'time_penalty' | 'time_credit' | 'grid_penalty' | 'no_action';
+export type SimplePenaltyType = 'time_penalty' | 'time_credit' | 'grid_penalty' | 'no_action' | 'dismissed';
+export const hasStewardPenalty = (kind: SimplePenaltyType) => !['no_action', 'dismissed'].includes(kind);
 export function stewardParticipantIds(item: Pick<StewardCase, 'steward_case_participants' | 'reported_driver_id' | 'accused_driver_id'>, role: 'reporter' | 'accused'): string[] {
   const ids = item.steward_case_participants?.filter((p) => p.role === role).map((p) => p.driver_id);
   const legacy = role === 'reporter' ? item.reported_driver_id : item.accused_driver_id;
@@ -147,8 +148,19 @@ export function stewardParticipantIds(item: Pick<StewardCase, 'steward_case_part
 export type GroupStewardInput = {
   raceId: string; reporterIds: string[]; accusedIds: string[]; title: string; description: string;
   decisions: DriverStewardDecision[]; caseId: string | null;
+  correction?: { expectedDecision: number; expectedResult: string | null; reason: string };
 };
 export async function saveStewardGroupCase(client: LeagueSupabaseClient, input: GroupStewardInput, idempotencyKey: string, draft: boolean) {
+  if (input.correction) {
+    const response = await client.rpc('correct_steward_group_case', {
+      p_race_id: input.raceId, p_reporter_ids: input.reporterIds, p_accused_ids: input.accusedIds,
+      p_title: input.title, p_description: input.description, p_decisions: input.decisions,
+      p_case_id: input.caseId!, p_idempotency_key: idempotencyKey,
+      p_expected_decision_version: input.correction.expectedDecision,
+      p_expected_result_version_id: input.correction.expectedResult, p_correction_reason: input.correction.reason,
+    });
+    throwIfError(response.error); return response.data;
+  }
   const response = await client.rpc('save_steward_group_case', {
     p_race_id: input.raceId, p_reporter_ids: input.reporterIds, p_accused_ids: input.accusedIds,
     p_title: input.title, p_description: input.description, p_decisions: draft ? [] : input.decisions,

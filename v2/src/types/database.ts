@@ -2769,6 +2769,16 @@ export type Database = {
           p_decisions: Json; p_draft: boolean; p_case_id: string | null; p_idempotency_key: string }
         Returns: Json
       }
+      correct_steward_group_case: {
+        Args: { p_race_id: string; p_reporter_ids: string[]; p_accused_ids: string[]; p_title: string; p_description: string;
+          p_decisions: Json; p_case_id: string; p_idempotency_key: string; p_expected_decision_version: number;
+          p_expected_result_version_id: string | null; p_correction_reason: string }
+        Returns: Json
+      }
+      get_incoming_steward_grid_penalties: {
+        Args: { p_race_id: string }
+        Returns: { id: string; driver_id: string; grid_positions: number | null; reason: string }[]
+      }
       record_steward_decision: {
         Args: { p_race_id: string; p_reported_driver_id: string; p_accused_driver_id: string;
           p_title: string; p_reasoning: string; p_penalty_type: string; p_amount: number | null;

@@ -35,6 +35,7 @@ function StewardWorkspace() {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null), [showCreate, setShowCreate] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
   const [raceFilter, setRaceFilter] = useState(''), [page, setPage] = useState(0);
   const [loadError, setLoadError] = useState(false);
   const requestSequence = useRef(0);
@@ -54,11 +55,11 @@ function StewardWorkspace() {
   }, [client, raceFilter, page]);
   useEffect(() => { if (flags.stewardWorkspace) void refresh(); return () => { requestSequence.current++; }; }, [flags.stewardWorkspace, refresh]);
   function changeQueue(raceId: string, nextPage: number) {
-    requestSequence.current++; setLoading(true); setSelectedId(null); setDetail(null); setDeleteId(null);
+    requestSequence.current++; setLoading(true); setSelectedId(null); setDetail(null); setDeleteId(null); setEditId(null);
     setRaceFilter(raceId); setPage(nextPage);
   }
   useEffect(() => {
-    let active = true; setDetail(null); setSubmissionError(null);
+    let active = true; setDetail(null); setSubmissionError(null); setEditId(null); setDeleteId(null);
     if (selectedId) void loadStewardCaseDetail(client, selectedId).then((value) => { if (active) setDetail(value); })
       .catch(() => { if (active) setError(t('steward.loadError')); });
     return () => { active = false; };
@@ -69,11 +70,12 @@ function StewardWorkspace() {
     setBusy(true); setError(null); setSubmissionError(null); setNotice(null);
     try {
       await saveStewardGroupCase(client, input, key, draft);
-      setShowCreate(false); setNotice(draft ? t('steward.caseCreated') : c.published);
+      setShowCreate(false); setEditId(null); setNotice(input.correction ? c.corrected : draft ? t('steward.caseCreated') : c.published);
       await refresh(); return true;
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : '';
-      setSubmissionError(/negative/.test(message) ? c.negativeTime : /race time|race times|classified result/.test(message) ? c.badTime
+      setSubmissionError(/Reload before correcting/.test(message) ? c.correctionStale : /Result history changed|Legacy penalty/.test(message) ? c.correctionHistory
+        : /negative/.test(message) ? c.negativeTime : /race time|race times|classified result/.test(message) ? c.badTime
         : /next scheduled/.test(message) ? c.noNext : /Publish the race result/.test(message) ? c.noResult
         : c.actionError);
       return false;
@@ -130,7 +132,8 @@ function StewardWorkspace() {
           [c.accusedDrivers, stewardParticipantIds(selected, 'accused').map((id) => snapshot.drivers.find((d) => d.id === id)?.display_name || '—').join(', ')]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl>
         <p className="case-description">{selected.description}</p>
         {permitted && <div className="steward-delete">
-          {deleteId !== selected.id ? <button className="text-action" type="button" disabled={busy || !detail} onClick={() => setDeleteId(selected.id)}>{c.deleteCase}</button>
+          {selected.status === 'closed' && selected.reported_driver_id && <button className="text-action" type="button" disabled={busy || !detail} onClick={() => { setDeleteId(null); setSubmissionError(null); setEditId(editId === selected.id ? null : selected.id); }}>{editId === selected.id ? t('steward.cancel') : c.editCase}</button>}
+          {deleteId !== selected.id ? <button className="text-action" type="button" disabled={busy || !detail} onClick={() => { setEditId(null); setDeleteId(selected.id); }}>{c.deleteCase}</button>
             : <form key={selected.id} onSubmit={removeCase} aria-label={c.deleteCase}>
               <h3>{c.deleteConfirm}</h3><p>{c.deleteHint}</p>
               <label>{c.deleteReason}<textarea name="deleteReason" minLength={10} maxLength={2000} required disabled={busy} /></label>
@@ -139,10 +142,22 @@ function StewardWorkspace() {
             </form>}
         </div>}
         {!detail ? <p role="status">{t('pending')}</p> : <>
+          {permitted && editId === selected.id && <DecisionForm key={`edit-${selected.id}-${selected.current_decision_version}`} existing={selected} snapshot={snapshot} busy={busy} submissionError={submissionError} onSubmit={submit}
+            initialDecisions={(() => {
+              const decision = detail.decisions.find(d => d.version_number === selected.current_decision_version);
+              if (decision?.steward_driver_decisions?.length) return decision.steward_driver_decisions;
+              return stewardParticipantIds(selected, 'accused').map(driverId => {
+                const penalty = detail.penalties.find(p => p.decision_version_id === decision?.id && (!p.driver_id || p.driver_id === driverId));
+                return { driver_id: driverId, penalty_type: penalty?.penalty_type || (decision?.outcome === 'dismissed' ? 'dismissed' : 'no_action'),
+                  amount: penalty?.time_delta_ms != null ? Math.abs(penalty.time_delta_ms) / 1000 : penalty?.grid_positions ?? null,
+                  target_race_id: penalty?.target_race_id ?? null, reasoning: penalty?.reason || decision?.reasoning || selected.description };
+              });
+            })()} />}
           {detail.decisions.map((decision) => <section className="simple-decision" key={decision.id}>
-            <h3>{c.decision} · {formatDate(decision.finalized_at)}</h3><p>{decision.reasoning}</p>
+            <h3>{decision.version_number === selected.current_decision_version ? c.currentDecision : c.previousDecisions} · {decision.version_number} · {formatDate(decision.finalized_at)}</h3><p>{decision.reasoning}</p>
             {decision.steward_driver_decisions?.length ? <DriverDecisionList outcomes={decision.steward_driver_decisions} penalties={detail.penalties.filter((p) => p.decision_version_id === decision.id)} drivers={snapshot.drivers} races={snapshot.races} /> : <>
               {decision.outcome === 'no_action' && <strong>{c.no_action}</strong>}
+              {decision.outcome === 'dismissed' && <strong>{c.dismissed}</strong>}
               {detail.penalties.filter((p) => p.decision_version_id === decision.id).map((penalty) => <p key={penalty.id}><strong><PenaltyLabel penalty={penalty} /></strong>{penalty.target_race_id && <><br />{c.target}: {snapshot.races.find((r) => r.id === penalty.target_race_id)?.grand_prix_name || '—'}<br />{c.gridHint}</>}</p>)}
             </>}
           </section>)}

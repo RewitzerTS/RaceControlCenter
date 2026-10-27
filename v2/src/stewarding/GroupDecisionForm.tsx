@@ -1,10 +1,11 @@
 import { type FormEvent, useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
-import { activeStewardRaces, nextStewardRace, stewardParticipantIds, type GroupStewardInput, type SimplePenaltyType, type StewardCase, type StewardWorkspaceSnapshot } from './stewardWorkspace';
+import { activeStewardRaces, hasStewardPenalty, nextStewardRace, stewardParticipantIds, type DriverStewardDecision, type GroupStewardInput, type SimplePenaltyType, type StewardCase, type StewardWorkspaceSnapshot } from './stewardWorkspace';
 import { simpleStewardMessages } from './simpleStewardMessages';
 
-export function GroupDecisionForm({ snapshot, existing, busy, onSubmit, submissionError }: {
+export function GroupDecisionForm({ snapshot, existing, initialDecisions = [], busy, onSubmit, submissionError }: {
   snapshot: StewardWorkspaceSnapshot; existing?: StewardCase; busy: boolean;
+  initialDecisions?: DriverStewardDecision[];
   submissionError?: string | null;
   onSubmit: (input: GroupStewardInput, key: string, draft: boolean) => Promise<boolean>;
 }) {
@@ -13,19 +14,22 @@ export function GroupDecisionForm({ snapshot, existing, busy, onSubmit, submissi
   const [raceId, setRaceId] = useState(existing?.race_id || races[0]?.id || '');
   const [reporters, setReporters] = useState(existing ? stewardParticipantIds(existing, 'reporter') : ['']);
   const [accused, setAccused] = useState(existing ? stewardParticipantIds(existing, 'accused') : ['']);
-  const [kinds, setKinds] = useState<Record<string, SimplePenaltyType>>({});
+  const correcting = existing?.status === 'closed';
+  const [kinds, setKinds] = useState<Record<string, SimplePenaltyType>>(() => Object.fromEntries(initialDecisions.map(d => [d.driver_id, d.penalty_type as SimplePenaltyType])));
   const [localError, setLocalError] = useState<string | null>(null);
   const retry = useRef<{ payload: string; key: string } | null>(null), pending = useRef(false);
   const race = snapshot.races.find((r) => r.id === raceId), next = nextStewardRace(snapshot.races, raceId);
   const kindFor = (id: string) => kinds[id] || 'time_penalty';
-  const canPublish = Boolean(race && accused.every((id) => kindFor(id) !== 'grid_penalty' || next));
+  const previous = (id: string) => initialDecisions.find(d => d.driver_id === id);
+  const targetFor = (id: string) => next || (correcting && previous(id)?.penalty_type === 'grid_penalty' ? snapshot.races.find(r => r.id === previous(id)?.target_race_id) : null);
+  const canPublish = Boolean(race && accused.every((id) => kindFor(id) !== 'grid_penalty' || targetFor(id)));
   const name = (id: string) => snapshot.drivers.find((d) => d.id === id)?.display_name || '—';
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (pending.current || busy) return;
     const form = event.currentTarget, data = new FormData(form);
     const draft = (event.nativeEvent as SubmitEvent).submitter?.getAttribute('value') === 'draft';
-    const title = existing?.title || String(data.get('title') || '').trim();
+    const title = !correcting && existing ? existing.title : String(data.get('title') || '').trim();
     const description = String(data.get('reasoning') || '').trim();
     if (!raceId || !reporters.length || !accused.length || [...reporters, ...accused].some((id) => !id)
       || title.length < 4 || description.length < 10) {
@@ -37,9 +41,10 @@ export function GroupDecisionForm({ snapshot, existing, busy, onSubmit, submissi
     }
     const input: GroupStewardInput = { raceId, reporterIds: reporters, accusedIds: accused, title, description, caseId: existing?.id || null,
       decisions: draft ? [] : accused.map((id) => ({ driver_id: id, penalty_type: kindFor(id),
-        amount: kindFor(id) === 'no_action' ? null : Number(data.get(`amount-${id}`)),
-        target_race_id: kindFor(id) === 'grid_penalty' ? next?.id || null : null,
-        reasoning: String(data.get(`reason-${id}`) || '').trim() })) };
+        amount: hasStewardPenalty(kindFor(id)) ? Number(data.get(`amount-${id}`)) : null,
+        target_race_id: kindFor(id) === 'grid_penalty' ? targetFor(id)?.id || null : null,
+        reasoning: String(data.get(`reason-${id}`) || '').trim() })),
+      ...(correcting ? { correction: { expectedDecision: existing.current_decision_version!, expectedResult: race?.current_result_version_id || null, reason: String(data.get('correctionReason') || '').trim() } } : {}) };
     setLocalError(null);
     const payload = JSON.stringify({ input, draft });
     if (retry.current?.payload !== payload) retry.current = { payload, key: crypto.randomUUID() };
@@ -69,14 +74,15 @@ export function GroupDecisionForm({ snapshot, existing, busy, onSubmit, submissi
   }
 
   return <form className="steward-form steward-form--create simple-steward-form" onSubmit={submit}>
-    <h2 className="span-two">{existing ? c.open : t('steward.newCase')}</h2>
+    <h2 className="span-two">{correcting ? c.editCase : existing ? c.open : t('steward.newCase')}</h2>
+    {correcting && <p className="span-two">{c.correctionHint}</p>}
     {!existing && <label className="span-two">{t('steward.race')}<select name="race" value={raceId} disabled={busy} required onChange={(e) => setRaceId(e.target.value)}>
       {races.map((r) => <option key={r.id} value={r.id}>{r.round_number}. {r.grand_prix_name}</option>)}
     </select></label>}
     {participants('reporter', reporters, setReporters)}
     {participants('accused', accused, setAccused)}
     <p className="span-two">{c.selfReport}</p>
-    {!existing && <label className="span-two">{t('steward.caseTitle')}<input name="title" minLength={4} maxLength={140} required disabled={busy} /></label>}
+    {(!existing || correcting) && <label className="span-two">{t('steward.caseTitle')}<input name="title" defaultValue={existing?.title || ''} minLength={4} maxLength={140} required disabled={busy} /></label>}
     <label className="span-two">{c.incident}<textarea name="reasoning" defaultValue={existing?.description || ''} minLength={10} maxLength={4000} required disabled={busy} /></label>
     {accused.some(Boolean) && <div className="span-two"><h3>{c.individualDecisions}</h3><p>{c.oneDecision}</p></div>}
     {accused.filter(Boolean).map((id) => {
@@ -85,21 +91,22 @@ export function GroupDecisionForm({ snapshot, existing, busy, onSubmit, submissi
         <legend>{name(id)}</legend>
         <div className="steward-decision-fields">
           <label>{c.decision}<select name={`penaltyType-${id}`} value={kind} onChange={(e) => setKinds({ ...kinds, [id]: e.target.value as SimplePenaltyType })}>
-            {(['time_penalty', 'time_credit', 'grid_penalty', 'no_action'] as const).map((value) => <option key={value} value={value}>{c[value]}</option>)}
+            {(['time_penalty', 'time_credit', 'grid_penalty', 'no_action', 'dismissed'] as const).map((value) => <option key={value} value={value}>{c[value]}</option>)}
           </select></label>
-          {kind !== 'no_action' && <label>{kind === 'grid_penalty' ? c.places : c.seconds}<input key={kind} name={`amount-${id}`} type="number"
-            min={kind === 'grid_penalty' ? 1 : 0.001} max={kind === 'grid_penalty' ? 99 : 3600} step={kind === 'grid_penalty' ? 1 : 0.001} defaultValue={5} required /></label>}
-          <label className="span-two">{c.driverReason}<textarea name={`reason-${id}`} minLength={10} maxLength={4000} required /></label>
+          {hasStewardPenalty(kind) && <label>{kind === 'grid_penalty' ? c.places : c.seconds}<input key={kind} name={`amount-${id}`} type="number"
+            min={kind === 'grid_penalty' ? 1 : 0.001} max={kind === 'grid_penalty' ? 99 : 3600} step={kind === 'grid_penalty' ? 1 : 0.001} defaultValue={previous(id)?.penalty_type === kind ? previous(id)?.amount ?? 5 : 5} required /></label>}
+          <label className="span-two">{c.driverReason}<textarea name={`reason-${id}`} defaultValue={previous(id)?.reasoning || ''} minLength={10} maxLength={4000} required /></label>
         </div>
-        {kind === 'grid_penalty' ? <p role="status">{next ? <><strong>{c.target}: {next.round_number}. {next.grand_prix_name}</strong><br />{c.gridHint}</> : c.noNext}</p>
-          : kind !== 'no_action' && <p role="status">{race?.current_result_version_id ? c.timeHint : c.noResult}</p>}
+        {kind === 'grid_penalty' ? <p role="status">{targetFor(id) ? <><strong>{c.target}: {targetFor(id)!.round_number}. {targetFor(id)!.grand_prix_name}</strong><br />{c.gridHint}</> : c.noNext}</p>
+          : hasStewardPenalty(kind) && <p role="status">{race?.current_result_version_id ? c.timeHint : c.noResult}</p>}
       </fieldset>;
     })}
+    {correcting && <label className="span-two">{c.correctionReason}<textarea name="correctionReason" minLength={10} maxLength={2000} required disabled={busy} /></label>}
     <label className="check-label span-two"><input name="confirmed" type="checkbox" disabled={busy} />{c.confirm}</label>
     {localError && <p className="span-two" role="alert">{localError}</p>}
     {submissionError && <p className="workspace-message workspace-message--error span-two" role="alert">{submissionError}</p>}
     <div className="simple-steward-submit span-two">
-      <button className="primary-action action-button" type="submit" disabled={busy || !canPublish}>{busy ? t('pending') : c.publish}</button>
+      <button className="primary-action action-button" type="submit" disabled={busy || !canPublish}>{busy ? t('pending') : correcting ? c.correct : c.publish}</button>
       {!existing && <button className="text-action" type="submit" value="draft" formNoValidate disabled={busy || !raceId}>{c.draft}</button>}
     </div>
   </form>;
