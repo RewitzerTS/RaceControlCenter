@@ -9,6 +9,8 @@ const data = await readFile(resolve(root, 'src/driver/driverHome.ts'), 'utf8');
 const racing = await readFile(resolve(root, 'src/driver/RacingPage.tsx'), 'utf8');
 const career = await readFile(resolve(root, 'src/driver/CareerPage.tsx'), 'utf8');
 const profile = await readFile(resolve(root, 'src/driver/ProfilePage.tsx'), 'utf8');
+const profileNames = await readFile(resolve(root, 'src/driver/ProfileNameSettings.tsx'), 'utf8');
+const nameSettings = await readFile(resolve(root, 'src/driver/nameSettings.ts'), 'utf8');
 const styles = await readFile(resolve(root, 'src/styles.css'), 'utf8');
 const violations = [];
 
@@ -105,7 +107,8 @@ if (career.includes('<header className="integrated-section-heading"><div><h1>{ca
 if (!career.includes("careerSearch.set('profile_number', String(identity.profileNumber))")) {
   violations.push('Career profile does not pass the verified global profile number to its embedded view');
 }
-if (!profile.includes('updateDisplayName') || !profile.includes('identity?.linkedDriverCount')) {
+if (!profile.includes('<ProfileNameSettings') || !profileNames.includes('saveNameSettings')
+  || !nameSettings.includes("client.rpc('save_my_name_settings'") || !profile.includes('identity?.linkedDriverCount')) {
   violations.push('Profile does not provide account settings and driver-link status');
 }
 if (
