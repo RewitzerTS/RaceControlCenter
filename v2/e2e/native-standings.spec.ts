@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { installPublicFixture, publicRacingFixture } from './public-fixture';
+import { installPublicFixture, publicRacingFixture, confirmedNameFixture } from './public-fixture';
 
 test.beforeEach(async ({ context }) => { await installPublicFixture(context); });
 test.afterEach(async ({ page }, testInfo) => {
@@ -75,6 +75,7 @@ test('signed-in drivers see all three season teams before any race, including af
     const name = new URL(route.request().url()).pathname.split('/').pop();
     if (name === 'user') return route.fulfill({ json: user });
     if (name === 'current_app_role') return route.fulfill({ json: 'driver' });
+    if (route.request().url().includes('/rpc/get_my_name_settings')) return route.fulfill({ json: confirmedNameFixture });
     if (name === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: false, verified: false } });
     if (name === 'league_members') return route.fulfill({ json: [{ league_id: publicRacingFixture.league.id, role: 'driver' }] });
     if (name === 'driver_identities') return route.fulfill({ json: { id: user.id, status: 'active', profile_number: 86 } });

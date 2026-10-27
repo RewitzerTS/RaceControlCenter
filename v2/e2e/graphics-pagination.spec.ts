@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
-import { installPublicFixture, publicRacingFixture as f } from './public-fixture';
+import { installPublicFixture, publicRacingFixture as f, confirmedNameFixture } from './public-fixture';
 
 for (const count of [20, 22]) test(`season graphics export all ${count} drivers in two PNGs`, async ({ context, page }, info) => {
   await installPublicFixture(context);
@@ -18,6 +18,7 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
   await context.route('https://*.supabase.co/**', async (route) => {
     const url = new URL(route.request().url()), name = url.pathname.split('/').pop();
     if (url.pathname === '/auth/v1/user') return route.fulfill({ json: user });
+    if (route.request().url().includes('/rpc/get_my_name_settings')) return route.fulfill({ json: confirmedNameFixture });
     if (name === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: false, verified: false } });
     if (name === 'current_app_role') return route.fulfill({ json: 'league_admin' });
     if (name === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'admin' }] });

@@ -35,6 +35,7 @@ async function entryFixture(context: BrowserContext, options: { admin?: boolean;
     if (name === 'league_members') return route.fulfill({ json: options.admin ? [{ league_id: publicRacingFixture.league.id, role: 'league_admin' }] : [] });
     if (name === 'driver_identity_links') return route.fulfill({ json: [] });
     if (name === 'get_my_entry_state') return route.fulfill({ json: entry });
+    if (name === 'get_my_name_settings') return route.fulfill({ json: entry.profile_complete || options.admin ? { name: entry.real_name || 'Admin', gamertag: entry.gamertag || 'AdminTag', public_name_mode: entry.public_name_mode, needs_confirmation: false, revision: 'confirmed' } : null });
     if (name === 'get_my_league_join_requests') return route.fulfill({ json: pending ? [{ id: 'request', league_id: publicRacingFixture.league.id, league_name: 'Monday Night Racing', league_slug: publicRacingFixture.league.slug, status: 'pending', requested_at: '2026-10-18T12:00:00Z', reviewed_at: null }] : [] });
     if (name === 'get_driver_gamertags') return route.fulfill({ json: { main: entry.gamertag, aliases: [] } });
     if (name === 'get_league_member_admin_workspace') return route.fulfill({ json: { league: publicRacingFixture.league, members: [], join_requests: reviewed ? [] : [{ id: 'request', user_id: id, email: 'entry-test@example.invalid', display_name: 'Racer', gamertag: 'Darkqz', requested_at: '2026-10-18T12:00:00Z', status: 'pending' }] } });
@@ -103,7 +104,7 @@ test('entry can be skipped, resumed, and does not capture password recovery', as
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Später fortsetzen' }).click();
   await expect(page).toHaveURL(/\/home/);
-  await page.getByRole('link', { name: 'Einrichtung fortsetzen' }).click();
+  await page.getByRole('link', { name: 'Fahrerprofil einrichten' }).click();
   await expect(page.getByLabel('Name / Vorname', { exact: true })).toHaveValue('');
   await page.screenshot({ path: info.outputPath('entry-320.png'), fullPage: true });
   await page.goto('/auth/reset');

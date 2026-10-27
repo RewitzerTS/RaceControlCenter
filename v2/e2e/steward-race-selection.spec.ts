@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { installPublicFixture, publicRacingFixture as f } from './public-fixture';
+import { installPublicFixture, publicRacingFixture as f, confirmedNameFixture } from './public-fixture';
 
 for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','retry','self_credit','self_draft','group','group_draft'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
   await installPublicFixture(context);
@@ -22,6 +22,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
     const request = route.request(), url = new URL(request.url()), table = url.pathname.split('/').pop();
     if (table === 'user') return route.fulfill({ json: user });
     if (table === 'current_app_role') return route.fulfill({ json: 'steward' });
+    if (route.request().url().includes('/rpc/get_my_name_settings')) return route.fulfill({ json: confirmedNameFixture });
     if (table === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: false, verified: false } });
     if (table === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'steward' }] });
     if (table === 'driver_identities') return route.fulfill({ json: { id: user.id, status: 'active', profile_number: 91 } });
@@ -171,6 +172,7 @@ test('case deletion confirms effects, preserves failed input, and removes the ca
     const request=route.request(), url=new URL(request.url()), table=url.pathname.split('/').pop();
     if(table==='user') return route.fulfill({json:user});
     if(table==='current_app_role') return route.fulfill({json:'steward'});
+    if (route.request().url().includes('/rpc/get_my_name_settings')) return route.fulfill({ json: confirmedNameFixture });
     if(table==='get_owner_mfa_status') return route.fulfill({json:{is_owner:false,verified:false}});
     if(table==='league_members') return route.fulfill({json:[{league_id:f.league.id,role:'steward'}]});
     if(table==='driver_identities') return route.fulfill({json:{id:user.id,status:'active',profile_number:91}});

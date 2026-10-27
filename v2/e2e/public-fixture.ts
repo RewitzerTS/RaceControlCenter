@@ -1,5 +1,8 @@
 import type { BrowserContext } from '@playwright/test';
 
+// Established-account fixtures have already confirmed their public-name preference.
+export const confirmedNameFixture = { name: 'Test Driver', gamertag: 'TestTag', public_name_mode: 'gamertag', needs_confirmation: false, revision: 'confirmed' };
+
 const league = { id: '10000000-0000-4000-8000-000000000001', slug: 'rcc', name: 'Browser Test League', is_public: true, status: 'active', logo_url: null, settings: { published: true, owner_only: false } };
 const season = { id: '20000000-0000-4000-8000-000000000001', league_id: league.id, slug: 'browser-season', name: 'Browser Test Season', is_active: true, game_key: 'f1-25', created_at: '2026-01-01T00:00:00Z', fastest_lap_bonus_enabled: true, fastest_lap_bonus_points: 1, fastest_lap_bonus_max_finish_position: 10 };
 const race = { id: '30000000-0000-4000-8000-000000000001', season_id: season.id, round_number: 1, grand_prix_name: 'Japan GP', circuit_name: 'Suzuka International Racing Course', country_code: 'JP', race_date: '2026-08-01', race_start_at: '2026-08-01T18:00:00Z', status: 'completed', current_result_version_id: '40000000-0000-4000-8000-000000000001' };

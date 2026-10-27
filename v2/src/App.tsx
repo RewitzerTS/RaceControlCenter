@@ -5,6 +5,7 @@ import { OwnerMfaGate } from './auth/OwnerMfaGate';
 import { AppShell } from './components/AppShell';
 import { EnvironmentGate } from './components/EnvironmentGate';
 import { DriverIdentityProvider } from './driver/DriverIdentityProvider';
+import { PublicNameGate } from './driver/PublicNameGate';
 import { FeatureFlagProvider } from './features/FeatureFlagProvider';
 import { I18nProvider } from './i18n/I18nProvider';
 import { LeagueProvider, useLeague } from './league/LeagueProvider';
@@ -43,11 +44,13 @@ function AuthorizedShell({ environment }: { environment: Parameters<typeof AppSh
   }, []);
 
   return (
-    <DriverIdentityProvider client={client} leagueSlug={leagueSlug} user={user}>
-      <RoleProvider client={client} leagueSlug={leagueSlug} user={user}>
-        <AuthorizedExperience environment={environment} />
-      </RoleProvider>
-    </DriverIdentityProvider>
+    <PublicNameGate>
+      <DriverIdentityProvider client={client} leagueSlug={leagueSlug} user={user}>
+        <RoleProvider client={client} leagueSlug={leagueSlug} user={user}>
+          <AuthorizedExperience environment={environment} />
+        </RoleProvider>
+      </DriverIdentityProvider>
+    </PublicNameGate>
   );
 }
 

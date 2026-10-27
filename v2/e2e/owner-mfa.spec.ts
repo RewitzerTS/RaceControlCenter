@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
-import { installPublicFixture } from './public-fixture';
+import { installPublicFixture, confirmedNameFixture } from './public-fixture';
 
 // Synthetic sessions and QR only: never enroll a real user in browser tests.
 async function installMfaFixture(context: BrowserContext, existing = false) {
@@ -30,6 +30,7 @@ async function installMfaFixture(context: BrowserContext, existing = false) {
   });
   await context.route('**/rest/v1/rpc/**', async (route) => {
     const name = new URL(route.request().url()).pathname.split('/').pop();
+    if (route.request().url().includes('/rpc/get_my_name_settings')) return route.fulfill({ json: confirmedNameFixture });
     if (name === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: true, verified: elevated } });
     if (name === 'current_app_role') return route.fulfill({ json: elevated ? 'owner' : null });
     return route.fulfill({ json: null });

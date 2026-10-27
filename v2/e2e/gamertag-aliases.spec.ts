@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
-import { installPublicFixture, publicRacingFixture } from './public-fixture';
+import { installPublicFixture, publicRacingFixture, confirmedNameFixture } from './public-fixture';
 
 async function fixture(context: BrowserContext, fail = false, editor: { active?: boolean; error?: string } = {}) {
   await installPublicFixture(context);
@@ -22,6 +22,7 @@ async function fixture(context: BrowserContext, fail = false, editor: { active?:
     const body = route.request().method()==='POST' ? route.request().postDataJSON() : {};
     if(name==='user') return route.fulfill({json:user});
     if(name==='current_app_role') return route.fulfill({json:'league_admin'});
+    if (route.request().url().includes('/rpc/get_my_name_settings')) return route.fulfill({ json: confirmedNameFixture });
     if(name==='get_owner_mfa_status') return route.fulfill({json:{is_owner:false,verified:false}});
     if(name==='driver_identities') return route.fulfill({json:{id:user.id,status:'active',profile_number:75,gamertag:'Darkqz'}});
     if(name==='league_members') return route.fulfill({json:[{league_id:publicRacingFixture.league.id,role:'league_admin'}]});

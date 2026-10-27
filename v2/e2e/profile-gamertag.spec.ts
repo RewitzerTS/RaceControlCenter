@@ -1,7 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture } from './public-fixture';
 
-async function installGamertagFixture(context: BrowserContext, options: { failSave?: boolean; failLoad?: boolean; missing?: boolean; nameFailure?: string } = {}) {
+async function installGamertagFixture(context: BrowserContext, options: { failSave?: boolean; failLoad?: boolean; missing?: boolean; nameFailure?: string; unconfirmed?: boolean; failNameCheck?: boolean } = {}) {
   await installPublicFixture(context);
   const id = '91000000-0000-4000-8000-000000000075';
   const identityId = '92000000-0000-4000-8000-000000000075';
@@ -10,7 +10,8 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
   let saved = 'Raucher7575';
   let failedSave = false;
   let failedLoad = false;
-  let nameSettings = { name: 'Davide', gamertag: saved, public_name_mode: null as string | null, needs_confirmation: true, revision: 'initial' };
+  let nameSettings = { name: 'Davide', gamertag: saved, public_name_mode: (options.unconfirmed ? null : 'name') as string | null, needs_confirmation: Boolean(options.unconfirmed), revision: 'initial' };
+  let nameCheckFailed = false;
   let nameFailure = options.nameFailure;
   const writes: unknown[] = [];
   const user = () => ({ id, email: 'gamertag-test@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: { display_name: 'Test Driver', gamertag: saved, onboarding_complete: true, theme_preset: 0 }, created_at: '2026-01-01T00:00:00Z' });
@@ -23,7 +24,10 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
   await context.route('https://*.supabase.co/**', async route => {
     const url = new URL(route.request().url());
     const name = url.pathname.split('/').pop();
-    if (name === 'get_my_name_settings') return route.fulfill({ json: options.missing ? null : { ...nameSettings, gamertag: saved } });
+    if (name === 'get_my_name_settings') {
+      if (options.failNameCheck && !nameCheckFailed) { nameCheckFailed = true; return route.fulfill({ status: 503, json: { message: 'Synthetic check failure' } }); }
+      return route.fulfill({ json: options.missing ? null : { ...nameSettings, gamertag: saved } });
+    }
     if (name === 'save_my_name_settings') {
       const body = route.request().postDataJSON(); writes.push(body);
       if (nameFailure) { const message = nameFailure; nameFailure = undefined; return route.fulfill({ status: 400, json: { message } }); }
@@ -52,6 +56,37 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
   });
   return { writes };
 }
+
+test('mandatory name confirmation blocks direct links until saved and never repeats after reload', async ({ page, context }, info) => {
+  const fixture = await installGamertagFixture(context, { unconfirmed: true, nameFailure: 'Temporary save failure', failNameCheck: true });
+  await page.goto('/racing/standings?league=rcc&view=drivers');
+  const gate = page.locator('.name-confirmation');
+  await expect(gate.getByRole('alert')).toContainText('nicht geladen');
+  await expect(page.locator('.app-shell')).toHaveCount(0);
+  await gate.getByRole('button', { name: 'Erneut laden' }).click();
+  await expect(gate.getByRole('combobox')).toHaveValue('');
+  await expect(gate.getByRole('button', { name: 'Speichern und weiter' })).toBeDisabled();
+  await gate.getByRole('combobox').selectOption('gamertag');
+  await gate.getByRole('button', { name: 'Speichern und weiter' }).click();
+  await expect(gate.getByRole('alert')).toContainText('Speichern fehlgeschlagen');
+  await expect(page.locator('.app-shell')).toHaveCount(0);
+  await expect(gate.getByRole('combobox')).toHaveValue('gamertag');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath('mandatory-name-confirmation.png'), fullPage: true });
+  await gate.getByRole('button', { name: 'Speichern und weiter' }).click();
+  await expect(page.locator('.app-shell')).toBeVisible();
+  await expect(page).toHaveURL(/\/racing\/standings\?league=rcc&view=drivers$/);
+  expect(fixture.writes).toHaveLength(2);
+  await page.reload(); await expect(page.locator('.app-shell')).toBeVisible();
+  await expect(gate).toHaveCount(0);
+});
+
+test('unconfirmed user can still open password recovery', async ({ page, context }) => {
+  await installGamertagFixture(context, { unconfirmed: true });
+  await page.goto('/auth/reset');
+  await expect(page.locator('.name-confirmation')).toHaveCount(0);
+  await expect(page.locator('.app-shell')).toBeVisible();
+});
 
 test('public name selection saves and survives reload without a separate display name', async ({ page, context }, info) => {
   const fixture = await installGamertagFixture(context);
@@ -136,8 +171,6 @@ test('profile gamertag failures keep the draft and allow retry', async ({ page, 
 test('profile gamertag without identity leads to setup instead of a failing save', async ({ page, context }) => {
   await installGamertagFixture(context, { missing: true });
   await page.goto('/profile');
-  const card = page.locator('.profile-gamertag-card');
-  await card.locator('summary').click();
-  await expect(card.getByRole('link', { name: 'Fahrerprofil zuerst einrichten' })).toHaveAttribute('href', '/onboarding');
-  await expect(card.locator('input')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Fahrerprofil einrichten' })).toHaveAttribute('href', '/onboarding');
+  await expect(page.locator('.app-shell')).toHaveCount(0);
 });
