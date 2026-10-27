@@ -3,12 +3,12 @@ import type { LeagueSupabaseClient } from '../lib/supabase';
 
 export const GRAPHIC_TYPES = ['race_result', 'podium', 'winner', 'driver_standings', 'team_standings', 'achievement'] as const;
 export const GRAPHIC_FORMATS = ['square', 'portrait', 'story', 'landscape'] as const;
-export const GRAPHIC_DRIVER_LABEL_MODES = ['driver_name', 'display_name', 'gamertag'] as const;
+export const GRAPHIC_DRIVER_LABEL_MODES = ['driver_name', 'gamertag'] as const;
 
 export type GraphicType = (typeof GRAPHIC_TYPES)[number];
 export type GraphicFormat = (typeof GRAPHIC_FORMATS)[number];
-export type GraphicDriverLabelMode = (typeof GRAPHIC_DRIVER_LABEL_MODES)[number];
-export type GraphicDriverLabels = { driverId: string; leagueDriverName?: string | null; driverName?: string | null; displayName?: string | null; gamertag?: string | null };
+export type GraphicDriverLabelMode = (typeof GRAPHIC_DRIVER_LABEL_MODES)[number] | 'display_name'; // Read old saved payloads only.
+export type GraphicDriverLabels = { driverId: string; leagueDriverName?: string | null; driverName?: string | null; displayName?: string | null; gamertag?: string | null; publicName?: string | null; publicNameMode?: 'name' | 'gamertag' | null };
 export type ResultRow = {
   position: number | null;
   driverId?: string;
@@ -233,6 +233,9 @@ function graphicDriverLabel(
   const driverName = cleanDriverLabel(savedLabels?.driverName) ?? cleanDriverLabel(driver.driverName);
   const displayName = cleanDriverLabel(savedLabels?.displayName) ?? cleanDriverLabel(driver.displayName);
   const gamertag = cleanDriverLabel(savedLabels?.gamertag) ?? cleanDriverLabel(driver.gamertag);
+
+  // An editor's template choice must not override the driver's explicit public preference.
+  if (savedLabels?.publicNameMode) return cleanDriverLabel(savedLabels.publicName) ?? gamertag ?? existing;
 
   if (mode === 'driver_name') return driverName ?? displayName ?? existing;
   if (mode === 'gamertag') return gamertag ?? displayName ?? existing;

@@ -10,7 +10,7 @@ async function entryFixture(context: BrowserContext, options: { admin?: boolean;
   const metadata = { display_name: '', gamertag: '', onboarding_complete: false, theme_preset: 0 };
   const user = () => ({ id, email: 'entry-test@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: metadata, created_at: '2026-01-01T00:00:00Z' });
   const session = () => ({ access_token: token, refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_in: 3600, expires_at: exp, user: user() });
-  let entry = { identity_id: identity, racevora_id: 'RV-100098', display_name: '', gamertag: '', step: 1, profile_complete: false };
+  let entry = { identity_id: identity, racevora_id: 'RV-100098', display_name: '', real_name: '', public_name_mode: 'gamertag', gamertag: '', step: 1, profile_complete: false };
   let pending = options.pending ?? false;
   let failed = false;
   let reviewed = false;
@@ -39,11 +39,11 @@ async function entryFixture(context: BrowserContext, options: { admin?: boolean;
     if (name === 'get_driver_gamertags') return route.fulfill({ json: { main: entry.gamertag, aliases: [] } });
     if (name === 'get_league_member_admin_workspace') return route.fulfill({ json: { league: publicRacingFixture.league, members: [], join_requests: reviewed ? [] : [{ id: 'request', user_id: id, email: 'entry-test@example.invalid', display_name: 'Racer', gamertag: 'Darkqz', requested_at: '2026-10-18T12:00:00Z', status: 'pending' }] } });
     if (name === 'get_join_request_driver_candidates') return route.fulfill({ json: [{ id: 'existing-driver', display_name: 'Aaron', gamertag: 'Darkqz', matched: true, is_active: true, number: 27 }] });
-    if (['save_my_entry_profile', 'advance_my_entry', 'request_my_entry_league', 'review_league_join_request_explicit'].includes(name)) {
+    if (['save_my_entry_names', 'advance_my_entry', 'request_my_entry_league', 'review_league_join_request_explicit'].includes(name)) {
       const body = route.request().postDataJSON(); writes.push({ rpc: name, body });
-      if (name === 'save_my_entry_profile') {
+      if (name === 'save_my_entry_names') {
         if (options.failSave && !failed) { failed = true; return route.fulfill({ status: 400, json: { message: 'Synthetic failure' } }); }
-        entry = { ...entry, display_name: body.p_display_name, gamertag: body.p_gamertag, step: 2, profile_complete: true };
+        entry = { ...entry, display_name: body.p_name, real_name: body.p_name, public_name_mode: body.p_public_name_mode, gamertag: body.p_gamertag, step: 2, profile_complete: true };
         Object.assign(metadata, { display_name: entry.display_name, gamertag: entry.gamertag });
       }
       if (name === 'advance_my_entry') {
@@ -68,11 +68,11 @@ test('entry saves independently, resumes after reload and confirms a league requ
   await entryFixture(context, { failSave: true });
   await page.goto('/onboarding');
   await expect(page.getByText('RV-100098')).toBeVisible();
-  await page.getByLabel('Anzeigename', { exact: true }).fill('Racer');
-  await page.getByLabel('Haupt-Gamertag').fill('Darkqz');
+  await page.getByLabel('Name / Vorname', { exact: true }).fill('Racer');
+  await page.getByRole('textbox', { name: 'Haupt-Gamertag', exact: true }).fill('Darkqz');
   await page.getByRole('button', { name: 'Speichern und weiter' }).click();
   await expect(page.getByRole('alert')).toContainText('bereits gespeicherten');
-  await expect(page.getByLabel('Haupt-Gamertag')).toHaveValue('Darkqz');
+  await expect(page.getByRole('textbox', { name: 'Haupt-Gamertag', exact: true })).toHaveValue('Darkqz');
   await page.getByRole('button', { name: 'Speichern und weiter' }).click();
   await expect(page.getByRole('heading', { name: 'Dein Racing. Deine Farben.' })).toBeFocused();
   await page.reload();
@@ -104,7 +104,7 @@ test('entry can be skipped, resumed, and does not capture password recovery', as
   await page.getByRole('button', { name: 'Später fortsetzen' }).click();
   await expect(page).toHaveURL(/\/home/);
   await page.getByRole('link', { name: 'Einrichtung fortsetzen' }).click();
-  await expect(page.getByLabel('Anzeigename', { exact: true })).toHaveValue('');
+  await expect(page.getByLabel('Name / Vorname', { exact: true })).toHaveValue('');
   await page.screenshot({ path: info.outputPath('entry-320.png'), fullPage: true });
   await page.goto('/auth/reset');
   await expect(page).toHaveURL(/\/auth\/reset/);

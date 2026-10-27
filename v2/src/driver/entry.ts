@@ -1,9 +1,12 @@
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import type { PublicNameMode } from './nameSettings';
 
 export type EntryState = {
   identity_id: string;
   racevora_id: string;
   display_name: string | null;
+  real_name?: string | null;
+  public_name_mode?: PublicNameMode | null;
   gamertag: string | null;
   step: 1 | 2 | 3;
   profile_complete: boolean;
@@ -23,8 +26,8 @@ export async function loadEntry(client: LeagueSupabaseClient) {
   return entryState(data);
 }
 
-export async function saveEntryProfile(client: LeagueSupabaseClient, name: string, gamertag: string) {
-  const { data, error } = await client.rpc('save_my_entry_profile', { p_display_name: name.trim(), p_gamertag: gamertag.trim() });
+export async function saveEntryProfile(client: LeagueSupabaseClient, name: string, gamertag: string, mode: PublicNameMode = 'gamertag') {
+  const { data, error } = await client.rpc('save_my_entry_names', { p_name: name.trim(), p_gamertag: gamertag.trim(), p_public_name_mode: mode });
   if (error) throw error;
   return entryState(data);
 }

@@ -124,12 +124,21 @@ describe('Social Graphics model', () => {
     expect(model.rows[0]).toMatchObject({ primary: 'Alexander Apex', value: '88 pts' });
   });
 
-  it('switches every driver graphic between driver name, display name and gamertag', () => {
+  it('supports name and gamertag and can still read a legacy display-name payload', () => {
     expect(buildGraphicModel(workspace, 'race_result', labels, 'driver_name').rows[0]?.primary).toBe('Alexander Apex');
     expect(buildGraphicModel(workspace, 'podium', labels, 'display_name').rows[0]?.primary).toBe('Alex Apex');
     expect(buildGraphicModel(workspace, 'winner', labels, 'gamertag').title).toBe('xApex');
     expect(buildGraphicModel(workspace, 'driver_standings', labels, 'gamertag').rows[0]?.primary).toBe('xApex');
     expect(buildGraphicModel(workspace, 'achievement', labels, 'driver_name').title).toBe('Alexander Apex');
+  });
+
+  it('respects a confirmed public preference regardless of the graphic template choice', () => {
+    for (const mode of ['name', 'gamertag'] as const) {
+      const selected = { ...workspace, driver_labels: workspace.driver_labels?.map(row => ({ ...row, publicNameMode: mode, publicName: mode === 'name' ? 'Richard' : 'Racer' })) };
+      for (const label of ['driver_name', 'gamertag', 'display_name'] as const) {
+        expect(buildGraphicModel(selected, 'race_result', labels, label).rows[0].primary).toBe(mode === 'name' ? 'Richard' : 'Racer');
+      }
+    }
   });
 
   it('resolves every driver label mode without embedded driver ids', () => {

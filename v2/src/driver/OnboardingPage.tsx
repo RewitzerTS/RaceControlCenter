@@ -10,6 +10,8 @@ import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 import { advanceEntry, loadEntry, requestEntryLeague, saveEntryProfile, type EntryState } from './entry';
 import { entryCopy } from './entryCopy';
 import './entry.css';
+import { PublicNameChoice } from './ProfileNameSettings';
+import { nameCopy, type PublicNameMode } from './nameSettings';
 
 export function OnboardingPage() {
   const { loading, user } = useAuth();
@@ -29,6 +31,7 @@ function EntryFlow() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
+  const [publicNameMode, setPublicNameMode] = useState<PublicNameMode | ''>('gamertag');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -46,7 +49,8 @@ function EntryFlow() {
     void loadEntry(client).then(data => {
       if (!active) return;
       setEntry(data); setStep(data.step);
-      setName(data.display_name ?? ''); setTag(data.gamertag ?? '');
+      setName(data.real_name ?? data.display_name ?? ''); setTag(data.gamertag ?? '');
+      setPublicNameMode(data.public_name_mode ?? 'gamertag');
     }).catch(() => { if (active) setError(c.error); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -83,11 +87,14 @@ function EntryFlow() {
     <section className="entry-body" aria-busy={busy}>
       <h2 ref={heading} tabIndex={-1}>{step === 1 ? c.profile : step === 2 ? c.style : c.league}</h2>
       {step === 1 && <form onSubmit={event => { event.preventDefault(); void run(async () => {
-        const saved = await saveEntryProfile(client, name, tag); setEntry(saved); setStep(2);
+        if (!publicNameMode) return;
+        const saved = await saveEntryProfile(client, name, tag, publicNameMode); setEntry(saved); setStep(2);
       }); }}>
         <fieldset disabled={busy} className="entry-fields">
-          <label>{c.name}<input autoComplete="nickname" minLength={2} maxLength={60} required value={name} onChange={event => setName(event.target.value)} /></label>
+          <label>{nameCopy[language].name}<input autoComplete="given-name" minLength={2} maxLength={60} required value={name} onChange={event => setName(event.target.value)} /></label>
+          <small>{nameCopy[language].hint}</small>
           <label>{c.tag}<input autoComplete="off" autoCapitalize="none" spellCheck={false} minLength={2} maxLength={60} required value={tag} onChange={event => setTag(event.target.value)} /></label>
+          <PublicNameChoice name={name} tag={tag} value={publicNameMode} onChange={setPublicNameMode} />
         </fieldset>
         <p>{c.profileHint}</p>
         <button disabled={busy} className="primary-action" type="submit">{busy ? c.saving : c.continue}</button>

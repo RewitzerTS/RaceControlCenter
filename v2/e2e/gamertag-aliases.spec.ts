@@ -29,7 +29,7 @@ async function fixture(context: BrowserContext, fail = false, editor: { active?:
     if(name==='get_league_roster_workspace') return route.fulfill({json:{season_id:editor.active?'season':null,races:editor.active?[{id:'past',round:1,name:'Bahrain',locked:true},{id:'next',round:2,name:'Monaco',locked:false}]:[],vehicles:[],substitutions:[]}});
     if(name==='get_league_team_directory') return route.fulfill({json:{teams:[],preferences:[],profiles:drivers}});
     if(name==='get_league_driver_editor') return route.fulfill({json:{driver:drivers.find(d=>d.id===body.p_driver_id),gamertags:response(true),revision:'initial'}});
-    if(name==='save_league_driver_editor') {writes.push(body);if(editorError){const message=editorError;editorError=undefined;return route.fulfill({status:400,json:{message}});}return route.fulfill({json:{driver:drivers[0],gamertags:response(true),revision:'saved'}});}
+    if(name==='save_league_named_driver') {writes.push(body);if(editorError){const message=editorError;editorError=undefined;return route.fulfill({status:400,json:{message}});}return route.fulfill({json:{driver:drivers[0],gamertags:response(true),revision:'saved'}});}
     if(name==='get_driver_gamertags') return route.fulfill({json:response(Boolean(body.p_driver_id))});
     if(name==='add_driver_gamertag') {
       writes.push(body);
@@ -69,7 +69,7 @@ test('driver edit saves all platforms and AI assignment only from an explicit un
   await page.goto('/admin/drivers');
   await page.getByRole('button',{name:'Bearbeiten',exact:true}).first().click();
   const form=page.getByRole('region',{name:'Fahrer bearbeiten'});
-  await form.getByLabel('Anzeigename',{exact:true}).fill('Aaron');
+  await form.getByLabel('Name / Vorname',{exact:true}).fill('Aaron');
   await form.getByLabel('EA-Gamertag 1',{exact:true}).fill('Darkqz');
   await form.getByLabel('PlayStation-Gamertag 2',{exact:true}).fill('D4RK');
   await form.getByLabel('Steam-Gamertag 3',{exact:true}).fill('Darkqz');

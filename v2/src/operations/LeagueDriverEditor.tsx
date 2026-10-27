@@ -11,7 +11,7 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
   const { client } = useLeague();
   const [state, setState] = useState<DriverEditorState | null>(null);
   const [roster, setRoster] = useState<RosterWorkspace | null>(null);
-  const [profile, setProfile] = useState({ display_name: '', gamertag: '', nationality_code: '', is_active: true });
+  const [profile, setProfile] = useState({ name: '', public_name_mode: 'name' as 'name' | 'gamertag' | null, gamertag: '', nationality_code: '', is_active: true });
   const [aliases, setAliases] = useState<EditorAlias[]>([]);
   const [aiId, setAiId] = useState('');
   const [round, setRound] = useState('');
@@ -26,7 +26,7 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
     void Promise.all([loadDriverEditor(client, driverId), loadRosterWorkspace(client)]).then(([data, races]) => {
       if (!active) return;
       setState(data); setRoster(races); setAliases(editableAliases(data.gamertags));
-      setProfile({ display_name: data.driver?.display_name ?? '', gamertag: data.driver?.gamertag ?? '', nationality_code: data.driver?.nationality_code ?? '', is_active: data.driver?.is_active ?? true });
+      setProfile({ name: data.name ?? data.driver?.display_name ?? '', public_name_mode: data.name_managed_by_driver ? data.public_name_mode ?? null : data.public_name_mode ?? 'name', gamertag: data.driver?.gamertag ?? '', nationality_code: data.driver?.nationality_code ?? '', is_active: data.driver?.is_active ?? true });
     }).catch(() => { if (active) setError('Das Fahrerformular konnte nicht geladen werden. Bitte erneut laden.'); });
     return () => { active = false; };
   }, [client, driverId, retry]);
@@ -68,7 +68,8 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
     {state && <form onSubmit={event => void save(event)}>
       <fieldset disabled={busy || stale || committed} className="driver-editor-fields"><legend className="sr-only">Fahrerprofil</legend>
         <div className="admin-form-columns">
-          <label><span>Anzeigename</span><input autoFocus required minLength={2} maxLength={80} value={profile.display_name} onChange={e => setProfile(p => ({ ...p, display_name: e.target.value }))} /></label>
+          <label><span>Name / Vorname</span><input autoFocus required minLength={2} maxLength={60} readOnly={state.name_managed_by_driver} value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />{state.name_managed_by_driver && <small>Name und öffentliche Anzeige werden vom Fahrer in seinem persönlichen Profil verwaltet.</small>}</label>
+          <label><span>Öffentlich anzeigen als</span><select disabled={state.name_managed_by_driver} value={profile.public_name_mode ?? ''} onChange={e => setProfile(p => ({ ...p, public_name_mode: e.target.value as 'name' | 'gamertag' }))}>{!profile.public_name_mode && <option value="">Bisherige Anzeige – noch nicht bestätigt</option>}<option value="name">Name / Vorname</option><option value="gamertag" disabled={!profile.gamertag.trim()}>Haupt-Gamertag</option></select></label>
           <label><span>Gamertag (allgemein)</span><input maxLength={80} autoCapitalize="none" spellCheck={false} value={profile.gamertag} onChange={e => setProfile(p => ({ ...p, gamertag: e.target.value }))} /></label>
           <label><span id="driver-number-label">Startnummer</span><input readOnly value={state.driver?.number ?? 'Noch nicht zugeordnet'} aria-labelledby="driver-number-label" aria-describedby="driver-number-hint" /><small id="driver-number-hint">Nicht bearbeitbar. Die Nummer wird bei der ersten Sitzzuordnung aus dem Spiel übernommen.</small></label>
           <label><span id="driver-nationality-label">Nationalität</span><input maxLength={2} pattern="[A-Za-z]{2}" placeholder="DE" aria-labelledby="driver-nationality-label" aria-describedby="driver-nationality-hint" value={profile.nationality_code} onChange={e => setProfile(p => ({ ...p, nationality_code: e.target.value.toUpperCase() }))} /><small id="driver-nationality-hint">Länderkürzel, z. B. DE, AT oder CH.</small></label>

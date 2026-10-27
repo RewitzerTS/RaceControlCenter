@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { isAccountDeletionConfirmed } from '../auth/accountDeletion';
 import { useAuth } from '../auth/AuthProvider';
@@ -26,6 +26,7 @@ import { GamertagAliasesEditor } from './GamertagAliasesEditor';
 import { ProfileLogoTheme } from './ProfileLogoTheme';
 import { useLeague } from '../league/LeagueProvider';
 import { entryCopy } from './entryCopy';
+import { ProfileNameSettings } from './ProfileNameSettings';
 
 const CUSTOM_THEME_FIELDS = [
   ['primary', 'profile.themePrimary'],
@@ -39,7 +40,7 @@ const CUSTOM_THEME_FIELDS = [
 ] as const;
 
 export function ProfilePage() {
-  const { deleteAccount, loading: authLoading, updateCustomTheme, updateDisplayName, updateThemePreset, user } = useAuth();
+  const { deleteAccount, loading: authLoading, updateCustomTheme, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { role } = useRole();
   const { plural, t, language } = useI18n();
@@ -47,9 +48,6 @@ export function ProfilePage() {
   const { branding, brandingLoading, leagueSlug } = useLeague();
   const navigate = useNavigate();
   const [displayName, setDisplayName] = useState('');
-  const [displayNameEditorOpen, setDisplayNameEditorOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<'error' | 'saved' | null>(null);
   const [themeFeedback, setThemeFeedback] = useState<'error' | 'saved' | null>(null);
   const [themePreset, setThemePreset] = useState(0);
   const [customTheme, setCustomTheme] = useState<CustomThemeColors>(() => toCustomThemeColors(THEME_PRESETS[0]));
@@ -61,9 +59,8 @@ export function ProfilePage() {
   const [deleteAccountError, setDeleteAccountError] = useState(false);
 
   useEffect(() => {
-    const storedDisplayName = typeof user?.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : '';
+    const storedDisplayName = typeof user?.user_metadata?.real_name === 'string' ? user.user_metadata.real_name : typeof user?.user_metadata?.display_name === 'string' ? user.user_metadata.display_name : '';
     setDisplayName(storedDisplayName);
-    setDisplayNameEditorOpen(!storedDisplayName.trim());
     const storedTheme = resolvePersonalTheme(user?.user_metadata);
     const fallbackTheme = storedTheme.id === CUSTOM_THEME_ID ? THEME_PRESETS[0] : storedTheme;
     const storedCustomTheme = user?.user_metadata?.theme_custom;
@@ -77,27 +74,6 @@ export function ProfilePage() {
   }
   if (!user) {
     return <AppState action={<NavLink className="primary-action" to="/login?mode=signin">{t('beta.action')}</NavLink>} copy={t('home.signedOutCopy')} title={t('profile.signedOutTitle')} />;
-  }
-
-  async function saveProfile(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const normalized = displayName.trim();
-    if (normalized.length < 2 || normalized.length > 60) {
-      setFeedback('error');
-      return;
-    }
-    setSaving(true);
-    setFeedback(null);
-    try {
-      await updateDisplayName(normalized);
-      setDisplayName(normalized);
-      setFeedback('saved');
-      setDisplayNameEditorOpen(false);
-    } catch {
-      setFeedback('error');
-    } finally {
-      setSaving(false);
-    }
   }
 
   async function selectTheme(nextTheme: number) {
@@ -157,7 +133,6 @@ export function ProfilePage() {
     ? resolveTheme({ theme_id: CUSTOM_THEME_ID, ...customThemeMetadata(customTheme) })
     : THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
   const customThemeContrastSafe = customThemeHasAccessibleContrast(customTheme);
-  const savedDisplayName = typeof user.user_metadata?.display_name === 'string' ? user.user_metadata.display_name.trim() : '';
   const accountDeletionConfirmed = isAccountDeletionConfirmed(deleteConfirmation, user.email);
 
   return (
@@ -176,17 +151,7 @@ export function ProfilePage() {
             <div><dt>{t('profile.linkedDrivers')}</dt><dd>{plural('linkedRecord', identity?.linkedDriverCount ?? 0)}</dd></div>
           </dl>
         </article>
-        <details className="hero-side profile-display-name-card" onToggle={(event) => setDisplayNameEditorOpen(event.currentTarget.open)} open={displayNameEditorOpen}>
-          <summary className="profile-setting-summary"><span><small className="section-label">{t('profile.settings')}</small><strong>{savedDisplayName ? t('profile.displayNameEdit') : t('profile.displayName')}</strong></span>{savedDisplayName && <span className="profile-setting-current">{savedDisplayName}</span>}</summary>
-          <form className="profile-form profile-form--expanded" onSubmit={(event) => void saveProfile(event)}>
-            <p>{t('profile.displayNameCopy')}</p>
-            <label htmlFor="profile-display-name">{t('profile.displayName')}</label>
-            <input id="profile-display-name" maxLength={60} minLength={2} onChange={(event) => { setDisplayName(event.target.value); setFeedback(null); }} required value={displayName} />
-            {feedback === 'saved' && <p className="form-success" role="status">{t('profile.saved')}</p>}
-            {feedback === 'error' && <p className="form-error" role="alert">{t('profile.saveError')}</p>}
-            <button className="primary-action" disabled={saving} type="submit">{saving ? t('pending') : t('steward.save')}</button>
-          </form>
-        </details>
+        <ProfileNameSettings onName={setDisplayName} />
         <ProfileGamertagEditor key={user.id} />
         {identity?.status === 'active' && <GamertagAliasesEditor key={`aliases-${user.id}-${leagueSlug}`} />}
         <details className="profile-personalization">

@@ -33,7 +33,7 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
   const leagueId = league.data.id;
   const [seasons, drivers] = await Promise.all([
     readHistoryPages((from, to) => client.from('seasons').select('id,name,start_date,created_at,is_active,game_key,game_label,archived_at').eq('league_id', leagueId).order('created_at').order('id').range(from, to).abortSignal(signal), signal),
-    readHistoryPages((from, to) => client.from('drivers').select('id,display_name,gamertag,car_name,league_team,is_active,number,nationality_code,avatar_url,ai_driver_reference').eq('league_id', leagueId).order('id').range(from, to).abortSignal(signal), signal),
+    readHistoryPages((from, to) => client.from('drivers').select('id,display_name,public_name,gamertag,car_name,league_team,is_active,number,nationality_code,avatar_url,ai_driver_reference').eq('league_id', leagueId).order('id').range(from, to).abortSignal(signal), signal),
   ]);
   const races: HistoryRace[] = [];
   const assignments: HistoryAssignment[] = [];
@@ -75,7 +75,7 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
       if (!links.error && number != null && Number.isInteger(number) && number >= 0 && number <= 99) for (const link of links.data) if (drivers.some((driver) => driver.id === link.driver_id)) profileNumbers[link.driver_id] = number;
     }
   }
-  return { leagueId, seasons, drivers, races, results: valid, assignments, profileNumbers, currentRosters };
+  return { leagueId, seasons, drivers: drivers.map(withPublicName), races, results: valid, assignments, profileNumbers, currentRosters };
 }
 
 export const position = (value: unknown): number | null => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null;
@@ -176,3 +176,4 @@ export function teamStats(data: HistoryData, name: string, seasonId = '') {
   const sum = (subset: typeof races) => ({ races: subset.length, starts: subset.reduce((n, r) => n + r.starts, 0), wins: subset.reduce((n, r) => n + r.wins, 0), podiums: subset.reduce((n, r) => n + r.podiums, 0), poles: subset.reduce((n, r) => n + r.poles, 0), fastestLaps: subset.reduce((n, r) => n + r.fastestLaps, 0), points: subset.reduce((n, r) => n + r.points, 0), bestFinish: subset.some((r) => r.bestFinish != null) ? Math.min(...subset.flatMap((r) => r.bestFinish == null ? [] : [r.bestFinish])) : null });
   return { ...sum(races), drivers: [...drivers.values()].sort((a, b) => b.starts - a.starts || b.points - a.points || a.name.localeCompare(b.name)), cars: [...cars].map(([name, starts]) => ({ name, starts })).sort((a, b) => b.starts - a.starts), recent: races.slice(-5).reverse(), seasons: [...new Set(races.map((r) => r.race.season_id))].map((id) => ({ seasonId: id, seasonName: data.seasons.find((season) => season.id === id)?.name || '—', ...sum(races.filter((r) => r.race.season_id === id)) })).reverse() };
 }
+import { withPublicName } from '../driver/nameSettings';

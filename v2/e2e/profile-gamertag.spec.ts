@@ -1,7 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture } from './public-fixture';
 
-async function installGamertagFixture(context: BrowserContext, options: { failSave?: boolean; failLoad?: boolean; missing?: boolean } = {}) {
+async function installGamertagFixture(context: BrowserContext, options: { failSave?: boolean; failLoad?: boolean; missing?: boolean; nameFailure?: string } = {}) {
   await installPublicFixture(context);
   const id = '91000000-0000-4000-8000-000000000075';
   const identityId = '92000000-0000-4000-8000-000000000075';
@@ -10,6 +10,8 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
   let saved = 'Raucher7575';
   let failedSave = false;
   let failedLoad = false;
+  let nameSettings = { name: 'Davide', gamertag: saved, public_name_mode: null as string | null, needs_confirmation: true, revision: 'initial' };
+  let nameFailure = options.nameFailure;
   const writes: unknown[] = [];
   const user = () => ({ id, email: 'gamertag-test@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: { display_name: 'Test Driver', gamertag: saved, onboarding_complete: true, theme_preset: 0 }, created_at: '2026-01-01T00:00:00Z' });
   await context.addInitScript(({ value }) => {
@@ -21,6 +23,13 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
   await context.route('https://*.supabase.co/**', async route => {
     const url = new URL(route.request().url());
     const name = url.pathname.split('/').pop();
+    if (name === 'get_my_name_settings') return route.fulfill({ json: options.missing ? null : { ...nameSettings, gamertag: saved } });
+    if (name === 'save_my_name_settings') {
+      const body = route.request().postDataJSON(); writes.push(body);
+      if (nameFailure) { const message = nameFailure; nameFailure = undefined; return route.fulfill({ status: 400, json: { message } }); }
+      nameSettings = { ...nameSettings, name: body.p_name, public_name_mode: body.p_public_name_mode, needs_confirmation: false, revision: 'saved' };
+      return route.fulfill({ json: nameSettings });
+    }
     if (url.pathname === '/auth/v1/user' && route.request().method() === 'GET') return route.fulfill({ json: user() });
     if (name === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: false, verified: false } });
     if (name === 'current_app_role') return route.fulfill({ json: 'driver' });
@@ -43,6 +52,39 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
   });
   return { writes };
 }
+
+test('public name selection saves and survives reload without a separate display name', async ({ page, context }, info) => {
+  const fixture = await installGamertagFixture(context);
+  await page.goto('/profile');
+  const card = page.locator('.profile-name-card');
+  await card.locator('summary').click();
+  await expect(page.getByLabel('Anzeigename', { exact: true })).toHaveCount(0);
+  await expect(card.getByLabel('Name / Vorname', { exact: true })).toHaveValue('Davide');
+  await card.getByLabel('Öffentlich anzeigen als').selectOption('gamertag');
+  await expect(card).toContainText('Öffentlich sichtbar: Raucher7575');
+  await card.getByRole('button', { name: 'Name und Anzeige speichern' }).click();
+  await expect(card.getByRole('status')).toHaveText('Name und öffentliche Anzeige gespeichert.');
+  expect(fixture.writes).toEqual([{ p_name: 'Davide', p_public_name_mode: 'gamertag', p_revision: 'initial' }]);
+  await page.reload(); await card.locator('summary').click();
+  await expect(card.getByLabel('Öffentlich anzeigen als')).toHaveValue('gamertag');
+  await expect(page.locator('.profile-number')).toHaveText('#75');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await card.screenshot({ path: info.outputPath('profile-name-choice.png') });
+});
+
+test('stale public name settings preserve draft and require reload', async ({ page, context }) => {
+  await installGamertagFixture(context, { nameFailure: 'NAME_SETTINGS_STALE' });
+  await page.goto('/profile'); const card = page.locator('.profile-name-card');
+  await card.locator('summary').click();
+  await card.getByLabel('Name / Vorname', { exact: true }).fill('David');
+  await card.getByLabel('Öffentlich anzeigen als').selectOption('name');
+  await card.getByRole('button', { name: 'Name und Anzeige speichern' }).click();
+  await expect(card.getByRole('alert')).toContainText('inzwischen geändert');
+  await expect(card.getByLabel('Name / Vorname', { exact: true })).toHaveValue('David');
+  await expect(card.getByRole('button', { name: 'Name und Anzeige speichern' })).toBeDisabled();
+  await card.getByRole('button', { name: 'Erneut laden' }).click();
+  await expect(card.getByLabel('Name / Vorname', { exact: true })).toHaveValue('Davide');
+});
 
 test('profile gamertag correction persists after reload without changing driver links', async ({ page, context }, info) => {
   const fixture = await installGamertagFixture(context);

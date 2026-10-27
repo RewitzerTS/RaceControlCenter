@@ -93,7 +93,7 @@ export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId 
   if (raceId) caseQuery = caseQuery.eq('race_id', raceId);
   const [cases, drivers] = await Promise.all([
     caseQuery.order('created_at', { ascending: false }).order('id').range(page * 25, page * 25 + 25),
-    client.from('drivers').select('id,display_name,number').eq('is_active', true).order('display_name').limit(500),
+    client.from('drivers').select('id,display_name,public_name,number').eq('is_active', true).order('display_name').limit(500),
   ]);
   throwIfError(cases.error); throwIfError(drivers.error);
   const columns = 'id,season_id,grand_prix_name,round_number,race_date,race_time,race_start_at,status,current_result_version_id' as const;
@@ -113,7 +113,7 @@ export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId 
     cases: (cases.data ?? []).slice(0, 25),
     hasMoreCases: (cases.data?.length ?? 0) > 25,
     races: allRaces.map((race) => ({ ...race, is_active_season: race.season_id === activeSeason.data?.id })),
-    drivers: drivers.data ?? [],
+    drivers: (drivers.data ?? []).map(withPublicName),
   };
 }
 
@@ -233,3 +233,4 @@ export async function finalizeStewardDecision(client: LeagueSupabaseClient, inpu
   });
   throwIfError(response.error); return response.data;
 }
+import { withPublicName } from '../driver/nameSettings';

@@ -54,7 +54,7 @@ export function DriverHomePage() {
   }
 
   const displayName = (
-    typeof user.user_metadata?.display_name === 'string'
+    typeof user.user_metadata?.real_name === 'string' ? user.user_metadata.real_name : typeof user.user_metadata?.display_name === 'string'
       ? user.user_metadata.display_name
       : user.email?.split('@')[0]
   ) || t('home.defaultDriver');

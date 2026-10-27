@@ -1277,6 +1277,7 @@ export type Database = {
       }
       drivers: {
         Row: {
+          public_name: string | null
           ai_driver_reference: string | null
           avatar_url: string | null
           car_name: string | null
@@ -2668,6 +2669,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      save_league_named_driver: { Args: { p_driver_id: string | null; p_profile: Json; p_aliases: Json; p_ai_driver_id: string | null; p_round: number | null; p_revision: string }; Returns: Json }
+      get_my_name_settings: { Args: Record<PropertyKey, never>; Returns: Json }
+      save_my_name_settings: { Args: { p_name: string; p_public_name_mode: string; p_revision: string }; Returns: Json }
+      save_my_entry_names: { Args: { p_name: string; p_gamertag: string; p_public_name_mode: string }; Returns: Json }
       get_my_entry_state: { Args: Record<PropertyKey, never>; Returns: Json }
       save_my_entry_profile: { Args: { p_display_name: string; p_gamertag: string }; Returns: Json }
       advance_my_entry: { Args: { p_step: number; p_finish?: boolean }; Returns: Json }

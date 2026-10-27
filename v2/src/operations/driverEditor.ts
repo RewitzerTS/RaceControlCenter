@@ -4,7 +4,7 @@ import type { GamertagAliases, AliasPlatform } from '../driver/gamertagAliases';
 import type { LeagueDriver, SeasonCalendarEntry, StartedSeason, SeasonAiAssignment } from './operations';
 
 export type EditorAlias = { alias: string; platform: AliasPlatform };
-export type DriverEditorState = { driver: LeagueDriver | null; gamertags: GamertagAliases; revision: string };
+export type DriverEditorState = { driver: LeagueDriver | null; gamertags: GamertagAliases; revision: string; name?: string | null; public_name_mode?: 'name' | 'gamertag' | null; name_managed_by_driver?: boolean };
 export const platformLabels: Record<AliasPlatform, string> = { ea: 'EA', playstation: 'PlayStation', steam: 'Steam', xbox: 'Xbox', other: 'Andere Plattform' };
 export function editableAliases(tags: GamertagAliases): EditorAlias[] {
   const rows = tags.aliases.filter(a => a.editable).map(({ alias, platform }) => ({ alias, platform }));
@@ -24,10 +24,10 @@ export async function loadDriverEditor(client: LeagueSupabaseClient, id?: string
   return editorState(data);
 }
 export async function saveDriverEditor(client: LeagueSupabaseClient, input: {
-  id?: string; profile: { display_name: string; gamertag: string; nationality_code: string; is_active: boolean };
+  id?: string; profile: { name: string; public_name_mode: 'name' | 'gamertag' | null; gamertag: string; nationality_code: string; is_active: boolean };
   aliases: EditorAlias[]; aiId: string | null; round: number | null; revision: string;
 }) {
-  const { data, error } = await client.rpc('save_league_driver_editor', {
+  const { data, error } = await client.rpc('save_league_named_driver', {
     p_driver_id: input.id ?? null, p_profile: input.profile, p_aliases: input.aliases.filter(a => a.alias.trim()).map(a => ({ ...a, alias: a.alias.trim() })),
     p_ai_driver_id: input.aiId, p_round: input.round, p_revision: input.revision,
   });

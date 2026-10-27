@@ -55,6 +55,8 @@ export type LeagueJoinRequest = {
 };
 export type MemberAdminWorkspace = { league: OwnerLeague; members: LeagueMember[]; join_requests: LeagueJoinRequest[] };
 export type LeagueDriver = {
+  name?: string | null;
+  public_name?: string | null;
   id: string;
   gamertag_aliases?: string[];
   import_driver_id?: string;

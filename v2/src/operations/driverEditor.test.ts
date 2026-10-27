@@ -19,10 +19,10 @@ describe('unified driver editor', () => {
   });
   it('saves profile, aliases and explicit seat atomically without a number field', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: { revision: 'next', gamertags: { aliases: [] } }, error: null });
-    const profile = { display_name: 'Driver', gamertag: 'Main', nationality_code: 'DE', is_active: true };
+    const profile = { name: 'Driver', public_name_mode: 'name' as const, gamertag: 'Main', nationality_code: 'DE', is_active: true };
     await saveDriverEditor({ rpc } as unknown as LeagueSupabaseClient, { id: 'driver', profile, aliases: [{ alias: ' EAName ', platform: 'ea' }, { alias: '', platform: 'xbox' }], aiId: 'ai', round: 4, revision: 'old' });
     expect(rpc).toHaveBeenCalledOnce();
-    expect(rpc).toHaveBeenCalledWith('save_league_driver_editor', { p_driver_id: 'driver', p_profile: profile, p_aliases: [{ alias: 'EAName', platform: 'ea' }], p_ai_driver_id: 'ai', p_round: 4, p_revision: 'old' });
+    expect(rpc).toHaveBeenCalledWith('save_league_named_driver', { p_driver_id: 'driver', p_profile: profile, p_aliases: [{ alias: 'EAName', platform: 'ea' }], p_ai_driver_id: 'ai', p_round: 4, p_revision: 'old' });
   });
   it('starts a season through an API with no assignment parameter', async () => {
     const rpc = vi.fn().mockResolvedValue({ data: {}, error: null });

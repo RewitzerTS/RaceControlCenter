@@ -19,7 +19,7 @@ describe('Entry 2.0', () => {
   });
   it('saves profile independently of league joining', async () => {
     const c = client(); await saveEntryProfile(c.value, ' Racer ', ' Darkqz ');
-    expect(c.rpc).toHaveBeenCalledExactlyOnceWith('save_my_entry_profile', { p_display_name: 'Racer', p_gamertag: 'Darkqz' });
+    expect(c.rpc).toHaveBeenCalledExactlyOnceWith('save_my_entry_names', { p_name: 'Racer', p_gamertag: 'Darkqz', p_public_name_mode: 'gamertag' });
   });
   it('rejects invalid codes locally and never silently drops characters', async () => {
     const c = client();

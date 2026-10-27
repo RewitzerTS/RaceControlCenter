@@ -28,20 +28,20 @@ export function buildDriverGraphic(data: HistoryData, kind: DriverGraphicKind, s
     base.rows = results.filter((row) => row.race_id === race.id).sort((a, b) => (a.finish_position || 999) - (b.finish_position || 999)).map((row) => {
       const driver = data.drivers.find((item) => item.id === row.driver_id);
       const detail = raceResultTime({ position: row.finish_position ?? null, driver: '', team: '', points: row.awarded_points, status: 'classified', raceTime: row.race_time, raceTimeMs: row.race_time_ms }, winner?.race_time_ms ?? null);
-      return { rank: row.finish_position ? String(row.finish_position) : '—', primary: driver?.gamertag || driver?.display_name || '—', secondary: row.points_team_name || row.car_name_snapshot || '', detail, value: `${row.awarded_points} ${copy.points}` };
+      return { rank: row.finish_position ? String(row.finish_position) : '—', primary: driver?.public_name || driver?.gamertag || driver?.display_name || '—', secondary: row.points_team_name || row.car_name_snapshot || '', detail, value: `${row.awarded_points} ${copy.points}` };
     });
   } else if (kind === 'statistics') {
     if (!ownDriverId || !data.drivers.some((item) => item.id === ownDriverId)) return null;
     const stats = driverStats(data, ownDriverId, seasonId);
     if (!stats.starts && !stats.points) return null;
     const driver = data.drivers.find((item) => item.id === ownDriverId)!;
-    base.title = driver.gamertag || driver.display_name;
+    base.title = driver.public_name || driver.gamertag || driver.display_name;
     base.source.statistics = true;
     base.rows = [['starts', stats.starts], ['wins', stats.wins], ['podiums', stats.podiums], ['points', stats.points]].map(([key, value]) => ({ rank: '', primary: copy[key as 'starts'], secondary: '', value: String(value) }));
   } else {
     if (!results.length) return null;
     const standings = buildStandings({ season, drivers: data.drivers, races, results, assignments: data.assignments.filter((item) => item.season_id === seasonId) });
-    base.rows = kind === 'driver_standings' ? standings.driverStandings.map((row, index) => ({ rank: String(index + 1), primary: data.drivers.find((item) => item.id === row.driverId)?.gamertag || row.driverName, secondary: `${row.wins} ${copy.wins}`, value: `${row.points} ${copy.points}` })) : standings.teamStandings.map((row, index) => ({ rank: String(index + 1), primary: row.teamName, secondary: '', value: `${row.points} ${copy.points}` }));
+    base.rows = kind === 'driver_standings' ? standings.driverStandings.map((row, index) => ({ rank: String(index + 1), primary: data.drivers.find((item) => item.id === row.driverId)?.public_name || data.drivers.find((item) => item.id === row.driverId)?.gamertag || row.driverName, secondary: `${row.wins} ${copy.wins}`, value: `${row.points} ${copy.points}` })) : standings.teamStandings.map((row, index) => ({ rank: String(index + 1), primary: row.teamName, secondary: '', value: `${row.points} ${copy.points}` }));
   }
   return base.rows.length ? base : null;
 }

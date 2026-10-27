@@ -2,8 +2,8 @@ export const entryCopy = {
   de: {
     title: 'Dein Einstieg ins Racing.', intro: 'Ein Fahrerprofil für deine gesamte RaceVora-Karriere. Du kannst die Einrichtung jederzeit fortsetzen.',
     id: 'Deine RaceVora-ID', idHint: 'Bleibt bei Liga- und Gamertagwechsel gleich. Nicht deine Startnummer.',
-    steps: ['Profil', 'Farbthema', 'Liga'], profile: 'So erkennt dich deine Liga.', name: 'Anzeigename', tag: 'Haupt-Gamertag',
-    profileHint: 'Verwende den Namen aus dem Spiel. Weitere EA-, PlayStation-, Xbox- und Steam-Namen kannst du danach ergänzen.',
+    steps: ['Profil', 'Farbthema', 'Liga'], profile: 'So erkennt dich deine Liga.', name: 'Name / Vorname', tag: 'Haupt-Gamertag',
+    profileHint: 'Dein Haupt-Gamertag ist dein Name im Spiel. Weitere EA-, PlayStation-, Xbox- und Steam-Namen kannst du danach ergänzen.',
     continue: 'Speichern und weiter', next: 'Weiter zur Liga', later: 'Später fortsetzen', back: 'Zurück', saving: 'Wird gespeichert …',
     style: 'Dein Racing. Deine Farben.', styleHint: 'Wähle ein Farbthema. Weitere Farben und dein individuelles Design findest du später im Profil.',
     league: 'Wo möchtest du fahren?', leagueHint: 'Tritt einer bestehenden Liga bei oder starte deine eigene. Dein Fahrerprofil bleibt unabhängig davon bestehen.',
@@ -19,8 +19,8 @@ export const entryCopy = {
   en: {
     title: 'Your racing starts here.', intro: 'One driver identity for your entire RaceVora career. Resume setup whenever you like.',
     id: 'Your RaceVora ID', idHint: 'Stays the same across leagues and gamertag changes. Not your racing number.',
-    steps: ['Profile', 'Theme', 'League'], profile: 'Help your league recognise you.', name: 'Display name', tag: 'Main gamertag',
-    profileHint: 'Use your in-game name. You can add further EA, PlayStation, Xbox and Steam names next.',
+    steps: ['Profile', 'Theme', 'League'], profile: 'Help your league recognise you.', name: 'Name / first name', tag: 'Main gamertag',
+    profileHint: 'Your main gamertag is your in-game name. You can add further EA, PlayStation, Xbox and Steam names next.',
     continue: 'Save and continue', next: 'Continue to league', later: 'Finish later', back: 'Back', saving: 'Saving …',
     style: 'Your racing. Your colours.', styleHint: 'Choose a theme. More colours and custom options are available in your profile later.',
     league: 'Where would you like to race?', leagueHint: 'Join an existing league or start your own. Your driver identity exists independently.',
@@ -35,8 +35,8 @@ export const entryCopy = {
   es: {
     title: 'Aquí empieza tu carrera.', intro: 'Una identidad de piloto para toda tu carrera en RaceVora. Puedes continuar la configuración más tarde.',
     id: 'Tu ID de RaceVora', idHint: 'No cambia al cambiar de liga o gamertag. No es tu dorsal.',
-    steps: ['Perfil', 'Tema', 'Liga'], profile: 'Ayuda a tu liga a reconocerte.', name: 'Nombre visible', tag: 'Gamertag principal',
-    profileHint: 'Usa tu nombre del juego. Después puedes añadir nombres de EA, PlayStation, Xbox y Steam.',
+    steps: ['Perfil', 'Tema', 'Liga'], profile: 'Ayuda a tu liga a reconocerte.', name: 'Nombre / nombre de pila', tag: 'Gamertag principal',
+    profileHint: 'Tu gamertag principal es tu nombre en el juego. Después puedes añadir nombres de EA, PlayStation, Xbox y Steam.',
     continue: 'Guardar y continuar', next: 'Continuar a la liga', later: 'Terminar más tarde', back: 'Atrás', saving: 'Guardando …',
     style: 'Tu carrera. Tus colores.', styleHint: 'Elige un tema. Más colores y opciones personalizadas están disponibles en tu perfil.',
     league: '¿Dónde quieres competir?', leagueHint: 'Únete a una liga o crea la tuya. Tu identidad de piloto es independiente.',
@@ -51,8 +51,8 @@ export const entryCopy = {
   fr: {
     title: 'Votre carrière commence ici.', intro: 'Une identité de pilote pour toute votre carrière RaceVora. Reprenez la configuration quand vous voulez.',
     id: 'Votre ID RaceVora', idHint: 'Reste identique après un changement de ligue ou de gamertag. Ce n’est pas votre numéro de course.',
-    steps: ['Profil', 'Thème', 'Ligue'], profile: 'Aidez votre ligue à vous reconnaître.', name: 'Nom affiché', tag: 'Gamertag principal',
-    profileHint: 'Utilisez votre nom dans le jeu. Vous pourrez ensuite ajouter vos noms EA, PlayStation, Xbox et Steam.',
+    steps: ['Profil', 'Thème', 'Ligue'], profile: 'Aidez votre ligue à vous reconnaître.', name: 'Nom / prénom', tag: 'Gamertag principal',
+    profileHint: 'Votre gamertag principal est votre nom dans le jeu. Vous pourrez ensuite ajouter vos noms EA, PlayStation, Xbox et Steam.',
     continue: 'Enregistrer et continuer', next: 'Passer à la ligue', later: 'Terminer plus tard', back: 'Retour', saving: 'Enregistrement …',
     style: 'Votre course. Vos couleurs.', styleHint: 'Choisissez un thème. D’autres couleurs et options personnalisées sont disponibles dans votre profil.',
     league: 'Où voulez-vous courir ?', leagueHint: 'Rejoignez une ligue ou créez la vôtre. Votre identité de pilote reste indépendante.',
