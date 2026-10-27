@@ -4,6 +4,13 @@ import { installPublicFixture, publicRacingFixture as f, confirmedNameFixture } 
 
 for (const count of [20, 22]) test(`season graphics export all ${count} drivers in two PNGs`, async ({ context, page }, info) => {
   await installPublicFixture(context);
+  await context.addInitScript((multi) => {
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: ({ files }: ShareData) => !!files?.length && (multi || files.length === 1) });
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async ({ files }: ShareData) => {
+      (window as unknown as { graphicShares: unknown[] }).graphicShares ||= [];
+      (window as unknown as { graphicShares: unknown[] }).graphicShares.push({ active: navigator.userActivation.isActive, files: files?.map(file => ({ name: file.name, type: file.type, size: file.size })) });
+    } });
+  }, count === 20);
   const id = '91000000-0000-4000-8000-000000000099';
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const user = { id, email: 'graphics@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: { display_name: 'Graphics test', onboarding_complete: true }, created_at: '2026-01-01' };
@@ -39,6 +46,23 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
   await page.locator('.graphics-page-navigation button').last().click();
   await expect(page.locator('.graphics-page-navigation')).toContainText('Teil 2 von 2');
   await expect(page.getByRole('img', { name: /Fahrerwertung/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Dieses Bild teilen', exact: true }).click();
+  const shares = await page.evaluate(() => (window as unknown as { graphicShares: { active: boolean; files: { name: string; type: string; size: number }[] }[] }).graphicShares);
+  expect(shares[0].active).toBe(true);
+  expect(shares[0].files).toHaveLength(1);
+  expect(shares[0].files[0].name).toMatch(/-02\.png$/);
+  expect(shares[0].files[0].type).toBe('image/png');
+  expect(shares[0].files[0].size).toBeGreaterThan(1000);
+  if (count === 20) {
+    await page.getByRole('button', { name: 'Alle Bilder teilen' }).click();
+    expect(await page.evaluate(() => (window as unknown as { graphicShares: { files: unknown[] }[] }).graphicShares[1].files.length)).toBe(2);
+  } else {
+    await expect(page.getByRole('button', { name: 'Alle Bilder teilen' })).toBeDisabled();
+    const singleDownload = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Dieses Bild herunterladen' }).click();
+    expect((await singleDownload).suggestedFilename()).toMatch(/-02\.png$/);
+  }
+  await page.locator('.graphic-share-actions').screenshot({ path: info.outputPath('sharing.png') });
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: '2 PNGs als ZIP erzeugen und herunterladen' }).click();
   const download = await downloadPromise;
@@ -61,5 +85,28 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
     await page.locator('.graphics-preview-panel').screenshot({ path: info.outputPath('standings-page-2.png') });
     const png = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL('image/png').split(',')[1]);
     await writeFile(info.outputPath('turquoise-standings.png'), Buffer.from(png, 'base64'));
+  }
+  if (count === 20) {
+    await context.route('https://*.supabase.co/**', async route => {
+      const name = new URL(route.request().url()).pathname.split('/').pop();
+      if (name === 'current_app_role') return route.fulfill({ json: 'driver' });
+      if (name === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'driver' }] });
+      if (['season_driver_assignments', 'get_league_team_history', 'get_season_championship_roster'].includes(name || '')) return route.fulfill({ json: [] });
+      return route.fallback();
+    });
+    await page.goto('/profile/graphics?league=rcc');
+    await page.getByRole('button', { name: 'Teilen', exact: true }).click();
+    expect(await page.evaluate(() => (window as unknown as { graphicShares: { files: { name: string }[] }[] }).graphicShares.at(-1)?.files[0].name)).toBe('racevora-race_result-portrait-1.png');
+    await page.locator('.graphics-format-list label').filter({ hasText: 'Story · 9:16' }).click();
+    await expect(page.getByRole('radio', { name: 'Story · 9:16' })).toBeChecked();
+    await page.getByRole('button', { name: 'Teilen', exact: true }).click();
+    expect(await page.evaluate(() => (window as unknown as { graphicShares: { files: { name: string }[] }[] }).graphicShares.at(-1)?.files[0].name)).toBe('racevora-race_result-story-1.png');
+    await page.evaluate(() => Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false }));
+    await page.locator('.graphics-format-list label').filter({ hasText: /^1:1$/ }).click();
+    await expect(page.locator('.graphic-share-actions')).toContainText('Browser unterstützt das Teilen von Bildern nicht');
+    await expect(page.getByRole('button', { name: 'Teilen', exact: true })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'PNG herunterladen', exact: true })).toBeEnabled();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.locator('.graphics-controls').screenshot({ path: info.outputPath('driver-sharing-fallback.png') });
   }
 });

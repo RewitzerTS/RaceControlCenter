@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useLeague } from '../league/LeagueProvider';
@@ -10,6 +10,7 @@ import { buildDriverGraphic, driverGraphicCopy, type DriverGraphicKind } from '.
 import { paginateGraphicModel, type GraphicFormat } from './graphics';
 import { drawGraphic, readGraphicTheme, renderGraphicPng, mixGraphicColors } from './renderPng';
 import { downloadGraphicFiles } from './downloadGraphics';
+import { GraphicShareActions } from './GraphicShareActions';
 
 function driverTheme() {
   const theme = readGraphicTheme();
@@ -72,12 +73,17 @@ export function DriverGraphicsPage() {
     window.addEventListener('racevora:theme-changed', paint);
     return () => { active = false; window.removeEventListener('racevora:theme-changed', paint); };
   }, [page, format, branding.name, branding.logoUrl, copy.page]);
+  const prepareShare = useCallback(async () => {
+    const files = [];
+    const theme = driverTheme();
+    for (const item of pages) files.push({ blob: await renderGraphicPng(item.model, format, { branding: { name: branding.name, logoUrl: branding.logoUrl || undefined }, theme, pageLabel: `${copy.page} ${item.pageNumber}/${item.pageCount}`, pageNumber: item.pageNumber, pageCount: item.pageCount }), filename: `racevora-${kind}-${format}-${item.pageNumber}.png` });
+    return files;
+  }, [pages, format, branding.name, branding.logoUrl, copy.page, kind]);
   async function download() {
     if (!pages.length || exportState === 'busy') return;
     setExportState('busy');
     try {
-      const files = [];
-      for (const item of pages) files.push({ blob: await renderGraphicPng(item.model, format, { branding: { name: branding.name, logoUrl: branding.logoUrl || undefined }, theme: driverTheme(), pageLabel: `${copy.page} ${item.pageNumber}/${item.pageCount}`, pageNumber: item.pageNumber, pageCount: item.pageCount }), filename: `racevora-${kind}-${format}-${item.pageNumber}.png` });
+      const files = await prepareShare();
       await downloadGraphicFiles(files, `racevora-${kind}-${format}.zip`);
       setExportState('done');
     } catch { setExportState('error'); }
@@ -94,6 +100,7 @@ export function DriverGraphicsPage() {
         <fieldset><legend>{copy.format}</legend><div className="graphics-format-list">{(['square', 'portrait', 'story'] as const).map((value) => <label key={value}><input type="radio" name="driver-graphic-format" checked={format === value} onChange={() => setFormat(value)} /><span>{value === 'square' ? '1:1' : value === 'portrait' ? 'Feed · 4:5' : 'Story · 9:16'}</span></label>)}</div></fieldset>
         <button type="button" className="primary-action" disabled={!model || exportState === 'busy'} onClick={() => void download()}>{exportState === 'busy' ? copy.busy : pages.length > 1 ? copy.all : copy.download}</button>
         <p role="status">{exportState === 'error' ? copy.error : exportState === 'done' ? copy.done : ''}</p>
+        <GraphicShareActions prepare={prepareShare} pageIndex={pageIndex} disabled={!model || exportState === 'busy'} />
       </section>
       <section className="graphics-preview-panel" aria-label={copy.preview}>
         {page ? <><canvas className={`graphic-canvas-preview graphic-canvas-preview--${format}`} ref={canvas} role="img" aria-label={`${copy.preview}: ${page.model.title}`} />{pages.length > 1 && <nav className="graphics-page-navigation" aria-label={copy.page}>{pages.map((item, index) => <button key={item.pageNumber} type="button" aria-current={page === item ? 'page' : undefined} onClick={() => setPageIndex(index)}>{item.pageNumber}</button>)}</nav>}</> : <p>{kind === 'statistics' && !loaded?.own ? copy.noLink : copy.empty}</p>}

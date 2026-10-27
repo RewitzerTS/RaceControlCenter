@@ -1,0 +1,6 @@
+.graphic-share-actions { margin-top: 1rem; }
+.graphic-share-buttons { display: flex; flex-wrap: wrap; gap: .625rem; }
+.graphic-share-buttons button { min-height: 44px; max-width: 100%; padding: .65rem 1rem; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--surface); color: var(--text); font-weight: 600; white-space: normal; overflow-wrap: anywhere; cursor: pointer; }
+.graphic-share-buttons button:hover:not(:disabled) { border-color: var(--brand-primary); background: var(--surface-strong); }
+.graphic-share-actions p { margin: .65rem 0 0; font-size: .85rem; line-height: 1.5; }
+.graphic-share-buttons button:disabled { opacity: .5; cursor: not-allowed; }

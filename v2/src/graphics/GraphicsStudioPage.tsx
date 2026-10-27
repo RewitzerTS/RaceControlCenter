@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { AppState, EmptyState } from '../components/AppState';
 import { useI18n, type MessageKey } from '../i18n/I18nProvider';
@@ -26,6 +26,7 @@ import {
   type GraphicType,
 } from './graphics';
 import { downloadGraphicFiles } from './downloadGraphics';
+import { GraphicShareActions } from './GraphicShareActions';
 import { drawGraphic, readGraphicTheme, renderGraphicPng, type GraphicBranding } from './renderPng';
 
 const TYPE_KEYS: Record<GraphicType, MessageKey> = {
@@ -161,6 +162,18 @@ export function GraphicsStudioPage() {
 
   useEffect(() => setPreviewPage(0), [format, selectedResult?.id, type]);
 
+  const prepareShare = useCallback(async () => {
+    if (!modelWorkspace || !model) return [];
+    const theme = readGraphicTheme();
+    const files = [];
+    for (const page of graphicPages) files.push({
+      blob: await renderGraphicPng(page.model, format, { pageCount: page.pageCount, pageNumber: page.pageNumber,
+        pageLabel: t('graphics.page', { current: page.pageNumber, total: page.pageCount }), theme, branding: graphicBranding }),
+      filename: graphicFilename(modelWorkspace, type, format, page.pageNumber, page.pageCount),
+    });
+    return files;
+  }, [modelWorkspace, model, graphicPages, format, graphicBranding, type, t]);
+
   async function exportGraphic() {
     if (!modelWorkspace || !model || (isResultBound && resultLoading)) return;
     setState('exporting');
@@ -218,6 +231,7 @@ export function GraphicsStudioPage() {
         <div className="graphics-provenance"><strong>{t('graphics.source')}</strong><span>{isResultBound ? modelWorkspace.latest_result ? `${modelWorkspace.latest_result.race_name} · ${t('graphics.resultVersion')} ${modelWorkspace.latest_result.version} · ${t('graphics.driverCount', { count: modelWorkspace.latest_result.rows.length })}` : t('graphics.noResult') : model.subtitle || model.eyebrow}</span><small>{t('graphics.deterministic')}</small></div>
         <button className="primary-action" type="button" disabled={state === 'exporting' || (isResultBound && resultLoading) || (model.resultVersionId === null && RESULT_BOUND_TYPES.includes(type))} onClick={() => void exportGraphic()}>{state === 'exporting' ? t('graphics.exporting') : graphicPages.length > 1 ? t('graphics.exportMany', { count: graphicPages.length }) : t('graphics.export')}</button>
         <p className={`graphics-feedback graphics-feedback--${state}`} role="status">{state === 'done' ? graphicPages.length > 1 ? t('graphics.exportedMany', { count: graphicPages.length }) : t('graphics.exported') : state === 'error' ? t('graphics.exportError') : ''}</p>
+        <GraphicShareActions prepare={prepareShare} pageIndex={activePageIndex} disabled={state === 'exporting' || (isResultBound && (resultLoading || resultError || model.resultVersionId === null))} />
       </section>
 
       <section className="graphics-preview-panel" aria-busy={isResultBound && resultLoading} aria-labelledby="graphics-preview-title">
