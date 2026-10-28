@@ -108,7 +108,8 @@ if (!career.includes("careerSearch.set('profile_number', String(identity.profile
   violations.push('Career profile does not pass the verified global profile number to its embedded view');
 }
 if (!profile.includes('<ProfileNameSettings') || !profileNames.includes('saveNameSettings')
-  || !nameSettings.includes("client.rpc('save_my_name_settings'") || !profile.includes('identity?.linkedDriverCount')) {
+  || !nameSettings.includes("client.rpc('save_my_name_settings'") || !profile.includes('identity?.driverId')
+  || !profile.includes('identity.racevoraId')) {
   violations.push('Profile does not provide account settings and driver-link status');
 }
 if (
