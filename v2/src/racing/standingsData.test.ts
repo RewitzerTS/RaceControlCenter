@@ -114,7 +114,7 @@ describe('championship roster loading', () => {
   it('reads the selected season roster and preserves result snapshots', async () => {
     const { client, requests } = clientFixture();
     const data = await loadStandings(client, 'league', true, new AbortController().signal);
-    expect(JSON.parse(requests.at(-1)!.body)).toEqual({ p_season_id: 's' });
+    expect(JSON.parse(requests.find(({ url }) => url.pathname.endsWith('get_season_championship_roster'))!.body)).toEqual({ p_season_id: 's' });
     expect(data.currentRoster?.[0].team_name).toBe('Current Team');
     expect(data.assignments[0].team_name).toBe('Team A');
     expect(data.results).toEqual(fixture().results);

@@ -4,8 +4,14 @@ import type { LeagueProfile } from './leagueTeams';
 import { vehicleChangeRounds, type RosterRace } from './roster';
 
 export type TeamMode = 'current';
-export type TeamMember = LeagueProfile & { team_name: string | null; car_name: string | null; is_ai?: boolean; ai_driver_id?: string | null; ai_driver_name?: string | null };
-export type TeamManager = { mode: TeamMode; season: { id: string; name: string } | null; view_round: number | null; revision: string; races: RosterRace[]; teams: { name: string }[]; profiles: TeamMember[] };
+export type TeamMember = LeagueProfile & { team_name: string | null; team_display_name?: string | null; car_name: string | null; is_ai?: boolean; ai_driver_id?: string | null; ai_driver_name?: string | null };
+export type TeamManager = { mode: TeamMode; season: { id: string; name: string } | null; view_round: number | null; revision: string; races: RosterRace[]; teams: { name: string; display_name?: string }[]; profiles: TeamMember[] };
+export function teamDisplay(state: TeamManager, name: string) { return state.teams.find(team => team.name === name)?.display_name || name; }
+export async function renameTeam(client: LeagueSupabaseClient, state: TeamManager, key: string, name: string, round: number | null) {
+  const { data, error } = await client.rpc('rename_league_season_team', { p_key_name: key, p_display_name: name.trim(), p_round: round, p_revision: state.revision });
+  if (error) throw error;
+  return response(data);
+}
 export type TeamEdit = { original: string | null; name: string; drivers: [string, string]; departures: Record<string, string> };
 function response(data: unknown): TeamManager {
   const value = data as TeamManager;
@@ -23,6 +29,7 @@ export function departingMembers(state: TeamManager, edit: TeamEdit) {
 export function teamEditReady(state: TeamManager, edit: TeamEdit, round: number | null) {
   const ids = edit.drivers.filter(Boolean);
   return edit.name.trim().length >= 2 && edit.name.trim().length <= 80
+    && (edit.original === null || edit.name === edit.original)
     && !state.teams.some(t => t.name !== edit.original && t.name.toLocaleLowerCase() === edit.name.trim().toLocaleLowerCase())
     && new Set(ids).size === ids.length && ids.every(id => state.profiles.some(p => p.id === id && p.is_active))
     && ids.every(id => Boolean(state.profiles.find(p => p.id === id)?.car_name))

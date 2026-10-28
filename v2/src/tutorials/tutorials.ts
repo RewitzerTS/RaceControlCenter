@@ -26,7 +26,7 @@ export const TUTORIAL_TRACKS: Readonly<Record<TutorialId, TutorialTrack>> = {
     copyKey: 'tutorial.track.starter.copy',
     steps: [
       { path: '/home', selector: '#main-content', titleKey: 'tutorial.starter.home.title', copyKey: 'tutorial.starter.home.copy' },
-      { path: '/profile', selector: '.profile-create-league', titleKey: 'tutorial.starter.profile.title', copyKey: 'tutorial.starter.profile.copy' },
+      { path: '/profile', selector: '#profile-leagues', titleKey: 'tutorial.starter.profile.title', copyKey: 'tutorial.starter.profile.copy' },
     ],
   },
   driver: {
@@ -51,6 +51,7 @@ export const TUTORIAL_TRACKS: Readonly<Record<TutorialId, TutorialTrack>> = {
       { path: '/admin', selector: '.operations-menu', titleKey: 'tutorial.league.navigation.title', copyKey: 'tutorial.league.navigation.copy' },
       { path: '/admin/users', selector: '#main-content', titleKey: 'tutorial.league.members.title', copyKey: 'tutorial.league.members.copy' },
       { path: '/admin/season/setup', selector: '.season-setup-card', titleKey: 'tutorial.league.season.title', copyKey: 'tutorial.league.season.copy' },
+      { path: '/admin/drivers', selector: '.league-driver-directory', titleKey: 'tutorial.league.drivers.title', copyKey: 'tutorial.league.drivers.copy' },
       { path: '/admin/results/import', selector: '.result-import-form', titleKey: 'tutorial.league.results.title', copyKey: 'tutorial.league.results.copy' },
     ],
   },

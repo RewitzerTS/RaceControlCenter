@@ -2412,6 +2412,8 @@ body {
 .profile-display-name-card .profile-form--expanded > p { max-width: 68ch; margin: 0; color: var(--muted); }
 .form-success { color: var(--brand-accent); }
 .form-error { color: #ff8b8d; }
+.profile-identity-settings { min-width: 0; display: grid; align-content: start; gap: 1rem; }
+.profile-identity-settings > h2 { margin: 0; font-size: 1.2rem; }
 .profile-personalization,
 .profile-theme-preview,
 .profile-create-league,

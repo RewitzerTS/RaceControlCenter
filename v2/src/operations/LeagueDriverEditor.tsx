@@ -5,8 +5,8 @@ import { isHumanDriver, loadRosterWorkspace, vehicleChangeRounds, type RosterWor
 import { editableAliases, loadDriverEditor, occupiedAi, platformLabels, saveDriverEditor, type DriverEditorState, type EditorAlias } from './driverEditor';
 import type { AliasPlatform } from '../driver/gamertagAliases';
 
-export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
-  driverId?: string; workspace: DriverAdminWorkspace; onClose: () => void; onSaved: () => Promise<void>;
+export function LeagueDriverEditor({ driverId, initialRound, requireSeat = false, workspace, onClose, onSaved }: {
+  driverId?: string; initialRound?: number; requireSeat?: boolean; workspace: DriverAdminWorkspace; onClose: () => void; onSaved: () => Promise<void>;
 }) {
   const { client } = useLeague();
   const [state, setState] = useState<DriverEditorState | null>(null);
@@ -22,21 +22,21 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
   const [committed, setCommitted] = useState(false);
   useEffect(() => {
     let active = true;
-    setState(null); setError(''); setStale(false); setAiId(''); setRound('');
+    setState(null); setError(''); setStale(false); setAiId(''); setRound(initialRound ? String(initialRound) : '');
     void Promise.all([loadDriverEditor(client, driverId), loadRosterWorkspace(client)]).then(([data, races]) => {
       if (!active) return;
       setState(data); setRoster(races); setAliases(editableAliases(data.gamertags));
       setProfile({ name: data.name ?? data.driver?.display_name ?? '', public_name_mode: data.name_managed_by_driver ? data.public_name_mode ?? null : data.public_name_mode ?? 'name', gamertag: data.driver?.gamertag ?? '', nationality_code: data.driver?.nationality_code ?? '', is_active: data.driver?.is_active ?? true });
     }).catch(() => { if (active) setError('Das Fahrerformular konnte nicht geladen werden. Bitte erneut laden.'); });
     return () => { active = false; };
-  }, [client, driverId, retry]);
+  }, [client, driverId, initialRound, retry]);
   const rounds = vehicleChangeRounds(roster?.races ?? []);
   const human = !state?.driver || isHumanDriver(state.driver);
   const current = workspace.ai_assignments.find(a => a.human_driver_id === driverId && a.is_current);
   const scheduled = workspace.ai_assignments.filter(a => a.human_driver_id === driverId && !a.is_current);
   const chosen = workspace.ai_drivers.find(a => a.id === aiId);
   const occupied = aiId && round ? occupiedAi(workspace.ai_assignments, aiId, driverId, Number(round)) : undefined;
-  const validSeat = !aiId || Boolean(round && !occupied && profile.is_active);
+  const validSeat = (!requireSeat && !aiId) || Boolean(aiId && round && !occupied && profile.is_active);
   function patchAlias(index: number, value: Partial<EditorAlias>) { setAliases(rows => rows.map((row, i) => i === index ? { ...row, ...value } : row)); }
   async function finish() {
     try { await onSaved(); } catch { setError('Gespeichert. Die Übersicht konnte nicht aktualisiert werden. Bitte Übersicht erneut laden.'); }
@@ -60,15 +60,16 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
     } finally { setBusy(false); }
   }
   return <section className="admin-form driver-profile-editor" aria-labelledby="driver-editor-title">
-    <div className="admin-panel-heading"><h2 id="driver-editor-title">{driverId ? 'Fahrer bearbeiten' : 'Fahrer anlegen'}</h2><button type="button" className="text-action" disabled={busy} onClick={onClose}>Schließen</button></div>
+    <div className="admin-panel-heading"><h2 id="driver-editor-title">{initialRound ? 'KI-Sitz und Fahrzeug zuordnen' : driverId ? 'Fahrer bearbeiten' : 'Fahrer anlegen'}</h2><button type="button" className="text-action" disabled={busy} onClick={onClose}>Schließen</button></div>
     {!state && !error && <p role="status">Fahrerprofil wird geladen …</p>}
     {error && <p className="inline-error" role="alert">{error}</p>}
     {(!state || stale) && error && <button type="button" className="text-action" onClick={() => setRetry(value => value + 1)}>Formular neu laden</button>}
     {committed && <button type="button" className="text-action" onClick={() => void finish()}>Übersicht erneut laden</button>}
     {state && <form onSubmit={event => void save(event)}>
       <fieldset disabled={busy || stale || committed} className="driver-editor-fields"><legend className="sr-only">Fahrerprofil</legend>
+        <details className="driver-setup-profile" open={!initialRound}><summary>Profildaten und Gamertags prüfen</summary>
         <div className="admin-form-columns">
-          <label><span>Name / Vorname</span><input autoFocus required minLength={2} maxLength={60} readOnly={state.name_managed_by_driver} value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />{state.name_managed_by_driver && <small>Name und öffentliche Anzeige werden vom Fahrer in seinem persönlichen Profil verwaltet.</small>}</label>
+          <label><span>Name / Vorname</span><input autoFocus={!initialRound} required minLength={2} maxLength={60} readOnly={state.name_managed_by_driver} value={profile.name} onChange={e => setProfile(p => ({ ...p, name: e.target.value }))} />{state.name_managed_by_driver && <small>Name und öffentliche Anzeige werden vom Fahrer in seinem persönlichen Profil verwaltet.</small>}</label>
           <label><span>Öffentlich anzeigen als</span><select disabled={state.name_managed_by_driver} value={profile.public_name_mode ?? ''} onChange={e => setProfile(p => ({ ...p, public_name_mode: e.target.value as 'name' | 'gamertag' }))}>{!profile.public_name_mode && <option value="">Bisherige Anzeige – noch nicht bestätigt</option>}<option value="name">Name / Vorname</option><option value="gamertag" disabled={!profile.gamertag.trim()}>Haupt-Gamertag</option></select></label>
           <label><span>Gamertag (allgemein)</span><input maxLength={80} autoCapitalize="none" spellCheck={false} value={profile.gamertag} onChange={e => setProfile(p => ({ ...p, gamertag: e.target.value }))} /></label>
           <label><span id="driver-number-label">Startnummer</span><input readOnly value={state.driver?.number ?? 'Noch nicht zugeordnet'} aria-labelledby="driver-number-label" aria-describedby="driver-number-hint" /><small id="driver-number-hint">Nicht bearbeitbar. Die Nummer wird bei der ersten Sitzzuordnung aus dem Spiel übernommen.</small></label>
@@ -83,6 +84,7 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
           <button type="button" className="text-action" disabled={aliases.length >= 20} onClick={() => setAliases(rows => [...rows, { alias: '', platform: 'other' }])}>Gamertag ergänzen</button>
           {state.gamertags.aliases.some(a => !a.editable) && <div className="driver-editor-personal"><p>Zusätzlich aus dem verknüpften Konto erkannt (vom Fahrer selbst verwaltet):</p><ul>{state.gamertags.aliases.filter(a => !a.editable).map(a => <li key={a.id}>{a.alias} · {platformLabels[a.platform]}</li>)}</ul></div>}
         </fieldset>}
+        </details>
         {human && <fieldset className="driver-editor-ai"><legend>KI-Zuordnung</legend>
           <p>Aktuell: <strong>{current?.ai_driver_name ?? 'Keine KI-Zuordnung'}</strong></p>
           {scheduled.length > 0 && <ul>{scheduled.map(a => <li key={a.id}>{a.ai_driver_name} · ab Runde {a.effective_from_round}{a.effective_to_round ? ` bis ${a.effective_to_round}` : ''}</li>)}</ul>}
@@ -90,13 +92,14 @@ export function LeagueDriverEditor({ driverId, workspace, onClose, onSaved }: {
             const used = round ? occupiedAi(workspace.ai_assignments, ai.id, driverId, Number(round)) : undefined;
             return <option key={ai.id} value={ai.id} disabled={Boolean(used)}>{ai.display_name} · {ai.car_name}{used ? ` · vergeben an ${used.human_driver_name}` : ''}</option>;
           })}</select></label>
-          <label><span>Zuordnung gültig ab</span><select required={Boolean(aiId)} disabled={!roster?.season_id || !rounds.length} value={round} onChange={e => setRound(e.target.value)}><option value="">Rennen ausdrücklich auswählen</option>{rounds.map(r => <option key={r.id} value={r.round}>Runde {r.round} · {r.name}</option>)}</select></label></div>
+          <label><span>Zuordnung gültig ab</span><select required={Boolean(aiId)} disabled={Boolean(initialRound) || !roster?.season_id || !rounds.length} value={round} onChange={e => setRound(e.target.value)}><option value="">Rennen ausdrücklich auswählen</option>{rounds.map(r => <option key={r.id} value={r.round}>Runde {r.round} · {r.name}</option>)}</select></label></div>
           {!roster?.season_id ? <p>Richte zuerst eine Saison ein. Danach erscheinen die KI-Fahrer des gewählten Spiels.</p> : !rounds.length ? <p>In dieser Saison ist kein ungefahrenes Rennen mehr verfügbar.</p> : <p>Der KI-Fahrer bestimmt den F1-Sitz und das Fahrzeug. Ein bereits zugeordnetes Liga-Team bleibt erhalten. Vergangene Ergebnisse bleiben unverändert.</p>}
           {chosen && <p role="status">{chosen.display_name} · {chosen.car_name}{round ? ` · ab Runde ${round}` : ' · bitte ein Rennen auswählen'}</p>}
           {occupied && <p role="alert">Der KI-Fahrer ist im gewählten Zeitraum bereits vergeben.</p>}
         </fieldset>}
         <label className="admin-check"><input type="checkbox" checked={profile.is_active} onChange={e => setProfile(p => ({ ...p, is_active: e.target.checked }))} /><span>Fahrer aktiv</span></label>
         {aiId && !profile.is_active && <p role="alert">Aktiviere den Fahrer vor der KI-Zuordnung.</p>}
+        {requireSeat && !aiId && <p>Wähle einen freien KI-Fahrer, um den Sitz und sein Fahrzeug zu übernehmen.</p>}
         <div className="admin-form-actions"><button className="primary-action" type="submit" disabled={!validSeat}>{busy ? 'Wird gespeichert …' : 'Fahrer speichern'}</button></div>
       </fieldset>
     </form>}

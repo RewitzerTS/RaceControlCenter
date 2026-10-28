@@ -5,6 +5,8 @@ export type LinkableDriver = { id: string; display_name: string; gamertag: strin
 export function memberDriverLinkError(reason: unknown): string {
   const message = reason && typeof reason === 'object' && 'message' in reason ? String(reason.message) : '';
   const messages: Record<string, string> = {
+    MEMBER_MATCH_EXISTS: 'Ein Fahrer mit diesem Gamertag besteht bereits. Wähle das bestehende Profil, damit seine Statistik erhalten bleibt.',
+    ENTRY_PROFILE_REQUIRED: 'Der Nutzer muss zuerst Name und Haupt-Gamertag in seinem Profil vervollständigen.',
     MEMBER_DRIVER_TAKEN: 'Dieser Fahrer ist inzwischen mit einem anderen Konto verknüpft. Bitte lade die Auswahl neu.',
     MEMBER_ALREADY_LINKED: 'Dieses Konto hat bereits einen Fahrer in dieser Liga. Bestehende Verknüpfungen werden nicht überschrieben.',
     MEMBER_NOT_FOUND: 'Das Konto ist nicht mehr Mitglied dieser Liga. Bitte lade die Seite neu.',

@@ -6,6 +6,7 @@ import { useLeague } from '../league/LeagueProvider';
 import { useRole } from '../roles/RoleProvider';
 import { useAuth } from '../auth/AuthProvider';
 import { LeagueSwitcher } from '../league/LeagueSwitcher';
+import { LeagueReadiness } from './LeagueReadiness';
 import {
   loadAdminSnapshot,
   loadRaceAdminWorkspace,
@@ -121,6 +122,7 @@ export function AdminWorkspacePage() {
       <div><p className="section-label">{t('admin.nextStep')}</p><h1 id="admin-next-action-title">{t(nextAction.titleKey)}</h1><p>{t(nextAction.copyKey, { count: formatNumber(snapshot.counts.open_steward_cases ?? 0) })}</p></div>
       <NavLink className="primary-action" to={nextAction.to}>{t(nextAction.actionKey)}</NavLink>
     </section>
+    <LeagueReadiness />
     <div className="operations-layout">
       <nav className="operations-menu" aria-labelledby="admin-navigation-title">
         <div className="operations-menu-heading">

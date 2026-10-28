@@ -46,7 +46,7 @@ async function installGamertagFixture(context: BrowserContext, options: { failSa
     }
     if (name === 'driver_identities') {
       if (options.failLoad && !failedLoad && url.searchParams.get('select') === 'gamertag') { failedLoad = true; return route.fulfill({ status: 400, json: { message: 'Synthetic load failure' } }); }
-      return route.fulfill({ json: options.missing ? null : { id: identityId, profile_number: 75, status: 'active', gamertag: saved } });
+      return route.fulfill({ json: options.missing ? null : { id: identityId, profile_number: 75, racevora_number: 100075, status: 'active', gamertag: saved } });
     }
     if (name === 'league_members') return route.fulfill({ json: [{ league_id: publicRacingFixture.league.id, role: 'driver' }] });
     if (name === 'driver_identity_links') return route.fulfill({ json: [{ driver_id: publicRacingFixture.drivers[0].id, driver: { league_id: publicRacingFixture.league.id } }] });
@@ -102,7 +102,7 @@ test('public name selection saves and survives reload without a separate display
   expect(fixture.writes).toEqual([{ p_name: 'Davide', p_public_name_mode: 'gamertag', p_revision: 'initial' }]);
   await page.reload(); await card.locator('summary').click();
   await expect(card.getByLabel('Öffentlich anzeigen als')).toHaveValue('gamertag');
-  await expect(page.locator('.profile-number')).toHaveText('#75');
+  await expect(page.locator('.profile-facts')).toContainText('RV-100075');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await card.screenshot({ path: info.outputPath('profile-name-choice.png') });
 });
@@ -146,8 +146,8 @@ test('profile gamertag correction persists after reload without changing driver 
   await page.screenshot({ path: info.outputPath('profile-gamertag-saved.png'), fullPage: true });
   await page.reload();
   await expect(card.locator('summary')).toContainText('Ratcher7575');
-  await expect(page.locator('.profile-number')).toHaveText('#75');
-  await expect(page.locator('.profile-facts')).toContainText('verknüpfter Fahrer');
+  await expect(page.locator('.profile-facts')).toContainText('RV-100075');
+  await expect(page.locator('.profile-facts')).toContainText('Verknüpft – deine Rennstatistik gehört zu deinem Konto.');
 });
 
 test('profile gamertag failures keep the draft and allow retry', async ({ page, context }) => {

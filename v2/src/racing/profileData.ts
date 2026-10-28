@@ -3,6 +3,7 @@ import type { LeagueSupabaseClient } from '../lib/supabase';
 import type { Database } from '../types/database';
 import { currentResults, fastestLapDriver, type PublishedResult, type ResultsAssignment, type ResultsDriver, type ResultsRace } from './resultsData';
 import type { ChampionshipMember } from './standingsData';
+import { loadTeamLabels, teamLabel } from './teamLabels';
 
 type Tables = Database['public']['Tables'];
 export type HistorySeason = Pick<Tables['seasons']['Row'], 'id' | 'name' | 'start_date' | 'created_at' | 'is_active'> & Partial<Pick<Tables['seasons']['Row'], 'game_key' | 'game_label' | 'archived_at'>>;
@@ -75,7 +76,12 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
       if (!links.error && number != null && Number.isInteger(number) && number >= 0 && number <= 99) for (const link of links.data) if (drivers.some((driver) => driver.id === link.driver_id)) profileNumbers[link.driver_id] = number;
     }
   }
-  return { leagueId, seasons, drivers: drivers.map(withPublicName), races, results: valid, assignments, profileNumbers, currentRosters };
+  const labels = await loadTeamLabels(client);
+  signal.throwIfAborted();
+  return { leagueId, seasons, drivers: drivers.map(withPublicName), races,
+    results: valid.map(row => ({ ...row, points_team_name: teamLabel(labels, races.find(race => race.id === row.race_id)!.season_id, row.points_team_name) })),
+    assignments: assignments.map(row => ({ ...row, team_name: teamLabel(labels, row.season_id, row.team_name) })), profileNumbers,
+    currentRosters: currentRosters.map(row => ({ ...row, team_name: teamLabel(labels, row.season_id, row.team_name) ?? null })) };
 }
 
 export const position = (value: unknown): number | null => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null;

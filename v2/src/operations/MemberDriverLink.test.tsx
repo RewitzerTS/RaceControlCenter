@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { MemberDriverLink } from './MemberDriverLink';
@@ -12,7 +13,7 @@ const onLinked = vi.fn(async () => undefined);
 beforeEach(() => { onLinked.mockReset(); rpc.mockReset(); rpc.mockImplementation(async (name) => ({ data: name === 'get_linkable_league_drivers' ? [driver] : {}, error: null })); });
 afterEach(cleanup);
 async function open() {
-  render(<MemberDriverLink client={client} member={member} onLinked={onLinked} />);
+  render(<MemoryRouter><MemberDriverLink client={client} member={member} onLinked={onLinked} /></MemoryRouter>);
   fireEvent.click(screen.getByRole('button', { name: 'Fahrer verknüpfen' }));
   return screen.findByLabelText('Bestehender Fahrer');
 }
@@ -28,10 +29,20 @@ it('requires selection and explicit confirmation before linking the exact accoun
   expect(onLinked).toHaveBeenCalledTimes(1);
 });
 it('never offers overwriting an existing link', () => {
-  render(<MemberDriverLink client={client} member={{ ...member, driver_id: driver.id, driver_name: driver.display_name }} onLinked={onLinked} />);
+  render(<MemoryRouter><MemberDriverLink client={client} member={{ ...member, driver_id: driver.id, driver_name: driver.display_name }} onLinked={onLinked} /></MemoryRouter>);
   expect(screen.getByText(driver.display_name)).toBeTruthy();
   expect(screen.queryByRole('button')).toBeNull();
   expect(rpc).not.toHaveBeenCalled();
+});
+it('creates and links only after an explicit new-profile choice, then offers seat setup', async () => {
+  const selection = await open();
+  fireEvent.change(selection, { target: { value: 'new' } });
+  expect(screen.getByText(/Ein neuer Fahrer startet ohne bisherige Ergebnisse/)).toBeVisible();
+  expect(rpc).toHaveBeenCalledTimes(1);
+  rpc.mockResolvedValueOnce({ data: { driver_id: 'created-driver' }, error: null });
+  fireEvent.click(screen.getByRole('button', { name: 'Verknüpfung bestätigen' }));
+  await waitFor(() => expect(rpc).toHaveBeenCalledWith('create_and_link_league_member_driver', { p_user_id: member.user_id }));
+  expect(await screen.findByRole('link', { name: 'KI-Sitz und Team zuordnen' })).toHaveAttribute('href', '/admin/drivers?setup=created-driver');
 });
 it('keeps a committed link successful even if the member refresh fails', async () => {
   onLinked.mockRejectedValueOnce(new Error('offline'));
@@ -51,7 +62,7 @@ it('explains conflicts and reloads the driver selection', async () => {
 });
 it('offers retry for failed loading', async () => {
   rpc.mockResolvedValueOnce({ data: null, error: { message: 'offline' } });
-  render(<MemberDriverLink client={client} member={member} onLinked={onLinked} />);
+  render(<MemoryRouter><MemberDriverLink client={client} member={member} onLinked={onLinked} /></MemoryRouter>);
   fireEvent.click(screen.getByRole('button', { name: 'Fahrer verknüpfen' }));
   expect(await screen.findByRole('alert')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', { name: 'Auswahl neu laden' }));
@@ -59,7 +70,7 @@ it('offers retry for failed loading', async () => {
 });
 it('shows an empty selection without a save action', async () => {
   rpc.mockResolvedValueOnce({ data: [], error: null });
-  render(<MemberDriverLink client={client} member={member} onLinked={onLinked} />);
+  render(<MemoryRouter><MemberDriverLink client={client} member={member} onLinked={onLinked} /></MemoryRouter>);
   fireEvent.click(screen.getByRole('button', { name: 'Fahrer verknüpfen' }));
   expect(await screen.findByText(/Keine unverknüpften Fahrer/)).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Verknüpfung bestätigen' })).toBeNull();
@@ -70,6 +81,6 @@ it('cancels without writing and disables inactive accounts', async () => {
   expect(screen.getByRole('button', { name: 'Fahrer verknüpfen' })).toBeTruthy();
   expect(rpc).toHaveBeenCalledTimes(1);
   cleanup();
-  render(<MemberDriverLink client={client} member={{ ...member, identity_status: 'suspended' }} onLinked={onLinked} />);
+  render(<MemoryRouter><MemberDriverLink client={client} member={{ ...member, identity_status: 'suspended' }} onLinked={onLinked} /></MemoryRouter>);
   expect(screen.getByRole('button', { name: 'Fahrer verknüpfen' })).toBeDisabled();
 });

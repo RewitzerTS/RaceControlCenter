@@ -2799,6 +2799,9 @@ export type Database = {
       }
       get_demo_full_e2e_snapshot: { Args: never; Returns: Json }
       get_league_admin_workspace: { Args: never; Returns: Json }
+      create_and_link_league_member_driver: { Args: { p_user_id: string }; Returns: Json }
+      get_league_team_labels: { Args: never; Returns: { season_id: string; team_id: string; key_name: string; display_name: string }[] }
+      rename_league_season_team: { Args: { p_key_name: string; p_display_name: string; p_round: number | null; p_revision: string }; Returns: Json }
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_roster_workspace: { Args: never; Returns: Json }
       get_season_championship_roster: { Args: { p_season_id: string }; Returns: { driver_id: string; team_name: string | null; car_name: string | null }[] }

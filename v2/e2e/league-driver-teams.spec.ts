@@ -1,7 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture, confirmedNameFixture } from './public-fixture';
 
-async function fixture(context: BrowserContext, options: { error?: string; noSeason?: boolean; empty?: boolean; loadError?: boolean; ai?: boolean } = {}) {
+async function fixture(context: BrowserContext, options: { error?: string; noSeason?: boolean; empty?: boolean; loadError?: boolean; ai?: boolean; setup?: boolean; inactive?: boolean } = {}) {
   await installPublicFixture(context);
   const user = { id: '91000000-0000-4000-8000-000000000075', email: 'league-admin@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: { onboarding_complete: true, display_name: 'Test Admin' } };
   const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -15,8 +15,10 @@ async function fixture(context: BrowserContext, options: { error?: string; noSea
   const preferences: Array<{ driver_id: string; team_id: string }> = [];
   const drivers = publicRacingFixture.drivers.map(d => ({ ...d, ai_driver_reference: null, identity_linked: true, result_count: 12 }));
   const profiles = options.empty ? [] : drivers.map((d, i) => ({ id: d.id, display_name: d.display_name, gamertag: d.gamertag, is_active: true, team_name: i === 0 ? 'RCC Racing' : 'Junior', car_name: i === 0 ? 'Mercedes W16' : 'Red Bull RB21' }));
+  if (options.setup) { profiles[0].team_name = ''; profiles[0].car_name = ''; }
+  if (options.inactive) drivers[1].is_active = false;
   if (options.ai) profiles.push({ id: '70000000-0000-4000-8000-000000000020', display_name: 'George Russell', gamertag: '', is_active: true, team_name: '', car_name: 'Mercedes W16', is_ai: true } as typeof profiles[number]);
-  const managerTeams = options.empty ? [] : [{ name: 'RCC Racing' }, { name: 'Junior' }];
+  const managerTeams: { name: string; display_name?: string }[] = options.empty ? [] : [{ name: 'RCC Racing' }, { name: 'Junior' }];
   let failure = options.error;
   let loadFailure = options.loadError;
   const manager = (mode: string, round: number | null) => ({ mode, revision: 'test-revision', season: options.noSeason ? null : { id: 'season', name: 'Saison 2026' }, view_round: round ?? 2,
@@ -29,12 +31,22 @@ async function fixture(context: BrowserContext, options: { error?: string; noSea
     if (name === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: false, verified: false } });
     if (name === 'league_members') return route.fulfill({ json: [{ league_id: publicRacingFixture.league.id, role: 'league_admin' }] });
     if (name === 'driver_identities') return route.fulfill({ json: { id: user.id, status: 'active', profile_number: 75 } });
-    if (name === 'get_league_driver_admin_workspace') return route.fulfill({ json: { league: publicRacingFixture.league, drivers, counts: { total: 2, active: 2, linked: 2 }, active_season: null, ai_drivers: [], ai_assignments: [] } });
-    if (name === 'get_league_roster_workspace') return route.fulfill({ json: { season_id: null, races: [], vehicles: [], substitutions: [] } });
+    if (name === 'get_league_driver_admin_workspace') return route.fulfill({ json: { league: publicRacingFixture.league, drivers, counts: { total: 2, active: 2, linked: 2 }, active_season: null, ai_drivers: options.setup ? [{ id: 'ai-russell', display_name: 'George Russell', car_name: 'Mercedes W16' }] : [], ai_assignments: [] } });
+    if (name === 'get_league_roster_workspace') return route.fulfill({ json: { season_id: options.setup ? 'season' : null, races: options.setup ? manager('current', null).races : [], vehicles: [], substitutions: [] } });
+    if (name === 'get_league_driver_editor' || name === 'save_league_named_driver') {
+      const body = route.request().postDataJSON();
+      if (name === 'save_league_named_driver') { writes.push({ name, body }); profiles[0].car_name = 'Mercedes W16'; Object.assign(profiles[0], { ai_driver_id: 'ai-russell', ai_driver_name: 'George Russell' }); }
+      return route.fulfill({ json: { driver: drivers[0], name: drivers[0].display_name, public_name_mode: 'name', gamertags: { main: drivers[0].gamertag, aliases: [] }, revision: 'driver-revision' } });
+    }
     if (name === 'get_league_team_directory') return route.fulfill({ json: { teams, preferences, profiles: drivers.map(({ id, display_name, gamertag, is_active }) => ({ id, display_name, gamertag, is_active })) } });
     if (name === 'get_league_team_manager') {
       if (loadFailure) { loadFailure = false; return route.fulfill({ status: 503, json: { message: 'Unavailable' } }); }
       const body = route.request().postDataJSON(); return route.fulfill({ json: manager(body.p_mode, body.p_round) });
+    }
+    if (name === 'rename_league_season_team') {
+      const body = route.request().postDataJSON(); writes.push({ name, body });
+      managerTeams.find(t => t.name === body.p_key_name)!.display_name = body.p_display_name;
+      return route.fulfill({ json: manager('current', body.p_round) });
     }
     if (name === 'save_league_team_lineup') {
       const body = route.request().postDataJSON(); writes.push({ name, body });
@@ -61,6 +73,37 @@ async function fixture(context: BrowserContext, options: { error?: string; noSea
   });
   return { writes, teams, drivers };
 }
+
+test('guided setup carries the explicit race from seat assignment through the team and shows the saved summary', async ({ page, context }, info) => {
+  const state = await fixture(context, { setup: true });
+  await page.goto(`/admin/drivers?setup=${state.drivers[0].id}`);
+  await expect(page.getByRole('heading', { name: /startklar machen/ })).toBeVisible();
+  expect(state.writes).toHaveLength(0);
+  await page.getByRole('combobox', { name: 'Gültig ab Rennen', exact: true }).selectOption('2');
+  await page.getByRole('combobox', { name: 'KI-Fahrer', exact: true }).selectOption('ai-russell');
+  await expect(page.getByRole('combobox', { name: 'Zuordnung gültig ab', exact: true })).toHaveValue('2');
+  await expect(page.getByRole('combobox', { name: 'Zuordnung gültig ab', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Fahrer speichern', exact: true }).click();
+  await page.getByLabel('Team für: Test Driver 1').selectOption('Junior');
+  await expect(page.getByLabel('Änderungen gültig ab')).toHaveValue('2');
+  await page.getByRole('button', { name: 'Besetzung speichern', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Für das gewählte Rennen zugeordnet' })).toBeVisible();
+  await expect(page.locator('.driver-setup-summary')).toContainText('George Russell');
+  await expect(page.locator('.driver-setup-summary')).toContainText('Junior');
+  expect(state.writes.map(w => [w.name, w.body.p_round])).toEqual([['save_league_named_driver', 2], ['save_league_team_lineup', 2]]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.evaluate(() => { (document.activeElement as HTMLElement | null)?.blur(); window.scrollTo(0, 0); });
+  await page.screenshot({ path: `.impeccable/review/driver-setup-${info.project.name}.png`, fullPage: true });
+});
+
+test('inactive profiles remain available through an explicit filter', async ({ page, context }) => {
+  const state = await fixture(context, { inactive: true });
+  await page.goto('/admin/drivers');
+  await expect(page.getByRole('row', { name: new RegExp(state.drivers[1].display_name) })).toHaveCount(0);
+  await page.getByLabel('Auch inaktive Fahrer anzeigen').check();
+  await expect(page.getByRole('row', { name: new RegExp(state.drivers[1].display_name) })).toBeVisible();
+  expect(state.writes).toHaveLength(0);
+});
 
 test('league driver directory remains usable on desktop and mobile', async ({ page, context }, info) => {
   await fixture(context);
@@ -115,7 +158,7 @@ test('outgoing driver requires a destination; failed save preserves choices', as
   const state = await fixture(context, { error: 'TEAM_FULL' });
   await page.goto('/admin/teams');
   await page.getByLabel('Änderungen gültig ab').selectOption('2');
-  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team bearbeiten' }).click();
+  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Besetzung bearbeiten' }).click();
   await page.getByRole('combobox', { name: 'Fahrer 1', exact: true }).selectOption(state.drivers[1].id);
   await expect(page.getByRole('button', { name: 'Besetzung speichern' })).toBeDisabled();
   await page.getByRole('combobox', { name: 'Neues Team für Test Driver 1', exact: true }).selectOption('Junior');
@@ -131,7 +174,7 @@ test('stale edit requires explicit reload without writing again', async ({ page,
   const state = await fixture(context, { error: 'TEAM_STATE_CHANGED' });
   await page.goto('/admin/teams');
   await page.getByLabel('Änderungen gültig ab').selectOption('2');
-  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team bearbeiten' }).click();
+  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Besetzung bearbeiten' }).click();
   await page.getByRole('button', { name: 'Besetzung speichern' }).click();
   await expect(page.getByRole('alert')).toContainText('zwischenzeitlich geändert');
   await expect(page.getByRole('button', { name: 'Besetzung speichern' })).toBeDisabled();
@@ -155,15 +198,14 @@ test('legacy team URL leads to the single manager and preserves the selected dri
   expect(state.writes.at(-1)?.body).toMatchObject({ p_original_name: 'Junior', p_name: 'Junior', p_driver_ids: [state.drivers[1].id, state.drivers[0].id] });
 });
 
-test('team name is edited in the central lineup editor', async ({ page, context }) => {
+test('team rename is separate from lineup and does not require an effective race', async ({ page, context }) => {
   const state = await fixture(context);
   await page.goto('/admin/teams');
-  await page.getByLabel('Änderungen gültig ab').selectOption('2');
-  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team bearbeiten' }).click();
-  await page.getByLabel('Teamname', { exact: true }).fill('Hobbyracer');
-  await page.getByRole('button', { name: 'Besetzung speichern' }).click();
+  await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Team umbenennen' }).click();
+  await page.getByLabel('Neuer Teamname', { exact: true }).fill('Hobbyracer');
+  await page.getByRole('button', { name: 'Name speichern' }).click();
   await expect(page.getByRole('status')).toContainText('gespeichert');
-  expect(state.writes.at(-1)?.body).toMatchObject({ p_original_name: 'RCC Racing', p_name: 'Hobbyracer', p_round: 2 });
+  expect(state.writes.at(-1)?.body).toMatchObject({ p_key_name: 'RCC Racing', p_display_name: 'Hobbyracer', p_round: null });
 });
 
 test('empty league retries loading and requires a season before creating teams', async ({ page, context }) => {

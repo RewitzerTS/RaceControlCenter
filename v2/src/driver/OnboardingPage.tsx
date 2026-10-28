@@ -5,7 +5,6 @@ import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
 import { useLeague } from '../league/LeagueProvider';
 import { resolvePersonalTheme, THEME_PRESETS } from '../league/leagueBranding';
-import { GamertagAliasesEditor } from './GamertagAliasesEditor';
 import { LeagueJoinRequestStatusList } from './LeagueJoinRequestStatusList';
 import { advanceEntry, loadEntry, requestEntryLeague, saveEntryProfile, type EntryState } from './entry';
 import { entryCopy } from './entryCopy';
@@ -109,7 +108,7 @@ function EntryFlow() {
           {!THEME_PRESETS.slice(0, 4).some(theme => theme.id === selectedTheme.id) && <p>{t('profile.themeTitle')}: {selectedTheme.name}</p>}
         </fieldset>
         {themeSaved && <p role="status">{c.saved}</p>}
-        <GamertagAliasesEditor />
+
         <div className="entry-actions"><button className="text-action" disabled={busy} type="button" onClick={() => { setError(''); setStep(1); }}>{c.back}</button><button className="primary-action" disabled={busy} type="button" onClick={() => void run(async () => { setEntry(await advanceEntry(client, 3)); setStep(3); })}>{c.next}</button></div>
       </>}
       {step === 3 && <>

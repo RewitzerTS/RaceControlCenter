@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import type { Database } from '../types/database';
+import { loadTeamLabels, teamLabel } from './teamLabels';
 
 type Tables = Database['public']['Tables'];
 export type ResultsDriver = Pick<Tables['drivers']['Row'], 'id' | 'display_name' | 'gamertag' | 'car_name' | 'league_team' | 'is_active'> & Partial<Pick<Tables['drivers']['Row'], 'public_name' | 'number' | 'nationality_code' | 'avatar_url' | 'ai_driver_reference'>>;
@@ -124,7 +125,11 @@ export async function loadResults(client: LeagueSupabaseClient, slug: string, au
   } else {
     assignments = currentResults(races, results).map((row) => ({ driver_id: row.driver_id, car_name: row.car_name_snapshot, created_at: '', team_name: !row.points_owner_driver_id || row.points_owner_driver_id === row.driver_id ? row.points_team_name : '', effective_round_number: races.find((race) => race.id === row.race_id)!.round_number }));
   }
-  return { season, drivers: drivers.map(withPublicName), races, results: currentResults(races, results), assignments };
+  const labels = await loadTeamLabels(client);
+  signal.throwIfAborted();
+  return { season, drivers: drivers.map(withPublicName), races,
+    results: currentResults(races, results).map(row => ({ ...row, points_team_name: teamLabel(labels, season.id, row.points_team_name) })),
+    assignments: assignments.map(row => ({ ...row, team_name: teamLabel(labels, season.id, row.team_name) })) };
 }
 
 export async function loadResultsOwnDriver(client: LeagueSupabaseClient, userId: string, drivers: ResultsDriver[], signal: AbortSignal) {

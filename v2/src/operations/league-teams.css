@@ -74,6 +74,19 @@
 .season-setup-steps--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .driver-profile-editor { scroll-margin-top: 7rem; }
 .driver-profile-editor form, .driver-editor-fields { min-width: 0; }
+.driver-setup, .league-readiness { min-width: 0; margin-block: 1.5rem; padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.driver-setup-status { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; margin-block: 1.5rem; list-style: none; border-block: 1px solid var(--line); }
+.driver-setup-status li { display: grid; gap: .4rem; padding: 1rem; overflow-wrap: anywhere; }
+.driver-setup-round { display: grid; gap: .5rem; max-width: 36rem; }
+.driver-setup-round select { width: 100%; min-width: 0; min-height: 44px; padding: .75rem; font: inherit; font-size: 1rem; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.driver-setup .driver-directory-nav { flex-wrap: wrap; margin-block: 1.5rem; }
+.driver-setup [aria-current="step"] { color: var(--accent); text-decoration: underline; text-underline-offset: .4em; }
+.driver-setup-summary dl { display: grid; gap: 1rem; }
+.driver-setup-summary dd { margin: .35rem 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.driver-setup-profile > summary { min-height: 44px; padding-block: .75rem; cursor: pointer; font-weight: 700; }
+.driver-setup-profile[open] > .admin-form-columns { margin-block: 1rem; }
+.league-readiness ul { display: flex; flex-wrap: wrap; gap: 1rem 2rem; padding-inline-start: 1rem; }
+@media (max-width: 640px) { .driver-setup-status { grid-template-columns: minmax(0, 1fr); } .driver-setup-status li { padding-inline: 0; } .driver-setup .admin-panel-heading { flex-wrap: wrap; } }
 .driver-editor-fields { border: 0; padding: 0; margin: 0; display: grid; gap: 1.5rem; }
 .driver-editor-fields fieldset { min-width: 0; border: 0; border-block-start: 1px solid var(--line); padding: 1.25rem 0 0; margin: 0; }
 .driver-editor-fields legend { padding-inline-end: .75rem; font-size: 1.15rem; font-weight: 700; }

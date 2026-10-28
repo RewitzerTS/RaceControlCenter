@@ -1,4 +1,5 @@
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { loadTeamLabels, teamLabel } from './teamLabels';
 import { currentResults, fastestLapDriver, loadResults, type ResultsData, type ResultsRace } from './resultsData';
 
 export interface ChampionshipMember { driver_id: string; team_name: string | null; car_name: string | null }
@@ -12,7 +13,8 @@ export async function loadStandings(client: LeagueSupabaseClient, slug: string, 
   // Never silently fall back to stale initial assignments on a failed roster read.
   if (response.error) throw response.error;
   if (!Array.isArray(response.data)) throw new Error('Championship roster unavailable');
-  return { ...data, currentRoster: response.data };
+  const labels = await loadTeamLabels(client);
+  return { ...data, currentRoster: response.data.map(row => ({ ...row, team_name: teamLabel(labels, data.season!.id, row.team_name) ?? null })) };
 }
 
 export type Trend = 'up' | 'down' | 'flat' | 'new';

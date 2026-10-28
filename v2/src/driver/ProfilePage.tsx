@@ -43,7 +43,7 @@ export function ProfilePage() {
   const { deleteAccount, loading: authLoading, updateCustomTheme, updateThemePreset, user } = useAuth();
   const { identity, loading: identityLoading } = useDriverIdentity();
   const { role } = useRole();
-  const { plural, t, language } = useI18n();
+  const { t, language } = useI18n();
   const features = useFeatureFlags();
   const { branding, brandingLoading, leagueSlug } = useLeague();
   const navigate = useNavigate();
@@ -129,6 +129,12 @@ export function ProfilePage() {
     }
   }
 
+  const profileCopy = {
+    de: ['Name & Gamertags', 'Meine Ligen', 'Einer Liga beitreten oder eine eigene Liga erstellen.', 'Fahrer in der aktiven Liga', 'Verknüpft – deine Rennstatistik gehört zu deinem Konto.', 'Noch nicht verknüpft. Nach dem Ligabeitritt bestätigt die Ligaleitung dein Fahrerprofil.'],
+    en: ['Name & gamertags', 'My leagues', 'Join a league or create your own.', 'Driver in the active league', 'Linked – your racing statistics belong to your account.', 'Not linked yet. After you join, league management confirms your driver profile.'],
+    es: ['Nombre y gamertags', 'Mis ligas', 'Únete a una liga o crea la tuya.', 'Piloto en la liga activa', 'Vinculado: tus estadísticas pertenecen a tu cuenta.', 'Sin vincular. La dirección confirma tu perfil tras unirte a la liga.'],
+    fr: ['Nom et gamertags', 'Mes ligues', 'Rejoignez une ligue ou créez la vôtre.', 'Pilote dans la ligue active', 'Lié : vos statistiques appartiennent à votre compte.', 'Pas encore lié. La direction confirme votre profil après votre adhésion.'],
+  }[language];
   const selectedTheme = themePreset === CUSTOM_THEME_ID
     ? resolveTheme({ theme_id: CUSTOM_THEME_ID, ...customThemeMetadata(customTheme) })
     : THEME_PRESETS.find((theme) => theme.id === themePreset) ?? THEME_PRESETS[0];
@@ -146,14 +152,12 @@ export function ProfilePage() {
           <dl className="profile-facts">
             {identity?.racevoraId && <div><dt>{entryCopy[language].id}</dt><dd>{identity.racevoraId}</dd></div>}
             <div><dt>{t('beta.email')}</dt><dd>{user.email ?? t('notConfirmed')}</dd></div>
-            <div><dt>{t('profile.number')}</dt><dd className="profile-number">#{identity?.profileNumber ?? '–'}</dd></div>
-            <div><dt>{t('profile.identity')}</dt><dd>{identity?.status === 'active' ? t('identityActive') : t('noIdentity')}</dd></div>
-            <div><dt>{t('profile.linkedDrivers')}</dt><dd>{plural('linkedRecord', identity?.linkedDriverCount ?? 0)}</dd></div>
+<div><dt>{profileCopy[3]}</dt><dd>{identity?.driverId ? profileCopy[4] : profileCopy[5]}</dd></div>
           </dl>
         </article>
-        <ProfileNameSettings onName={setDisplayName} />
+        <section className="profile-identity-settings" aria-labelledby="profile-identity-title"><h2 id="profile-identity-title">{profileCopy[0]}</h2><ProfileNameSettings onName={setDisplayName} />
         <ProfileGamertagEditor key={user.id} />
-        {identity?.status === 'active' && <GamertagAliasesEditor key={`aliases-${user.id}-${leagueSlug}`} />}
+        {identity?.status === 'active' && <GamertagAliasesEditor key={`aliases-${user.id}-${leagueSlug}`} />}</section>
         <details className="profile-personalization">
           <summary className="profile-setting-summary"><strong>{t('profile.themeTitle')}</strong><span className="profile-setting-current">{selectedTheme.name}</span></summary>
           <p>{t('profile.themeCopy')}</p>
@@ -182,7 +186,7 @@ export function ProfilePage() {
         <aside className="profile-theme-preview" style={{ '--preview-primary': selectedTheme.primary, '--preview-secondary': selectedTheme.surface, '--preview-accent': selectedTheme.accent, '--preview-background': selectedTheme.background, '--preview-text': selectedTheme.text, '--preview-on-primary': selectedTheme.textOnPrimary } as CSSProperties}>
           <span className="preview-mark" aria-hidden="true">RV</span><h2>RaceVora</h2><small>{themePreset === CUSTOM_THEME_ID ? t('profile.customTheme') : selectedTheme.name}</small><span className="profile-preview-button">{t('profile.themeTitle')}</span>
         </aside>
-        <article className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{t('profile.createLeague')}</h2><p>{t('profile.createLeagueCopy')}</p></div><div className="profile-league-actions"><NavLink className="text-action" to="/onboarding">{t('onboarding.leagueStep')}</NavLink><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink></div></article>
+        <article id="profile-leagues" className="profile-create-league"><div><p className="section-label">RaceVora</p><h2>{profileCopy[1]}</h2><p>{profileCopy[2]}</p></div><div className="profile-league-actions"><NavLink className="primary-action" to="/onboarding">{t('onboarding.leagueStep')}</NavLink><NavLink className="primary-action" to="/leagues/new">{t('profile.createLeague')}</NavLink></div></article>
         <article className="profile-create-league profile-active-league">
           <div><p className="section-label">RaceVora</p><h2>{t('leagueSwitcher.active')}</h2><p>{t('leagueSwitcher.change')}</p></div>
           <LeagueSwitcher isPlatformOwner={role === 'platform_owner'} userId={user.id} />

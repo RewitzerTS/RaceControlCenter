@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { NavLink } from 'react-router-dom';
 import type { LeagueSupabaseClient } from '../lib/supabase';
 import type { LeagueMember } from './operations';
 import { linkMemberDriver, loadLinkableDrivers, memberDriverLinkError, type LinkableDriver } from './driverLinkApi';
@@ -8,6 +9,7 @@ export function MemberDriverLink({ client, member, onLinked }: { client: LeagueS
   const [open, setOpen] = useState(false);
   const [drivers, setDrivers] = useState<LinkableDriver[]>([]);
   const [selected, setSelected] = useState('');
+  const [linkedId, setLinkedId] = useState('');
   const [state, setState] = useState<'idle' | 'loading' | 'saving' | 'saved'>('idle');
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -29,14 +31,17 @@ export function MemberDriverLink({ client, member, onLinked }: { client: LeagueS
     return () => { generation.current++; };
   }, [client, open, attempt]);
 
-  if (member.driver_id) return <span>{member.driver_name ?? 'Fahrer verknüpft'}</span>;
-  if (state === 'saved') return <span role="status">Fahrer verknüpft. Bitte lade die Seite neu, falls die Liste noch nicht aktualisiert ist.</span>;
+  if (member.driver_id || linkedId) return <span role={linkedId ? 'status' : undefined}>{member.driver_name ?? 'Fahrer verknüpft'} <NavLink className="text-link" to={`/admin/drivers?setup=${member.driver_id || linkedId}`}>KI-Sitz und Team zuordnen</NavLink></span>;
   const driver = drivers.find((item) => item.id === selected);
   async function save() {
-    if (!driver || state === 'saving') return;
+    if ((!driver && selected !== 'new') || state === 'saving') return;
     setState('saving'); setError('');
     try {
-      await linkMemberDriver(client, member.user_id, driver.id);
+      if (selected === 'new') {
+        const { data, error: createError } = await client.rpc('create_and_link_league_member_driver', { p_user_id: member.user_id });
+        if (createError) throw createError;
+        setLinkedId((data as { driver_id: string }).driver_id);
+      } else if (driver) { await linkMemberDriver(client, member.user_id, driver.id); setLinkedId(driver.id); }
     } catch (reason) { setError(memberDriverLinkError(reason)); setState('idle'); return; }
     setState('saved');
     // A failed refresh must not present a committed link as a failed write.
@@ -46,12 +51,12 @@ export function MemberDriverLink({ client, member, onLinked }: { client: LeagueS
     {!open ? <><span>Noch nicht verknüpft</span><button ref={trigger} className="text-action" type="button" disabled={member.identity_status !== 'active'} onClick={() => setOpen(true)}>Fahrer verknüpfen</button>{member.identity_status !== 'active' && <small>Aktives RaceVora-Profil erforderlich.</small>}</> :
       <form aria-label={`Fahrer für ${member.email} verknüpfen`} onSubmit={(event) => { event.preventDefault(); void save(); }}>
         {state === 'loading' ? <p role="status">Fahrer werden geladen …</p> : <>
-          {drivers.length > 0 && <label><span>Bestehender Fahrer</span><select ref={select} value={selected} required disabled={state === 'saving'} onChange={(event) => setSelected(event.target.value)}><option value="">Bitte auswählen</option>{drivers.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.gamertag ? ` / ${item.gamertag}` : ''}{item.number !== null ? ` · #${item.number}` : ''}{!item.is_active ? ' · Inaktiv' : ''}</option>)}</select></label>}
+          <label><span>Bestehender Fahrer</span><select ref={select} value={selected} required disabled={state === 'saving'} onChange={(event) => setSelected(event.target.value)}><option value="">Bitte auswählen</option>{drivers.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.gamertag ? ` / ${item.gamertag}` : ''}{item.number !== null ? ` · #${item.number}` : ''}{!item.is_active ? ' · Inaktiv' : ''}</option>)}<option value="new">Neuen Ligafahrer anlegen und verknüpfen</option></select></label>
           {!drivers.length && !error && <p>Keine unverknüpften Fahrer in dieser Liga vorhanden.</p>}
-          {driver && <p className="member-driver-confirm">Du verknüpfst <strong>{member.email}</strong> mit <strong>{driver.display_name}</strong>. Ergebnisse und Historie bleiben beim bestehenden Fahrer.</p>}
+          {selected === 'new' && <p>Nur wählen, wenn noch kein passendes Fahrerprofil existiert. Ein neuer Fahrer startet ohne bisherige Ergebnisse. Name und Gamertag werden aus dem Konto übernommen.</p>}{driver && <p className="member-driver-confirm">Du verknüpfst <strong>{member.email}</strong> mit <strong>{driver.display_name}</strong>. Ergebnisse und Historie bleiben beim bestehenden Fahrer.</p>}
           {error && <p role="alert">{error}</p>}
           <div className="member-driver-actions">
-            {driver && <button className="primary-action" type="submit" disabled={state === 'saving'}>{state === 'saving' ? 'Wird verknüpft …' : 'Verknüpfung bestätigen'}</button>}
+            {selected && <button className="primary-action" type="submit" disabled={state === 'saving'}>{state === 'saving' ? 'Wird verknüpft …' : 'Verknüpfung bestätigen'}</button>}
             {error && <button className="text-action" type="button" disabled={state === 'saving'} onClick={() => setAttempt((value) => value + 1)}>Auswahl neu laden</button>}
           </div>
         </>}
