@@ -185,6 +185,11 @@ test('slides crossfade with a small directional move, fixed controls and a reduc
  await expect(carousel).not.toContainText('Streckenschema');
  await expect(carousel.locator('.race-day-map figcaption')).toContainText('3,337');
  await expect(carousel.locator('.race-day-open')).toHaveCSS('border-radius','999px');
+ // Freeze cleanup timers and CSS playback before the click. On a busy host the
+ // 320/420ms animations can otherwise finish before Playwright inspects them.
+ await page.clock.install();
+ await page.clock.pauseAt(await page.evaluate(()=>Date.now()+1000));
+ const hold=await page.addStyleTag({content:'.race-day-transitioning .race-day-photo, .race-day-transitioning .race-day-content { animation-play-state: paused !important; }'});
  const before=await next.boundingBox();
  await next.click();
  await expect(carousel.locator('h2')).toHaveText('Japan GP');
@@ -197,7 +202,10 @@ test('slides crossfade with a small directional move, fixed controls and a reduc
  await expect(next).toBeFocused();
  await carousel.screenshot({path:info.outputPath('slide-crossfade-midpoint.png'),animations:'allow'});
  await carousel.evaluate(el=>el.getAnimations({subtree:true}).forEach(a=>a.finish()));
+ await page.clock.runFor(500);
  await expect(carousel.locator('.race-day-photo-outgoing')).toHaveCount(0);
+ await hold.evaluate(el=>el.remove());
+ await page.clock.resume();
  await carousel.locator('.race-day-dot').nth(0).click();
  await expect(carousel).toHaveCSS('--race-slide-direction','-1');
  await page.emulateMedia({reducedMotion:'reduce'});
