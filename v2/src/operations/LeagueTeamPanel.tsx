@@ -94,7 +94,7 @@ export function LeagueTeamPanel({ onSaved, initialRound, driverId }: { onSaved: 
     {state && <>
       <p className="team-context-note">{!state.season ? copy.noSeason : !rounds.length ? copy.noRounds : round ? copy.raceHint : copy.chooseHint}</p>
       {state.season && <p className="team-view-label"><strong>{state.season.name}</strong> · {race ? `${copy.roundWord} ${race.round} · ${race.name}` : copy.view}</p>}
-      {error && <div role="alert"><p className="inline-error">{error}</p>{needsReload && <button className="text-action" type="button" onClick={() => { setRound(''); setRetry(value => value + 1); }}>{copy.reload}</button>}</div>}
+      {error && <div role="alert"><p className="inline-error">{error}</p>{needsReload && <button className="text-action" type="button" onClick={() => { setRound(initialRound ? String(initialRound) : ''); setRetry(value => value + 1); }}>{copy.reload}</button>}</div>}
       {saved && <p className="inline-success" role="status">{copy.saved}</p>}
       {renamed && <p className="inline-success" role="status">{renameCopy[4]}</p>}
       {rename && <form className="team-lineup-editor" onSubmit={event => void saveName(event)}><fieldset disabled={busy || needsReload}><legend>{renameCopy[0]}</legend><p>{renameCopy[3]}</p><label>{renameCopy[1]}<input autoFocus required minLength={2} maxLength={80} value={rename.name} onChange={event => setRename({ ...rename, name: event.target.value })} /></label><div className="team-editor-actions"><button className="primary-action" type="submit">{busy ? copy.saving : renameCopy[2]}</button><button className="text-action" type="button" onClick={() => setRename(null)}>{copy.cancel}</button></div></fieldset></form>}

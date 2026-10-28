@@ -96,6 +96,23 @@ test('guided setup carries the explicit race from seat assignment through the te
   await page.screenshot({ path: `.impeccable/review/driver-setup-${info.project.name}.png`, fullPage: true });
 });
 
+test('guided setup can recover from a stale team edit without losing the selected race', async ({ page, context }) => {
+  const state = await fixture(context, { setup: true, error: 'TEAM_STATE_CHANGED' });
+  await page.goto(`/admin/drivers?setup=${state.drivers[0].id}`);
+  await page.getByRole('combobox', { name: 'Gültig ab Rennen', exact: true }).selectOption('2');
+  await page.getByRole('combobox', { name: 'KI-Fahrer', exact: true }).selectOption('ai-russell');
+  await page.getByRole('button', { name: 'Fahrer speichern', exact: true }).click();
+  await page.getByLabel('Team für: Test Driver 1').selectOption('Junior');
+  await page.getByRole('button', { name: 'Besetzung speichern', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('zwischenzeitlich geändert');
+  await page.getByRole('button', { name: 'Aktuellen Stand laden' }).click();
+  await expect(page.getByLabel('Änderungen gültig ab')).toHaveValue('2');
+  await page.getByLabel('Team für: Test Driver 1').selectOption('Junior');
+  await page.getByRole('button', { name: 'Besetzung speichern', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Für das gewählte Rennen zugeordnet' })).toBeVisible();
+  expect(state.writes.map(w => w.body.p_round)).toEqual([2, 2, 2]);
+});
+
 test('inactive profiles remain available through an explicit filter', async ({ page, context }) => {
   const state = await fixture(context, { inactive: true });
   await page.goto('/admin/drivers');
