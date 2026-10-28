@@ -93,6 +93,7 @@ function transformHtml(source, includeBase = false, page = '') {
     .replaceAll('/v1-assets/js/data/tracks.js', '/v1-assets/js/data/tracks.js?v=rv-vector-maps-20261007')
     .replaceAll('/v1-assets/js/pages/track-hub.js', '/v1-assets/js/pages/track-hub.js?v=v2-track-hub-theme-1')
     .replaceAll('/v1-assets/js/services/rcc-data.js', '/v1-assets/js/services/rcc-data.js?v=v2-racing-data-6')
+    .replaceAll('rcc-driver-stats.js?v=v2-profile-number-2', 'rcc-driver-stats.js?v=v2-profile-number-2&team-labels=1')
     .replaceAll('/v1-assets/js/services/rcc-result-data-compat.js', '/v1-assets/js/services/rcc-result-data-compat.js?v=v2-fastest-lap-rule-1')
     .replaceAll('/v1-assets/js/services/rcc-driver-context.js', '/v1-assets/js/services/rcc-driver-context.js?v=public-snapshots-20260906')
     .replaceAll('/v1-assets/js/services/rcc-grid-roster.js', '/v1-assets/js/services/rcc-grid-roster.js?v=v2-season-grid-1')
@@ -224,6 +225,9 @@ async function transformJavaScriptTree(directory) {
         /const ENDPOINT = '[^']+';/,
         "const ENDPOINT = '/api/f1-news';",
       );
+    }
+    if (entry.name === 'rcc-driver-stats.js') {
+      source += '\n' + await readFile(resolve(v2Root, 'scripts/legacy-season-team-labels.js'), 'utf8');
     }
     if (entry.name === 'layout.js') {
       source = source.replace(

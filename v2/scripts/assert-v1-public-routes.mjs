@@ -206,6 +206,11 @@ const driverProfilePage = await readFile(resolve(distRoot, 'fahrer-profil.html')
 const teamProfilePage = await readFile(resolve(distRoot, 'team-profil.html'), 'utf8');
 const trackProfilePage = await readFile(resolve(distRoot, 'strecken-profil.html'), 'utf8');
 const headToHeadPage = await readFile(resolve(distRoot, 'head-to-head.html'), 'utf8');
+if (!driverStats.includes("rpc('get_league_team_labels')")
+    || !driverProfilePage.includes('team-labels=1')
+    || !headToHeadPage.includes('team-labels=1')) {
+  throw new Error('Integrated Career pages must apply season-specific team names with a fresh asset URL.');
+}
 if (!driverProfilePage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')
     || !driverProfilePage.includes('/v1-assets/js/pages/driver-profile.js?v=v2-country-flag-1')
     || !headToHeadPage.includes('/v1-assets/js/services/rcc-driver-stats.js?v=v2-profile-number-2')) {
