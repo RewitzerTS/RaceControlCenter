@@ -14,8 +14,8 @@ export const publicRacingFixture = { league, season, race, drivers, results };
 export async function installPublicFixture(context: BrowserContext) {
   await context.route('https://*.supabase.co/**', async (route) => {
     const request = route.request();
-    // This read-only RPC uses POST. Keep it synthetic while still blocking real writes.
-    if (process.env.RACEVORA_SMOKE_LIVE !== '1' && new URL(request.url()).pathname === '/rest/v1/rpc/get_incoming_steward_grid_penalties') {
+    // These read-only RPCs use POST. Keep them synthetic while still blocking real writes.
+    if (process.env.RACEVORA_SMOKE_LIVE !== '1' && ['/rest/v1/rpc/get_incoming_steward_grid_penalties', '/rest/v1/rpc/get_league_team_labels'].includes(new URL(request.url()).pathname)) {
       return route.fulfill({ json: [] });
     }
     if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method())) return route.abort('blockedbyclient');
