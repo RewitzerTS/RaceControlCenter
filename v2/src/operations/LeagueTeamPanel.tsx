@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { NavLink, useSearchParams } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
@@ -99,7 +100,7 @@ export function LeagueTeamPanel({ onSaved, initialRound, driverId }: { onSaved: 
       {renamed && <p className="inline-success" role="status">{renameCopy[4]}</p>}
       {rename && <form className="team-lineup-editor" onSubmit={event => void saveName(event)}><fieldset disabled={busy || needsReload}><legend>{renameCopy[0]}</legend><p>{renameCopy[3]}</p><label>{renameCopy[1]}<input autoFocus required minLength={2} maxLength={80} value={rename.name} onChange={event => setRename({ ...rename, name: event.target.value })} /></label><div className="team-editor-actions"><button className="primary-action" type="submit">{busy ? copy.saving : renameCopy[2]}</button><button className="text-action" type="button" onClick={() => setRename(null)}>{copy.cancel}</button></div></fieldset></form>}
       {assigning && !edit && <div className="team-assignment-choice">
-        <label><span>{assignmentCopy.target}: {assigning.display_name}</span><select ref={assignmentRef} value="" disabled={!canEdit || busy || (!assigning.car_name)} onChange={event => { if (event.target.value) begin(event.target.value, assigning.id); }}>
+        <label><span>{assignmentCopy.target}: {driverChoiceLabel(assigning)}</span><select ref={assignmentRef} value="" disabled={!canEdit || busy || (!assigning.car_name)} onChange={event => { if (event.target.value) begin(event.target.value, assigning.id); }}>
           <option value="">{assignmentCopy.choose}</option>{state.teams.map(team => <option key={team.name} value={team.name} disabled={state.profiles.filter(p => p.team_name === team.name && p.id !== assigning.id).length >= 2}>{team.display_name || team.name}{state.profiles.filter(p => p.team_name === team.name && p.id !== assigning.id).length >= 2 ? ' · voll (2/2)' : ''}</option>)}
         </select></label><p>{!assigning.car_name ? <NavLink to={`/admin/drivers?setup=${assigning.id}`}>Zuerst KI-Sitz und Fahrzeug zuordnen</NavLink> : assignmentCopy.hint}</p>
         <button className="text-action" type="button" onClick={() => setAssigningId('')}>{copy.cancel}</button>
@@ -114,11 +115,11 @@ export function LeagueTeamPanel({ onSaved, initialRound, driverId }: { onSaved: 
               <select value={edit.drivers[index]} onChange={event => {
                 const drivers: [string, string] = [...edit.drivers]; drivers[index] = event.target.value;
                 setEdit({ ...edit, drivers });
-              }}><option value="">{copy.free}</option>{state.profiles.map(p => <option key={p.id} value={p.id} disabled={edit.drivers[1 - index] === p.id || !p.is_active || !p.car_name}>{p.display_name}{p.is_ai ? ` · ${copy.ai}` : ''}{p.gamertag ? ` · ${p.gamertag}` : ''}</option>)}</select>
+              }}><option value="">{copy.free}</option>{state.profiles.map(p => <option key={p.id} value={p.id} disabled={edit.drivers[1 - index] === p.id || !p.is_active || !p.car_name}>{driverChoiceLabel(p)}{p.is_ai ? ` · ${copy.ai}` : ''}</option>)}</select>
             </label>{selected && <p className="team-driver-detail">{selected.car_name || copy.noCar}{selected.team_name && selected.team_name !== edit.original && <><br />{copy.move}: <strong>{teamDisplay(state, selected.team_name)}</strong></>}</p>}</div>;
           })}</div>
           {departingMembers(state, edit).length > 0 && <div className="team-editor-departures"><p>{copy.departureHint}</p>{departingMembers(state, edit).map(p => <label key={p.id}>
-            <span>{copy.departure} {p.display_name}</span><select required value={edit.departures[p.id] ?? ''} onChange={event => setEdit({ ...edit, departures: { ...edit.departures, [p.id]: event.target.value } })}>
+            <span>{copy.departure} {driverChoiceLabel(p)}</span><select required value={edit.departures[p.id] ?? ''} onChange={event => setEdit({ ...edit, departures: { ...edit.departures, [p.id]: event.target.value } })}>
               <option value="">{copy.destination}</option>{state.teams.filter(t => t.name !== edit.original && t.name !== edit.name.trim()).map(t => <option key={t.name} value={t.name}>{t.display_name || t.name}</option>)}
             </select></label>)}</div>}
           <p>{copy.vehicles}</p>

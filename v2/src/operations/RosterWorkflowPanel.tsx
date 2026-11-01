@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useCallback, useEffect, useState } from 'react';
 import { useLeague } from '../league/LeagueProvider';
 import { useI18n } from '../i18n/I18nProvider';
@@ -31,7 +32,7 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
     return () => { active = false; };
   }, [client, language]);
   const humans = drivers.drivers.filter(isHumanDriver);
-  const name = (id: string) => drivers.drivers.find((driver) => driver.id === id)?.display_name ?? '—';
+  const name = (id: string) => driverChoiceLabel(drivers.drivers.find((driver) => driver.id === id));
   const race = workspace?.races.find((item) => item.id === raceId);
   const openRounds = vehicleChangeRounds(workspace?.races ?? []);
   const existing = workspace?.substitutions.find((sub) => sub.race_id === raceId && sub.primary_driver_id === primaryId);
@@ -65,8 +66,8 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
         <p>{copy.subHint}</p>
         <fieldset disabled={busy} className="roster-fields"><legend className="visually-hidden">{copy.substitute}</legend>
           <label><span>{copy.race}</span><select required value={raceId} onChange={(event) => { setRaceId(event.target.value); setPrimaryId(''); setSubId(''); setSaved(false); }}><option value="">{copy.choose}</option>{workspace.races.map((item) => <option key={item.id} value={item.id}>{copy.round} {item.round} · {item.name}{item.locked ? ' 🔒' : ''}</option>)}</select></label>
-          <label><span>{copy.primary}</span><select required value={primaryId} disabled={!race || race.locked} onChange={(event) => { setPrimaryId(event.target.value); setSubId(workspace.substitutions.find((sub) => sub.race_id === raceId && sub.primary_driver_id === event.target.value)?.substitute_driver_id ?? ''); setSaved(false); }}><option value="">{copy.choose}</option>{humans.map((driver) => <option key={driver.id} value={driver.id}>{driver.display_name}</option>)}</select></label>
-          <label><span>{copy.replacement}</span><select required value={subId} disabled={!primaryId || race?.locked} onChange={(event) => { setSubId(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{humans.filter((driver) => driver.id !== primaryId).map((driver) => <option key={driver.id} value={driver.id}>{driver.display_name}</option>)}</select></label>
+          <label><span>{copy.primary}</span><select required value={primaryId} disabled={!race || race.locked} onChange={(event) => { setPrimaryId(event.target.value); setSubId(workspace.substitutions.find((sub) => sub.race_id === raceId && sub.primary_driver_id === event.target.value)?.substitute_driver_id ?? ''); setSaved(false); }}><option value="">{copy.choose}</option>{humans.map((driver) => <option key={driver.id} value={driver.id}>{driverChoiceLabel(driver)}</option>)}</select></label>
+          <label><span>{copy.replacement}</span><select required value={subId} disabled={!primaryId || race?.locked} onChange={(event) => { setSubId(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{humans.filter((driver) => driver.id !== primaryId).map((driver) => <option key={driver.id} value={driver.id}>{driverChoiceLabel(driver)}</option>)}</select></label>
         </fieldset>
         {race?.locked && <p>{copy.locked}</p>}
         {validSub && <p className="roster-summary"><strong>{name(subId)}</strong> {copy.for} <strong>{name(primaryId)}</strong> · {race?.name}</p>}
@@ -75,7 +76,7 @@ export function RosterWorkflowPanel({ drivers, onSaved }: { drivers: DriverAdmin
         <p>{copy.vehicleHint}</p>
         {!openRounds.length && <p>{copy.noOpen}</p>}
         <fieldset disabled={busy || !openRounds.length} className="roster-fields"><legend className="visually-hidden">{copy.vehicle}</legend>
-          <label><span>{copy.driver}</span><select required value={driverId} onChange={(event) => { chooseDriver(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{humans.map((driver) => <option key={driver.id} value={driver.id}>{driver.display_name}</option>)}</select></label>
+          <label><span>{copy.driver}</span><select required value={driverId} onChange={(event) => { chooseDriver(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{humans.map((driver) => <option key={driver.id} value={driver.id}>{driverChoiceLabel(driver)}</option>)}</select></label>
           <label><span>{copy.from}</span><select required value={round} onChange={(event) => { setRound(event.target.value); setSaved(false); }}><option value="">{copy.choose}</option>{openRounds.map((item) => <option key={item.id} value={item.round}>{copy.round} {item.round} · {item.name}</option>)}</select></label>
           {drivers.ai_drivers.length > 0 && <label><span>{copy.seat}</span><select value={aiId} onChange={(event) => { setAiId(event.target.value); const ai = drivers.ai_drivers.find((item) => item.id === event.target.value); if (ai) setCar(ai.car_name ?? ''); setSaved(false); }}><option value="">{copy.custom}</option>{drivers.ai_drivers.map((ai) => <option key={ai.id} value={ai.id}>{ai.display_name} · {ai.car_name}</option>)}</select></label>}
           <label><span>{copy.car}</span><input maxLength={80} required value={car} onChange={(event) => { setCar(event.target.value); setSaved(false); }} /></label>

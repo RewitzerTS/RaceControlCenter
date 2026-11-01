@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { type FormEvent, useRef, useState } from 'react';
 import { useI18n } from '../i18n/I18nProvider';
 import { activeStewardRaces, hasStewardPenalty, nextStewardRace, stewardParticipantIds, type DriverStewardDecision, type GroupStewardInput, type SimplePenaltyType, type StewardCase, type StewardWorkspaceSnapshot } from './stewardWorkspace';
@@ -23,7 +24,7 @@ export function GroupDecisionForm({ snapshot, existing, initialDecisions = [], b
   const previous = (id: string) => initialDecisions.find(d => d.driver_id === id);
   const targetFor = (id: string) => next || (correcting && previous(id)?.penalty_type === 'grid_penalty' ? snapshot.races.find(r => r.id === previous(id)?.target_race_id) : null);
   const canPublish = Boolean(race && accused.every((id) => kindFor(id) !== 'grid_penalty' || targetFor(id)));
-  const name = (id: string) => snapshot.drivers.find((d) => d.id === id)?.display_name || '—';
+  const name = (id: string) => driverChoiceLabel(snapshot.drivers.find((d) => d.id === id));
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (pending.current || busy) return;
@@ -62,7 +63,7 @@ export function GroupDecisionForm({ snapshot, existing, initialDecisions = [], b
           <select name={index ? `${role}-${index}` : role} aria-label={`${label} ${index + 1}`} value={id} required
             onChange={(event) => setIds(ids.map((value, i) => i === index ? event.target.value : value))}>
             <option value="" disabled>{c.choose}</option>
-            {snapshot.drivers.map((driver) => <option key={driver.id} value={driver.id} disabled={ids.includes(driver.id) && id !== driver.id}>{driver.display_name}</option>)}
+            {snapshot.drivers.map((driver) => <option key={driver.id} value={driver.id} disabled={ids.includes(driver.id) && id !== driver.id}>{driverChoiceLabel(driver)}</option>)}
           </select>
           {ids.length > 1 && <button type="button" className="text-action" aria-label={`${c.removeDriver}: ${id ? name(id) : label + ' ' + (index + 1)}`}
             onClick={() => setIds(ids.filter((_, i) => i !== index))}>{c.removeDriver}</button>}

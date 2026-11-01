@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useEffect, useState } from 'react';
 import { useLeague } from '../league/LeagueProvider';
 import { useI18n } from '../i18n/I18nProvider';
@@ -10,7 +11,7 @@ type Decision = { id: string; case_id: string; outcome: string; reasoning: strin
 type Incoming = { id: string; driver_id: string; grid_positions: number | null; reason: string };
 type Summary = { decisions: Decision[]; penalties: StewardPenalty[]; incoming: Incoming[] };
 
-export function RaceStewardDecisions({ raceId, cases, drivers, races }: { raceId: string; cases: CaseSummary[]; drivers: { id: string; display_name: string }[]; races?: { id: string; grand_prix_name: string }[] }) {
+export function RaceStewardDecisions({ raceId, cases, drivers, races }: { raceId: string; cases: CaseSummary[]; drivers: { id: string; display_name: string; gamertag?: string | null }[]; races?: { id: string; grand_prix_name: string }[] }) {
   const { client } = useLeague(), { language, t, formatNumber } = useI18n(), c = simpleStewardMessages[language];
   const [data,setData] = useState<Summary | null>(null), [error,setError] = useState(false), [attempt,setAttempt] = useState(0);
   useEffect(() => {
@@ -30,7 +31,7 @@ export function RaceStewardDecisions({ raceId, cases, drivers, races }: { raceId
     void load().catch(() => { if(active) setError(true); });
     return () => { active=false; };
   },[client,raceId,cases,attempt]);
-  const name = (id: string | null) => drivers.find((d) => d.id===id)?.display_name || '—';
+  const name = (id: string | null) => driverChoiceLabel(drivers.find((d) => d.id===id));
   if (error) return <div role="alert"><p>{t('steward.loadError')}</p><button type="button" onClick={() => setAttempt((n) => n+1)}>{c.retry}</button></div>;
   if (!data) return <p role="status">{t('pending')}</p>;
   return <>

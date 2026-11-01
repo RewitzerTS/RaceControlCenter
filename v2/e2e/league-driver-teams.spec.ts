@@ -178,7 +178,7 @@ test('outgoing driver requires a destination; failed save preserves choices', as
   await page.getByRole('article', { name: 'RCC Racing', exact: true }).getByRole('button', { name: 'Besetzung bearbeiten' }).click();
   await page.getByRole('combobox', { name: 'Fahrer 1', exact: true }).selectOption(state.drivers[1].id);
   await expect(page.getByRole('button', { name: 'Besetzung speichern' })).toBeDisabled();
-  await page.getByRole('combobox', { name: 'Neues Team für Test Driver 1', exact: true }).selectOption('Junior');
+  await page.getByRole('combobox', { name: 'Neues Team für Test Driver 1 · Test1', exact: true }).selectOption('Junior');
   await page.getByRole('button', { name: 'Besetzung speichern' }).click();
   await expect(page.getByRole('alert')).toContainText('mehr als zwei Fahrer');
   await expect(page.getByRole('combobox', { name: 'Fahrer 1', exact: true })).toHaveValue(state.drivers[1].id);

@@ -3,6 +3,15 @@ import { canonicalImportTeam, matchImportDriver } from './importMatching';
 import type { LeagueDriver } from './operations';
 const driver = (id: string, display_name: string, league_team = 'Williams'): LeagueDriver => ({ id, display_name, league_team, gamertag: null } as LeagueDriver);
 describe('conservative AI import matching', () => {
+  it('keeps two Jakobs separate and never guesses from their shared public or historical name', () => {
+    const a = { ...driver('a', 'Jakob'), public_name: 'Jakob', gamertag: 'JakobNbdg', gamertag_aliases: ['Jacock'] };
+    const b = { ...driver('b', 'Jakob'), public_name: 'Jakob', gamertag: 'SecondJakob', gamertag_aliases: ['OtherPSN'] };
+    expect(matchImportDriver('Jakob', [a, b])).toBeNull();
+    expect(matchImportDriver('JakobNbdg', [a, b])?.driver.id).toBe('a');
+    expect(matchImportDriver('OtherPSN', [a, b])?.driver.id).toBe('b');
+    expect(matchImportDriver('Jakob', [{ ...a, display_name: 'Old A' }, { ...b, display_name: 'Old B' }])).toBeNull();
+    expect(matchImportDriver('Jakob', [{ ...a, display_name: 'Old A' }])?.driver.id).toBe('a');
+  });
   it('recognizes platform aliases, deduplicates one driver and refuses collisions', () => {
     const a = { ...driver('a','Aaron'), gamertag: 'Darkqz', gamertag_aliases: ['D4RK','Fabiylolboi','FABIYLOLBOI'] };
     for (const name of ['Darkqz','D4RK','Fabiylolboi']) expect(matchImportDriver(name,[a])?.driver.id).toBe('a');

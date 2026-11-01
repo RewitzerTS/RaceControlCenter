@@ -20,7 +20,7 @@ export type StewardCase = {
 };
 
 export type StewardRace = { id: string; season_id: string; grand_prix_name: string; round_number: number; race_date: string | null; race_time: string | null; race_start_at: string | null; status: string; current_result_version_id: string | null; is_active_season: boolean };
-export type StewardDriver = { id: string; display_name: string; number: number | null };
+export type StewardDriver = { id: string; display_name: string; gamertag?: string | null; number: number | null };
 export type StewardEvidence = { id: string; evidence_kind: string; description: string; uri: string | null; is_public: boolean; submitted_at: string };
 export type StewardVote = { id: string; vote_version: number; outcome: string; reasoning: string; conflict_disclosed: boolean; cast_at: string; steward_user_id: string };
 export type DriverStewardDecision = { driver_id: string; penalty_type: string; amount: number | null; target_race_id: string | null; reasoning: string };
@@ -93,7 +93,7 @@ export async function loadStewardWorkspace(client: LeagueSupabaseClient, raceId 
   if (raceId) caseQuery = caseQuery.eq('race_id', raceId);
   const [cases, drivers] = await Promise.all([
     caseQuery.order('created_at', { ascending: false }).order('id').range(page * 25, page * 25 + 25),
-    client.from('drivers').select('id,display_name,public_name,number').eq('is_active', true).order('display_name').limit(500),
+    client.from('drivers').select('id,display_name,public_name,gamertag,number').eq('is_active', true).order('display_name').limit(500),
   ]);
   throwIfError(cases.error); throwIfError(drivers.error);
   const columns = 'id,season_id,grand_prix_name,round_number,race_date,race_time,race_start_at,status,current_result_version_id' as const;

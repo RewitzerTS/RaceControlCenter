@@ -19,7 +19,7 @@ function oneEditApart(a: string, b: string): boolean {
 export function matchImportDriver(rawName: string, drivers: LeagueDriver[]) {
   const raw = normalizedName(rawName);
   if (!raw) return null;
-  const names = (driver: LeagueDriver) => [driver.gamertag, driver.display_name, ...(driver.gamertag_aliases ?? [])];
+  const names = (driver: LeagueDriver) => [driver.gamertag, driver.display_name, driver.public_name, ...(driver.gamertag_aliases ?? [])];
   const destinations = (matches: LeagueDriver[]) => [...new Map(matches.map(driver => {
     const target = drivers.find(item => item.id === driver.import_driver_id) ?? driver;
     return [target.id, target] as const;

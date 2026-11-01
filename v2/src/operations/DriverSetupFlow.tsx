@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
@@ -33,7 +34,7 @@ export function DriverSetupFlow({ driver, workspace, onSaved, onClose }: {
     setStep(next);
   }
   return <section className="driver-setup" aria-labelledby="driver-setup-title">
-    <header className="admin-panel-heading"><div><h2 id="driver-setup-title">{driver.public_name || driver.display_name} startklar machen</h2><p>Jeder Schritt wird einzeln gespeichert. Du kannst jederzeit hier weitermachen.</p></div><button type="button" className="text-action" onClick={onClose}>Zur Übersicht</button></header>
+    <header className="admin-panel-heading"><div><h2 id="driver-setup-title">{driverChoiceLabel(driver)} startklar machen</h2><p>Jeder Schritt wird einzeln gespeichert. Du kannst jederzeit hier weitermachen.</p></div><button type="button" className="text-action" onClick={onClose}>Zur Übersicht</button></header>
     <ol className="driver-setup-status" aria-label="Zuordnungsstatus">
       <li><strong>Konto</strong><span>{driver.identity_linked ? 'Verknüpft' : 'Noch nicht verknüpft'}</span></li>
       <li><strong>KI-Sitz &amp; Fahrzeug</strong><span>{state ? seatReady ? `${member?.ai_driver_name} · ${member?.car_name}` : 'Noch zuordnen' : 'Wird geladen …'}</span></li>

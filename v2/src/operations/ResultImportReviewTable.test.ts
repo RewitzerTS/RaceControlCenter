@@ -37,6 +37,14 @@ const analysis: AiResultAnalysis = {
 };
 
 describe('result import review table', () => {
+  it('keeps an ambiguous Jakob unassigned until a specific ID is selected', () => {
+    const roster = ['JakobNbdg', 'SecondJakob'].map((gamertag, index) => ({ ...drivers[0], id: `jakob-${index}`, display_name: 'Jakob', gamertag }));
+    const rows = buildResultReviewRows({ ...analysis, rows: [{ ...analysis.rows[0], driver: 'Jakob' }] }, roster);
+    expect(rows[0].driverId).toBe('');
+    expect(() => resultReviewRowsToImported(rows, roster)).toThrow();
+    const confirmed = rows.map(row => ({ ...row, driverId: roster[1].id, matchSource: 'manual' as const }));
+    expect(resultReviewRowsToImported(confirmed, roster)[0].driver_id).toBe('jakob-1');
+  });
   it('requires explicit confirmation of fuzzy suggestions before saving', () => {
     const roster = [{ ...drivers[0], display_name: 'Carlos Sainz' }];
     const rows = buildResultReviewRows({ ...analysis, rows: [{ ...analysis.rows[0], driver: 'Carlos Sain2' }] }, roster);

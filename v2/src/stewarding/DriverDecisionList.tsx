@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useI18n } from '../i18n/I18nProvider';
 import { simpleStewardMessages } from './simpleStewardMessages';
 import type { DriverStewardDecision, SimplePenaltyType, StewardPenalty } from './stewardWorkspace';
@@ -5,14 +6,14 @@ import './simpleSteward.css';
 
 export function DriverDecisionList({ outcomes, penalties, drivers, races = [] }: {
   outcomes: DriverStewardDecision[]; penalties: StewardPenalty[];
-  drivers: { id: string; display_name: string }[]; races?: { id: string; grand_prix_name: string }[];
+  drivers: { id: string; display_name: string; gamertag?: string | null }[]; races?: { id: string; grand_prix_name: string }[];
 }) {
   const { language, formatNumber } = useI18n(), c = simpleStewardMessages[language];
   return <div>{outcomes.map((outcome) => {
     const penalty = penalties.find((p) => p.driver_id === outcome.driver_id);
     const isTime = outcome.penalty_type === 'time_penalty' || outcome.penalty_type === 'time_credit';
     return <section className="steward-driver-outcome" key={outcome.driver_id}>
-      <h4>{drivers.find((d) => d.id === outcome.driver_id)?.display_name || '—'}</h4>
+      <h4>{driverChoiceLabel(drivers.find((d) => d.id === outcome.driver_id))}</h4>
       <strong>{c[outcome.penalty_type as SimplePenaltyType] || outcome.penalty_type}
         {outcome.amount != null && ` · ${isTime ? outcome.penalty_type === 'time_credit' ? '−' : '+' : ''}${formatNumber(outcome.amount)} ${isTime ? 's' : c.places}`}</strong>
       <p>{outcome.reasoning}</p>

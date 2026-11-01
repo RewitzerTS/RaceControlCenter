@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture as f, confirmedNameFixture } from './public-fixture';
 
-for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','dismissed','retry','self_credit','self_draft','group','group_draft'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
+for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_action','dismissed','retry','self_credit','self_draft','group','group_draft','same_names'] as const) test(`simplified steward workflow: ${mode}`, async ({ page, context }, testInfo) => {
   await installPublicFixture(context);
   const user = { id: '91000000-0000-4000-8000-000000000091', email: 'steward@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: { onboarding_complete: true, display_name: 'Test Steward' } };
   const exp = Math.floor(Date.now() / 1000) + 3600;
@@ -27,6 +27,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
     if (table === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'steward' }] });
     if (table === 'driver_identities') return route.fulfill({ json: { id: user.id, status: 'active', profile_number: 91 } });
     if (table === 'driver_identity_links') return route.fulfill({ json: [] });
+    if (table === 'drivers' && mode === 'same_names') return route.fulfill({ json: f.drivers.map((driver, index) => ({ ...driver, display_name: 'Jakob', public_name: 'Jakob', gamertag: index ? 'SecondJakob' : 'JakobNbdg' })) });
     if (table === 'seasons') return route.fulfill({ json: (request.headers().accept || '').includes('vnd.pgrst.object') ? f.season : [f.season] });
     if (table === 'steward_cases') return route.fulfill({ json: savedCase ? [savedCase] : [] });
     if (table === 'steward_decision_versions' && mode === 'group_draft') return route.fulfill({ json: savedCase?.status === 'closed' ? [{ id:'decision-1',case_id:'case-1',version_number:1,outcome:'penalty',reasoning:savedCase.description,finalized_at:'2026-10-06T12:00:00Z',result_version_id:null,steward_driver_decisions:submitted.at(-1)?.p_decisions }] : [] });
@@ -58,6 +59,13 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
   await select.selectOption('race-2');
   await form.locator('[name="accused"]').selectOption(f.drivers[0].id);
   await form.locator('[name="reporter"]').selectOption(f.drivers[mode.startsWith('self_') ? 0 : 1].id);
+  if (mode === 'same_names') {
+    await expect(form.locator('[name="accused"] option').filter({ hasText: 'Jakob · JakobNbdg' })).toHaveAttribute('value', f.drivers[0].id);
+    await expect(form.locator('[name="reporter"] option').filter({ hasText: 'Jakob · SecondJakob' })).toHaveAttribute('value', f.drivers[1].id);
+    await expect(form.locator('.steward-driver-decision')).toContainText('Jakob · JakobNbdg');
+    await page.evaluate(() => { (document.activeElement as HTMLElement)?.blur(); window.scrollTo(0,0); });
+    await page.screenshot({ path: testInfo.outputPath('same-name-steward.png'), fullPage: true });
+  }
   await form.locator('[name="title"]').fill('Test einer Rennzuordnung');
   await form.locator('[name="reasoning"]').fill('Dieser vollständig simulierte Test legt keinen echten Steward-Fall an.');
   await expect(form.locator('[name="ruleCode"]')).toHaveCount(0);
@@ -125,7 +133,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
   }
   if (mode === 'draft' || mode === 'self_draft') await form.getByRole('button', { name: 'Als offenen Fall speichern' }).click();
   else {
-    await form.locator('[name^="penaltyType-"]').selectOption(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
+    await form.locator('[name^="penaltyType-"]').selectOption(mode === 'retry' || mode === 'same_names' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
     if (mode === 'grid_penalty') await expect(form).toContainText('3.');
     if (mode.startsWith('time_')) await expect(form).toContainText('vorgemerkt');
     if (!['no_action', 'dismissed'].includes(mode)) await form.locator('[name^="amount-"]').fill(mode === 'self_credit' ? '10' : '5');
@@ -150,7 +158,7 @@ for (const mode of ['draft','time_penalty','time_credit','grid_penalty','no_acti
   if (mode !== 'draft' && mode !== 'self_draft') {
     const decisions = submitted[0].p_decisions as Record<string, unknown>[];
     expect(decisions).toHaveLength(1);
-    expect(decisions[0].penalty_type).toBe(mode === 'retry' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
+    expect(decisions[0].penalty_type).toBe(mode === 'retry' || mode === 'same_names' ? 'time_penalty' : mode === 'self_credit' ? 'time_credit' : mode);
     expect(decisions[0].target_race_id).toBe(mode === 'grid_penalty' ? 'future' : null);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

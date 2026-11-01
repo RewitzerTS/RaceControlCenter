@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useLeague } from '../league/LeagueProvider';
@@ -56,7 +57,7 @@ export function JoinRequestReview({ requestId, name, onReviewed }: { requestId: 
       {loading && <p role="status">Fahrer werden geladen …</p>}
       {candidates && <label>Fahrerzuordnung<select ref={selection} required disabled={busy} value={selected} onChange={event => setSelected(event.target.value)}>
         <option value="">Bitte ausdrücklich auswählen</option>
-        {candidates.map(driver => <option key={driver.id} value={driver.id}>{driver.matched ? 'Passender Gamertag · ' : ''}{driver.display_name}{driver.gamertag ? ` / ${driver.gamertag}` : ''}</option>)}
+        {candidates.map(driver => <option key={driver.id} value={driver.id}>{driver.matched ? 'Passender Gamertag · ' : ''}{driverChoiceLabel(driver)}</option>)}
         <option value="new">Neuen Ligafahrer anlegen</option>
       </select></label>}
       {selected && <p>{selected === 'new' ? 'Ein neuer Ligafahrer ohne bisherige Ergebnisse wird angelegt. Nur wählen, wenn es noch kein passendes Fahrerprofil gibt.' : 'Der bestehende Fahrer behält seine Ergebnisse und Historie. Das Konto erhält Zugriff auf diese Fahrerkarriere.'}</p>}

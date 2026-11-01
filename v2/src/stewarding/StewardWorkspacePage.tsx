@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { type FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, EmptyState } from '../components/AppState';
 import { useFeatureFlags } from '../features/FeatureFlagProvider';
@@ -128,8 +129,8 @@ function StewardWorkspace() {
       {selected && !showCreate && !loading && <section className="case-detail">
         <h2>{selected.title}</h2>
         <dl className="case-facts">{[[t('steward.race'), snapshot.races.find((r) => r.id === selected.race_id)?.grand_prix_name],
-          [c.reporters, stewardParticipantIds(selected, 'reporter').map((id) => snapshot.drivers.find((d) => d.id === id)?.display_name || '—').join(', ')],
-          [c.accusedDrivers, stewardParticipantIds(selected, 'accused').map((id) => snapshot.drivers.find((d) => d.id === id)?.display_name || '—').join(', ')]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl>
+          [c.reporters, stewardParticipantIds(selected, 'reporter').map((id) => driverChoiceLabel(snapshot.drivers.find((d) => d.id === id))).join(', ')],
+          [c.accusedDrivers, stewardParticipantIds(selected, 'accused').map((id) => driverChoiceLabel(snapshot.drivers.find((d) => d.id === id))).join(', ')]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value || '—'}</dd></div>)}</dl>
         <p className="case-description">{selected.description}</p>
         {permitted && <div className="steward-delete">
           {selected.status === 'closed' && selected.reported_driver_id && <button className="text-action" type="button" disabled={busy || !detail} onClick={() => { setDeleteId(null); setSubmissionError(null); setEditId(editId === selected.id ? null : selected.id); }}>{editId === selected.id ? t('steward.cancel') : c.editCase}</button>}

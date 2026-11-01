@@ -1,3 +1,4 @@
+import { driverChoiceLabel } from '../driver/driverChoiceLabel';
 import { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import type { LeagueSupabaseClient } from '../lib/supabase';
@@ -51,9 +52,9 @@ export function MemberDriverLink({ client, member, onLinked }: { client: LeagueS
     {!open ? <><span>Noch nicht verknüpft</span><button ref={trigger} className="text-action" type="button" disabled={member.identity_status !== 'active'} onClick={() => setOpen(true)}>Fahrer verknüpfen</button>{member.identity_status !== 'active' && <small>Aktives RaceVora-Profil erforderlich.</small>}</> :
       <form aria-label={`Fahrer für ${member.email} verknüpfen`} onSubmit={(event) => { event.preventDefault(); void save(); }}>
         {state === 'loading' ? <p role="status">Fahrer werden geladen …</p> : <>
-          <label><span>Bestehender Fahrer</span><select ref={select} value={selected} required disabled={state === 'saving'} onChange={(event) => setSelected(event.target.value)}><option value="">Bitte auswählen</option>{drivers.map((item) => <option key={item.id} value={item.id}>{item.display_name}{item.gamertag ? ` / ${item.gamertag}` : ''}{item.number !== null ? ` · #${item.number}` : ''}{!item.is_active ? ' · Inaktiv' : ''}</option>)}<option value="new">Neuen Ligafahrer anlegen und verknüpfen</option></select></label>
+          <label><span>Bestehender Fahrer</span><select ref={select} value={selected} required disabled={state === 'saving'} onChange={(event) => setSelected(event.target.value)}><option value="">Bitte auswählen</option>{drivers.map((item) => <option key={item.id} value={item.id}>{driverChoiceLabel(item)}{item.number !== null ? ` · #${item.number}` : ''}{!item.is_active ? ' · Inaktiv' : ''}</option>)}<option value="new">Neuen Ligafahrer anlegen und verknüpfen</option></select></label>
           {!drivers.length && !error && <p>Keine unverknüpften Fahrer in dieser Liga vorhanden.</p>}
-          {selected === 'new' && <p>Nur wählen, wenn noch kein passendes Fahrerprofil existiert. Ein neuer Fahrer startet ohne bisherige Ergebnisse. Name und Gamertag werden aus dem Konto übernommen.</p>}{driver && <p className="member-driver-confirm">Du verknüpfst <strong>{member.email}</strong> mit <strong>{driver.display_name}</strong>. Ergebnisse und Historie bleiben beim bestehenden Fahrer.</p>}
+          {selected === 'new' && <p>Nur wählen, wenn noch kein passendes Fahrerprofil existiert. Ein neuer Fahrer startet ohne bisherige Ergebnisse. Name und Gamertag werden aus dem Konto übernommen.</p>}{driver && <p className="member-driver-confirm">Du verknüpfst <strong>{member.email}</strong> mit <strong>{driverChoiceLabel(driver)}</strong>. Ergebnisse und Historie bleiben beim bestehenden Fahrer.</p>}
           {error && <p role="alert">{error}</p>}
           <div className="member-driver-actions">
             {selected && <button className="primary-action" type="submit" disabled={state === 'saving'}>{state === 'saving' ? 'Wird verknüpft …' : 'Verknüpfung bestätigen'}</button>}

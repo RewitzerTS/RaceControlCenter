@@ -28,6 +28,18 @@ it('requires selection and explicit confirmation before linking the exact accoun
   expect(await screen.findByRole('status')).toHaveTextContent('Fahrer verknüpft');
   expect(onLinked).toHaveBeenCalledTimes(1);
 });
+it('shows both Jakobs with their gamertags and confirms only the selected ID', async () => {
+  const first = { ...driver, id: 'jakob-a', display_name: 'Jakob', gamertag: 'JakobNbdg' };
+  const second = { ...driver, id: 'jakob-b', display_name: 'Jakob', gamertag: 'SecondJakob' };
+  rpc.mockImplementation(async name => ({ data: name === 'get_linkable_league_drivers' ? [first, second] : {}, error: null }));
+  const select = await open();
+  expect(screen.getByRole('option', { name: 'Jakob · JakobNbdg · #7' })).toHaveValue('jakob-a');
+  expect(screen.getByRole('option', { name: 'Jakob · SecondJakob · #7' })).toHaveValue('jakob-b');
+  fireEvent.change(select, { target: { value: second.id } });
+  expect(screen.getByText(/Du verknüpfst/)).toHaveTextContent('Jakob · SecondJakob');
+  fireEvent.click(screen.getByRole('button', { name: 'Verknüpfung bestätigen' }));
+  await waitFor(() => expect(rpc).toHaveBeenCalledWith('link_league_member_driver', { p_user_id: member.user_id, p_driver_id: second.id }));
+});
 it('never offers overwriting an existing link', () => {
   render(<MemoryRouter><MemberDriverLink client={client} member={{ ...member, driver_id: driver.id, driver_name: driver.display_name }} onLinked={onLinked} /></MemoryRouter>);
   expect(screen.getByText(driver.display_name)).toBeTruthy();
