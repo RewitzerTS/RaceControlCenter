@@ -240,12 +240,12 @@ test('race shows pending and applied decisions plus incoming grid penalties', as
   await page.goto(`/racing/races/detail?league=rcc&demo=1&round=1&season=${f.season.id}`);
   const panel = page.locator('.race-detail-panels > section').last();
   await expect(panel).toContainText('Strafversetzungen für dieses Rennen');
-  await expect(panel).toContainText('Test Driver 1 · 3 Startplätze zurück');
+  await expect(panel).toContainText('Test Driver 1 · Test1 · 3 Startplätze zurück');
   await expect(panel).toContainText('Vorgemerkt · wartet auf Ergebnisveröffentlichung');
   await expect(panel).toContainText('Im Ergebnis angewendet');
   await expect(panel).toContainText('Zeitstrafe · +5 s');
   await expect(panel).toContainText('Zeitgutschrift · −3 s');
-  await expect(panel).toContainText('Einreichende Fahrer: Test Driver 2, Test Driver 1');
+  await expect(panel).toContainText('Einreichende Fahrer: Test Driver 2 · Test2, Test Driver 1 · Test1');
   await expect(panel.locator('.steward-driver-outcome').nth(0)).toContainText('Test Driver 1');
   await expect(panel.locator('.steward-driver-outcome').nth(1)).toContainText('Test Driver 2');
   await expect(panel.locator('.steward-driver-outcome').nth(1)).toContainText('Keine Strafe');
