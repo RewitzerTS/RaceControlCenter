@@ -70,6 +70,9 @@ describe('native championship', () => {
     const table = buildStandings(source);
     expect(table.driverStandings.map(row => row.leagueTeam)).toEqual(['Ice Team', 'Ice Team', 'Black Team', 'Black Team', 'Stars Team', 'Stars Team']);
     expect(table.driverStandings.every(row => row.points === 0 && row.trend === 'flat')).toBe(true);
+    expect(table.teamStandings.map(row => [row.teamName, row.points, row.drivers.length])).toEqual([
+      ['Black Team', 0, 2], ['Ice Team', 0, 2], ['Stars Team', 0, 2],
+    ]);
     expect(source.assignments[2].team_name).toBe('');
   });
   it('uses the current team and car only for display, preserving published historical team points', () => {
@@ -80,9 +83,38 @@ describe('native championship', () => {
     ] });
     expect(current.driverStandings.find(row => row.driverId === '0')).toMatchObject({ leagueTeam: 'Next Team', carName: 'Next Car', points: 26 });
     expect(current.driverStandings.find(row => row.driverId === '1')).toMatchObject({ leagueTeam: 'Ohne Team', points: 44 });
-    expect(current.teamStandings).toEqual(original.teamStandings);
+    expect(current.teamStandings.find(row => row.teamName === 'Team A')).toMatchObject({ points: original.teamStandings[0].points, drivers: [] });
+    expect(current.teamStandings.find(row => row.teamName === 'Next Team')).toMatchObject({ points: 0, drivers: [{ id: '0', name: 'Änne', car: 'Next Car' }] });
     expect(current.driverStandings.map(({ leagueTeam: _team, carName: _car, ...row }) => row))
       .toEqual(original.driverStandings.map(({ leagueTeam: _team, carName: _car, ...row }) => row));
+  });
+  it('shows Alessandro and Dennis in Ferrari instead of historical AI result participants', () => {
+    const source: StandingsData = {
+      ...fixture(),
+      drivers: ['Alessandro', 'Charles Leclerc', 'Dennis', 'Lewis Hamilton', 'Free AI', 'Other Player'].map((name, i) => ({ ...drivers[0], id: String(i), display_name: name, car_name: 'Old car' })),
+      assignments: [],
+      results: [
+        result({ driver_id: '1', points_team_name: 'Ferrari', awarded_points: 25 }),
+        result({ id: 'hamilton', driver_id: '3', points_team_name: 'Ferrari', awarded_points: 18 }),
+        result({ id: 'player', race_id: 'r2', result_version_id: 'v2', driver_id: '0', points_team_name: 'Ferrari', awarded_points: 15 }),
+        result({ id: 'ai', driver_id: '4', points_team_name: 'Mixed', awarded_points: 8 }),
+      ],
+      currentRoster: [
+        { driver_id: '0', team_name: 'Ferrari', car_name: 'Ferrari SF-25' },
+        { driver_id: '2', team_name: 'Ferrari', car_name: 'Ferrari SF-25' },
+        { driver_id: '4', team_name: 'Mixed', car_name: 'Mercedes W16' },
+        { driver_id: '5', team_name: 'Mixed', car_name: 'Red Bull RB21' },
+      ],
+    };
+    const original = buildStandings({ ...source, currentRoster: undefined });
+    const table = buildStandings(source);
+    expect(table.teamStandings.map(({ teamName, points }) => ({ teamName, points }))).toEqual(original.teamStandings.map(({ teamName, points }) => ({ teamName, points })));
+    expect(table.teamStandings[0]).toMatchObject({ teamName: 'Ferrari', points: 58, drivers: [
+      { id: '0', name: 'Alessandro', car: 'Ferrari SF-25' }, { id: '2', name: 'Dennis', car: 'Ferrari SF-25' },
+    ] });
+    expect(table.teamStandings[1].drivers.map(row => row.id)).toEqual(['4', '5']);
+    expect(buildStandings({ ...source, currentRoster: [] }).teamStandings.every(row => row.drivers.length === 0)).toBe(true);
+    expect(source.results).toHaveLength(4);
   });
   it('includes newly assigned drivers and keeps departed point owners without reviving old season profiles', () => {
     const table = buildStandings({ ...fixture(), currentRoster: [{ driver_id: '3', team_name: 'New Team', car_name: 'Car' }] });

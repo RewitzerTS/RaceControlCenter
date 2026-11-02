@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture, confirmedNameFixture } from './public-fixture';
 
 test.beforeEach(async ({ context }) => { await installPublicFixture(context); });
@@ -58,7 +58,7 @@ test('no active season points to the archive and does not invent standings', asy
   await expect(page.locator('.native-standings a[href*="view=seasons"]')).toBeVisible();
 });
 
-test('signed-in drivers see all three season teams before any race, including after reload and roster retry', async ({ page, context }) => {
+async function signIn(context: BrowserContext) {
   const user = { id: '91000000-0000-4000-8000-000000000086', email: 'standings-driver@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: { onboarding_complete: true, display_name: 'Standings Test' } };
   const exp = Math.floor(Date.now() / 1000) + 3600;
   const token = `${Buffer.from('{"alg":"HS256","typ":"JWT"}').toString('base64url')}.${Buffer.from(JSON.stringify({ sub: user.id, role: 'authenticated', aal: 'aal1', exp })).toString('base64url')}.synthetic`;
@@ -66,6 +66,11 @@ test('signed-in drivers see all three season teams before any race, including af
     localStorage.setItem('racevora.locale', 'de');
     for (const ref of ['nfvwarlowjqphytqqtxz', 'znnkwjogtvzwfkwnmawp']) localStorage.setItem(`racevora-v2:${ref}:auth`, JSON.stringify({ user, access_token: token, refresh_token: 'synthetic', expires_at: exp, expires_in: 3600, token_type: 'bearer' }));
   }, { user, token, exp });
+  return user;
+}
+
+test('signed-in drivers see all three season teams before any race, including after reload and roster retry', async ({ page, context }) => {
+  const user = await signIn(context);
   const teamNames = ['Ice Test Team', 'Black Test Team', 'Stars Test Team'];
   const drivers = Array.from({ length: 6 }, (_, i) => ({ ...publicRacingFixture.drivers[0], id: `50000000-0000-4000-8000-00000000000${i + 1}`, display_name: `Test Driver ${i + 1}`, league_team: 'Previous season team' }));
   const roster = drivers.map((driver, i) => ({ driver_id: driver.id, team_name: teamNames[Math.floor(i / 2)], car_name: ['Red Bull RB21', 'McLaren MCL39', 'Mercedes W16'][Math.floor(i / 2)] }));
@@ -111,6 +116,13 @@ test('signed-in drivers see all three season teams before any race, including af
   await page.locator('.native-standings [role="alert"] button').click();
   await expect(rows).toHaveCount(6);
   await expect(page.locator('#drivers-standings-body')).not.toContainText('Ohne Team');
+  await page.locator('.standings-switch a').nth(1).click();
+  await expect(page.locator('#teams-standings-body tr')).toHaveCount(3);
+  for (const name of teamNames) {
+    const team = page.locator('#teams-standings-body tr').filter({ hasText: name });
+    await expect(team.locator('td').last()).toHaveText('0');
+    await expect(team.locator('a[href*="/drivers/profile"]')).toHaveCount(2);
+  }
   await page.goto('/racing/grid?league=rcc');
   await expect(page.locator('.native-grid-team')).toHaveCount(3);
   for (const name of teamNames) {
@@ -118,4 +130,42 @@ test('signed-in drivers see all three season teams before any race, including af
     await expect(team.locator('li')).toHaveCount(2);
   }
   await expect(page.locator('.native-grid')).not.toContainText('Previous season team');
+});
+
+test('team championship uses current Ferrari seats, preserves historical points and profile links', async ({ page, context }, info) => {
+  const user = await signIn(context), f = publicRacingFixture;
+  const drivers = ['Alessandro', 'Charles Leclerc', 'Dennis', 'Lewis Hamilton'].map((name, i) => ({ ...f.drivers[0], id: `50000000-0000-4000-8000-00000000000${i + 1}`, display_name: name, league_team: 'Ferrari', car_name: 'Old Mercedes W16' }));
+  let roster = [drivers[0], drivers[2]].map(driver => ({ driver_id: driver.id, team_name: 'Ferrari', car_name: 'Ferrari SF-25' }));
+  const points = [40, 30, 18];
+  await context.route('https://*.supabase.co/**', async route => {
+    const name = new URL(route.request().url()).pathname.split('/').pop();
+    if (name === 'user') return route.fulfill({ json: user });
+    if (name === 'current_app_role') return route.fulfill({ json: 'driver' });
+    if (name === 'get_my_name_settings') return route.fulfill({ json: confirmedNameFixture });
+    if (name === 'get_owner_mfa_status') return route.fulfill({ json: { is_owner: false, verified: false } });
+    if (name === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'driver' }] });
+    if (name === 'driver_identities') return route.fulfill({ json: { id: user.id, status: 'active', profile_number: 86 } });
+    if (name === 'drivers') return route.fulfill({ json: drivers });
+    if (name === 'race_results') return route.fulfill({ json: drivers.slice(0, 3).map((driver, i) => ({ ...f.results[0], id: `result-${i}`, driver_id: driver.id, awarded_points: points[i], points_team_name: 'Ferrari' })) });
+    if (name === 'season_driver_assignments') return route.fulfill({ json: [] });
+    if (name === 'get_season_championship_roster') return route.fulfill({ json: roster });
+    if (name === 'get_league_team_labels') return route.fulfill({ json: [] });
+    return route.fallback();
+  });
+  await page.goto('/racing/standings?league=rcc&view=teams');
+  const row = page.locator('#teams-standings-body tr');
+  await expect(row).toHaveCount(1);
+  await expect(row.locator('a[href*="/drivers/profile"]')).toHaveText(['Alessandro', 'Dennis']);
+  await expect(row.locator('td').last()).toHaveText('88');
+  await expect(row.getByRole('link', { name: 'Dennis', exact: true })).toHaveAttribute('href', new RegExp(`driver=${drivers[2].id}`));
+  await expect(row.locator('img.standing-car')).toHaveCount(2);
+  for (const logo of await row.locator('img.standing-car').all()) await expect(logo).toHaveAttribute('src', /ferrari.svg$/);
+  await expect(row).not.toContainText('Charles Leclerc');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath('current-team-lineup.png'), fullPage: true });
+  roster = [roster[0]];
+  await page.reload();
+  await expect(row.locator('a[href*="/drivers/profile"]')).toHaveText(['Alessandro']);
+  await expect(row.locator('td').nth(5)).toHaveText('—');
+  await expect(row.locator('td').last()).toHaveText('88');
 });

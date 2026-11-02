@@ -65,6 +65,9 @@ function standingsForRaces(data: StandingsData, races: ResultsRace[]) {
   const eligible = new Set(data.assignments.length ? data.assignments.map((entry) => entry.driver_id) : data.drivers.filter((entry) => entry.is_active !== false).map((entry) => entry.id));
   if (data.currentRoster) {
     eligible.clear();
+    // Scores belong to their published team; the displayed seats belong to the
+    // effective season roster. Historical AI/substitute rows are not extra seats.
+    for (const team of teams.values()) team.drivers = [];
     for (const member of data.currentRoster) {
       eligible.add(member.driver_id);
       const driver = drivers.get(member.driver_id);
@@ -73,6 +76,16 @@ function standingsForRaces(data: StandingsData, races: ResultsRace[]) {
         // A null team is authoritative; do not resurrect last season's profile team.
         driver.leagueTeam = member.team_name || 'Ohne Team';
         driver.carName = member.car_name || '—';
+        if (member.team_name) {
+          let team = teams.get(member.team_name);
+          if (!team) {
+            team = { teamName: member.team_name, points: 0, drivers: [], trend: 'flat' };
+            teams.set(member.team_name, team);
+          }
+          if (!team.drivers.some(entry => entry.id === member.driver_id)) {
+            team.drivers.push({ id: member.driver_id, name: driver.driverName, car: driver.carName });
+          }
+        }
       }
     }
     // Departed/replaced drivers keep points already earned in this season.
