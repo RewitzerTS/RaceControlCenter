@@ -60,6 +60,7 @@ export type LeagueDriver = {
   id: string;
   gamertag_aliases?: string[];
   import_driver_id?: string;
+  import_race_assigned?: boolean;
   display_name: string;
   gamertag: string | null;
   number: number | null;

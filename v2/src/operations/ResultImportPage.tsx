@@ -25,6 +25,7 @@ import {
   type ResultReviewRow,
 } from './ResultImportReviewTable';
 import { parseResultCsv } from './resultCsv';
+import { raceImportDrivers } from './importMatching';
 import { activeSeasonRaces } from './LeagueRacesPage';
 import { useOperationsCopy } from './operationsCopy';
 import { DEFAULT_RESULT_POINTS, type ResultScoringRules } from './resultScoring';
@@ -90,6 +91,7 @@ export function ResultImportPage() {
 
   const draftValue = { raceId, csv, reviewRows, importMethod, warnings };
   const activeSeasonId = races?.seasons.find((season) => season.is_active)?.id;
+  const importDrivers = raceImportDrivers(drivers, races?.races.find(race => race.id === raceId));
   const draft = useDraftRecovery({
     scope: allowed && races && user && activeSeasonId ? `result:${user.id}:${leagueSlug}:${activeSeasonId}` : null,
     value: draftValue,
@@ -126,10 +128,10 @@ export function ResultImportPage() {
         client,
         leagueSlug,
         images,
-        drivers?.drivers ?? [],
+        importDrivers,
         `R${race.round_number} · ${race.grand_prix_name}`,
       );
-      setReviewRows(buildResultReviewRows(analysis, drivers?.drivers ?? [], resultScoringRulesForRace(races, raceId)));
+      setReviewRows(buildResultReviewRows(analysis, importDrivers, resultScoringRulesForRace(races, raceId)));
       setWarnings(analysis.warnings);
       setMessage(copy('import.analysisDone', { count: analysis.rows.length }));
       setMessageTone('success');
@@ -147,8 +149,8 @@ export function ResultImportPage() {
     setMessageTone('error');
     try {
       const rows = reviewRows.length
-        ? resultReviewRowsToImported(reviewRows, drivers?.drivers ?? [], copy)
-        : parseResultCsv(csv, drivers?.drivers ?? []);
+        ? resultReviewRowsToImported(reviewRows, importDrivers, copy)
+        : parseResultCsv(csv, importDrivers);
       const changeReason = copy(importMethod === 'images' ? 'import.reasonImages' : 'import.reasonCsv');
       await createLeagueResultDraft(client, raceId, rows, changeReason);
       draft.markSaved();

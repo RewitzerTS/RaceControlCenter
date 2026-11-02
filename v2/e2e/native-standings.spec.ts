@@ -91,6 +91,7 @@ test('signed-in drivers see all three season teams before any race, including af
       calls.push(route.request().postDataJSON());
       return route.fulfill({ status: failRoster ? 503 : 200, json: failRoster ? { message: 'Test unavailable' } : roster });
     }
+    if (name === 'get_season_championship_ai_assignments') return route.fulfill({ json: [] });
     if (route.request().url().includes('/rpc/')) return route.fulfill({ json: null });
     return route.fallback();
   });

@@ -11,6 +11,17 @@ const fixture = (): HistoryData => ({
   results: Array.from({ length: 22 }, (_, index) => ({ id: `r${index}`, race_id: 'race', result_version_id: 'v1', driver_id: `d${index}`, points_owner_driver_id: null, awarded_points: 22 - index, participation_status: 'PLAYER', fastest_lap_time_ms: null, fastest_lap_ms: null, fastest_lap_time: null, points_car_name: null, car_name_snapshot: null, finish_position: index + 1, grid_position: index + 1, race_time: null })),
 });
 describe('driver graphics', () => {
+  it('uses the same inherited WM points while keeping personal graphics unchanged', () => {
+    const data = fixture();
+    const championship = { currentRoster: data.drivers.slice(1).map(driver => ({ driver_id: driver.id, car_name: 'Car', team_name: null })),
+      championshipAiAssignments: [{ ai_driver_id: 'd0', human_driver_id: 'd1', effective_from_round: 2, effective_to_round: null }] };
+    const model = buildDriverGraphic(data, 'driver_standings', 'season', '', '', 'RCC', driverGraphicCopy.en, championship)!;
+    expect(model.rows).toHaveLength(21);
+    expect(model.rows[0]).toMatchObject({ primary: 'Gamer 1', value: '43 Points' });
+    expect(buildDriverGraphic(data, 'race_result', 'season', 'race', '', 'RCC', driverGraphicCopy.en, championship)?.rows).toHaveLength(22);
+    expect(buildDriverGraphic(data, 'statistics', 'season', '', 'd1', 'RCC', driverGraphicCopy.en, championship))
+      .toEqual(buildDriverGraphic(data, 'statistics', 'season', '', 'd1', 'RCC', driverGraphicCopy.en));
+  });
   it('keeps all 22 drivers across pages', () => {
     for (const kind of ['race_result', 'driver_standings'] as const) {
       const model = buildDriverGraphic(fixture(), kind, 'season', 'race', 'd0', 'RCC', driverGraphicCopy.en)!;

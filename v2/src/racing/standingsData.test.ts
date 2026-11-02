@@ -13,6 +13,29 @@ const result = (patch: Partial<PublishedResult> = {}): PublishedResult => ({ id:
 const fixture = (): ResultsData => ({ season: { id: 's', name: 'Season' }, drivers, races, assignments: drivers.slice(0, 2).map((driver) => ({ driver_id: driver.id, team_name: 'Team A', car_name: 'Car A', created_at: '' })), results: [result(), result({ id: 'second', driver_id: '1', awarded_points: 18, finish_position: 2, fastest_lap_time_ms: 81000 }), result({ id: 'sub', race_id: 'r2', result_version_id: 'v2', driver_id: '2', points_owner_driver_id: '1', awarded_points: 26 })] });
 
 describe('native championship', () => {
+  it('credits inherited AI points once to the human without copying achievements or changing team scores', () => {
+    const source: StandingsData = { ...fixture(), assignments: [],
+      drivers: ['Pierre Gasly', 'MuirecoX', 'Alexander Albon', 'Fabi241299', 'Other Player'].map((display_name, i) => ({ ...drivers[0], id: String(i), display_name })),
+      results: [result({ driver_id: '0', awarded_points: 6, points_team_name: 'Alpine' }),
+        result({ id: 'albon', driver_id: '2', awarded_points: 0, points_team_name: 'Williams' }),
+        result({ id: 'fabi', driver_id: '3', race_id: 'r2', result_version_id: 'v2', awarded_points: 8, finish_position: 6, points_team_name: 'Williams' }),
+        result({ id: 'human', driver_id: '4', awarded_points: 10, points_team_name: 'Other' })],
+      currentRoster: [{ driver_id: '1', team_name: 'Alpine', car_name: 'Alpine' }, { driver_id: '3', team_name: 'Williams', car_name: 'Williams' }],
+      championshipAiAssignments: [
+        { human_driver_id: '1', ai_driver_id: '0', effective_from_round: 3, effective_to_round: null },
+        { human_driver_id: '3', ai_driver_id: '2', effective_from_round: 2, effective_to_round: null },
+      ],
+    };
+    const before = JSON.stringify(source);
+    const table = buildStandings(source);
+    expect(table.driverStandings.map(row => [row.driverId, row.points])).toEqual([['4', 10], ['3', 8], ['1', 6]]);
+    expect(table.driverStandings.find(row => row.driverId === '1')).toMatchObject({ wins: 0, podiums: 0, fastestLaps: 0 });
+    expect(table.teamStandings.map(row => [row.teamName, row.points])).toEqual([['Other', 10], ['Williams', 8], ['Alpine', 6]]);
+    expect(JSON.stringify(source)).toBe(before);
+    // A revised official result changes inherited points without double counting.
+    source.results[0].awarded_points = 4;
+    expect(buildStandings(source).driverStandings.find(row => row.driverId === '1')?.points).toBe(4);
+  });
   it('matches the incumbent driver and team values including substitution and tie-breaks', () => {
     const context: Record<string, any> = { window: {} };
     for (const path of ['rcc-data.js', 'rcc-result-data-compat.js', 'rcc-driver-context.js']) runInNewContext(readFileSync(`../assets/js/services/${path}`, 'utf8'), context);
@@ -125,7 +148,7 @@ describe('native championship', () => {
 });
 
 describe('championship roster loading', () => {
-  function clientFixture(options: { fail?: boolean; empty?: boolean; noSeason?: boolean; abort?: AbortController } = {}) {
+  function clientFixture(options: { fail?: boolean; failInheritance?: boolean; empty?: boolean; noSeason?: boolean; abort?: AbortController } = {}) {
     const requests: { url: URL; body: string }[] = [];
     const source = fixture();
     const client = createClient<Database>('https://standings-test.supabase.co', 'test-publishable-key', {
@@ -133,6 +156,9 @@ describe('championship roster loading', () => {
       global: { fetch: async (input, init) => {
         const url = new URL(String(input)); requests.push({ url, body: String(init?.body ?? '') });
         const name = url.pathname.split('/').pop();
+        if (name === 'get_season_championship_ai_assignments') {
+          return new Response(JSON.stringify(options.failInheritance ? { message: 'Unavailable' } : []), { status: options.failInheritance ? 503 : 200, headers: { 'Content-Type': 'application/json' } });
+        }
         if (name === 'get_season_championship_roster') {
           options.abort?.abort();
           return new Response(JSON.stringify(options.fail ? { message: 'No access' } : options.empty ? [] : [{ driver_id: '0', team_name: 'Current Team', car_name: 'Current Car' }]), { status: options.fail ? 403 : 200, headers: { 'Content-Type': 'application/json' } });
@@ -163,6 +189,8 @@ describe('championship roster loading', () => {
     expect((await loadStandings(empty.client, 'league', true, new AbortController().signal)).currentRoster).toEqual([]);
     const failed = clientFixture({ fail: true });
     await expect(loadStandings(failed.client, 'league', true, new AbortController().signal)).rejects.toBeTruthy();
+    const inheritanceFailure = clientFixture({ failInheritance: true });
+    await expect(loadStandings(inheritanceFailure.client, 'league', true, new AbortController().signal)).rejects.toBeTruthy();
     const abort = new AbortController();
     const stale = clientFixture({ abort });
     await expect(loadStandings(stale.client, 'league', true, abort.signal)).rejects.toBeTruthy();

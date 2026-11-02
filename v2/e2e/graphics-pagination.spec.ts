@@ -22,6 +22,7 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
   const result = { id: f.race.current_result_version_id, version: 1, race_id: f.race.id, race_name: 'USA GP', circuit: 'Austin', country_code: 'US', race_date: '2026-10-05', round: 2, rows: [] };
   const workspace = { league: f.league, season: { id: f.season.id, name: 'Season 15' }, latest_result: result, driver_standings: Array.from({ length: count }, (_, i) => ({ position: i + 1, driver: `Pilot ${i + 1}`, points: count - i, wins: 0 })), team_standings: Array.from({ length: count / 2 }, (_, i) => ({ position: i + 1, team: `Team ${i + 1}`, points: count - i, wins: 0 })), latest_achievement: null, recent_renders: [] };
   const renders: any[] = [];
+  const championshipDrivers = Array.from({ length: count }, (_, i) => ({ ...f.drivers[0], id: `driver-${i}`, display_name: `Pilot ${i + 1}`, public_name: `Pilot ${i + 1}` }));
   await context.route('https://*.supabase.co/**', async (route) => {
     const url = new URL(route.request().url()), name = url.pathname.split('/').pop();
     if (url.pathname === '/auth/v1/user') return route.fulfill({ json: user });
@@ -30,6 +31,10 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
     if (name === 'current_app_role') return route.fulfill({ json: 'league_admin' });
     if (name === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'admin' }] });
     if (name === 'get_social_graphics_workspace') return route.fulfill({ json: workspace });
+    if (name === 'drivers') return route.fulfill({ json: championshipDrivers });
+    if (name === 'race_results') return route.fulfill({ json: championshipDrivers.map((driver, i) => ({ ...f.results[0], id: `result-${i}`, driver_id: driver.id, awarded_points: count - i, finish_position: i + 1 })) });
+    if (name === 'get_season_championship_roster') return route.fulfill({ json: championshipDrivers.map(driver => ({ driver_id: driver.id, team_name: null, car_name: 'Car' })) });
+    if (name === 'season_driver_assignments' || name === 'get_season_championship_ai_assignments' || name === 'get_league_team_labels') return route.fulfill({ json: [] });
     if (name === 'get_social_graphics_driver_labels') return route.fulfill({ json: [] });
     if (name === 'get_social_graphics_result') return route.fulfill({ json: result });
     if (name === 'record_social_graphic_render') { renders.push(route.request().postDataJSON()); return route.fulfill({ json: 'recorded' }); }
@@ -90,6 +95,8 @@ for (const count of [20, 22]) test(`season graphics export all ${count} drivers 
     await context.route('https://*.supabase.co/**', async route => {
       const name = new URL(route.request().url()).pathname.split('/').pop();
       if (name === 'current_app_role') return route.fulfill({ json: 'driver' });
+      if (name === 'drivers') return route.fulfill({ json: f.drivers });
+      if (name === 'race_results') return route.fulfill({ json: f.results });
       if (name === 'league_members') return route.fulfill({ json: [{ league_id: f.league.id, role: 'driver' }] });
       if (['season_driver_assignments', 'get_league_team_history', 'get_season_championship_roster'].includes(name || '')) return route.fulfill({ json: [] });
       return route.fallback();

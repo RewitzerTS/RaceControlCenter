@@ -33,6 +33,7 @@ test('saved draft previews a full championship, switches and refreshes without p
         data: { season: f.season, drivers, races: [{ ...f.race, current_result_version_id: null, status: 'upcoming' }], assignments: [], results: [], currentRoster: drivers.map(d => ({ driver_id: d.id, team_name: null, car_name: 'Test Car' })) },
         draftRows: drivers.map((d, i) => ({ id: `row-${i}`, driver_id: d.id, race_id: f.race.id, result_version_id: id, finish_position: i + 1, awarded_points: i === 0 ? (id === 'draft-1' ? 18 : 25) : Math.max(0, 18 - i * 2), fastest_lap_time_ms: 80000 + i * 1000 })) } });
     }
+    if (name === 'get_season_championship_ai_assignments') return route.fulfill({ json: [] });
     if (name?.includes('publish') || name?.includes('discard')) writes.push(name);
     if (route.request().url().includes('/rpc/')) return route.fulfill({ json: null });
     return route.fallback();

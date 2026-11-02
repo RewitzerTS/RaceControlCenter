@@ -1,4 +1,4 @@
-import { buildStandings } from '../racing/standingsData';
+import { buildStandings, type StandingsData } from '../racing/standingsData';
 import { currentResults } from '../racing/resultsData';
 import { driverStats, type HistoryData } from '../racing/profileData';
 import { raceResultTime, type GraphicModel } from './graphics';
@@ -11,7 +11,7 @@ export const driverGraphicCopy = {
   fr: { title: 'Créer un visuel', copy: 'Télécharge les résultats, classements et tes statistiques en images.', race_result: 'Résultat', driver_standings: 'Classement pilotes', team_standings: 'Classement équipes', statistics: 'Mes statistiques', season: 'Saison', race: 'Course', starts: 'Départs', wins: 'Victoires', podiums: 'Podiums', points: 'Points', noLink: 'Aucun pilote n’est encore lié à ton compte dans cette ligue. Contacte la direction.', empty: 'Aucun résultat publié pour cette sélection.', source: 'Résultats publiés', back: 'Retour au profil', retry: 'Réessayer', error: 'Impossible de charger ou créer le visuel.', format: 'Format', preview: 'Aperçu', download: 'Télécharger le PNG', busy: 'Création du visuel …', done: 'Téléchargement préparé.', page: 'Page', all: 'Télécharger toutes les pages' },
 };
 
-export function buildDriverGraphic(data: HistoryData, kind: DriverGraphicKind, seasonId: string, raceId: string, ownDriverId: string, leagueName: string, copy: typeof driverGraphicCopy.en): GraphicModel | null {
+export function buildDriverGraphic(data: HistoryData, kind: DriverGraphicKind, seasonId: string, raceId: string, ownDriverId: string, leagueName: string, copy: typeof driverGraphicCopy.en, championship?: Pick<StandingsData, 'currentRoster' | 'championshipAiAssignments'>): GraphicModel | null {
   const season = data.seasons.find((item) => item.id === seasonId);
   if (!season) return null;
   const races = data.races.filter((race) => race.season_id === seasonId);
@@ -40,7 +40,7 @@ export function buildDriverGraphic(data: HistoryData, kind: DriverGraphicKind, s
     base.rows = [['starts', stats.starts], ['wins', stats.wins], ['podiums', stats.podiums], ['points', stats.points]].map(([key, value]) => ({ rank: '', primary: copy[key as 'starts'], secondary: '', value: String(value) }));
   } else {
     if (!results.length) return null;
-    const standings = buildStandings({ season, drivers: data.drivers, races, results, assignments: data.assignments.filter((item) => item.season_id === seasonId) });
+    const standings = buildStandings({ season, drivers: data.drivers, races, results, assignments: data.assignments.filter((item) => item.season_id === seasonId), ...championship });
     base.rows = kind === 'driver_standings' ? standings.driverStandings.map((row, index) => ({ rank: String(index + 1), primary: data.drivers.find((item) => item.id === row.driverId)?.public_name || data.drivers.find((item) => item.id === row.driverId)?.gamertag || row.driverName, secondary: `${row.wins} ${copy.wins}`, value: `${row.points} ${copy.points}` })) : standings.teamStandings.map((row, index) => ({ rank: String(index + 1), primary: row.teamName, secondary: '', value: `${row.points} ${copy.points}` }));
   }
   return base.rows.length ? base : null;

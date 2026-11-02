@@ -2805,6 +2805,7 @@ export type Database = {
       get_league_driver_admin_workspace: { Args: never; Returns: Json }
       get_league_roster_workspace: { Args: never; Returns: Json }
       get_season_championship_roster: { Args: { p_season_id: string }; Returns: { driver_id: string; team_name: string | null; car_name: string | null }[] }
+      get_season_championship_ai_assignments: { Args: { p_season_id: string }; Returns: { human_driver_id: string; ai_driver_id: string; effective_from_round: number; effective_to_round: number | null }[] }
       get_result_draft_championship_preview: { Args: { p_result_version_id: string }; Returns: Json }
       get_league_team_history: { Args: Record<string, never>; Returns: { season_id: string; driver_id: string; team_name: string | null; car_name: string | null; effective_round_number: number; created_at: string }[] }
       set_race_substitution: {

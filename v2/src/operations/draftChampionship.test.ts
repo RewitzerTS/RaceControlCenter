@@ -14,6 +14,14 @@ export function previewFixture(size = 22): DraftChampionshipSnapshot {
       results: [result(), result({ id: 'second', driver_id: '1', awarded_points: 18, finish_position: 2, fastest_lap_time_ms: 81000 })] } };
 }
 describe('draft championship', () => {
+  it('includes inherited AI points in the preview and only adds the human draft delta', () => {
+    const input = previewFixture(2);
+    input.data.currentRoster = [{ driver_id: '1', team_name: null, car_name: 'Car' }];
+    input.data.championshipAiAssignments = [{ ai_driver_id: '0', human_driver_id: '1', effective_from_round: 2, effective_to_round: null }];
+    const rows = buildDraftChampionship(input);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ driverId: '1', officialPoints: 43, points: 68, difference: 25, wins: 1 });
+  });
   it.each([20, 22])('adds saved draft points and retains the full %i-driver roster without mutation', size => {
     const input = previewFixture(size); const before = JSON.stringify(input);
     const rows = buildDraftChampionship(input);

@@ -1,9 +1,10 @@
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { championshipPointOwner, loadChampionshipAiAssignments, type ChampionshipAiAssignment } from './championshipInheritance';
 import { loadTeamLabels, teamLabel } from './teamLabels';
 import { currentResults, fastestLapDriver, loadResults, type ResultsData, type ResultsRace } from './resultsData';
 
 export interface ChampionshipMember { driver_id: string; team_name: string | null; car_name: string | null }
-export interface StandingsData extends ResultsData { currentRoster?: ChampionshipMember[] }
+export interface StandingsData extends ResultsData { currentRoster?: ChampionshipMember[]; championshipAiAssignments?: ChampionshipAiAssignment[] }
 
 export async function loadStandings(client: LeagueSupabaseClient, slug: string, authenticated: boolean, signal: AbortSignal): Promise<StandingsData> {
   const data = await loadResults(client, slug, authenticated, signal);
@@ -13,8 +14,9 @@ export async function loadStandings(client: LeagueSupabaseClient, slug: string, 
   // Never silently fall back to stale initial assignments on a failed roster read.
   if (response.error) throw response.error;
   if (!Array.isArray(response.data)) throw new Error('Championship roster unavailable');
+  const championshipAiAssignments = await loadChampionshipAiAssignments(client, data.season.id, signal);
   const labels = await loadTeamLabels(client);
-  return { ...data, currentRoster: response.data.map(row => ({ ...row, team_name: teamLabel(labels, data.season!.id, row.team_name) ?? null })) };
+  return { ...data, championshipAiAssignments, currentRoster: response.data.map(row => ({ ...row, team_name: teamLabel(labels, data.season!.id, row.team_name) ?? null })) };
 }
 
 export type Trend = 'up' | 'down' | 'flat' | 'new';
@@ -36,21 +38,27 @@ function standingsForRaces(data: StandingsData, races: ResultsRace[]) {
   const fastest = new Map(races.map((race) => [race.id, fastestLapDriver(results.filter((row) => row.race_id === race.id))]));
   const drivers = new Map<string, DriverStanding>();
   const teams = new Map<string, TeamStanding>();
+  const ownerOf = (row: ResultsData['results'][number]) => championshipPointOwner(row.points_owner_driver_id || row.driver_id,
+    data.races.find(race => race.id === row.race_id)!.round_number, data.championshipAiAssignments);
   for (const driver of data.drivers) {
     const snapshot = standingSnapshot(data, driver.id, races[0])!;
     drivers.set(driver.id, { driverId: driver.id, driverName: driver.display_name, leagueTeam: snapshot.league_team || 'Ohne Team', carName: snapshot.car_name || '—', wins: 0, podiums: 0, fastestLaps: 0, points: 0, trend: 'flat' });
   }
   for (const row of results) {
     const snapshot = standingSnapshot(data, row.driver_id, races.find((race) => race.id === row.race_id));
-    const driver = drivers.get(row.points_owner_driver_id || row.driver_id);
+    const originalOwner = row.points_owner_driver_id || row.driver_id;
+    const driver = drivers.get(ownerOf(row));
     if (!snapshot || !driver) continue;
     // Exactly the published score, including substitutes, penalties and bonuses.
     const points = Number(row.awarded_points);
     driver.points += points;
     driver.leagueTeam = row.points_team_name || snapshot.league_team || driver.leagueTeam;
     driver.carName = row.points_car_name || snapshot.car_name || driver.carName;
-    if (row.finish_position === 1) driver.wins++;
-    if ([1, 2, 3].includes(row.finish_position ?? 0)) driver.podiums++;
+    // Inherit championship points, not another driver's personal achievements.
+    if (driver.driverId === originalOwner) {
+      if (row.finish_position === 1) driver.wins++;
+      if ([1, 2, 3].includes(row.finish_position ?? 0)) driver.podiums++;
+    }
     const teamName = row.points_team_name || snapshot.league_team || 'Ohne Team';
     let team = teams.get(teamName);
     if (!team) { team = { teamName, points: 0, drivers: [], trend: 'flat' }; teams.set(teamName, team); }
@@ -60,7 +68,7 @@ function standingsForRaces(data: StandingsData, races: ResultsRace[]) {
   for (const [raceId, driverId] of fastest) {
     const winner = results.find((row) => row.race_id === raceId && row.driver_id === driverId);
     const owner = winner && drivers.get(winner.points_owner_driver_id || winner.driver_id);
-    if (owner) owner.fastestLaps++;
+    if (owner && winner && ownerOf(winner) === owner.driverId) owner.fastestLaps++;
   }
   const eligible = new Set(data.assignments.length ? data.assignments.map((entry) => entry.driver_id) : data.drivers.filter((entry) => entry.is_active !== false).map((entry) => entry.id));
   if (data.currentRoster) {
@@ -89,7 +97,7 @@ function standingsForRaces(data: StandingsData, races: ResultsRace[]) {
       }
     }
     // Departed/replaced drivers keep points already earned in this season.
-    for (const row of results) eligible.add(row.points_owner_driver_id || row.driver_id);
+    for (const row of results) eligible.add(ownerOf(row));
   }
   const driverStandings = [...drivers.values()].filter((entry) => (!data.currentRoster && !eligible.size) || eligible.has(entry.driverId))
     .sort((a, b) => b.points - a.points || b.wins - a.wins || b.podiums - a.podiums || b.fastestLaps - a.fastestLaps || normalized(a.driverName).localeCompare(normalized(b.driverName), 'de'));

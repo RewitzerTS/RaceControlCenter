@@ -1,5 +1,6 @@
 import type { Json } from '../types/database';
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { buildStandings, loadStandings } from '../racing/standingsData';
 
 export const GRAPHIC_TYPES = ['race_result', 'podium', 'winner', 'driver_standings', 'team_standings', 'achievement'] as const;
 export const GRAPHIC_FORMATS = ['square', 'portrait', 'story', 'landscape'] as const;
@@ -101,8 +102,15 @@ export async function loadGraphicsWorkspace(client: LeagueSupabaseClient): Promi
   ]);
   if (response.error) throw response.error;
   if (labelsResponse.error) throw labelsResponse.error;
+  const workspace = object(response.data) as unknown as GraphicsWorkspace;
+  if (workspace.season && workspace.league.slug) {
+    const data = await loadStandings(client, workspace.league.slug, true, new AbortController().signal);
+    if (data.season?.id !== workspace.season.id) throw new Error('Championship season changed; reload graphics');
+    const standings = buildStandings(data);
+    workspace.driver_standings = standings.driverStandings.map((row, index) => ({ position: index + 1, driverId: row.driverId, driver: row.driverName, points: row.points, wins: row.wins }));
+  }
   return {
-    ...(object(response.data) as unknown as GraphicsWorkspace),
+    ...workspace,
     driver_labels: (labelsResponse.data ?? []) as unknown as GraphicDriverLabels[],
   };
 }

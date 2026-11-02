@@ -1,4 +1,5 @@
 import type { LeagueSupabaseClient } from '../lib/supabase';
+import { loadChampionshipAiAssignments } from '../racing/championshipInheritance';
 import { buildStandings, type StandingsData } from '../racing/standingsData';
 import type { PublishedResult } from '../racing/resultsData';
 import { loadTeamLabels, teamLabel } from '../racing/teamLabels';
@@ -22,10 +23,11 @@ export async function loadDraftChampionship(client: LeagueSupabaseClient, id: st
     throw new Error('PREVIEW_INVALID_RESPONSE');
   }
   const labels = await loadTeamLabels(client);
+  const championshipAiAssignments = await loadChampionshipAiAssignments(client, snapshot.data.season.id, signal);
   signal.throwIfAborted();
   const name = (value: string | null | undefined) => teamLabel(labels, snapshot.data.season!.id, value) ?? null;
   return { ...snapshot, draftRows: snapshot.draftRows.map(row => ({ ...row, points_team_name: name(row.points_team_name) })),
-    data: { ...snapshot.data, results: snapshot.data.results.map(row => ({ ...row, points_team_name: name(row.points_team_name) })),
+    data: { ...snapshot.data, championshipAiAssignments, results: snapshot.data.results.map(row => ({ ...row, points_team_name: name(row.points_team_name) })),
       assignments: snapshot.data.assignments.map(row => ({ ...row, team_name: name(row.team_name) })),
       currentRoster: snapshot.data.currentRoster?.map(row => ({ ...row, team_name: name(row.team_name) })) } };
 }

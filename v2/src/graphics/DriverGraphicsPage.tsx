@@ -6,6 +6,8 @@ import { useI18n } from '../i18n/I18nProvider';
 import { AppState } from '../components/AppState';
 import { loadHistory, type HistoryData } from '../racing/profileData';
 import { loadResultsOwnDriver } from '../racing/resultsData';
+import type { StandingsData } from '../racing/standingsData';
+import { loadChampionshipAiAssignments } from '../racing/championshipInheritance';
 import { buildDriverGraphic, driverGraphicCopy, type DriverGraphicKind } from './driverGraphics';
 import { paginateGraphicModel, type GraphicFormat } from './graphics';
 import { drawGraphic, readGraphicTheme, renderGraphicPng, mixGraphicColors } from './renderPng';
@@ -31,7 +33,7 @@ export function DriverGraphicsPage() {
   const { user } = useAuth();
   const { language } = useI18n();
   const copy = driverGraphicCopy[language];
-  const [loaded, setLoaded] = useState<{ data: HistoryData; own: string; client: typeof client; userId: string } | null>(null);
+  const [loaded, setLoaded] = useState<{ data: HistoryData; own: string; client: typeof client; userId: string; championship: Pick<StandingsData, 'season' | 'currentRoster' | 'championshipAiAssignments'> } | null>(null);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
   const [seasonId, setSeasonId] = useState('');
@@ -49,8 +51,12 @@ export function DriverGraphicsPage() {
     setLoaded(null);
     void loadHistory(client, leagueSlug, user.id, controller.signal).then(async (history) => {
       const own = await loadResultsOwnDriver(client, user.id, history.drivers, controller.signal);
+      const activeSeason = history.seasons.find(item => item.is_active);
+      const championship = { season: activeSeason ?? null,
+        currentRoster: activeSeason ? history.currentRosters?.filter(item => item.season_id === activeSeason.id) : undefined,
+        championshipAiAssignments: activeSeason ? await loadChampionshipAiAssignments(client, activeSeason.id, controller.signal) : [] };
       controller.signal.throwIfAborted();
-      setLoaded({ data: history, own, client, userId: user.id });
+      setLoaded({ data: history, own, client, userId: user.id, championship });
       const season = history.seasons.filter((item) => item.is_active).at(-1) || history.seasons.at(-1);
       setSeasonId(season?.id || '');
       setRaceId('');
@@ -59,7 +65,9 @@ export function DriverGraphicsPage() {
   }, [client, leagueSlug, user?.id, retry]);
   const races = data?.races.filter((race) => race.season_id === seasonId && race.current_result_version_id).sort((a, b) => b.round_number - a.round_number) || [];
   const selectedRace = races.find((race) => race.id === raceId)?.id || races[0]?.id || '';
-  const model = useMemo(() => data ? buildDriverGraphic(data, kind, seasonId, selectedRace, loaded?.own || '', branding.name, copy) : null, [data, kind, seasonId, selectedRace, loaded?.own, branding.name, copy]);
+  const model = useMemo(() => data ? buildDriverGraphic(data, kind, seasonId, selectedRace, loaded?.own || '', branding.name, copy,
+    loaded?.championship.season?.id === seasonId ? { currentRoster: loaded.championship.currentRoster, championshipAiAssignments: loaded.championship.championshipAiAssignments } : undefined) : null,
+    [data, kind, seasonId, selectedRace, loaded, branding.name, copy]);
   const pages = useMemo(() => model ? paginateGraphicModel(model, 11) : [], [model]);
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   useEffect(() => { setPageIndex(0); setExportState('idle'); }, [model, format]);

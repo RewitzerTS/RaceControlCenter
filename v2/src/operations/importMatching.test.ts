@@ -1,8 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalImportTeam, matchImportDriver } from './importMatching';
-import type { LeagueDriver } from './operations';
+import { canonicalImportTeam, matchImportDriver, raceImportDrivers } from './importMatching';
+import type { DriverAdminWorkspace, LeagueDriver, LeagueRace } from './operations';
 const driver = (id: string, display_name: string, league_team = 'Williams'): LeagueDriver => ({ id, display_name, league_team, gamertag: null } as LeagueDriver);
 describe('conservative AI import matching', () => {
+  it('uses both Robin aliases despite an unused duplicate, but only in his assigned races', () => {
+    const robin = { ...driver('robin', 'alpine_wolf'), gamertag: 'alpine_wolf', public_name: 'MuirecoX', gamertag_aliases: ['MuirecoX', 'alpine_wolf'], identity_linked: true, result_count: 0 };
+    const old = { ...driver('old', 'Robin S'), gamertag: 'MuirecoX', identity_linked: false, result_count: 0, is_active: false };
+    const workspace = { drivers: [robin, old], active_season: { id: 's' }, ai_assignments: [
+      { human_driver_id: 'robin', ai_driver_id: 'gasly', effective_from_round: 9, effective_to_round: null },
+    ] } as DriverAdminWorkspace;
+    const current = raceImportDrivers(workspace, { season_id: 's', round_number: 9 } as LeagueRace);
+    for (const tag of ['alpine_wolf', 'Alpine-Wolf', 'Muirecox', 'MUIRECOX']) expect(matchImportDriver(tag, current)?.driver.id).toBe('robin');
+    expect(matchImportDriver('MuirecoX', raceImportDrivers(workspace, { season_id: 's', round_number: 8 } as LeagueRace))).toBeNull();
+    expect(matchImportDriver('MuirecoX', raceImportDrivers(workspace, { season_id: 'other', round_number: 9 } as LeagueRace))).toBeNull();
+    expect(matchImportDriver('MuirecoX', [current[0], { ...current[1], identity_linked: true }])).toBeNull();
+    expect(matchImportDriver('MuirecoX', [current[0], { ...current[1], result_count: 1 }])).toBeNull();
+    expect(matchImportDriver('MuirecoX', [current[0], { ...current[1], import_race_assigned: true }])).toBeNull();
+    expect(matchImportDriver('Muireco2', current)).toBeNull();
+    expect(robin).not.toHaveProperty('import_race_assigned');
+  });
   it('keeps two Jakobs separate and never guesses from their shared public or historical name', () => {
     const a = { ...driver('a', 'Jakob'), public_name: 'Jakob', gamertag: 'JakobNbdg', gamertag_aliases: ['Jacock'] };
     const b = { ...driver('b', 'Jakob'), public_name: 'Jakob', gamertag: 'SecondJakob', gamertag_aliases: ['OtherPSN'] };
