@@ -8,6 +8,8 @@ insert into auth.users(id,aud,role,email,raw_app_meta_data,raw_user_meta_data)
 select actor,'authenticated','authenticated',actor||'@season-team.invalid','{}'::jsonb,'{}'::jsonb from st_fixture
 union all select outsider,'authenticated','authenticated',outsider||'@season-team.invalid','{}'::jsonb,'{}'::jsonb from st_fixture;
 insert into public.leagues(id,name,slug,is_public,settings) select lid,'Synthetic seasonal teams','st-'||lid,false,'{}' from st_fixture;
+-- This regression covers an established league, whose later seasons start teamless.
+insert into public.seasons(league_id,name,slug,is_active) select lid,'Previous season','previous-season',false from st_fixture;
 insert into public.driver_identities(user_id,status,display_name,gamertag) select actor,'active','Synthetic Admin','AdminTag' from st_fixture;
 insert into public.league_members(league_id,user_id,role) select lid,actor,'league_admin' from st_fixture;
 insert into public.drivers(id,league_id,display_name,gamertag,is_active,league_team,car_name)
