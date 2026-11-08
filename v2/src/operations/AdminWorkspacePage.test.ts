@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { AdminSnapshot, LeagueRace, RaceAdminWorkspace, SeasonCalendarEntry, SeasonSetupWorkspace } from './operations';
-import { copyLeagueIdToClipboard, selectAdminNextAction } from './AdminWorkspacePage';
+import { copyLeagueIdToClipboard } from './AdminWorkspacePage';
+import { deriveOverview, type OverviewData } from './adminOverview';
 
 const snapshot: AdminSnapshot = {
   counts: { failed_jobs: 0, open_steward_cases: 0, pending_jobs: 0, races: 0 },
@@ -24,27 +25,67 @@ function races(items: LeagueRace[]): RaceAdminWorkspace {
   return { driver_standings: [], league: snapshot.league, races: items, seasons: [{ end_date: null, game_label: 'F1 25', id: 'season-1', is_active: true, name: 'Season 1', slug: 'season-1', start_date: null }], team_standings: [] };
 }
 
-describe('admin next action', () => {
-  it('starts with season setup when no season is active', () => {
-    expect(selectAdminNextAction(snapshot, { active_season: null, games: [], league: snapshot.league }, null).to).toBe('/admin/season/setup');
-  });
+const now = new Date(2026, 7, 29, 12);
+function overview(items: LeagueRace[] = [race({ result_status: 'active', race_date: '2026-08-28' })]): OverviewData {
+  return {
+    setup: setup(items.map(r => ({ date: r.race_date!, time: '20:00', track_key: 'spa', weather: 'klar', has_sprint: false }))),
+    races: races(items), members: { league: snapshot.league, members: [], join_requests: [] },
+    config: { league: snapshot.league, rules: {}, faqs: [], audit: [], result_drafts: [] },
+    roster: { mode: 'current', season: { id: 'season-1', name: 'Season 1' }, view_round: 1, revision: 'test', profiles: [], teams: [], races: [] },
+    raceCount: items.length, cases: 0,
+  };
+}
 
-  it('prioritizes open steward cases after the calendar exists', () => {
-    const withCases = { ...snapshot, counts: { ...snapshot.counts, open_steward_cases: 2 } };
-    expect(selectAdminNextAction(withCases, setup([{ date: '2026-09-10', has_sprint: false, time: '20:00', track_key: 'spa', weather: 'dynamisch' }]), races([race({ race_date: '2026-09-10', status: 'upcoming' })]), new Date(2026, 7, 29)).to).toBe('/stewarding');
+describe('league overview priorities', () => {
+  it('shows both races of the next race day, even if its first race is already official', () => {
+    const first = race({ result_status: 'active', race_date: '2026-08-29' });
+    const second = race({ id: 'race-2', round_number: 2, status: 'upcoming', race_date: '2026-08-29', race_start_at: '2026-08-29T21:00:00Z' });
+    const view = deriveOverview(overview([first, second, race({ id: 'later', race_date: '2026-09-05', status: 'upcoming' })]), now);
+    expect(view.raceDay.map(r => r.id)).toEqual(['race-1', 'race-2']);
+    expect(view.ready).toBe(false);
+    expect(view.tasks).toEqual([]);
   });
-
-  it('points to result import once a race day has arrived', () => {
-    expect(selectAdminNextAction(snapshot, setup([{ date: '2026-08-29', has_sprint: false, time: '20:00', track_key: 'spa', weather: 'klar' }]), races([race()]), new Date(2026, 7, 29)).to).toBe('/admin/results/import');
+  it('shows missing results separately from existing drafts and ignores previous seasons', () => {
+    const data = overview([race(), race({ id: 'race-2' })]);
+    data.races!.races.push(race({ id: 'old', season_id: 'old-season' }));
+    data.config!.result_drafts = [
+      { id: 'draft', race_id: 'race-1', race_name: 'Spa', version_number: 1, status: 'draft', change_reason: '', created_at: '', row_count: 20 },
+      { id: 'old-draft', race_id: 'old', race_name: 'Old', version_number: 1, status: 'draft', change_reason: '', created_at: '', row_count: 20 },
+    ];
+    expect(deriveOverview(data, now).tasks).toEqual([
+      { key: 'drafts', count: 1, to: '/admin/results/import#result-draft-heading' },
+      { key: 'missing', count: 1, to: '/admin/results/import' },
+    ]);
   });
-
-  it('points to race planning before the first race', () => {
-    expect(selectAdminNextAction(snapshot, setup([{ date: '2026-09-10', has_sprint: false, time: '20:00', track_key: 'spa', weather: 'regen' }]), races([race({ race_date: '2026-09-10', status: 'upcoming' })]), new Date(2026, 7, 29)).to).toBe('/admin/races');
+  it('suggests closure only with a complete calendar, no drafts and no open current-season cases', () => {
+    expect(deriveOverview(overview(), now).ready).toBe(true);
+    const open = overview(); open.cases = 1;
+    expect(deriveOverview(open, now).ready).toBe(false);
+    const draft = overview(); draft.config!.result_drafts = [{ id: 'd', race_id: 'race-1', race_name: 'Spa', version_number: 2, status: 'validated', change_reason: '', created_at: '', row_count: 20 }];
+    expect(deriveOverview(draft, now).ready).toBe(false);
   });
-
-  it('offers season completion after every race has an official result', () => {
-    const action = selectAdminNextAction(snapshot, setup([{ date: '2026-08-29', has_sprint: false, time: '20:00', track_key: 'spa', weather: 'klar' }]), races([race({ result_status: 'active' })]), new Date(2026, 7, 30));
-    expect(action.titleKey).toBe('admin.nextCompleteTitle');
+  it.each(['setup', 'races', 'members', 'config', 'roster', 'raceCount', 'cases'] as const)('fails closed when %s could not be loaded', key => {
+    const data = overview(); data[key] = null;
+    const view = deriveOverview(data, now);
+    expect(view.incomplete).toBe(true); expect(view.ready).toBe(false);
+  });
+  it('does not close a season based on a partial calendar or mismatched active season', () => {
+    const partial = overview(); partial.raceCount = 24;
+    expect(deriveOverview(partial, now).ready).toBe(false);
+    expect(deriveOverview(partial, now).incomplete).toBe(true);
+    const mismatch = overview(); mismatch.races!.seasons[0].id = 'another-season';
+    expect(deriveOverview(mismatch, now).scopeKnown).toBe(false);
+    expect(deriveOverview(mismatch, now).ready).toBe(false);
+  });
+  it('never offers closure for upcoming races, undated races or an empty season', () => {
+    for (const items of [[race({ status: 'upcoming', result_status: 'active', race_date: '2026-09-10' })], [race({ status: 'upcoming', race_date: null })], []]) {
+      expect(deriveOverview(overview(items), now).ready).toBe(false);
+    }
+  });
+  it('offers setup only when no active season was successfully verified', () => {
+    const data = overview([]); data.setup!.active_season = null; data.races!.seasons = []; data.roster!.season = null;
+    const view = deriveOverview(data, now);
+    expect(view.scopeKnown).toBe(true); expect(view.season).toBeNull(); expect(view.incomplete).toBe(false);
   });
 });
 

@@ -86,12 +86,10 @@ if (!styles.includes('.app-shell .operations-metrics {')
     || !styles.includes('color-mix(in srgb, var(--brand-surface) 94%, var(--brand-background))')) {
   violations.push('Owner and admin overview metrics do not follow the active personal theme');
 }
-if (!admin.includes("{ key: 'profile.createLeague', to: '/leagues/new' }")
-    || !styles.includes('.operations-menu-groups a[aria-current="page"]')
-    || !styles.includes('background: color-mix(in srgb, var(--brand-accent) 16%, transparent)')
-    || !styles.includes('color: var(--brand-accent)')) {
-  violations.push('The create-league navigation action does not follow the active personal theme');
-}
+const [adminFrame, adminStyles, profilePage] = await Promise.all(['src/operations/AdminFrame.tsx', 'src/operations/adminOverview.css', 'src/driver/ProfilePage.tsx'].map(path => readFile(resolve(root, path), 'utf8')));
+for (const key of ['overview', 'season', 'drivers', 'members', 'settings']) if (!adminFrame.includes(`key: '${key}'`)) violations.push('missing persistent admin area: ' + key);
+if (!shell.includes('<AdminFrame enabled={canAdmin && !accessLoading') || !adminStyles.includes('var(--brand-primary)') || !adminStyles.includes('.admin-mobile-sections')) violations.push('admin navigation must be role guarded, themed and mobile accessible');
+if (admin.includes('/leagues/new') || !profilePage.includes('/leagues/new')) violations.push('create-league belongs in the profile, outside current-league administration');
 if (!styles.includes('.app-shell :is(.admin-form, .admin-inline-form, .onboarding-form, .steward-form, .beta-access-form)')
     || !styles.includes('outline: 3px solid var(--brand-primary)')) {
   violations.push('Admin inline form controls do not follow the active personal theme');

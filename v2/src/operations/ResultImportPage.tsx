@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { useDraftRecovery } from '../components/useDraftRecovery';
 import { DraftRecoveryNotice } from '../components/DraftRecoveryNotice';
@@ -47,6 +47,9 @@ export function resultScoringRulesForRace(workspace: RaceAdminWorkspace | null, 
 }
 
 export function ResultImportPage() {
+  const [searchParams] = useSearchParams();
+  const requestedRace = searchParams.get('race');
+  const initialRaceApplied = useRef(false);
   const { language } = useI18n();
   const { user } = useAuth();
   const { client, leagueSlug } = useLeague();
@@ -91,6 +94,13 @@ export function ResultImportPage() {
 
   const draftValue = { raceId, csv, reviewRows, importMethod, warnings };
   const activeSeasonId = races?.seasons.find((season) => season.is_active)?.id;
+  useEffect(() => {
+    if (!races || initialRaceApplied.current) return;
+    initialRaceApplied.current = true;
+    if (requestedRace && activeSeasonRaces(races).some(race => race.id === requestedRace)) {
+      setRaceId(current => current || requestedRace);
+    }
+  }, [races, requestedRace]);
   const importDrivers = raceImportDrivers(drivers, races?.races.find(race => race.id === raceId));
   const draft = useDraftRecovery({
     scope: allowed && races && user && activeSeasonId ? `result:${user.id}:${leagueSlug}:${activeSeasonId}` : null,

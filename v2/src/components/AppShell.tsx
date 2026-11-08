@@ -23,6 +23,7 @@ import { fallbackLeagueBranding, shouldUseStandardRaceVoraBranding } from '../le
 import { useRole } from '../roles/RoleProvider';
 import { TutorialCenter } from '../tutorials/TutorialCenter';
 import { AppState } from './AppState';
+import { AdminFrame } from '../operations/AdminFrame';
 
 const StewardWorkspacePage = lazy(() => import('../stewarding/StewardWorkspacePage').then((module) => ({ default: module.StewardWorkspacePage })));
 const CareerPage = lazy(() => import('../driver/CareerPage').then((module) => ({ default: module.CareerPage })));
@@ -521,6 +522,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
 
       <div className={embeddedAccess ? 'shell-frame shell-frame--embedded-access' : 'shell-frame'}>
 
+        <AdminFrame enabled={canAdmin && !accessLoading && (location.pathname === '/admin' || location.pathname.startsWith('/admin/'))}>
         <Routes key={leagueSlug}>
           <Route path="/" element={<Navigate replace to="/home" />} />
           <Route path="/home" element={accessLoading ? routeLoading : user && roleError ? leagueAccessError : <DriverHomePage />} />
@@ -575,6 +577,7 @@ export function AppShell({ environment }: { environment: RuntimeEnvironment }) {
           <Route path="/saison-archiv" element={<LegacyRouteRedirect to="/racing/history?view=seasons" />} />
           <Route path="*" element={<Navigate replace to="/home" />} />
         </Routes>
+        </AdminFrame>
 
         {!embeddedAccess && <footer className="footer">
           <span className="footer-copyright">{t('footer.copyright', { year: new Date().getFullYear() })}</span>
