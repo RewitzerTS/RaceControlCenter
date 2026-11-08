@@ -117,7 +117,7 @@ test('inactive profiles remain available through an explicit filter', async ({ p
   const state = await fixture(context, { inactive: true });
   await page.goto('/admin/drivers');
   await expect(page.getByRole('row', { name: new RegExp(state.drivers[1].display_name) })).toHaveCount(0);
-  await page.getByLabel('Auch inaktive Fahrer anzeigen').check();
+  await page.getByLabel('Inaktive Fahrer anzeigen').check();
   await expect(page.getByRole('row', { name: new RegExp(state.drivers[1].display_name) })).toBeVisible();
   expect(state.writes).toHaveLength(0);
 });

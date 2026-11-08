@@ -63,7 +63,19 @@ test('overview groups a race day and opens the correct race import; navigation s
     await expect(nav.getByRole('combobox')).toHaveValue('/admin/races');
     await nav.getByRole('combobox').selectOption('/admin/users');
   } else {
-    await expect(nav.getByRole('link', { name: 'Saison & Rennen', exact: true })).toHaveAttribute('aria-current', 'page');
+    const section = nav.getByRole('button', { name: 'Saison & Rennen', exact: true });
+    await expect(section).toHaveAttribute('aria-expanded', 'true');
+    const children = page.locator('#admin-subnav-season');
+    await expect(children.getByRole('link', { name: 'Import', exact: true })).toHaveAttribute('aria-current', 'page');
+    await section.click();
+    await expect(children).toBeHidden();
+    await expect(page).toHaveURL(/\/admin\/results\/import/);
+    await section.press('Enter');
+    await expect(children).toBeVisible();
+    const group = section.locator('..');
+    await expect(group.locator('.admin-section-links')).toHaveCount(1);
+    await expect(group.locator('.admin-section-links')).toBeVisible();
+    await page.screenshot({ path: info.outputPath('admin-nested-navigation.png'), fullPage: true });
     await nav.getByRole('link', { name: 'Mitglieder & Rechte' }).click();
   }
   await expect(page).toHaveURL(/\/admin\/users/);

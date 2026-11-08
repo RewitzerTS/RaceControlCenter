@@ -59,6 +59,16 @@
 .season-player-fields select { width: 100%; min-width: 0; max-width: 100%; min-height: 44px; padding: .7rem; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 10px; }
 .season-player-fields label { min-width: 0; }
 .league-driver-directory .table-action-button { color: var(--text); }
+.league-driver-directory .driver-row-action {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; max-width: 100%; min-height: 44px; margin: 4px 0; padding: 6px 10px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: transparent; color: var(--text); box-shadow: none;
+  font: inherit; font-size: .875rem; font-weight: 500; line-height: 1.35;
+  text-decoration: none; text-align: center; white-space: normal; cursor: pointer;
+}
+.league-driver-directory .driver-row-action:hover { background: color-mix(in srgb, var(--text) 6%, transparent); border-color: var(--line-strong); }
+.league-driver-directory .driver-row-action:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 .season-setup-page .season-grid-summary strong, .season-setup-page .season-calendar-table-heading > span, .season-setup-page .season-calendar-table tbody th { color: var(--text); }
 .season-setup-page .season-calendar-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 900px) {

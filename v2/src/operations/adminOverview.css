@@ -7,7 +7,14 @@
 .admin-side-nav a { display: flex; align-items: center; min-height: 44px; padding: 10px 12px; border-radius: 8px; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
 .admin-side-nav a:hover { background: color-mix(in srgb, var(--brand-primary) 10%, transparent); }
 .admin-side-nav .admin-area-active, .admin-section-links a[aria-current="page"] { background: color-mix(in srgb, var(--brand-primary) 16%, transparent); color: var(--text); box-shadow: inset 3px 0 var(--brand-primary); font-weight: 700; }
-.admin-section-links { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); font-size: .9rem; }
+.admin-section-links { margin: 4px 0 12px 16px; padding-left: 8px; border-left: 1px solid var(--line); font-size: .9rem; }
+.admin-section-links[hidden], .admin-mobile-subnav { display: none; }
+.admin-side-nav .admin-area-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px; padding: 10px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--text); text-align: left; font: inherit; cursor: pointer; box-shadow: none; }
+.admin-side-nav .admin-area-toggle.admin-area-active { background: color-mix(in srgb, var(--brand-primary) 16%, transparent); font-weight: 700; }
+.admin-side-nav .admin-area-toggle:hover { background: color-mix(in srgb, var(--brand-primary) 10%, transparent); }
+.admin-area-toggle svg { width: 16px; height: 16px; flex: 0 0 16px; }
+.admin-area-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+.admin-side-nav :is(a, button):focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 .admin-history-link { margin-top: 20px; font-size: .85rem; }
 .admin-mobile-sections { display: none; }
 .admin-overview { display: grid; gap: 28px; padding: 0; }
@@ -52,7 +59,7 @@
   .admin-desktop-sections, .admin-nav-title { display: none; }
   .admin-mobile-sections { display: grid; gap: 6px; font-size: .8rem; }
   .admin-mobile-sections select { width: 100%; min-width: 0; min-height: 48px; color: var(--text); background: var(--brand-surface, #17191e); border: 1px solid var(--line); border-radius: 8px; padding: 10px; font: inherit; font-size: 1rem; }
-  .admin-section-links { display: flex; flex-wrap: wrap; gap: 4px 8px; margin-top: 12px; }
+  .admin-mobile-subnav { display: flex; flex-wrap: wrap; gap: 4px 8px; margin: 12px 0 0; padding: 0; border: 0; }
   .admin-side-nav .admin-history-link { display: inline-flex; margin-top: 4px; padding-block: 8px; }
   .admin-side-nav .admin-history-overview { display: none; }
 }
