@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { AppState } from '../components/AppState';
 import { useI18n } from '../i18n/I18nProvider';
@@ -22,6 +22,8 @@ export function OnboardingPage() {
 
 function EntryFlow() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const joiningLeague = searchParams.get('step') === 'league';
   const { user, updateThemePreset } = useAuth();
   const { client } = useLeague();
   const { language, t } = useI18n();
@@ -47,13 +49,13 @@ function EntryFlow() {
     setLoading(true); setError('');
     void loadEntry(client).then(data => {
       if (!active) return;
-      setEntry(data); setStep(data.step);
+      setEntry(data); setStep(joiningLeague ? (data.profile_complete ? 3 : 1) : data.step);
       setName(data.real_name ?? data.display_name ?? ''); setTag(data.gamertag ?? '');
       setPublicNameMode(data.public_name_mode ?? 'gamertag');
     }).catch(() => { if (active) setError(c.error); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [client, retry, c.error]);
+  }, [client, retry, c.error, joiningLeague]);
 
   useEffect(() => { if (entry) heading.current?.focus(); }, [step, Boolean(entry)]);
 
@@ -79,7 +81,7 @@ function EntryFlow() {
 
   return <main className="entry-page" id="main-content">
     <header className="entry-heading"><h1>{c.title}</h1><p>{c.intro}</p></header>
-    <div className="entry-identity"><span>{c.id}</span><strong>{entry.racevora_id}</strong><small>{c.idHint}</small></div>
+    <div className="entry-identity"><span>{c.id}</span><strong>{entry.racevora_id}</strong></div>
     <ol className="entry-steps" aria-label={t('onboarding.steps')}>
       {c.steps.map((label, index) => <li key={index} aria-current={step === index + 1 ? 'step' : undefined}><span>{index + 1}</span>{label}</li>)}
     </ol>

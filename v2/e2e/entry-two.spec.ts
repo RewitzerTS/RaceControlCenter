@@ -1,7 +1,7 @@
 import { expect, test, type BrowserContext } from '@playwright/test';
 import { installPublicFixture, publicRacingFixture } from './public-fixture';
 
-async function entryFixture(context: BrowserContext, options: { admin?: boolean; pending?: boolean; failSave?: boolean } = {}) {
+async function entryFixture(context: BrowserContext, options: { admin?: boolean; pending?: boolean; failSave?: boolean; complete?: boolean } = {}) {
   await installPublicFixture(context);
   const id = '91000000-0000-4000-8000-000000000098';
   const identity = '92000000-0000-4000-8000-000000000098';
@@ -11,6 +11,10 @@ async function entryFixture(context: BrowserContext, options: { admin?: boolean;
   const user = () => ({ id, email: 'entry-test@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: { provider: 'email' }, user_metadata: metadata, created_at: '2026-01-01T00:00:00Z' });
   const session = () => ({ access_token: token, refresh_token: 'synthetic-refresh', token_type: 'bearer', expires_in: 3600, expires_at: exp, user: user() });
   let entry = { identity_id: identity, racevora_id: 'RV-100098', display_name: '', real_name: '', public_name_mode: 'gamertag', gamertag: '', step: 1, profile_complete: false };
+  if (options.complete) {
+    entry = { ...entry, display_name: 'Racer', real_name: 'Racer', gamertag: 'Darkqz', profile_complete: true };
+    Object.assign(metadata, { display_name: 'Racer', gamertag: 'Darkqz', onboarding_complete: true });
+  }
   let pending = options.pending ?? false;
   let failed = false;
   let reviewed = false;
@@ -91,7 +95,7 @@ test('entry saves independently, resumes after reload and confirms a league requ
   await page.getByRole('button', { name: 'Beitritt anfragen' }).click();
   await expect(page.getByRole('status')).toContainText('Monday Night Racing');
   await page.getByRole('button', { name: 'Zu Home' }).click();
-  await expect(page.getByRole('heading', { name: 'Dein Fahrerprofil ist bereit.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Willkommen bei RaceVora.' })).toBeVisible();
   await expect(page.locator('.join-request-status')).toContainText('Monday Night Racing');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('entry-home-pending.png'), fullPage: true });
@@ -125,4 +129,32 @@ test('league approval never preselects even an exact gamertag match', async ({ p
   await confirm.click();
   await expect(page.getByText('Keine offenen Anfragen')).toBeVisible();
   expect(fixture.writes).toEqual([{ rpc: 'review_league_join_request_explicit', body: { p_request_id: 'request', p_decision: 'approved', p_driver_id: 'existing-driver', p_create_driver: false } }]);
+});
+
+for (const member of [false, true]) {
+  test(`entry home offers join, profile and create routes for ${member ? 'members without a driver' : 'new drivers'}`, async ({ page, context }, info) => {
+    const fixture = await entryFixture(context, { admin: member, complete: true });
+    await page.goto('/home');
+    const main = page.locator('main');
+    await expect(main.getByRole('heading', { level: 1 })).toHaveText(member ? 'Dein Konto ist bereit.' : 'Willkommen bei RaceVora.');
+    await expect(main.getByText('RV-100098')).toBeVisible();
+    await expect(main.getByText('Nicht deine Startnummer.', { exact: false })).toHaveCount(0);
+    await expect(main.getByRole('link', { name: 'Profil bearbeiten', exact: true })).toHaveAttribute('href', '/profile');
+    await expect(main.getByRole('link', { name: 'Eigene Liga gründen', exact: true })).toHaveAttribute('href', '/leagues/new');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: info.outputPath('entry-home-actions.png'), fullPage: true });
+    await main.getByRole('link', { name: 'Liga beitreten', exact: true }).click();
+    await expect(page.getByLabel('5-stelliger Beitrittscode')).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel('5-stelliger Beitrittscode')).toBeVisible();
+    expect(fixture.writes).toEqual([]);
+  });
+}
+
+test('direct league entry asks for missing profile details before allowing a request', async ({ page, context }) => {
+  const fixture = await entryFixture(context);
+  await page.goto('/onboarding?step=league');
+  await expect(page.getByLabel('Name / Vorname', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('5-stelliger Beitrittscode')).toHaveCount(0);
+  expect(fixture.writes).toEqual([]);
 });
