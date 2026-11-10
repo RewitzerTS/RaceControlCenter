@@ -3,7 +3,7 @@ import type { Database } from '../types/database';
 import tracks from './trackCatalog.json';
 
 export type CalendarRace = Pick<Database['public']['Tables']['races']['Row'],
-  'id' | 'season_id' | 'round_number' | 'grand_prix_name' | 'circuit_name' | 'country_code' | 'race_date' | 'race_time' | 'race_start_at' | 'status' | 'weather'>;
+  'id' | 'season_id' | 'round_number' | 'grand_prix_name' | 'circuit_name' | 'country_code' | 'race_date' | 'race_time' | 'race_start_at' | 'status' | 'weather'> & { annulled_at?: string | null };
 export type CalendarSeason = Pick<Database['public']['Tables']['seasons']['Row'],
   'id' | 'name' | 'game_key' | 'game_label' | 'is_active' | 'archived_at'>;
 export interface CalendarData { season: CalendarSeason | null; races: CalendarRace[]; stewardCounts: Record<string, number> }
@@ -25,7 +25,7 @@ export async function loadCalendar(client: LeagueSupabaseClient, slug: string, s
   const season = seasonResponse.data;
   if (!season) return { season: null, races: [], stewardCounts: {} };
   const response = await client.from('races')
-    .select('id,season_id,round_number,grand_prix_name,circuit_name,country_code,race_date,race_time,race_start_at,status,weather')
+    .select('id,season_id,round_number,grand_prix_name,circuit_name,country_code,race_date,race_time,race_start_at,status,weather,annulled_at')
     .eq('season_id', season.id).order('round_number').limit(500).abortSignal(signal);
   signal.throwIfAborted();
   if (response.error) throw response.error;

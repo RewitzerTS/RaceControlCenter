@@ -6,8 +6,8 @@ import './adminOverview.css';
 
 const areas = [
   { key: 'overview', to: '/admin', paths: ['/admin'], items: [] },
-  { key: 'season', to: '/admin/races', paths: ['/admin/races', '/admin/season/setup', '/admin/results', '/admin/results/import', '/admin/standings', '/admin/graphics'], items: [
-    { key: 'admin.races', to: '/admin/races' }, { key: 'admin.results', to: '/admin/results' }, { key: 'admin.import', to: '/admin/results/import' }, { key: 'admin.standings', to: '/admin/standings' }, { key: 'admin.graphics', to: '/admin/graphics' }, { key: 'admin.seasonSetup', to: '/admin/season/setup' }, { key: 'admin.cases', to: '/stewarding' },
+  { key: 'season', to: '/admin/races', paths: ['/admin/races', '/admin/season/setup', '/admin/results', '/admin/results/import', '/admin/standings', '/admin/reverse-grid', '/admin/graphics'], items: [
+    { key: 'admin.races', to: '/admin/races' }, { key: 'admin.results', to: '/admin/results' }, { key: 'admin.import', to: '/admin/results/import' }, { key: 'admin.standings', to: '/admin/standings' }, { key: 'admin.reverseGrid', to: '/admin/reverse-grid' }, { key: 'admin.graphics', to: '/admin/graphics' }, { key: 'admin.seasonSetup', to: '/admin/season/setup' }, { key: 'admin.cases', to: '/stewarding' },
   ] },
   { key: 'drivers', to: '/admin/drivers', paths: ['/admin/drivers', '/admin/teams', '/admin/teams/legacy'], items: [] },
   { key: 'members', to: '/admin/users', paths: ['/admin/users'], items: [] },

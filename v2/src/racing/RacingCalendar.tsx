@@ -61,7 +61,7 @@ export function RacingCalendar() {
 
   const races = calendar.data?.races ?? [];
   const upcoming = races.filter((race) => calendarRaceStatus(race) === 'upcoming');
-  const completed = races.filter((race) => calendarRaceStatus(race) === 'completed').sort((a, b) => b.round_number - a.round_number);
+  const completed = races.filter((race) => ['completed', 'cancelled'].includes(calendarRaceStatus(race))).sort((a, b) => b.round_number - a.round_number);
   const params = new URLSearchParams(location.search);
   const targetRound = params.get('round');
   const targetSeason = params.get('season');
@@ -70,9 +70,9 @@ export function RacingCalendar() {
 
   useEffect(() => {
     if (!calendar.data) return;
-    const requested = target ? (calendarRaceStatus(target) === 'completed' ? 'completed' : 'upcoming') : null;
+    const requested = target ? (['completed', 'cancelled'].includes(calendarRaceStatus(target)) ? 'completed' : 'upcoming') : null;
     if (requested) setSection(requested);
-    else if (!calendar.data.races.some((race) => calendarRaceStatus(race) === 'upcoming') && calendar.data.races.some((race) => calendarRaceStatus(race) === 'completed')) {
+    else if (!calendar.data.races.some((race) => calendarRaceStatus(race) === 'upcoming') && calendar.data.races.some((race) => ['completed', 'cancelled'].includes(calendarRaceStatus(race)))) {
       setSection((current) => current === 'upcoming' ? 'completed' : current);
     }
   }, [calendar.data, target]);
@@ -104,7 +104,7 @@ export function RacingCalendar() {
         <div className="race-top"><div>
           <div className="race-round">{/^[A-Za-z]{2}$/.test(country) && <span className="calendar-flag"><CalendarImage key={country} src={`/v1-assets/images/flags/${country.toLowerCase()}.svg`} alt={country.toUpperCase()} fallback={country.toUpperCase()} width={24} height={18} /></span>}<span>{copy.round} {formatNumber(race.round_number)}</span></div>
           <h3 className="race-name"><Link className="race-detail-link" to={racingHref('/racing/races/detail', leagueSlug, { round: race.round_number, season: race.season_id })}>{race.grand_prix_name}</Link></h3>
-        </div><span className={`calendar-status ${done ? 'done' : ''}`}>{done ? copy.done : copy.planned}</span></div>
+        </div><span className={`calendar-status ${done ? 'done' : ''}`}>{race.annulled_at ? copy.annulled : race.status === 'cancelled' ? copy.cancelled : done ? copy.done : copy.planned}</span></div>
         <div className="race-meta">{date ? <time dateTime={date.toISOString()}>{formatDate(date, { dateStyle: 'medium', timeStyle: 'short' })}</time> : copy.date}<div>{title}</div><div>{copy.weather}: <strong>{race.weather ? race.weather.charAt(0).toUpperCase() + race.weather.slice(1) : copy.unknown}</strong></div>
           {stewardCount > 0 && <div>{copy.steward}: <strong>{formatNumber(stewardCount)} {stewardCount === 1 ? copy.caseOne : copy.caseMany}</strong></div>}
         </div>

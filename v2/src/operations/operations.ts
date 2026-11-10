@@ -114,6 +114,8 @@ export type LeagueRace = {
   race_date: string | null; race_start_at: string | null; status: string; has_sprint: boolean;
   result_count: number; result_version: number | null; result_status: string | null; result_activated_at: string | null;
   current_result_version_id?: string | null; result_revision?: ResultRevision | null;
+  updated_at?: string;
+  annulment?: { reason: string; annulled_at: string } | null;
 };
 export type DriverStanding = { driver_id: string; display_name: string; gamertag: string | null; points: number; wins: number; podiums: number; starts: number };
 export type TeamStanding = { team_name: string; points: number; wins: number; podiums: number };

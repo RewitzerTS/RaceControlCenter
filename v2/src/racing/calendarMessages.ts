@@ -1,5 +1,6 @@
 export const calendarMessages = {
   de: {
+    annulled: 'Annulliert', cancelled: 'Abgesagt',
     title: 'Rennkalender', subtitle: 'Alle bisherigen und kommenden Rennen der Saison. Gefahrene Rennen führen zur Detailseite.',
     upcoming: 'Nächste Rennen', completed: 'Gefahrene Rennen', archive: 'Archiv', archiveTitle: 'Saison-Archiv', tracks: 'Strecken & Rekorde',
     loading: 'Rennen werden geladen…', error: 'Die Rennen konnten nicht geladen werden.', retry: 'Erneut versuchen',
@@ -13,6 +14,7 @@ export const calendarMessages = {
     steward: 'Steward', caseOne: 'Fall', caseMany: 'Fälle',
   },
   en: {
+    annulled: 'Annulled', cancelled: 'Cancelled',
     title: 'Race calendar', subtitle: 'All past and upcoming races this season. Open a race to see its details.',
     upcoming: 'Next races', completed: 'Completed races', archive: 'Archive', archiveTitle: 'Season archive', tracks: 'Tracks & records',
     loading: 'Loading races…', error: 'The races could not be loaded.', retry: 'Try again', emptyUpcoming: 'No upcoming races.', emptyCompleted: 'No races completed yet.',
@@ -23,6 +25,7 @@ export const calendarMessages = {
     map: 'Track map', openMap: 'Open enlarged track map:', mapPending: 'Track map coming soon', mapError: 'The track map could not be loaded.', steward: 'Steward', caseOne: 'case', caseMany: 'cases',
   },
   es: {
+    annulled: 'Anulada', cancelled: 'Cancelada',
     title: 'Calendario', subtitle: 'Todas las carreras pasadas y próximas de la temporada. Abre una carrera para ver sus detalles.',
     upcoming: 'Próximas carreras', completed: 'Carreras disputadas', archive: 'Archivo', archiveTitle: 'Archivo de temporadas', tracks: 'Circuitos y récords',
     loading: 'Cargando carreras…', error: 'No se pudieron cargar las carreras.', retry: 'Reintentar', emptyUpcoming: 'No hay próximas carreras.', emptyCompleted: 'Todavía no se han disputado carreras.',
@@ -33,6 +36,7 @@ export const calendarMessages = {
     map: 'Mapa del circuito', openMap: 'Ampliar el mapa del circuito:', mapPending: 'Mapa próximamente', mapError: 'No se pudo cargar el mapa.', steward: 'Comisario', caseOne: 'caso', caseMany: 'casos',
   },
   fr: {
+    annulled: 'Annulé après course', cancelled: 'Annulé',
     title: 'Calendrier', subtitle: 'Toutes les courses passées et à venir de la saison. Ouvrez une course pour consulter ses détails.',
     upcoming: 'Prochaines courses', completed: 'Courses disputées', archive: 'Archives', archiveTitle: 'Archives des saisons', tracks: 'Circuits et records',
     loading: 'Chargement des courses…', error: 'Impossible de charger les courses.', retry: 'Réessayer', emptyUpcoming: 'Aucune course à venir.', emptyCompleted: 'Aucune course disputée pour le moment.',

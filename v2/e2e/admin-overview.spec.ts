@@ -38,8 +38,70 @@ async function fixture(context: BrowserContext, options: { complete?: boolean; f
     if (url.pathname.includes('/rpc/')) return route.fulfill({ json: null });
     return route.fallback();
   });
-  return { reads, nextId };
+  return { reads, nextId, races };
 }
+
+test('reverse grid shows every seat, switches source and clears stale rows on errors', async ({ page, context }, info) => {
+  await fixture(context);
+  const drivers = Array.from({ length: 22 }, (_, i) => ({ id: String(i), display_name: `Driver ${String(i).padStart(2, '0')}`, gamertag: `Tag_${i}`, is_active: true, league_team: '', car_name: 'Car' }));
+  let fail = false;
+  await context.route('**/rpc/get_reverse_grid_workspace', route => {
+    if (fail) return route.fulfill({ status: 409, json: { message: 'PREVIEW_DRAFT_STALE' } });
+    const drafts = route.request().postDataJSON().p_include_drafts;
+    return route.fulfill({ json: { generatedAt: new Date().toISOString(),
+      data: { season: f.season, drivers, assignments: [], results: [], races: [], currentRoster: drivers.map(d => ({ driver_id: d.id, team_name: null, car_name: 'Car' })) },
+      seats: drivers.map(d => ({ driverId: d.id, aiName: `AI ${d.id}`, gamertag: d.gamertag, isAi: false })), drafts: [], sourceRequested: drafts } });
+  });
+  await page.goto('/admin/reverse-grid');
+  await expect(page.locator('main h1')).toHaveText('Reversegrid-Aufstellung');
+  await expect(page.locator('.reverse-grid-table tbody tr')).toHaveCount(22);
+  await expect(page.locator('.reverse-grid-table tbody tr').first()).toContainText('Tag_21');
+  await expect(page.locator('.reverse-grid-table tbody tr').last()).toContainText('Tag_0');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath('reverse-grid.png'), fullPage: true });
+  await expect(page.locator('.reverse-grid-summary')).toContainText('Vorläufig');
+  await page.getByLabel('Wertungsstand').selectOption('official');
+  await expect(page.locator('.reverse-grid-summary')).toContainText('Offiziell');
+  fail = true;
+  await page.getByRole('button', { name: 'Aktualisieren', exact: true }).click();
+  await expect(page.locator('main [role="alert"]')).toBeVisible();
+  await expect(page.locator('.reverse-grid-table')).toHaveCount(0);
+});
+
+test('annulment requires a reason, preserves input on stale data and leaves the other race untouched', async ({ page, context }, info) => {
+  const state = await fixture(context);
+  const races = state.races.map(r => ({ ...r, status: 'completed', updated_at: '2026-11-10T12:00:00Z', annulment: null as null | { reason: string; annulled_at: string } }));
+  const following = JSON.stringify(races[1]);
+  await context.route('**/rpc/get_league_race_admin_workspace', route => route.fulfill({ json: { league: f.league, seasons: [f.season], races, driver_standings: [], team_standings: [] } }));
+  let calls = 0;
+  await context.route('**/rpc/annul_league_race', route => {
+    calls++;
+    if (calls === 1) return route.fulfill({ status: 409, json: { message: 'ANNUL_STALE' } });
+    const args = route.request().postDataJSON();
+    expect(args.p_race_id).toBe(races[0].id);
+    expect(args.p_expected_updated_at).toBe(races[0].updated_at);
+    races[0] = { ...races[0], status: 'cancelled', current_result_version_id: null, result_status: '', result_count: 0, annulment: { reason: args.p_reason, annulled_at: '2026-11-10T12:10:00Z' } };
+    return route.fulfill({ json: { raceId: races[0].id, status: 'cancelled' } });
+  });
+  await page.goto('/admin/races');
+  await page.getByRole('button', { name: 'Rennen annullieren', exact: true }).first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('button', { name: 'Rennen endgültig annullieren' })).toBeDisabled();
+  await dialog.getByLabel('Begründung').fill('Gemeinsam beschlossen, nicht zu werten.');
+  await page.screenshot({ path: info.outputPath('annul-race.png'), fullPage: false });
+  expect(await dialog.evaluate(el => el.getBoundingClientRect().right <= innerWidth)).toBe(true);
+  await dialog.getByRole('button', { name: 'Rennen endgültig annullieren' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('inzwischen geändert');
+  await expect(dialog.getByLabel('Begründung')).toHaveValue('Gemeinsam beschlossen, nicht zu werten.');
+  await dialog.getByRole('button', { name: 'Abbrechen' }).click();
+  expect(calls).toBe(1);
+  await page.getByRole('button', { name: 'Rennen annullieren', exact: true }).first().click();
+  await dialog.getByLabel('Begründung').fill('Gemeinsam beschlossen, nicht zu werten.');
+  await dialog.getByRole('button', { name: 'Rennen endgültig annullieren' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('main .admin-status:visible').filter({ hasText: /^Annulliert$/ })).toBeVisible();
+  expect(JSON.stringify(races[1])).toBe(following);
+});
 
 test('overview groups a race day and opens the correct race import; navigation stays available', async ({ page, context }, info) => {
   const state = await fixture(context);

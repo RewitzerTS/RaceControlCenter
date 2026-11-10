@@ -7,7 +7,7 @@ import { loadTeamLabels, teamLabel } from './teamLabels';
 
 type Tables = Database['public']['Tables'];
 export type HistorySeason = Pick<Tables['seasons']['Row'], 'id' | 'name' | 'start_date' | 'created_at' | 'is_active'> & Partial<Pick<Tables['seasons']['Row'], 'game_key' | 'game_label' | 'archived_at'>>;
-export type HistoryRace = ResultsRace & Pick<Tables['races']['Row'], 'circuit_name' | 'race_date' | 'race_start_at' | 'race_time' | 'weather'>;
+export type HistoryRace = ResultsRace & Pick<Tables['races']['Row'], 'annulled_at' | 'circuit_name' | 'race_date' | 'race_start_at' | 'race_time' | 'weather'>;
 export type HistoryResult = PublishedResult & Pick<Tables['race_results']['Row'], 'grid_position' | 'race_time'> & Partial<Pick<Tables['race_results']['Row'], 'race_time_ms'>>;
 export type HistoryAssignment = ResultsAssignment & { season_id: string };
 type HistoryDatabase = Omit<Database, 'public'> & { public: Omit<Database['public'], 'Tables'> & { Tables: Tables & { season_driver_assignments: { Row: HistoryAssignment; Insert: never; Update: never; Relationships: [] } } } };
@@ -43,7 +43,7 @@ export async function loadHistory(client: LeagueSupabaseClient, slug: string, us
   const selectedSeasons = raceSeason === 'archived' ? seasons.filter((season) => !season.is_active && season.archived_at) : raceSeason === 'active' ? seasons.filter((season) => season.is_active).slice(-1) : raceSeason ? seasons.filter((season) => season.id === raceSeason) : seasons;
   for (let offset = 0; offset < selectedSeasons.length; offset += 40) {
     const ids = selectedSeasons.slice(offset, offset + 40).map((season) => season.id);
-    races.push(...await readHistoryPages((from, to) => client.from('races').select('id,season_id,round_number,grand_prix_name,country_code,status,current_result_version_id,circuit_name,race_date,race_start_at,race_time,weather').in('season_id', ids).order('id').range(from, to).abortSignal(signal), signal));
+    races.push(...await readHistoryPages((from, to) => client.from('races').select('id,season_id,round_number,grand_prix_name,country_code,status,current_result_version_id,annulled_at,circuit_name,race_date,race_start_at,race_time,weather').in('season_id', ids).order('id').range(from, to).abortSignal(signal), signal));
     if (userId) assignments.push(...await readHistoryPages((from, to) => roster.from('season_driver_assignments').select('id,season_id,driver_id,car_name,created_at,team_name,seat_code,participant_type,ai_driver_name,gamertag_snapshot,number').in('season_id', ids).order('created_at').order('id').range(from, to).abortSignal(signal), signal));
   }
   const results: HistoryResult[] = [];

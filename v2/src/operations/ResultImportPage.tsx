@@ -97,7 +97,7 @@ export function ResultImportPage() {
   useEffect(() => {
     if (!races || initialRaceApplied.current) return;
     initialRaceApplied.current = true;
-    if (requestedRace && activeSeasonRaces(races).some(race => race.id === requestedRace)) {
+    if (requestedRace && activeSeasonRaces(races).some(race => race.id === requestedRace && race.status !== 'cancelled')) {
       setRaceId(current => current || requestedRace);
     }
   }, [races, requestedRace]);
@@ -108,7 +108,7 @@ export function ResultImportPage() {
     validate: (value): value is typeof draftValue => {
       if (!value || typeof value !== 'object') return false;
       const item = value as typeof draftValue;
-      return typeof item.raceId === 'string' && races?.races.some((race) => race.id === item.raceId && race.season_id === activeSeasonId) === true
+      return typeof item.raceId === 'string' && races?.races.some((race) => race.id === item.raceId && race.season_id === activeSeasonId && race.status !== 'cancelled') === true
         && typeof item.csv === 'string' && item.csv.length < 1000000
         && ['images', 'csv'].includes(item.importMethod)
         && Array.isArray(item.reviewRows) && item.reviewRows.length <= 200
@@ -129,7 +129,7 @@ export function ResultImportPage() {
     setImportProgress(copy('import.preparing', { count: files.length }));
     try {
       const race = races?.races.find((item) => item.id === raceId);
-      if (!race) throw new Error(copy('import.selectRaceError'));
+      if (!race || race.status === 'cancelled') throw new Error(copy('import.selectRaceError'));
       const images = await prepareRaceResultImages(files, ({ completed, total, fileName }) => {
         setImportProgress(copy('import.prepared', { completed, total, file: fileName }));
       });
@@ -158,6 +158,7 @@ export function ResultImportPage() {
     setMessage('');
     setMessageTone('error');
     try {
+      if (!races?.races.some(race => race.id === raceId && race.season_id === activeSeasonId && race.status !== 'cancelled')) throw new Error(copy('import.selectRaceError'));
       const rows = reviewRows.length
         ? resultReviewRowsToImported(reviewRows, importDrivers, copy)
         : parseResultCsv(csv, importDrivers);
@@ -222,7 +223,7 @@ export function ResultImportPage() {
     catch (error) { reviewError = error instanceof Error ? error.message : copy('review.assignAllError'); }
   }
   const saveReady = reviewRows.length ? !reviewError : importMethod === 'csv' && csv.trim().split(/\r?\n/).length > 1;
-  const availableRaces = races ? activeSeasonRaces(races) : [];
+  const availableRaces = races ? activeSeasonRaces(races).filter(race => race.status !== 'cancelled') : [];
   const scoringRules = resultScoringRulesForRace(races, raceId);
   return <main className="operations-page admin-management-page" id="main-content">
     <header className="operations-header"><div><p className="section-label">{copy('shared.scope', { league: leagueSlug })}</p><h1>{copy('import.title')}</h1><p>{copy('import.copy')}</p></div><NavLink className="text-link" to="/admin">{copy('shared.back')}</NavLink></header>

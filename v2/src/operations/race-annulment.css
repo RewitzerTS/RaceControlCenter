@@ -1,0 +1,11 @@
+.race-annulment-dialog { width: min(36rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid var(--line); border-radius: 12px; background: var(--brand-surface, #17191e); color: var(--text); }
+.race-annulment-dialog::backdrop { background: rgb(0 0 0 / 75%); }
+.race-annulment-dialog form { display: grid; gap: 1rem; }
+.race-annulment-dialog h2, .race-annulment-dialog p { margin: 0; }
+.race-annulment-dialog p { line-height: 1.6; }
+.race-annulment-dialog label { display: grid; gap: .5rem; }
+.race-annulment-dialog textarea { width: 100%; resize: vertical; font: inherit; font-size: 1rem; padding: .75rem; border: 1px solid var(--line); border-radius: 8px; }
+.race-annulment-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .75rem; }
+.race-annulment-actions button { min-height: 44px; white-space: normal; }
+.race-annulment-confirm { color: var(--danger, #ff9caa); }
+.race-annulment-trigger { min-height: 44px; font-size: .875rem; }

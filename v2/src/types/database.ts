@@ -1639,6 +1639,7 @@ export type Database = {
       }
       races: {
         Row: {
+          annulled_at?: string | null
           circuit_name: string | null
           country_code: string | null
           created_at: string
@@ -2806,6 +2807,8 @@ export type Database = {
       get_league_roster_workspace: { Args: never; Returns: Json }
       get_season_championship_roster: { Args: { p_season_id: string }; Returns: { driver_id: string; team_name: string | null; car_name: string | null }[] }
       get_season_championship_ai_assignments: { Args: { p_season_id: string }; Returns: { human_driver_id: string; ai_driver_id: string; effective_from_round: number; effective_to_round: number | null }[] }
+      annul_league_race: { Args: { p_race_id: string; p_expected_version_id: string | null; p_expected_updated_at: string; p_reason: string }; Returns: Json }
+      get_reverse_grid_workspace: { Args: { p_include_drafts?: boolean }; Returns: Json }
       get_result_draft_championship_preview: { Args: { p_result_version_id: string }; Returns: Json }
       get_league_team_history: { Args: Record<string, never>; Returns: { season_id: string; driver_id: string; team_name: string | null; car_name: string | null; effective_round_number: number; created_at: string }[] }
       set_race_substitution: {
